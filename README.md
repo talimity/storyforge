@@ -1,4 +1,4 @@
-# DirectorMaxx
+# Storyforge
 
 An AI-powered tabletop-style roleplay application that moves beyond traditional 1-on-1 AI chat toward a director/dungeon master experience.
 
