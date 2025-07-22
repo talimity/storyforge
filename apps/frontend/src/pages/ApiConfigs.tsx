@@ -3,17 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
   Key,
   Shield,
-  Zap,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
 } from "lucide-react";
 
 export const ApiConfigs = () => {

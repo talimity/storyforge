@@ -133,7 +133,7 @@ const MenubarCheckboxItem = React.forwardRef<
       "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
-    checked={checked}
+    checked={!!checked}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -143,7 +143,7 @@ const MenubarCheckboxItem = React.forwardRef<
     </span>
     {children}
   </MenubarPrimitive.CheckboxItem>
-))
+));
 MenubarCheckboxItem.displayName = MenubarPrimitive.CheckboxItem.displayName
 
 const MenubarRadioItem = React.forwardRef<

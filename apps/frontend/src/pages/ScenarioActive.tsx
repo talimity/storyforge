@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings, Pause } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -7,7 +6,7 @@ import { TurnDisplay } from "@/components/scenario/TurnDisplay";
 import { InputArea } from "@/components/scenario/InputArea";
 import { ProcessingIndicator } from "@/components/scenario/ProcessingIndicator";
 import { useScenario } from "@/hooks/useScenario";
-import { Scenario, Turn } from "@/types/scenario";
+import { Scenario } from "@/types/scenario";
 
 export const ScenarioActive = () => {
   // Mock scenario data with turn-based structure
@@ -24,7 +23,7 @@ export const ScenarioActive = () => {
         avatar: null,
         isActive: true,
         mood: "Calculating",
-        status: "Planning her next move"
+        status: "Planning her next move",
       },
       {
         id: 2,
@@ -32,7 +31,7 @@ export const ScenarioActive = () => {
         avatar: null,
         isActive: false,
         mood: "Suspicious",
-        status: "Watching carefully"
+        status: "Watching carefully",
       },
       {
         id: 3,
@@ -40,23 +39,25 @@ export const ScenarioActive = () => {
         avatar: null,
         isActive: false,
         mood: "Amused",
-        status: "Lurking in shadows"
-      }
+        status: "Lurking in shadows",
+      },
     ],
     turns: [
       {
         id: 1,
         number: 1,
-        content: "The Court of Whispers stands in magnificent splendor, its halls adorned with the colors of autumn. Nobles from across the realm have gathered for what promises to be a pivotal moment in fae politics. The air itself seems to shimmer with anticipation and barely contained magic.",
+        content:
+          "The Court of Whispers stands in magnificent splendor, its halls adorned with the colors of autumn. Nobles from across the realm have gathered for what promises to be a pivotal moment in fae politics. The air itself seems to shimmer with anticipation and barely contained magic.",
         timestamp: new Date(Date.now() - 3600000),
-        activeCharacters: []
+        activeCharacters: [],
       },
       {
         id: 2,
         number: 2,
-        content: "Lady Veridiana enters the great hall, her emerald gown catching the light of the enchanted chandeliers above. Her presence commands attention, and conversations pause as she moves with calculated grace through the crowd. Every step is deliberate, every glance meaningful.",
+        content:
+          "Lady Veridiana enters the great hall, her emerald gown catching the light of the enchanted chandeliers above. Her presence commands attention, and conversations pause as she moves with calculated grace through the crowd. Every step is deliberate, every glance meaningful.",
         timestamp: new Date(Date.now() - 1800000),
-        activeCharacters: ["Lady Veridiana"]
+        activeCharacters: ["Lady Veridiana"],
       },
       {
         id: 3,
@@ -69,9 +70,9 @@ Lord Thorn's eyes narrow from across the chamber. He has suspected her of plotti
 
 The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting for her next words.`,
         timestamp: new Date(),
-        activeCharacters: ["Lady Veridiana", "Lord Thorn", "The Shadow Broker"]
-      }
-    ]
+        activeCharacters: ["Lady Veridiana", "Lord Thorn", "The Shadow Broker"],
+      },
+    ],
   };
 
   const {
@@ -86,12 +87,12 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
     setInputMode,
     setSelectedCharacter,
     setInputText,
-    handleSendInput
+    handleSendInput,
   } = useScenario(mockScenario);
 
   const handleHistoryToggle = () => {
     // TODO: Implement history panel toggle in Phase 3
-    console.log('History toggle - to be implemented');
+    console.log("History toggle - to be implemented");
   };
 
   return (
@@ -111,7 +112,9 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
                 {scenario.name}
               </h1>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>Turn {scenario.turns[currentTurnIndex]?.number || 1}</span>
+                <span>
+                  Turn {scenario.turns[currentTurnIndex]?.number || 1}
+                </span>
                 <span>•</span>
                 <span>{scenario.characters.length} characters</span>
               </div>
@@ -150,7 +153,7 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
 
           {/* Processing Indicator */}
           <div className="max-w-4xl mx-auto px-6">
-            <ProcessingIndicator 
+            <ProcessingIndicator
               steps={processingSteps}
               isVisible={isProcessing}
             />

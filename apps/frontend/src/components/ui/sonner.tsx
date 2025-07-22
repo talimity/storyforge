@@ -1,14 +1,29 @@
-import { useTheme } from "next-themes"
-import { Toaster as Sonner, toast } from "sonner"
+import { useTheme } from "next-themes";
+import { Toaster as Sonner, toast } from "sonner";
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+type ToasterProps = React.ComponentProps<typeof Sonner>;
+
+function assertIsValidSonnerTheme(
+  theme: string
+): asserts theme is "light" | "dark" | "system" {
+  const validThemes = ["light", "dark", "system"];
+  if (!validThemes.includes(theme)) {
+    throw new Error(
+      `Invalid Sonner theme: ${theme}. Valid themes are: ${validThemes.join(
+        ", "
+      )}`
+    );
+  }
+}
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const { theme = "system" } = useTheme();
+
+  assertIsValidSonnerTheme(theme);
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme}
       className="toaster group"
       toastOptions={{
         classNames: {
@@ -23,7 +38,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster, toast }
+export { Toaster, toast };

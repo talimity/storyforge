@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { 
-  Users, 
-  BookOpen, 
-  Scroll, 
-  Bot, 
-  Key, 
+import {
+  Users,
+  BookOpen,
+  Scroll,
+  Bot,
+  Key,
   Play,
   Home,
-  Settings
+  Settings,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -20,7 +19,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -34,7 +32,7 @@ const libraryItems = [
 
 const mainItems = [
   { title: "Home", url: "/", icon: Home },
-  { title: "Active Scenarios", url: "/active", icon: Play },
+  { title: "Active Scenario", url: "/active", icon: Play },
 ];
 
 export function AppSidebar() {
@@ -43,12 +41,10 @@ export function AppSidebar() {
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath === path;
-  const isGroupActive = (items: typeof libraryItems) => 
-    items.some(item => isActive(item.url));
 
   const getNavClasses = (path: string) =>
-    isActive(path) 
-      ? "bg-primary/20 text-primary border-r-2 border-primary font-medium" 
+    isActive(path)
+      ? "bg-primary/20 text-primary border-r-2 border-primary font-medium"
       : "text-muted-foreground hover:text-foreground hover:bg-accent/10";
 
   return (
@@ -62,7 +58,9 @@ export function AppSidebar() {
             </div>
             {state !== "collapsed" && (
               <div>
-                <h2 className="font-display font-semibold text-sidebar-foreground">ANE</h2>
+                <h2 className="font-display font-semibold text-sidebar-foreground">
+                  ANE
+                </h2>
                 <p className="text-xs text-sidebar-foreground/60">v0.1.0</p>
               </div>
             )}
@@ -117,7 +115,10 @@ export function AppSidebar() {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/settings" className={getNavClasses("/settings")}>
+                    <NavLink
+                      to="/settings"
+                      className={getNavClasses("/settings")}
+                    >
                       <Settings className="w-4 h-4" />
                       {state !== "collapsed" && <span>Settings</span>}
                     </NavLink>

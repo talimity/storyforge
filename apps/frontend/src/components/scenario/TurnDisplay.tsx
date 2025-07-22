@@ -1,8 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Eye, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { Turn } from "@/types/scenario";
 
 interface TurnDisplayProps {
@@ -16,7 +15,7 @@ export const TurnDisplay = ({
   turns,
   currentTurnIndex,
   onTurnChange,
-  onHistoryToggle
+  onHistoryToggle,
 }: TurnDisplayProps) => {
   const currentTurn = turns[currentTurnIndex];
   const canGoPrevious = currentTurnIndex > 0;
@@ -28,9 +27,9 @@ export const TurnDisplay = ({
         {/* Turn Navigation */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onTurnChange(currentTurnIndex - 1)}
               disabled={!canGoPrevious}
             >
@@ -40,16 +39,10 @@ export const TurnDisplay = ({
               <span className="text-sm text-muted-foreground">
                 Turn {currentTurn?.number || 1} of {turns.length}
               </span>
-              {currentTurnIndex === turns.length - 1 && (
-                <Badge variant="default" className="bg-gradient-primary text-xs">
-                  <Play className="w-3 h-3 mr-1" />
-                  Now Playing
-                </Badge>
-              )}
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onTurnChange(currentTurnIndex + 1)}
               disabled={!canGoNext}
             >
@@ -67,7 +60,7 @@ export const TurnDisplay = ({
           <Card className="narrative-container">
             <CardContent className="p-8">
               <div className="narrative-text space-y-4">
-                {currentTurn.content.split('\n\n').map((paragraph, index) => (
+                {currentTurn.content.split("\n\n").map((paragraph, index) => (
                   <p key={index} className="leading-relaxed">
                     {paragraph}
                   </p>

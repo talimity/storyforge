@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext", 
-    "moduleResolution": "node",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "jsx": "react-jsx",
     
     /* Strict Type Checking */
     "strict": true,
@@ -21,17 +23,23 @@
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     
-    /* Emit */
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": true,
-    "declarationMap": true,
-    "removeComments": false,
-    
     /* Module Resolution */
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    
+    /* Path Mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "src/**/*.tsx"
+  ],
   "exclude": ["node_modules", "dist"]
 }
