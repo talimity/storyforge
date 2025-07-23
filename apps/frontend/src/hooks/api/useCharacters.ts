@@ -1,14 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { charactersService } from '@/services';
-import { Character } from '@storyforge/shared';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { charactersService } from "@/services";
+import { Character } from "@storyforge/shared";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 
 export const characterKeys = {
-  all: ['characters'] as const,
-  lists: () => [...characterKeys.all, 'list'] as const,
-  list: (filters: Record<string, unknown>) => [...characterKeys.lists(), filters] as const,
-  details: () => [...characterKeys.all, 'detail'] as const,
+  all: ["characters"] as const,
+  lists: () => [...characterKeys.all, "list"] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...characterKeys.lists(), filters] as const,
+  details: () => [...characterKeys.all, "detail"] as const,
   detail: (id: string) => [...characterKeys.details(), id] as const,
 };
 
@@ -36,7 +37,8 @@ export function useCreateCharacter() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (character: Omit<Character, 'id'>) => charactersService.create(character),
+    mutationFn: (character: Omit<Character, "id">) =>
+      charactersService.create(character),
     onSuccess: () => {
       // Invalidate and refetch characters list
       queryClient.invalidateQueries({ queryKey: characterKeys.lists() });
@@ -49,10 +51,18 @@ export function useUpdateCharacter() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, character }: { id: string; character: Partial<Character> }) =>
-      charactersService.update(id, character),
+    mutationFn: ({
+      id,
+      character,
+    }: {
+      id: string;
+      character: Partial<Character>;
+    }) => charactersService.update(id, character),
     onSuccess: (updatedCharacter) => {
-      queryClient.setQueryData(characterKeys.detail(updatedCharacter.id), updatedCharacter);
+      queryClient.setQueryData(
+        characterKeys.detail(updatedCharacter.id),
+        updatedCharacter
+      );
       queryClient.invalidateQueries({ queryKey: characterKeys.lists() });
     },
   });

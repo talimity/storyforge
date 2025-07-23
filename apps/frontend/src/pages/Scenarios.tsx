@@ -1,18 +1,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Plus, 
-  Search, 
-  Play, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Play,
+  Edit,
+  Trash2,
   BookOpen,
   Users,
   Clock,
-  Settings
+  Settings,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -24,101 +30,117 @@ export const Scenarios = () => {
     {
       id: 1,
       name: "The Autumn Court Intrigue",
-      description: "A tale of political maneuvering in the fae courts where ancient alliances crumble and new powers rise.",
+      description:
+        "A tale of political maneuvering in the fae courts where ancient alliances crumble and new powers rise.",
       characters: ["Lady Veridiana", "Lord Thorn", "The Shadow Broker"],
       status: "Active",
       turnCount: 23,
       lastPlayed: "2 hours ago",
       created: "1 week ago",
-      tags: ["Fantasy", "Political", "Fae"]
+      tags: ["Fantasy", "Political", "Fae"],
     },
     {
       id: 2,
       name: "Space Station Osiris",
-      description: "Mystery and danger aboard a deep space research station as the crew uncovers a sinister conspiracy.",
-      characters: ["Dr. Elena Chen", "Captain Rodriguez", "ARIA", "Commander Steel"],
+      description:
+        "Mystery and danger aboard a deep space research station as the crew uncovers a sinister conspiracy.",
+      characters: [
+        "Dr. Elena Chen",
+        "Captain Rodriguez",
+        "ARIA",
+        "Commander Steel",
+      ],
       status: "Active",
       turnCount: 45,
       lastPlayed: "1 day ago",
       created: "2 weeks ago",
-      tags: ["Sci-Fi", "Mystery", "Space"]
+      tags: ["Sci-Fi", "Mystery", "Space"],
     },
     {
       id: 3,
       name: "The Merchant's Gambit",
-      description: "Trade wars and espionage in a fantasy port city where gold flows like water and secrets are currency.",
+      description:
+        "Trade wars and espionage in a fantasy port city where gold flows like water and secrets are currency.",
       characters: ["Silvana Goldhand", "Captain Blackwater"],
       status: "Paused",
       turnCount: 12,
       lastPlayed: "3 days ago",
       created: "1 month ago",
-      tags: ["Fantasy", "Trade", "Intrigue"]
+      tags: ["Fantasy", "Trade", "Intrigue"],
     },
     {
       id: 4,
       name: "The Cyber Heist",
-      description: "A high-tech thriller in Neo-Tokyo where hackers and megacorps clash in the digital shadows.",
+      description:
+        "A high-tech thriller in Neo-Tokyo where hackers and megacorps clash in the digital shadows.",
       characters: ["Zero", "Neon", "The Architect"],
       status: "Complete",
       turnCount: 67,
       lastPlayed: "1 week ago",
       created: "2 months ago",
-      tags: ["Cyberpunk", "Heist", "Tech"]
+      tags: ["Cyberpunk", "Heist", "Tech"],
     },
     {
       id: 5,
       name: "Dragon's Keep",
-      description: "Classic fantasy adventure where heroes must navigate ancient dungeons and face legendary beasts.",
+      description:
+        "Classic fantasy adventure where heroes must navigate ancient dungeons and face legendary beasts.",
       characters: ["Sir Gareth", "Lyra the Mage", "Thorin Ironbeard"],
       status: "Draft",
       turnCount: 0,
       lastPlayed: "Never",
       created: "3 days ago",
-      tags: ["Fantasy", "Adventure", "Classic"]
-    }
+      tags: ["Fantasy", "Adventure", "Classic"],
+    },
   ];
 
-  const filteredScenarios = scenarios.filter(scenario =>
-    scenario.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    scenario.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    scenario.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredScenarios = scenarios.filter(
+    (scenario) =>
+      scenario.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      scenario.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      scenario.tags.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase())
+      )
   );
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active':
-        return 'bg-success/20 text-success border-success/30';
-      case 'Paused':
-        return 'bg-warning/20 text-warning border-warning/30';
-      case 'Complete':
-        return 'bg-primary/20 text-primary border-primary/30';
-      case 'Draft':
-        return 'bg-muted/20 text-muted-foreground border-muted/30';
+      case "Active":
+        return "bg-success/20 text-success border-success/30";
+      case "Paused":
+        return "bg-warning/20 text-warning border-warning/30";
+      case "Complete":
+        return "bg-primary/20 text-primary border-primary/30";
+      case "Draft":
+        return "bg-muted/20 text-muted-foreground border-muted/30";
       default:
-        return 'bg-muted/20 text-muted-foreground border-muted/30';
+        return "bg-muted/20 text-muted-foreground border-muted/30";
     }
   };
 
   const getStatusActions = (scenario: any) => {
     switch (scenario.status) {
-      case 'Active':
-      case 'Paused':
+      case "Active":
+      case "Paused":
         return (
           <Link to={`/scenario/${scenario.id}`}>
-            <Button size="sm" className="bg-gradient-primary hover:shadow-glow transition-all">
+            <Button
+              size="sm"
+              className="bg-gradient-primary hover:shadow-glow transition-all"
+            >
               <Play className="w-3 h-3 mr-1" />
               Continue
             </Button>
           </Link>
         );
-      case 'Draft':
+      case "Draft":
         return (
           <Button size="sm" variant="outline">
             <Settings className="w-3 h-3 mr-1" />
             Setup
           </Button>
         );
-      case 'Complete':
+      case "Complete":
         return (
           <Button size="sm" variant="outline">
             <Play className="w-3 h-3 mr-1" />
@@ -135,7 +157,9 @@ export const Scenarios = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Scenarios</h1>
+          <h1 className="font-display text-3xl font-bold text-foreground">
+            Scenarios
+          </h1>
           <p className="text-muted-foreground mt-1">
             Create and manage your storytelling scenarios
           </p>
@@ -158,17 +182,26 @@ export const Scenarios = () => {
           />
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Badge variant="secondary" className="cursor-pointer hover:bg-primary/20">
+          <Badge
+            variant="secondary"
+            className="cursor-pointer hover:bg-primary/20"
+          >
             All ({scenarios.length})
           </Badge>
-          <Badge variant="outline" className="cursor-pointer hover:bg-success/10">
-            Active ({scenarios.filter(s => s.status === 'Active').length})
+          <Badge
+            variant="outline"
+            className="cursor-pointer hover:bg-success/10"
+          >
+            Active ({scenarios.filter((s) => s.status === "Active").length})
           </Badge>
-          <Badge variant="outline" className="cursor-pointer hover:bg-warning/10">
-            Paused ({scenarios.filter(s => s.status === 'Paused').length})
+          <Badge
+            variant="outline"
+            className="cursor-pointer hover:bg-warning/10"
+          >
+            Paused ({scenarios.filter((s) => s.status === "Paused").length})
           </Badge>
           <Badge variant="outline" className="cursor-pointer hover:bg-muted/20">
-            Draft ({scenarios.filter(s => s.status === 'Draft').length})
+            Draft ({scenarios.filter((s) => s.status === "Draft").length})
           </Badge>
         </div>
       </div>
@@ -184,7 +217,9 @@ export const Scenarios = () => {
                     <CardTitle className="font-display text-lg truncate">
                       {scenario.name}
                     </CardTitle>
-                    <Badge className={`text-xs ${getStatusColor(scenario.status)}`}>
+                    <Badge
+                      className={`text-xs ${getStatusColor(scenario.status)}`}
+                    >
                       {scenario.status}
                     </Badge>
                   </div>
@@ -194,7 +229,7 @@ export const Scenarios = () => {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
               {/* Characters */}
               <div className="space-y-2">
@@ -204,7 +239,11 @@ export const Scenarios = () => {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {scenario.characters.slice(0, 3).map((character) => (
-                    <Badge key={character} variant="outline" className="text-xs">
+                    <Badge
+                      key={character}
+                      variant="outline"
+                      className="text-xs"
+                    >
                       {character}
                     </Badge>
                   ))}
@@ -218,7 +257,9 @@ export const Scenarios = () => {
 
               {/* Tags */}
               <div className="space-y-2">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Tags</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                  Tags
+                </div>
                 <div className="flex flex-wrap gap-1">
                   {scenario.tags.map((tag) => (
                     <Badge key={tag} variant="secondary" className="text-xs">
@@ -238,14 +279,24 @@ export const Scenarios = () => {
                   )}
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {scenario.status === 'Draft' ? `Created ${scenario.created}` : `Last played ${scenario.lastPlayed}`}
+                    {scenario.status === "Draft"
+                      ? `Created ${scenario.created}`
+                      : `Last played ${scenario.lastPlayed}`}
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
                     <Edit className="w-3 h-3" />
                   </Button>
-                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                  >
                     <Trash2 className="w-3 h-3" />
                   </Button>
                   {getStatusActions(scenario)}
@@ -260,9 +311,13 @@ export const Scenarios = () => {
       {filteredScenarios.length === 0 && (
         <div className="text-center py-12">
           <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-display text-lg font-semibold text-foreground mb-2">No scenarios found</h3>
+          <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+            No scenarios found
+          </h3>
           <p className="text-muted-foreground mb-4">
-            {searchQuery ? "Try adjusting your search terms" : "Get started by creating your first scenario"}
+            {searchQuery
+              ? "Try adjusting your search terms"
+              : "Get started by creating your first scenario"}
           </p>
           <Button className="bg-gradient-primary hover:shadow-glow transition-all">
             <Plus className="w-4 h-4 mr-2" />

@@ -1,4 +1,3 @@
-
 export interface Character {
   id: number;
   name: string;
@@ -27,7 +26,7 @@ export interface Scenario {
   currentTurnIndex: number;
 }
 
-export type InputMode = 'director' | 'character';
+export type InputMode = "director" | "character";
 
 export interface ProcessingStep {
   name: string;

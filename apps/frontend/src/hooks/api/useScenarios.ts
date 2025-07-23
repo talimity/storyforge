@@ -1,14 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { scenariosService } from '@/services';
-import { Scenario } from '@storyforge/shared';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { scenariosService } from "@/services";
+import { Scenario } from "@storyforge/shared";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 
 export const scenarioKeys = {
-  all: ['scenarios'] as const,
-  lists: () => [...scenarioKeys.all, 'list'] as const,
-  list: (filters: Record<string, unknown>) => [...scenarioKeys.lists(), filters] as const,
-  details: () => [...scenarioKeys.all, 'detail'] as const,
+  all: ["scenarios"] as const,
+  lists: () => [...scenarioKeys.all, "list"] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...scenarioKeys.lists(), filters] as const,
+  details: () => [...scenarioKeys.all, "detail"] as const,
   detail: (id: string) => [...scenarioKeys.details(), id] as const,
 };
 
@@ -36,7 +37,8 @@ export function useCreateScenario() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (scenario: Omit<Scenario, 'id'>) => scenariosService.create(scenario),
+    mutationFn: (scenario: Omit<Scenario, "id">) =>
+      scenariosService.create(scenario),
     onSuccess: () => {
       // Invalidate and refetch scenarios list
       queryClient.invalidateQueries({ queryKey: scenarioKeys.lists() });
@@ -49,11 +51,19 @@ export function useUpdateScenario() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, scenario }: { id: string; scenario: Partial<Scenario> }) =>
-      scenariosService.update(id, scenario),
+    mutationFn: ({
+      id,
+      scenario,
+    }: {
+      id: string;
+      scenario: Partial<Scenario>;
+    }) => scenariosService.update(id, scenario),
     onSuccess: (updatedScenario) => {
       // Update the specific scenario in cache
-      queryClient.setQueryData(scenarioKeys.detail(updatedScenario.id), updatedScenario);
+      queryClient.setQueryData(
+        scenarioKeys.detail(updatedScenario.id),
+        updatedScenario
+      );
       // Invalidate the list to ensure consistency
       queryClient.invalidateQueries({ queryKey: scenarioKeys.lists() });
     },

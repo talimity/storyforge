@@ -1,9 +1,9 @@
-import { api } from './api';
-import { Scenario, ScenariosResponse } from '@storyforge/shared';
+import { api } from "./api";
+import { Scenario, ScenariosResponse } from "@storyforge/shared";
 
 export const scenariosService = {
   async getAll(): Promise<Scenario[]> {
-    const response = await api.get<ScenariosResponse>('/api/scenarios');
+    const response = await api.get<ScenariosResponse>("/api/scenarios");
     return response.scenarios;
   },
 
@@ -11,8 +11,8 @@ export const scenariosService = {
     return api.get<Scenario>(`/api/scenarios/${id}`);
   },
 
-  async create(scenario: Omit<Scenario, 'id'>): Promise<Scenario> {
-    return api.post<Scenario>('/api/scenarios', scenario);
+  async create(scenario: Omit<Scenario, "id">): Promise<Scenario> {
+    return api.post<Scenario>("/api/scenarios", scenario);
   },
 
   async update(id: string, scenario: Partial<Scenario>): Promise<Scenario> {

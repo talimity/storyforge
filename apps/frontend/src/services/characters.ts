@@ -1,9 +1,9 @@
-import { api } from './api';
-import { Character, CharactersResponse } from '@storyforge/shared';
+import { api } from "./api";
+import { Character, CharactersResponse } from "@storyforge/shared";
 
 export const charactersService = {
   async getAll(): Promise<Character[]> {
-    const response = await api.get<CharactersResponse>('/api/characters');
+    const response = await api.get<CharactersResponse>("/api/characters");
     return response.characters;
   },
 
@@ -11,8 +11,8 @@ export const charactersService = {
     return api.get<Character>(`/api/characters/${id}`);
   },
 
-  async create(character: Omit<Character, 'id'>): Promise<Character> {
-    return api.post<Character>('/api/characters', character);
+  async create(character: Omit<Character, "id">): Promise<Character> {
+    return api.post<Character>("/api/characters", character);
   },
 
   async update(id: string, character: Partial<Character>): Promise<Character> {

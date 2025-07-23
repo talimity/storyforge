@@ -1,9 +1,9 @@
-import { api } from './api';
-import { Lorebook, LorebooksResponse } from '@storyforge/shared';
+import { api } from "./api";
+import { Lorebook, LorebooksResponse } from "@storyforge/shared";
 
 export const lorebooksService = {
   async getAll(): Promise<Lorebook[]> {
-    const response = await api.get<LorebooksResponse>('/api/lorebooks');
+    const response = await api.get<LorebooksResponse>("/api/lorebooks");
     return response.lorebooks;
   },
 
@@ -11,8 +11,8 @@ export const lorebooksService = {
     return api.get<Lorebook>(`/api/lorebooks/${id}`);
   },
 
-  async create(lorebook: Omit<Lorebook, 'id'>): Promise<Lorebook> {
-    return api.post<Lorebook>('/api/lorebooks', lorebook);
+  async create(lorebook: Omit<Lorebook, "id">): Promise<Lorebook> {
+    return api.post<Lorebook>("/api/lorebooks", lorebook);
   },
 
   async update(id: string, lorebook: Partial<Lorebook>): Promise<Lorebook> {

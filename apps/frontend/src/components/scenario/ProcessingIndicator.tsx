@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Zap } from "lucide-react";
@@ -9,7 +8,10 @@ interface ProcessingIndicatorProps {
   isVisible: boolean;
 }
 
-export const ProcessingIndicator = ({ steps, isVisible }: ProcessingIndicatorProps) => {
+export const ProcessingIndicator = ({
+  steps,
+  isVisible,
+}: ProcessingIndicatorProps) => {
   if (!isVisible) return null;
 
   return (
@@ -25,7 +27,9 @@ export const ProcessingIndicator = ({ steps, isVisible }: ProcessingIndicatorPro
               <div key={step.name} className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-foreground">{step.name}</span>
-                  <span className="text-muted-foreground">{step.progress}%</span>
+                  <span className="text-muted-foreground">
+                    {step.progress}%
+                  </span>
                 </div>
                 <Progress value={step.progress} className="h-1" />
                 <div className="text-xs text-muted-foreground">

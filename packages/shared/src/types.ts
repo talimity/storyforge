@@ -85,7 +85,7 @@ export interface UIScenario {
   currentTurnIndex: number;
 }
 
-export type InputMode = 'director' | 'character';
+export type InputMode = "director" | "character";
 
 export interface ProcessingStep {
   name: string;

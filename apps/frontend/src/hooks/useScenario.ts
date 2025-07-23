@@ -1,13 +1,23 @@
-
-import { useState, useCallback, useEffect } from 'react';
-import { UIScenario, UITurn, InputMode, ProcessingStep } from '@storyforge/shared';
+import { useState, useCallback, useEffect } from "react";
+import {
+  UIScenario,
+  UITurn,
+  InputMode,
+  ProcessingStep,
+} from "@storyforge/shared";
 
 export const useScenario = (initialScenario?: UIScenario) => {
-  const [scenario, setScenario] = useState<UIScenario | undefined>(initialScenario);
-  const [currentTurnIndex, setCurrentTurnIndex] = useState(initialScenario?.turns.length ? initialScenario.turns.length - 1 : 0);
-  const [inputMode, setInputMode] = useState<InputMode>('director');
-  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
-  const [inputText, setInputText] = useState('');
+  const [scenario, setScenario] = useState<UIScenario | undefined>(
+    initialScenario
+  );
+  const [currentTurnIndex, setCurrentTurnIndex] = useState(
+    initialScenario?.turns.length ? initialScenario.turns.length - 1 : 0
+  );
+  const [inputMode, setInputMode] = useState<InputMode>("director");
+  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
+    null
+  );
+  const [inputText, setInputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Update state when initialScenario changes
@@ -19,22 +29,37 @@ export const useScenario = (initialScenario?: UIScenario) => {
   }, [initialScenario]);
 
   const processingSteps: ProcessingStep[] = [
-    { name: "Planner Agent", description: "Analyzing character motivations", progress: 100 },
-    { name: "Screenplay Agent", description: "Structuring dialogue and actions", progress: 75 },
-    { name: "Prose Agent", description: "Crafting narrative prose", progress: 30 },
+    {
+      name: "Planner Agent",
+      description: "Analyzing character motivations",
+      progress: 100,
+    },
+    {
+      name: "Screenplay Agent",
+      description: "Structuring dialogue and actions",
+      progress: 75,
+    },
+    {
+      name: "Prose Agent",
+      description: "Crafting narrative prose",
+      progress: 30,
+    },
   ];
 
-  const handleTurnChange = useCallback((index: number) => {
-    if (scenario && index >= 0 && index < scenario.turns.length) {
-      setCurrentTurnIndex(index);
-    }
-  }, [scenario?.turns.length]);
+  const handleTurnChange = useCallback(
+    (index: number) => {
+      if (scenario && index >= 0 && index < scenario.turns.length) {
+        setCurrentTurnIndex(index);
+      }
+    },
+    [scenario?.turns.length]
+  );
 
   const handleSendInput = useCallback(() => {
     if (!inputText.trim() || !scenario) return;
-    
+
     setIsProcessing(true);
-    
+
     // Simulate processing - in real app, this would make API calls
     setTimeout(() => {
       const newTurn: UITurn = {
@@ -49,15 +74,19 @@ Each choice echoes through the halls of destiny, weaving together the threads of
         activeCharacters: selectedCharacter ? [selectedCharacter] : [],
       };
 
-      setScenario(prev => prev ? ({
-        ...prev,
-        turns: [...prev.turns, newTurn],
-        turnCount: prev.turnCount + 1
-      }) : undefined);
+      setScenario((prev) =>
+        prev
+          ? {
+              ...prev,
+              turns: [...prev.turns, newTurn],
+              turnCount: prev.turnCount + 1,
+            }
+          : undefined
+      );
 
       setCurrentTurnIndex(scenario.turns.length);
       setIsProcessing(false);
-      setInputText('');
+      setInputText("");
     }, 3000);
   }, [inputText, selectedCharacter, scenario]);
 
@@ -73,6 +102,6 @@ Each choice echoes through the halls of destiny, weaving together the threads of
     setInputMode,
     setSelectedCharacter,
     setInputText,
-    handleSendInput
+    handleSendInput,
   };
 };

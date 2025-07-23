@@ -8,13 +8,13 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
-  const isScenarioActive = location.pathname.startsWith('/scenario/');
+  const isScenarioActive = location.pathname.startsWith("/scenario/");
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        
+
         <div className="flex-1 flex flex-col">
           {!isScenarioActive && (
             <header className="h-14 flex items-center border-b border-border bg-card/50 backdrop-blur-sm px-6">
@@ -26,10 +26,8 @@ export const Layout = ({ children }: LayoutProps) => {
               </div>
             </header>
           )}
-          
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
+
+          <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </div>
     </SidebarProvider>

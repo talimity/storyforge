@@ -1,17 +1,23 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
   Scroll,
   BookOpen,
   Hash,
-  Eye
+  Eye,
 } from "lucide-react";
 
 export const Lorebooks = () => {
@@ -22,49 +28,56 @@ export const Lorebooks = () => {
     {
       id: 1,
       name: "Autumn Court Codex",
-      description: "Comprehensive guide to the politics, customs, and history of the Autumn Court of the Fae.",
+      description:
+        "Comprehensive guide to the politics, customs, and history of the Autumn Court of the Fae.",
       entries: 15,
       scenarios: ["The Autumn Court Intrigue"],
       tags: ["Fae", "Politics", "History"],
       lastModified: "2 days ago",
-      wordCount: 3420
+      wordCount: 3420,
     },
     {
       id: 2,
       name: "Space Station Operations Manual",
-      description: "Technical specifications, protocols, and background information for deep space installations.",
+      description:
+        "Technical specifications, protocols, and background information for deep space installations.",
       entries: 23,
       scenarios: ["Space Station Osiris"],
       tags: ["Sci-Fi", "Technical", "Space"],
       lastModified: "1 week ago",
-      wordCount: 5680
+      wordCount: 5680,
     },
     {
       id: 3,
       name: "Port Cities & Trade Networks",
-      description: "Economic systems, trade routes, and merchant guilds of fantasy maritime civilizations.",
+      description:
+        "Economic systems, trade routes, and merchant guilds of fantasy maritime civilizations.",
       entries: 8,
       scenarios: ["The Merchant's Gambit"],
       tags: ["Fantasy", "Trade", "Economics"],
       lastModified: "3 days ago",
-      wordCount: 2100
+      wordCount: 2100,
     },
     {
       id: 4,
       name: "Neo-Tokyo Underground",
-      description: "Street culture, corp politics, and hacker networks in the cyberpunk metropolis.",
+      description:
+        "Street culture, corp politics, and hacker networks in the cyberpunk metropolis.",
       entries: 31,
       scenarios: ["The Cyber Heist"],
       tags: ["Cyberpunk", "Urban", "Tech"],
       lastModified: "1 month ago",
-      wordCount: 7890
-    }
+      wordCount: 7890,
+    },
   ];
 
-  const filteredLorebooks = lorebooks.filter(lorebook =>
-    lorebook.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lorebook.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lorebook.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredLorebooks = lorebooks.filter(
+    (lorebook) =>
+      lorebook.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lorebook.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lorebook.tags.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase())
+      )
   );
 
   return (
@@ -72,7 +85,9 @@ export const Lorebooks = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Lorebooks</h1>
+          <h1 className="font-display text-3xl font-bold text-foreground">
+            Lorebooks
+          </h1>
           <p className="text-muted-foreground mt-1">
             World-building knowledge and context for your stories
           </p>
@@ -94,7 +109,10 @@ export const Lorebooks = () => {
             className="pl-10"
           />
         </div>
-        <Badge variant="secondary" className="cursor-pointer hover:bg-primary/20">
+        <Badge
+          variant="secondary"
+          className="cursor-pointer hover:bg-primary/20"
+        >
           All ({lorebooks.length})
         </Badge>
       </div>
@@ -102,7 +120,10 @@ export const Lorebooks = () => {
       {/* Lorebook Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredLorebooks.map((lorebook) => (
-          <Card key={lorebook.id} className="character-card group cursor-pointer">
+          <Card
+            key={lorebook.id}
+            className="character-card group cursor-pointer"
+          >
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-1 flex-1 min-w-0">
@@ -116,23 +137,29 @@ export const Lorebooks = () => {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
               {/* Stats */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Hash className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{lorebook.entries} entries</span>
+                  <span className="text-muted-foreground">
+                    {lorebook.entries} entries
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{lorebook.wordCount.toLocaleString()} words</span>
+                  <span className="text-muted-foreground">
+                    {lorebook.wordCount.toLocaleString()} words
+                  </span>
                 </div>
               </div>
 
               {/* Tags */}
               <div className="space-y-2">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Tags</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                  Tags
+                </div>
                 <div className="flex flex-wrap gap-1">
                   {lorebook.tags.map((tag) => (
                     <Badge key={tag} variant="secondary" className="text-xs">
@@ -146,11 +173,16 @@ export const Lorebooks = () => {
               {lorebook.scenarios.length > 0 && (
                 <div className="space-y-2">
                   <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                    Used in {lorebook.scenarios.length} scenario{lorebook.scenarios.length !== 1 ? 's' : ''}
+                    Used in {lorebook.scenarios.length} scenario
+                    {lorebook.scenarios.length !== 1 ? "s" : ""}
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {lorebook.scenarios.map((scenario) => (
-                      <Badge key={scenario} variant="outline" className="text-xs">
+                      <Badge
+                        key={scenario}
+                        variant="outline"
+                        className="text-xs"
+                      >
                         {scenario}
                       </Badge>
                     ))}
@@ -164,15 +196,27 @@ export const Lorebooks = () => {
                   Modified {lorebook.lastModified}
                 </span>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
                     <Eye className="w-3 h-3 mr-1" />
                     View
                   </Button>
-                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
                     <Edit className="w-3 h-3 mr-1" />
                     Edit
                   </Button>
-                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                  >
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>
@@ -186,9 +230,13 @@ export const Lorebooks = () => {
       {filteredLorebooks.length === 0 && (
         <div className="text-center py-12">
           <Scroll className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-display text-lg font-semibold text-foreground mb-2">No lorebooks found</h3>
+          <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+            No lorebooks found
+          </h3>
           <p className="text-muted-foreground mb-4">
-            {searchQuery ? "Try adjusting your search terms" : "Create your first lorebook to store world-building knowledge"}
+            {searchQuery
+              ? "Try adjusting your search terms"
+              : "Create your first lorebook to store world-building knowledge"}
           </p>
           <Button className="bg-gradient-primary hover:shadow-glow transition-all">
             <Plus className="w-4 h-4 mr-2" />
