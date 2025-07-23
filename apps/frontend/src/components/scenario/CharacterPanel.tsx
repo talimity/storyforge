@@ -3,10 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown, User } from "lucide-react";
-import { Character, InputMode } from "@/types/scenario";
+import { UICharacter, InputMode } from "@storyforge/shared";
 
 interface CharacterPanelProps {
-  characters: Character[];
+  characters: UICharacter[];
   selectedCharacter: string | null;
   inputMode: InputMode;
   onCharacterSelect: (name: string) => void;

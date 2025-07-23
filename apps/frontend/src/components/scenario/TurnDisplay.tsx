@@ -2,10 +2,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
-import { Turn } from "@/types/scenario";
+import { UITurn } from "@storyforge/shared";
 
 interface TurnDisplayProps {
-  turns: Turn[];
+  turns: UITurn[];
   currentTurnIndex: number;
   onTurnChange: (index: number) => void;
   onHistoryToggle: () => void;

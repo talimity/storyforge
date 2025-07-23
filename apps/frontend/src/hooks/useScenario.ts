@@ -1,14 +1,22 @@
 
-import { useState, useCallback } from 'react';
-import { Scenario, Turn, InputMode, ProcessingStep } from '@/types/scenario';
+import { useState, useCallback, useEffect } from 'react';
+import { UIScenario, UITurn, InputMode, ProcessingStep } from '@storyforge/shared';
 
-export const useScenario = (initialScenario: Scenario) => {
-  const [scenario, setScenario] = useState<Scenario>(initialScenario);
-  const [currentTurnIndex, setCurrentTurnIndex] = useState(initialScenario.turns.length - 1);
+export const useScenario = (initialScenario?: UIScenario) => {
+  const [scenario, setScenario] = useState<UIScenario | undefined>(initialScenario);
+  const [currentTurnIndex, setCurrentTurnIndex] = useState(initialScenario?.turns.length ? initialScenario.turns.length - 1 : 0);
   const [inputMode, setInputMode] = useState<InputMode>('director');
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Update state when initialScenario changes
+  useEffect(() => {
+    if (initialScenario) {
+      setScenario(initialScenario);
+      setCurrentTurnIndex(initialScenario.turns.length - 1);
+    }
+  }, [initialScenario]);
 
   const processingSteps: ProcessingStep[] = [
     { name: "Planner Agent", description: "Analyzing character motivations", progress: 100 },
@@ -17,19 +25,19 @@ export const useScenario = (initialScenario: Scenario) => {
   ];
 
   const handleTurnChange = useCallback((index: number) => {
-    if (index >= 0 && index < scenario.turns.length) {
+    if (scenario && index >= 0 && index < scenario.turns.length) {
       setCurrentTurnIndex(index);
     }
-  }, [scenario.turns.length]);
+  }, [scenario?.turns.length]);
 
   const handleSendInput = useCallback(() => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || !scenario) return;
     
     setIsProcessing(true);
     
     // Simulate processing - in real app, this would make API calls
     setTimeout(() => {
-      const newTurn: Turn = {
+      const newTurn: UITurn = {
         id: scenario.turns.length + 1,
         number: scenario.turns.length + 1,
         content: `[Generated response based on: "${inputText}"]
@@ -41,17 +49,17 @@ Each choice echoes through the halls of destiny, weaving together the threads of
         activeCharacters: selectedCharacter ? [selectedCharacter] : [],
       };
 
-      setScenario(prev => ({
+      setScenario(prev => prev ? ({
         ...prev,
         turns: [...prev.turns, newTurn],
         turnCount: prev.turnCount + 1
-      }));
+      }) : undefined);
 
       setCurrentTurnIndex(scenario.turns.length);
       setIsProcessing(false);
       setInputText('');
     }, 3000);
-  }, [inputText, selectedCharacter, scenario.turns.length]);
+  }, [inputText, selectedCharacter, scenario]);
 
   return {
     scenario,

@@ -72,6 +72,7 @@ storyforge/
 - **Component composition** - Build UIs from small, reusable components
 - **Async/await** - Use modern async patterns, avoid callback hell
 - **Minimal comments** - Code should be self-documenting; comment only to explain why, not what
+- **Conventional commit messages** - Use conventional commits format
 
 ### Architecture Patterns
 - **API-first design** - Backend provides JSON APIs, frontend consumes them

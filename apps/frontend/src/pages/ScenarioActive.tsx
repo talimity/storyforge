@@ -1,79 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings, Pause } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { CharacterPanel } from "@/components/scenario/CharacterPanel";
 import { TurnDisplay } from "@/components/scenario/TurnDisplay";
 import { InputArea } from "@/components/scenario/InputArea";
 import { ProcessingIndicator } from "@/components/scenario/ProcessingIndicator";
-import { useScenario } from "@/hooks/useScenario";
-import { Scenario } from "@/types/scenario";
+import { useScenario as useScenarioState } from "@/hooks/useScenario";
+import { useScenario, useCharacters } from "@/hooks/api";
+import { transformScenarioToUI } from "@/lib/transforms";
+import { UIScenario } from "@storyforge/shared";
 
 export const ScenarioActive = () => {
-  // Mock scenario data with turn-based structure
-  const mockScenario: Scenario = {
-    id: 1,
-    name: "The Autumn Court Intrigue",
-    description: "A tale of political maneuvering in the fae courts",
-    turnCount: 3,
-    currentTurnIndex: 2,
-    characters: [
-      {
-        id: 1,
-        name: "Lady Veridiana",
-        avatar: null,
-        isActive: true,
-        mood: "Calculating",
-        status: "Planning her next move",
-      },
-      {
-        id: 2,
-        name: "Lord Thorn",
-        avatar: null,
-        isActive: false,
-        mood: "Suspicious",
-        status: "Watching carefully",
-      },
-      {
-        id: 3,
-        name: "The Shadow Broker",
-        avatar: null,
-        isActive: false,
-        mood: "Amused",
-        status: "Lurking in shadows",
-      },
-    ],
-    turns: [
-      {
-        id: 1,
-        number: 1,
-        content:
-          "The Court of Whispers stands in magnificent splendor, its halls adorned with the colors of autumn. Nobles from across the realm have gathered for what promises to be a pivotal moment in fae politics. The air itself seems to shimmer with anticipation and barely contained magic.",
-        timestamp: new Date(Date.now() - 3600000),
-        activeCharacters: [],
-      },
-      {
-        id: 2,
-        number: 2,
-        content:
-          "Lady Veridiana enters the great hall, her emerald gown catching the light of the enchanted chandeliers above. Her presence commands attention, and conversations pause as she moves with calculated grace through the crowd. Every step is deliberate, every glance meaningful.",
-        timestamp: new Date(Date.now() - 1800000),
-        activeCharacters: ["Lady Veridiana"],
-      },
-      {
-        id: 3,
-        number: 3,
-        content: `The golden leaves of autumn swirl through the air as Lady Veridiana steps into the Court of Whispers. Her emerald gown rustles softly against the marble floor, each footstep calculated and deliberate. The other nobles watch her approach with a mixture of curiosity and wariness.
+  const { id } = useParams<{ id: string }>();
 
-"My lords and ladies," she begins, her voice carrying the weight of centuries, "I come before you today with news that will change the very fabric of our realm."
+  // Fetch scenario and characters data
+  const {
+    data: scenarioData,
+    isLoading: scenarioLoading,
+    error: scenarioError,
+  } = useScenario(id!);
+  const { data: charactersData = [], isLoading: charactersLoading } =
+    useCharacters();
 
-Lord Thorn's eyes narrow from across the chamber. He has suspected her of plotting for weeks, but now his suspicions seem confirmed. The Shadow Broker, meanwhile, observes from the shadows with barely concealed amusement—as if he knows something the others do not.
-
-The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting for her next words.`,
-        timestamp: new Date(),
-        activeCharacters: ["Lady Veridiana", "Lord Thorn", "The Shadow Broker"],
-      },
-    ],
-  };
+  const uiScenario: UIScenario | undefined =
+    scenarioData && charactersData
+      ? transformScenarioToUI(scenarioData, charactersData)
+      : undefined;
 
   const {
     scenario,
@@ -88,12 +40,73 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
     setSelectedCharacter,
     setInputText,
     handleSendInput,
-  } = useScenario(mockScenario);
+  } = useScenarioState(uiScenario);
 
   const handleHistoryToggle = () => {
-    // TODO: Implement history panel toggle in Phase 3
-    console.log("History toggle - to be implemented");
+    alert("History toggle - to be implemented");
   };
+
+  // Show loading state
+  if (scenarioLoading || charactersLoading) {
+    return (
+      <div className="min-h-screen bg-narrative-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium text-foreground mb-2">
+            Loading scenario...
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Fetching data from server
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (scenarioError) {
+    return (
+      <div className="min-h-screen bg-narrative-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium text-destructive mb-2">
+            Failed to load scenario
+          </div>
+          <div className="text-sm text-muted-foreground mb-4">
+            {scenarioError instanceof Error
+              ? scenarioError.message
+              : "Unknown error occurred"}
+          </div>
+          <Link to="/scenarios">
+            <Button variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Scenarios
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state
+  if (!uiScenario || !scenario) {
+    return (
+      <div className="min-h-screen bg-narrative-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium text-foreground mb-2">
+            Scenario not found
+          </div>
+          <div className="text-sm text-muted-foreground mb-4">
+            The requested scenario could not be found
+          </div>
+          <Link to="/scenarios">
+            <Button variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Scenarios
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-narrative-bg">

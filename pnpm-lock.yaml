@@ -20,6 +20,9 @@ importers:
       '@fastify/static':
         specifier: ^8.0.2
         version: 8.2.0
+      '@storyforge/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       fastify:
         specifier: ^5.1.0
         version: 5.4.0
@@ -120,6 +123,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.4
         version: 1.2.7(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@storyforge/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@tanstack/react-query':
         specifier: ^5.56.2
         version: 5.83.0(react@18.3.1)

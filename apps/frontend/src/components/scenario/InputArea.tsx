@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
-import { InputMode } from "@/types/scenario";
+import { InputMode } from "@storyforge/shared";
 
 interface InputAreaProps {
   inputMode: InputMode;
