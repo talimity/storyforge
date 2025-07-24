@@ -1,3 +1,3 @@
-export * from "./useScenarios";
-export * from "./useCharacters";
-export * from "./useLorebooks";
+export * from "./use-scenarios";
+export * from "./use-characters";
+export * from "./use-lorebooks";

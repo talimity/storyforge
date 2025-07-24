@@ -67,12 +67,12 @@ storyforge/
 ## Development Guidelines
 
 ### Code Style
-- **TypeScript strict mode** - All code must pass strict type checking
-- **Functional patterns preferred** - Favor pure functions and immutable data
-- **Component composition** - Build UIs from small, reusable components
-- **Async/await** - Use modern async patterns, avoid callback hell
+- **Kebab-case for files** - Use kebab-case for file names and directories
+- **TypeScript strict mode** - Do not use `any` and avoid type assertions; use `pnpm typecheck` to check types
 - **Minimal comments** - Code should be self-documenting; comment only to explain why, not what
-- **Conventional commit messages** - Use conventional commits format
+- **Component composition** - Build UIs from small, reusable components
+- **Functional patterns preferred** - Favor pure functions and immutable data
+- **Conventional commit messages** - Use conventional commits
 
 ### Architecture Patterns
 - **API-first design** - Backend provides JSON APIs, frontend consumes them

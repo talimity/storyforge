@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings, Pause } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { CharacterPanel } from "@/components/scenario/CharacterPanel";
-import { TurnDisplay } from "@/components/scenario/TurnDisplay";
-import { InputArea } from "@/components/scenario/InputArea";
-import { ProcessingIndicator } from "@/components/scenario/ProcessingIndicator";
-import { useScenario as useScenarioState } from "@/hooks/useScenario";
+import { CharacterPanel } from "@/components/scenario/character-panel";
+import { TurnDisplay } from "@/components/scenario/turn-display";
+import { InputArea } from "@/components/scenario/input-area";
+import { ProcessingIndicator } from "@/components/scenario/processing-indicator";
+import { useScenario as useScenarioState } from "@/hooks/use-active-scenario";
 import { useScenario, useCharacters } from "@/hooks/api";
 import { transformScenarioToUI } from "@/lib/transforms";
 import { UIScenario } from "@storyforge/shared";
