@@ -18,10 +18,8 @@ import {
   BookOpen,
   Users,
   Clock,
-  Settings,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { UIScenario } from "@storyforge/shared";
 
 export const Scenarios = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,7 +32,6 @@ export const Scenarios = () => {
       description:
         "A tale of political maneuvering in the fae courts where ancient alliances crumble and new powers rise.",
       characters: ["Lady Veridiana", "Lord Thorn", "The Shadow Broker"],
-      status: "Active",
       turnCount: 23,
       lastPlayed: "2 hours ago",
       created: "1 week ago",
@@ -51,7 +48,6 @@ export const Scenarios = () => {
         "ARIA",
         "Commander Steel",
       ],
-      status: "Active",
       turnCount: 45,
       lastPlayed: "1 day ago",
       created: "2 weeks ago",
@@ -63,7 +59,6 @@ export const Scenarios = () => {
       description:
         "Trade wars and espionage in a fantasy port city where gold flows like water and secrets are currency.",
       characters: ["Silvana Goldhand", "Captain Blackwater"],
-      status: "Paused",
       turnCount: 12,
       lastPlayed: "3 days ago",
       created: "1 month ago",
@@ -75,7 +70,6 @@ export const Scenarios = () => {
       description:
         "A high-tech thriller in Neo-Tokyo where hackers and megacorps clash in the digital shadows.",
       characters: ["Zero", "Neon", "The Architect"],
-      status: "Complete",
       turnCount: 67,
       lastPlayed: "1 week ago",
       created: "2 months ago",
@@ -87,7 +81,6 @@ export const Scenarios = () => {
       description:
         "Classic fantasy adventure where heroes must navigate ancient dungeons and face legendary beasts.",
       characters: ["Sir Gareth", "Lyra the Mage", "Thorin Ironbeard"],
-      status: "Draft",
       turnCount: 0,
       lastPlayed: "Never",
       created: "3 days ago",
@@ -103,56 +96,6 @@ export const Scenarios = () => {
         tag.toLowerCase().includes(searchQuery.toLowerCase())
       )
   );
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-success/20 text-success border-success/30";
-      case "Paused":
-        return "bg-warning/20 text-warning border-warning/30";
-      case "Complete":
-        return "bg-primary/20 text-primary border-primary/30";
-      case "Draft":
-        return "bg-muted/20 text-muted-foreground border-muted/30";
-      default:
-        return "bg-muted/20 text-muted-foreground border-muted/30";
-    }
-  };
-
-  const getStatusActions = (scenario: UIScenario) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- probably will be removed
-    switch ((scenario as any).status) {
-      case "Active":
-      case "Paused":
-        return (
-          <Link to={`/scenario/${scenario.id}`}>
-            <Button
-              size="sm"
-              className="bg-gradient-primary hover:shadow-glow transition-all"
-            >
-              <Play className="w-3 h-3 mr-1" />
-              Continue
-            </Button>
-          </Link>
-        );
-      case "Draft":
-        return (
-          <Button size="sm" variant="outline">
-            <Settings className="w-3 h-3 mr-1" />
-            Setup
-          </Button>
-        );
-      case "Complete":
-        return (
-          <Button size="sm" variant="outline">
-            <Play className="w-3 h-3 mr-1" />
-            Review
-          </Button>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -183,29 +126,6 @@ export const Scenarios = () => {
             className="pl-10"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Badge
-            variant="secondary"
-            className="cursor-pointer hover:bg-primary/20"
-          >
-            All ({scenarios.length})
-          </Badge>
-          <Badge
-            variant="outline"
-            className="cursor-pointer hover:bg-success/10"
-          >
-            Active ({scenarios.filter((s) => s.status === "Active").length})
-          </Badge>
-          <Badge
-            variant="outline"
-            className="cursor-pointer hover:bg-warning/10"
-          >
-            Paused ({scenarios.filter((s) => s.status === "Paused").length})
-          </Badge>
-          <Badge variant="outline" className="cursor-pointer hover:bg-muted/20">
-            Draft ({scenarios.filter((s) => s.status === "Draft").length})
-          </Badge>
-        </div>
       </div>
 
       {/* Scenario Grid */}
@@ -219,11 +139,6 @@ export const Scenarios = () => {
                     <CardTitle className="font-display text-lg truncate">
                       {scenario.name}
                     </CardTitle>
-                    <Badge
-                      className={`text-xs ${getStatusColor(scenario.status)}`}
-                    >
-                      {scenario.status}
-                    </Badge>
                   </div>
                   <CardDescription className="text-sm line-clamp-2">
                     {scenario.description}
@@ -281,9 +196,7 @@ export const Scenarios = () => {
                   )}
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {scenario.status === "Draft"
-                      ? `Created ${scenario.created}`
-                      : `Last played ${scenario.lastPlayed}`}
+                    {`Last played ${scenario.lastPlayed}`}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -301,7 +214,15 @@ export const Scenarios = () => {
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
-                  {getStatusActions(scenario)}
+                  <Link to={`/scenario/${scenario.id}`}>
+                    <Button
+                      size="sm"
+                      className="bg-gradient-primary hover:shadow-glow transition-all"
+                    >
+                      <Play className="w-3 h-3 mr-1" />
+                      Continue
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>

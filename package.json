@@ -10,13 +10,15 @@
     "build": "pnpm run --filter backend build && pnpm run --filter frontend build",
     "lint": "pnpm run --parallel lint",
     "typecheck": "pnpm run --recursive typecheck",
-    "format": "pnpm run --parallel format"
+    "format": "pnpm run --parallel format",
+    "usage": "ccusage blocks"
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "devDependencies": {
+    "ccusage": "^15.5.0",
     "typescript": "^5.5.3"
   }
 }
