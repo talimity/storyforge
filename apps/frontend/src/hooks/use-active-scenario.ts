@@ -52,7 +52,7 @@ export const useScenario = (initialScenario?: UIScenario) => {
         setCurrentTurnIndex(index);
       }
     },
-    [scenario?.turns.length]
+    [scenario]
   );
 
   const handleSendInput = useCallback(() => {

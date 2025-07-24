@@ -35,7 +35,7 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 ```
 storyforge/
 ├── apps/
-│   ├── frontend/          # Vite React app (port 8080)
+│   ├── frontend/          # Vite React app (:8080)
 │   │   ├── src/
 │   │   │   ├── components/    # UI components
 │   │   │   │   └── ui/        # Design system components
@@ -43,7 +43,7 @@ storyforge/
 │   │   │   ├── hooks/         # React hooks
 │   │   │   └── types/         # Frontend-specific types
 │   │   └── package.json
-│   └── backend/           # Fastify API server (port 3001)
+│   └── backend/           # Fastify API server (:3001)
 │       ├── src/
 │       │   ├── server.ts      # Main server entry
 │       │   ├── routes/        # API route handlers
@@ -68,7 +68,7 @@ storyforge/
 
 ### Code Style
 - **Kebab-case for files** - Use kebab-case for file names and directories
-- **TypeScript strict mode** - Do not use `any` and avoid type assertions; use `pnpm typecheck` to check types
+- **TypeScript strict mode** - Do not use `any`, avoid type assertions; use `pnpm typecheck` to check
 - **Minimal comments** - Code should be self-documenting; comment only to explain why, not what
 - **Component composition** - Build UIs from small, reusable components
 - **Functional patterns preferred** - Favor pure functions and immutable data
@@ -91,12 +91,6 @@ storyforge/
 - **Absolute imports** - Use `@/` path mapping for clean imports
 - **Consistent naming** - PascalCase for components, camelCase for functions, kebab-case for files
 
-### Testing Strategy
-- **Type safety as first defense** - Rely on TypeScript for catching errors
-- **Integration tests** - Focus on API endpoint testing
-- **Component testing** - Test user interactions and state management
-- **Manual testing** - Extensive manual testing of AI narrative flows
-
 ## Development Commands
 
 ```bash
@@ -112,6 +106,9 @@ pnpm dev:backend
 
 # Type checking
 pnpm typecheck
+
+# Linting
+pnpm lint
 
 # Build for production
 pnpm build

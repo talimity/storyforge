@@ -20,6 +20,7 @@ import {
   Heart,
   Star,
   Swords,
+  LucideIcon,
 } from "lucide-react";
 
 export const Characters = () => {
@@ -87,7 +88,7 @@ export const Characters = () => {
   );
 
   const getPersonalityIcon = (trait: string) => {
-    const icons: Record<string, any> = {
+    const icons: Record<string, LucideIcon> = {
       Charismatic: Heart,
       Manipulative: Star,
       Intelligent: Star,

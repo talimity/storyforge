@@ -10,6 +10,7 @@
     
     /* Strict Type Checking */
     "strict": true,
+    "noImplicitAny": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,

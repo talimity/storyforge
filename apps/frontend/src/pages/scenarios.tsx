@@ -21,6 +21,7 @@ import {
   Settings,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { UIScenario } from "@storyforge/shared";
 
 export const Scenarios = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,8 +119,9 @@ export const Scenarios = () => {
     }
   };
 
-  const getStatusActions = (scenario: any) => {
-    switch (scenario.status) {
+  const getStatusActions = (scenario: UIScenario) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- probably will be removed
+    switch ((scenario as any).status) {
       case "Active":
       case "Paused":
         return (

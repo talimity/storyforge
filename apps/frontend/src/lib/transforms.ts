@@ -96,6 +96,6 @@ export function transformUIScenarioToDomain(
 export function transformUICharacterToDomain(
   uiCharacter: UICharacter
 ): Partial<Character> {
-  const { isActive, mood, status, ...domainFields } = uiCharacter;
+  const { isActive: _, mood: __, status: ___, ...domainFields } = uiCharacter;
   return domainFields;
 }

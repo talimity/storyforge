@@ -8,9 +8,6 @@ importers:
 
   .:
     devDependencies:
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
       typescript:
         specifier: ^5.5.3
         version: 5.8.3
@@ -30,15 +27,27 @@ importers:
         specifier: ^5.1.0
         version: 5.4.0
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.9.0
+        version: 9.31.0
       '@types/node':
         specifier: ^22.5.5
         version: 22.16.5
+      eslint:
+        specifier: ^9.9.0
+        version: 9.31.0(jiti@1.21.7)
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
       tsx:
         specifier: ^4.19.2
         version: 4.20.3
       typescript:
         specifier: ^5.5.3
         version: 5.8.3
+      typescript-eslint:
+        specifier: ^8.0.1
+        version: 8.37.0(eslint@9.31.0(jiti@1.21.7))(typescript@5.8.3)
 
   apps/frontend:
     dependencies:
@@ -226,6 +235,9 @@ importers:
       postcss:
         specifier: ^8.4.47
         version: 8.5.6
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
       tailwindcss:
         specifier: ^3.4.11
         version: 3.4.17
@@ -241,9 +253,21 @@ importers:
 
   packages/shared:
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.9.0
+        version: 9.31.0
+      eslint:
+        specifier: ^9.9.0
+        version: 9.31.0(jiti@1.21.7)
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
       typescript:
         specifier: ^5.5.3
         version: 5.8.3
+      typescript-eslint:
+        specifier: ^8.0.1
+        version: 8.37.0(eslint@9.31.0(jiti@1.21.7))(typescript@5.8.3)
 
 packages:
 

@@ -8,15 +8,15 @@
     "dev:frontend": "pnpm --filter frontend dev",
     "dev:backend": "pnpm --filter backend dev",
     "build": "pnpm run --filter backend build && pnpm run --filter frontend build",
+    "lint": "pnpm run --parallel lint",
     "typecheck": "pnpm run --recursive typecheck",
-    "format": "prettier --write \"**/*.{ts,tsx}\""
+    "format": "pnpm run --parallel format"
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "devDependencies": {
-    "prettier": "^3.6.2",
     "typescript": "^5.5.3"
   }
 }
