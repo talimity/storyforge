@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { mockCharacters } from "../data/mockData";
+import { characterRepository } from "../repositories";
 import { Character } from "@storyforge/shared";
 
 interface GetCharacterParams {
@@ -9,9 +9,13 @@ interface GetCharacterParams {
 export async function charactersRoutes(fastify: FastifyInstance) {
   // Get all characters
   fastify.get("/api/characters", async () => {
-    return {
-      characters: mockCharacters,
-    };
+    try {
+      const characters = await characterRepository.findAll();
+      return { characters };
+    } catch (error) {
+      fastify.log.error(error);
+      throw new Error("Failed to fetch characters");
+    }
   });
 
   // Get single character
@@ -19,13 +23,19 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     "/api/characters/:id",
     async (request, reply) => {
       const { id } = request.params;
-      const character = mockCharacters.find((c) => c.id === id);
 
-      if (!character) {
-        return reply.code(404).send({ error: "Character not found" });
+      try {
+        const character = await characterRepository.findById(id);
+
+        if (!character) {
+          return reply.code(404).send({ error: "Character not found" });
+        }
+
+        return character;
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to fetch character" });
       }
-
-      return character;
     }
   );
 
@@ -33,13 +43,19 @@ export async function charactersRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: Omit<Character, "id"> }>(
     "/api/characters",
     async (request, reply) => {
-      const newCharacter: Character = {
-        id: `char-${Date.now()}`,
-        ...request.body,
-      };
+      try {
+        const newCharacter = await characterRepository.create({
+          name: request.body.name,
+          description: request.body.description,
+          personality: request.body.personality,
+          avatar: request.body.avatar,
+        });
 
-      mockCharacters.push(newCharacter);
-      return reply.code(201).send(newCharacter);
+        return reply.code(201).send(newCharacter);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to create character" });
+      }
     }
   );
 
@@ -48,20 +64,37 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     "/api/characters/:id",
     async (request, reply) => {
       const { id } = request.params;
-      const characterIndex = mockCharacters.findIndex((c) => c.id === id);
 
-      if (characterIndex === -1) {
-        return reply.code(404).send({ error: "Character not found" });
+      try {
+        const updateData: Parameters<typeof characterRepository.update>[1] = {};
+
+        if (request.body.name !== undefined) {
+          updateData.name = request.body.name;
+        }
+        if (request.body.description !== undefined) {
+          updateData.description = request.body.description;
+        }
+        if (request.body.personality !== undefined) {
+          updateData.personality = request.body.personality;
+        }
+        if (request.body.avatar !== undefined) {
+          updateData.avatar = request.body.avatar;
+        }
+
+        const updatedCharacter = await characterRepository.update(
+          id,
+          updateData
+        );
+
+        if (!updatedCharacter) {
+          return reply.code(404).send({ error: "Character not found" });
+        }
+
+        return updatedCharacter;
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to update character" });
       }
-
-      const updatedCharacter = {
-        ...mockCharacters[characterIndex],
-        ...request.body,
-        id, // Ensure ID cannot be changed
-      } as Character;
-
-      mockCharacters[characterIndex] = updatedCharacter;
-      return updatedCharacter;
     }
   );
 
@@ -70,14 +103,19 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     "/api/characters/:id",
     async (request, reply) => {
       const { id } = request.params;
-      const characterIndex = mockCharacters.findIndex((c) => c.id === id);
 
-      if (characterIndex === -1) {
-        return reply.code(404).send({ error: "Character not found" });
+      try {
+        const deleted = await characterRepository.delete(id);
+
+        if (!deleted) {
+          return reply.code(404).send({ error: "Character not found" });
+        }
+
+        return reply.code(204).send();
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to delete character" });
       }
-
-      mockCharacters.splice(characterIndex, 1);
-      return reply.code(204).send();
     }
   );
 }

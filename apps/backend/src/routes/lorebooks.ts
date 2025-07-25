@@ -1,17 +1,43 @@
 import { FastifyInstance } from "fastify";
-import { mockLorebooks } from "../data/mockData";
-import { Lorebook } from "@storyforge/shared";
+import { lorebookRepository } from "../repositories";
+import {
+  Lorebook,
+  LorebookEntry as SharedLorebookEntry,
+} from "@storyforge/shared";
 
 interface GetLorebookParams {
   id: string;
 }
 
+interface EntryParams {
+  lorebookId: string;
+  entryId: string;
+}
+
 export async function lorebooksRoutes(fastify: FastifyInstance) {
   // Get all lorebooks
   fastify.get("/api/lorebooks", async () => {
-    return {
-      lorebooks: mockLorebooks,
-    };
+    try {
+      const lorebooks = await lorebookRepository.findAllWithEntries();
+
+      // Transform to match shared type
+      const transformedLorebooks: Lorebook[] = lorebooks.map((lorebook) => ({
+        id: lorebook.id,
+        name: lorebook.name,
+        description: lorebook.description,
+        entries: lorebook.entries.map((entry) => ({
+          id: entry.id,
+          trigger: entry.triggers as string[],
+          content: entry.content,
+          enabled: entry.enabled,
+        })),
+      }));
+
+      return { lorebooks: transformedLorebooks };
+    } catch (error) {
+      fastify.log.error(error);
+      throw new Error("Failed to fetch lorebooks");
+    }
   });
 
   // Get single lorebook
@@ -19,13 +45,32 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     "/api/lorebooks/:id",
     async (request, reply) => {
       const { id } = request.params;
-      const lorebook = mockLorebooks.find((l) => l.id === id);
 
-      if (!lorebook) {
-        return reply.code(404).send({ error: "Lorebook not found" });
+      try {
+        const lorebook = await lorebookRepository.findByIdWithEntries(id);
+
+        if (!lorebook) {
+          return reply.code(404).send({ error: "Lorebook not found" });
+        }
+
+        // Transform to match shared type
+        const transformedLorebook: Lorebook = {
+          id: lorebook.id,
+          name: lorebook.name,
+          description: lorebook.description,
+          entries: lorebook.entries.map((entry) => ({
+            id: entry.id,
+            trigger: entry.triggers as string[],
+            content: entry.content,
+            enabled: entry.enabled,
+          })),
+        };
+
+        return transformedLorebook;
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to fetch lorebook" });
       }
-
-      return lorebook;
     }
   );
 
@@ -33,13 +78,27 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: Omit<Lorebook, "id"> }>(
     "/api/lorebooks",
     async (request, reply) => {
-      const newLorebook: Lorebook = {
-        id: `lore-${Date.now()}`,
-        ...request.body,
-      };
+      try {
+        const { entries, ...lorebookData } = request.body;
 
-      mockLorebooks.push(newLorebook);
-      return reply.code(201).send(newLorebook);
+        const newLorebook = await lorebookRepository.createWithEntries(
+          {
+            name: lorebookData.name,
+            description: lorebookData.description,
+          },
+          entries?.map((entry, index) => ({
+            triggers: entry.trigger,
+            content: entry.content,
+            enabled: entry.enabled,
+            orderIndex: index,
+          })) || []
+        );
+
+        return reply.code(201).send(newLorebook);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to create lorebook" });
+      }
     }
   );
 
@@ -48,20 +107,115 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     "/api/lorebooks/:id",
     async (request, reply) => {
       const { id } = request.params;
-      const lorebookIndex = mockLorebooks.findIndex((l) => l.id === id);
 
-      if (lorebookIndex === -1) {
+      try {
+        const { entries, ...lorebookData } = request.body;
+
+        const updateData: Parameters<typeof lorebookRepository.update>[1] = {};
+
+        if (lorebookData.name !== undefined) {
+          updateData.name = lorebookData.name;
+        }
+        if (lorebookData.description !== undefined) {
+          updateData.description = lorebookData.description;
+        }
+
+        const updatedLorebook = await lorebookRepository.update(id, updateData);
+
+        if (!updatedLorebook) {
+          return reply.code(404).send({ error: "Lorebook not found" });
+        }
+
+        return updatedLorebook;
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to update lorebook" });
+      }
+    }
+  );
+
+  // Add entry to lorebook
+  fastify.post<{
+    Params: GetLorebookParams;
+    Body: Omit<SharedLorebookEntry, "id">;
+  }>("/api/lorebooks/:id/entries", async (request, reply) => {
+    const { id } = request.params;
+
+    try {
+      const lorebook = await lorebookRepository.exists(id);
+      if (!lorebook) {
         return reply.code(404).send({ error: "Lorebook not found" });
       }
 
-      const updatedLorebook = {
-        ...mockLorebooks[lorebookIndex],
-        ...request.body,
-        id, // Ensure ID cannot be changed
-      } as Lorebook;
+      const newEntry = await lorebookRepository.addEntry(id, {
+        triggers: request.body.trigger,
+        content: request.body.content,
+        enabled: request.body.enabled,
+        orderIndex: 0, // Will be calculated
+      });
 
-      mockLorebooks[lorebookIndex] = updatedLorebook;
-      return updatedLorebook;
+      return reply.code(201).send(newEntry);
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.code(500).send({ error: "Failed to add entry" });
+    }
+  });
+
+  // Update lorebook entry
+  fastify.put<{ Params: EntryParams; Body: Partial<SharedLorebookEntry> }>(
+    "/api/lorebooks/:lorebookId/entries/:entryId",
+    async (request, reply) => {
+      const { entryId } = request.params;
+
+      try {
+        const updateData: Parameters<typeof lorebookRepository.updateEntry>[1] =
+          {};
+
+        if (request.body.trigger !== undefined) {
+          updateData.triggers = request.body.trigger;
+        }
+        if (request.body.content !== undefined) {
+          updateData.content = request.body.content;
+        }
+        if (request.body.enabled !== undefined) {
+          updateData.enabled = request.body.enabled;
+        }
+
+        const updatedEntry = await lorebookRepository.updateEntry(
+          entryId,
+          updateData
+        );
+
+        if (!updatedEntry) {
+          return reply.code(404).send({ error: "Entry not found" });
+        }
+
+        return updatedEntry;
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to update entry" });
+      }
+    }
+  );
+
+  // Delete lorebook entry
+  fastify.delete<{ Params: EntryParams }>(
+    "/api/lorebooks/:lorebookId/entries/:entryId",
+    async (request, reply) => {
+      const { entryId } = request.params;
+
+      try {
+        const deleted = await lorebookRepository.deleteEntry(entryId);
+
+        if (!deleted) {
+          return reply.code(404).send({ error: "Entry not found" });
+        }
+
+        return reply.code(204).send();
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to delete entry" });
+      }
     }
   );
 
@@ -70,14 +224,19 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     "/api/lorebooks/:id",
     async (request, reply) => {
       const { id } = request.params;
-      const lorebookIndex = mockLorebooks.findIndex((l) => l.id === id);
 
-      if (lorebookIndex === -1) {
-        return reply.code(404).send({ error: "Lorebook not found" });
+      try {
+        const deleted = await lorebookRepository.delete(id);
+
+        if (!deleted) {
+          return reply.code(404).send({ error: "Lorebook not found" });
+        }
+
+        return reply.code(204).send();
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({ error: "Failed to delete lorebook" });
       }
-
-      mockLorebooks.splice(lorebookIndex, 1);
-      return reply.code(204).send();
     }
   );
 }
