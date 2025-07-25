@@ -9,8 +9,8 @@
     "dev:backend": "pnpm --filter backend dev",
     "build": "pnpm run --filter backend build && pnpm run --filter frontend build",
     "lint": "pnpm run --parallel lint",
-    "typecheck": "pnpm run --recursive typecheck",
     "format": "pnpm run --parallel format",
+    "typecheck": "pnpm run --parallel typecheck",
     "usage": "ccusage blocks"
   },
   "workspaces": [
@@ -18,7 +18,12 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@eslint/js": "^9.9.0",
     "ccusage": "^15.5.0",
-    "typescript": "^5.5.3"
+    "eslint": "^9.31.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.1"
   }
 }
