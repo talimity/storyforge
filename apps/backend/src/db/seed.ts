@@ -7,7 +7,6 @@ async function seed() {
   console.log("🌱 Starting database seed...");
 
   try {
-    // Clear existing data
     console.log("Clearing existing data...");
     db.delete(schema.turns).run();
     db.delete(schema.scenarioCharacters).run();
@@ -16,7 +15,6 @@ async function seed() {
     db.delete(schema.characters).run();
     db.delete(schema.lorebooks).run();
 
-    // Create characters
     console.log("Creating characters...");
     const veridiana = await characterRepository.create({
       name: "Lady Veridiana",
@@ -46,7 +44,6 @@ async function seed() {
       `Created ${veridiana.name}, ${thorn.name}, ${shadowBroker.name}`
     );
 
-    // Create scenario
     console.log("Creating scenario...");
     const scenario = await scenarioRepository.createWithCharacters(
       {
@@ -56,7 +53,6 @@ async function seed() {
       [veridiana.id, thorn.id, shadowBroker.id]
     );
 
-    // Add turns
     console.log("Adding turns to scenario...");
     await scenarioRepository.addTurn(scenario.id, {
       characterId: null,
@@ -96,7 +92,6 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
       },
     });
 
-    // Create lorebook
     console.log("Creating lorebook...");
     await lorebookRepository.createWithEntries(
       {
@@ -134,7 +129,6 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
   }
 }
 
-// Import schema for clearing data
 import * as schema from "./schema";
 
 seed().catch(console.error);

@@ -7,8 +7,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Set up the database connection
-// Use the DATABASE_URL environment variable or default to a local SQLite file
 const dbPath =
   process.env.DATABASE_URL || path.join(__dirname, "../../data/storyforge.db");
 import { mkdirSync } from "fs";

@@ -7,7 +7,6 @@ interface GetCharacterParams {
 }
 
 export async function charactersRoutes(fastify: FastifyInstance) {
-  // Get all characters
   fastify.get("/api/characters", async () => {
     try {
       const characters = await characterRepository.findAll();
@@ -18,7 +17,6 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Get single character
   fastify.get<{ Params: GetCharacterParams }>(
     "/api/characters/:id",
     async (request, reply) => {
@@ -39,7 +37,6 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Create character
   fastify.post<{ Body: Omit<Character, "id"> }>(
     "/api/characters",
     async (request, reply) => {
@@ -59,7 +56,6 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Update character
   fastify.put<{ Params: GetCharacterParams; Body: Partial<Character> }>(
     "/api/characters/:id",
     async (request, reply) => {
@@ -98,7 +94,6 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Delete character
   fastify.delete<{ Params: GetCharacterParams }>(
     "/api/characters/:id",
     async (request, reply) => {

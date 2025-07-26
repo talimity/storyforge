@@ -17,18 +17,16 @@ interface AddTurnBody {
 }
 
 export async function scenariosRoutes(fastify: FastifyInstance) {
-  // Get all scenarios
   fastify.get("/api/scenarios", async () => {
     try {
       const scenarios = await scenarioRepository.findAllWithRelations();
 
-      // Transform to match shared type structure
       const transformedScenarios = scenarios.map((scenario) => ({
         id: scenario.id,
         name: scenario.name,
         description: scenario.description,
         characters: scenario.characterIds,
-        turns: [], // Empty for list view
+        turns: [],
       }));
 
       return { scenarios: transformedScenarios };
@@ -38,7 +36,6 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Get single scenario with full details
   fastify.get<{ Params: GetScenarioParams }>(
     "/api/scenarios/:id",
     async (request, reply) => {
@@ -51,7 +48,6 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
           return reply.code(404).send({ error: "Scenario not found" });
         }
 
-        // Transform to match shared type
         const transformedScenario: Scenario = {
           id: scenario.id,
           name: scenario.name,
@@ -78,7 +74,6 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Create scenario
   fastify.post<{ Body: Omit<Scenario, "id"> }>(
     "/api/scenarios",
     async (request, reply) => {
@@ -93,14 +88,13 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
           characters || []
         );
 
-        // Add initial turns if provided
         if (turns && turns.length > 0) {
           for (const turn of turns) {
             await scenarioRepository.addTurn(newScenario.id, {
               characterId: turn.character,
               content: turn.content,
               timestamp: new Date(turn.timestamp),
-              orderIndex: 0, // Will be calculated by repository
+              orderIndex: 0,
               agentData: turn.agentData ?? null,
             });
           }
@@ -114,7 +108,6 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Update scenario
   fastify.put<{ Params: GetScenarioParams; Body: Partial<Scenario> }>(
     "/api/scenarios/:id",
     async (request, reply) => {
@@ -123,7 +116,6 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
       try {
         const { characters, turns, ...scenarioData } = request.body;
 
-        // Update basic scenario data
         const updateData: Parameters<typeof scenarioRepository.update>[1] = {};
 
         if (scenarioData.name !== undefined) {
@@ -139,7 +131,6 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
           return reply.code(404).send({ error: "Scenario not found" });
         }
 
-        // Update character associations if provided
         if (characters !== undefined) {
           await scenarioRepository.updateCharacters(id, characters);
         }
@@ -152,7 +143,6 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Add turn to scenario
   fastify.post<{ Params: GetScenarioParams; Body: AddTurnBody }>(
     "/api/scenarios/:id/turns",
     async (request, reply) => {
@@ -168,7 +158,7 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
           characterId: request.body.characterId || null,
           content: request.body.content,
           timestamp: new Date(),
-          orderIndex: 0, // Will be calculated
+          orderIndex: 0,
           agentData: request.body.agentData ?? null,
         });
 
@@ -180,7 +170,6 @@ export async function scenariosRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Delete scenario
   fastify.delete<{ Params: GetScenarioParams }>(
     "/api/scenarios/:id",
     async (request, reply) => {

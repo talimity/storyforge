@@ -15,12 +15,10 @@ interface EntryParams {
 }
 
 export async function lorebooksRoutes(fastify: FastifyInstance) {
-  // Get all lorebooks
   fastify.get("/api/lorebooks", async () => {
     try {
       const lorebooks = await lorebookRepository.findAllWithEntries();
 
-      // Transform to match shared type
       const transformedLorebooks: Lorebook[] = lorebooks.map((lorebook) => ({
         id: lorebook.id,
         name: lorebook.name,
@@ -40,7 +38,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Get single lorebook
   fastify.get<{ Params: GetLorebookParams }>(
     "/api/lorebooks/:id",
     async (request, reply) => {
@@ -53,7 +50,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
           return reply.code(404).send({ error: "Lorebook not found" });
         }
 
-        // Transform to match shared type
         const transformedLorebook: Lorebook = {
           id: lorebook.id,
           name: lorebook.name,
@@ -74,7 +70,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Create lorebook
   fastify.post<{ Body: Omit<Lorebook, "id"> }>(
     "/api/lorebooks",
     async (request, reply) => {
@@ -102,7 +97,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Update lorebook
   fastify.put<{ Params: GetLorebookParams; Body: Partial<Lorebook> }>(
     "/api/lorebooks/:id",
     async (request, reply) => {
@@ -134,7 +128,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Add entry to lorebook
   fastify.post<{
     Params: GetLorebookParams;
     Body: Omit<SharedLorebookEntry, "id">;
@@ -151,7 +144,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
         triggers: request.body.trigger,
         content: request.body.content,
         enabled: request.body.enabled,
-        orderIndex: 0, // Will be calculated
       });
 
       return reply.code(201).send(newEntry);
@@ -161,7 +153,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Update lorebook entry
   fastify.put<{ Params: EntryParams; Body: Partial<SharedLorebookEntry> }>(
     "/api/lorebooks/:lorebookId/entries/:entryId",
     async (request, reply) => {
@@ -198,7 +189,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Delete lorebook entry
   fastify.delete<{ Params: EntryParams }>(
     "/api/lorebooks/:lorebookId/entries/:entryId",
     async (request, reply) => {
@@ -219,7 +209,6 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Delete lorebook
   fastify.delete<{ Params: GetLorebookParams }>(
     "/api/lorebooks/:id",
     async (request, reply) => {

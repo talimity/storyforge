@@ -8,7 +8,6 @@ const fastify = Fastify({
   logger: true,
 });
 
-// Register CORS for frontend access
 await fastify.register(cors, {
   origin: ["http://localhost:5173", "http://localhost:8080"],
   credentials: true,
