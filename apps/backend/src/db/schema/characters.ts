@@ -14,7 +14,7 @@ export const characters = sqliteTable("characters", {
     .$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .$onUpdate(() => new Date()),
 });
 
 export type Character = typeof characters.$inferSelect;

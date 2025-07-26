@@ -12,7 +12,7 @@ export const lorebooks = sqliteTable("lorebooks", {
     .$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .$onUpdate(() => new Date()),
 });
 
 export const lorebookEntries = sqliteTable("lorebook_entries", {
@@ -28,7 +28,7 @@ export const lorebookEntries = sqliteTable("lorebook_entries", {
   orderIndex: integer("order_index").notNull().default(0),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .$onUpdate(() => new Date()),
 });
 
 export type Lorebook = typeof lorebooks.$inferSelect;

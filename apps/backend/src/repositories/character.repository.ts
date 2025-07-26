@@ -1,11 +1,9 @@
 import { BaseRepository } from "./base.repository";
 import { db, schema } from "../db/client";
-import type { Character, NewCharacter } from "../db/schema/characters";
+import type { Character } from "../db/schema/characters";
 
 export class CharacterRepository extends BaseRepository<
-  typeof schema.characters,
-  Character,
-  NewCharacter
+  typeof schema.characters
 > {
   constructor() {
     super(db, schema.characters);

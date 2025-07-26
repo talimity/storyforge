@@ -5,9 +5,7 @@ import type { Lorebook, NewLorebook } from "../db/schema/lorebooks";
 import type { LorebookEntry, NewLorebookEntry } from "../db/schema/lorebooks";
 
 export class LorebookRepository extends BaseRepository<
-  typeof schema.lorebooks,
-  Lorebook,
-  NewLorebook
+  typeof schema.lorebooks
 > {
   constructor() {
     super(db, schema.lorebooks);
@@ -18,13 +16,11 @@ export class LorebookRepository extends BaseRepository<
   > {
     const lorebooks = await this.findAll();
 
-    // Get all entries grouped by lorebook
     const entries = await this.db
       .select()
       .from(schema.lorebookEntries)
       .orderBy(schema.lorebookEntries.orderIndex);
 
-    // Group entries by lorebook ID
     const entriesByLorebook = new Map<string, LorebookEntry[]>();
     for (const entry of entries) {
       if (!entriesByLorebook.has(entry.lorebookId)) {
@@ -61,13 +57,11 @@ export class LorebookRepository extends BaseRepository<
     data: NewLorebook,
     entries: Omit<NewLorebookEntry, "id" | "lorebookId" | "createdAt">[]
   ): Promise<Lorebook> {
-    // Create lorebook first
     const [lorebook] = await this.db
       .insert(this.table)
       .values(data)
       .returning();
 
-    // Create entries in a transaction
     if (entries.length > 0 && lorebook) {
       this.transaction((tx) => {
         tx.insert(schema.lorebookEntries)
@@ -133,8 +127,6 @@ export class LorebookRepository extends BaseRepository<
   async findActiveEntriesByTriggers(
     triggers: string[]
   ): Promise<LorebookEntry[]> {
-    // This would typically use a more sophisticated search
-    // For now, we'll do a simple implementation
     const allEntries = await this.db
       .select()
       .from(schema.lorebookEntries)
@@ -151,5 +143,4 @@ export class LorebookRepository extends BaseRepository<
   }
 }
 
-// Export singleton instance
 export const lorebookRepository = new LorebookRepository();

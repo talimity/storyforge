@@ -18,7 +18,6 @@ export const turns = sqliteTable("turns", {
     .notNull()
     .$defaultFn(() => new Date()),
   orderIndex: integer("order_index").notNull(),
-  // Agent data stored as JSON
   agentData: text("agent_data", { mode: "json" }).$type<{
     plannerOutput?: string;
     screenplayOutput?: string;
@@ -27,6 +26,9 @@ export const turns = sqliteTable("turns", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$onUpdate(() => new Date()),
 });
 
 export type Turn = typeof turns.$inferSelect;

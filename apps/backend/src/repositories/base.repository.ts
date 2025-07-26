@@ -1,27 +1,24 @@
-import { eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { eq, InferInsertModel } from "drizzle-orm";
 import type {
-  SQLiteTable,
-  SQLiteTableWithColumns,
+  AnySQLiteTable,
+  SQLiteColumn,
   SQLiteTransaction,
 } from "drizzle-orm/sqlite-core";
 import { StoryforgeSqliteDatabase } from "../db/client";
 
-export abstract class BaseRepository<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TTable extends SQLiteTable,
-  TSelect = InferSelectModel<TTable>,
-  TInsert = InferInsertModel<TTable>,
-> {
+type TableWithId = AnySQLiteTable & { id: SQLiteColumn };
+
+export abstract class BaseRepository<TTable extends TableWithId> {
   constructor(
     protected db: StoryforgeSqliteDatabase,
     protected table: TTable
   ) {}
 
-  async findAll(): Promise<TSelect[]> {
+  async findAll() {
     return this.db.select().from(this.table).all();
   }
 
-  async findById(id: string): Promise<TSelect | undefined> {
+  async findById(id: string) {
     const results = await this.db
       .select()
       .from(this.table)
@@ -31,22 +28,20 @@ export abstract class BaseRepository<
     return results[0];
   }
 
-  async create(data: TInsert): Promise<TSelect> {
+  async create(data: InferInsertModel<TTable>) {
     const results = await this.db.insert(this.table).values(data).returning();
+
+    if (!results[0]) {
+      throw new Error("Failed to create record");
+    }
 
     return results[0];
   }
 
-  async update(
-    id: string,
-    data: Partial<TInsert>
-  ): Promise<TSelect | undefined> {
+  async update(id: string, data: Partial<InferInsertModel<TTable>>) {
     const results = await this.db
       .update(this.table)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set({ ...data })
       .where(eq(this.table.id, id))
       .returning();
 
@@ -72,6 +67,7 @@ export abstract class BaseRepository<
     return result.length > 0;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transaction<T>(fn: (tx: SQLiteTransaction<any, any, any, any>) => T): T {
     return this.db.transaction(fn) as T;
   }

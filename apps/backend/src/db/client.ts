@@ -20,6 +20,7 @@ sqlite.pragma("foreign_keys = ON");
 
 export const db = drizzle(sqlite, { schema });
 export { schema };
+export type AllTables = (typeof schema)[keyof typeof schema];
 export type StoryforgeSqliteDatabase = typeof db;
 
 export function closeDatabase() {

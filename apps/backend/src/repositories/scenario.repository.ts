@@ -5,9 +5,7 @@ import type { Scenario, NewScenario } from "../db/schema/scenarios";
 import type { Turn } from "../db/schema/turns";
 
 export class ScenarioRepository extends BaseRepository<
-  typeof schema.scenarios,
-  Scenario,
-  NewScenario
+  typeof schema.scenarios
 > {
   constructor() {
     super(db, schema.scenarios);
@@ -18,13 +16,11 @@ export class ScenarioRepository extends BaseRepository<
   > {
     const scenarios = await this.findAll();
 
-    // Get character associations for all scenarios
     const scenarioCharacters = await this.db
       .select()
       .from(schema.scenarioCharacters)
       .orderBy(schema.scenarioCharacters.orderIndex);
 
-    // Map character IDs to scenarios
     const scenarioCharacterMap = new Map<string, string[]>();
     for (const sc of scenarioCharacters) {
       if (!scenarioCharacterMap.has(sc.scenarioId)) {
@@ -47,14 +43,12 @@ export class ScenarioRepository extends BaseRepository<
     const scenario = await this.findById(id);
     if (!scenario) return undefined;
 
-    // Get character IDs
     const scenarioCharacters = await this.db
       .select()
       .from(schema.scenarioCharacters)
       .where(eq(schema.scenarioCharacters.scenarioId, id))
       .orderBy(schema.scenarioCharacters.orderIndex);
 
-    // Get turns
     const turns = await this.db
       .select()
       .from(schema.turns)
@@ -72,13 +66,11 @@ export class ScenarioRepository extends BaseRepository<
     data: NewScenario,
     characterIds: string[]
   ): Promise<Scenario> {
-    // Create scenario first
     const [scenario] = await this.db
       .insert(this.table)
       .values(data)
       .returning();
 
-    // Create character associations in a transaction
     if (characterIds.length > 0 && scenario) {
       this.transaction((tx) => {
         tx.insert(schema.scenarioCharacters)
@@ -105,12 +97,10 @@ export class ScenarioRepository extends BaseRepository<
     characterIds: string[]
   ): Promise<void> {
     this.transaction((tx) => {
-      // Delete existing associations
       tx.delete(schema.scenarioCharacters)
         .where(eq(schema.scenarioCharacters.scenarioId, scenarioId))
         .run();
 
-      // Create new associations
       if (characterIds.length > 0) {
         tx.insert(schema.scenarioCharacters)
           .values(
@@ -127,9 +117,8 @@ export class ScenarioRepository extends BaseRepository<
 
   async addTurn(
     scenarioId: string,
-    turn: Omit<Turn, "id" | "scenarioId" | "createdAt">
+    turn: Omit<Turn, "id" | "scenarioId" | "createdAt" | "updatedAt">
   ): Promise<Turn> {
-    // Get the next order index
     const lastTurn = await this.db
       .select({ orderIndex: schema.turns.orderIndex })
       .from(schema.turns)
@@ -158,5 +147,4 @@ export class ScenarioRepository extends BaseRepository<
   }
 }
 
-// Export singleton instance
 export const scenarioRepository = new ScenarioRepository();

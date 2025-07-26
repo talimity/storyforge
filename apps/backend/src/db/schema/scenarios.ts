@@ -13,11 +13,13 @@ export const scenarios = sqliteTable("scenarios", {
     .$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .$onUpdate(() => new Date()),
 });
 
-// Join table for many-to-many relationship
 export const scenarioCharacters = sqliteTable("scenario_characters", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   scenarioId: text("scenario_id")
     .notNull()
     .references(() => scenarios.id, { onDelete: "cascade" }),
