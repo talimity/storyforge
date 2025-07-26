@@ -9,12 +9,12 @@ async function seed() {
   try {
     // Clear existing data
     console.log("Clearing existing data...");
-    await db.delete(schema.turns).run();
-    await db.delete(schema.scenarioCharacters).run();
-    await db.delete(schema.lorebookEntries).run();
-    await db.delete(schema.scenarios).run();
-    await db.delete(schema.characters).run();
-    await db.delete(schema.lorebooks).run();
+    db.delete(schema.turns).run();
+    db.delete(schema.scenarioCharacters).run();
+    db.delete(schema.lorebookEntries).run();
+    db.delete(schema.scenarios).run();
+    db.delete(schema.characters).run();
+    db.delete(schema.lorebooks).run();
 
     // Create characters
     console.log("Creating characters...");
@@ -137,5 +137,4 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
 // Import schema for clearing data
 import * as schema from "./schema";
 
-// Run seed
 seed().catch(console.error);

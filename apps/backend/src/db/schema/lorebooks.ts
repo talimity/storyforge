@@ -22,7 +22,6 @@ export const lorebookEntries = sqliteTable("lorebook_entries", {
   lorebookId: text("lorebook_id")
     .notNull()
     .references(() => lorebooks.id, { onDelete: "cascade" }),
-  // Store triggers as JSON array
   triggers: text("triggers", { mode: "json" }).notNull().$type<string[]>(),
   content: text("content").notNull(),
   enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),

@@ -1,40 +1,40 @@
-import { eq } from "drizzle-orm";
+import { eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
 import type {
+  SQLiteTable,
   SQLiteTableWithColumns,
   SQLiteTransaction,
-  TableConfig,
 } from "drizzle-orm/sqlite-core";
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { StoryforgeSqliteDatabase } from "../db/client";
 
 export abstract class BaseRepository<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TTable extends SQLiteTableWithColumns<any>,
-  TSelect = TTable["$inferSelect"],
-  TInsert = TTable["$inferInsert"],
+  TTable extends SQLiteTable,
+  TSelect = InferSelectModel<TTable>,
+  TInsert = InferInsertModel<TTable>,
 > {
   constructor(
-    protected db: BetterSQLite3Database,
+    protected db: StoryforgeSqliteDatabase,
     protected table: TTable
   ) {}
 
   async findAll(): Promise<TSelect[]> {
-    return this.db.select().from(this.table).all() as TSelect[];
+    return this.db.select().from(this.table).all();
   }
 
   async findById(id: string): Promise<TSelect | undefined> {
     const results = await this.db
       .select()
       .from(this.table)
-      .where(eq((this.table as any).id, id))
+      .where(eq(this.table.id, id))
       .limit(1);
 
-    return results[0] as TSelect | undefined;
+    return results[0];
   }
 
   async create(data: TInsert): Promise<TSelect> {
     const results = await this.db.insert(this.table).values(data).returning();
 
-    return results[0] as TSelect;
+    return results[0];
   }
 
   async update(
@@ -47,16 +47,16 @@ export abstract class BaseRepository<
         ...data,
         updatedAt: new Date(),
       })
-      .where(eq((this.table as any).id, id))
+      .where(eq(this.table.id, id))
       .returning();
 
-    return results[0] as TSelect | undefined;
+    return results[0];
   }
 
   async delete(id: string): Promise<boolean> {
     const result = await this.db
       .delete(this.table)
-      .where(eq((this.table as any).id, id))
+      .where(eq(this.table.id, id))
       .returning();
 
     return result.length > 0;
@@ -64,9 +64,9 @@ export abstract class BaseRepository<
 
   async exists(id: string): Promise<boolean> {
     const result = await this.db
-      .select({ id: (this.table as any).id })
+      .select({ id: this.table.id })
       .from(this.table)
-      .where(eq((this.table as any).id, id))
+      .where(eq(this.table.id, id))
       .limit(1);
 
     return result.length > 0;

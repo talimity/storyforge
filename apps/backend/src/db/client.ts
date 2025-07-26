@@ -7,30 +7,21 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Determine database path based on environment
+// Set up the database connection
+// Use the DATABASE_URL environment variable or default to a local SQLite file
 const dbPath =
   process.env.DATABASE_URL || path.join(__dirname, "../../data/storyforge.db");
-
-// Ensure directory exists
 import { mkdirSync } from "fs";
 mkdirSync(path.dirname(dbPath), { recursive: true });
 
-// Create SQLite connection
 const sqlite = new Database(dbPath);
-
-// Enable foreign keys
+sqlite.pragma("journal_mode = WAL");
 sqlite.pragma("foreign_keys = ON");
 
-// Create drizzle instance with schema
 export const db = drizzle(sqlite, { schema });
-
-// Export schema for use in repositories
 export { schema };
+export type StoryforgeSqliteDatabase = typeof db;
 
-// Database connection utilities
 export function closeDatabase() {
   sqlite.close();
 }
-
-// Enable WAL mode for better concurrent access
-sqlite.pragma("journal_mode = WAL");
