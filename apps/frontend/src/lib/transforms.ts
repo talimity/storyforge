@@ -7,21 +7,15 @@ import {
   UITurn,
 } from "@storyforge/shared";
 
-/**
- * Transform domain Character to UI Character
- */
 export function transformCharacterToUI(character: Character): UICharacter {
   return {
     ...character,
-    isActive: false, // Will be determined by scenario context
-    mood: "Neutral", // Default mood
-    status: "Ready", // Default status
+    isActive: false,
+    mood: "Neutral",
+    status: "Ready",
   };
 }
 
-/**
- * Transform domain Characters to UI Characters with scenario context
- */
 export function transformCharactersToUI(
   characters: Character[],
   activeCharacterIds: string[] = []
@@ -32,9 +26,6 @@ export function transformCharactersToUI(
   }));
 }
 
-/**
- * Transform domain Turn to UI Turn
- */
 export function transformTurnToUI(turn: Turn, index: number): UITurn {
   return {
     id: index + 1, // Frontend uses incremental numbers for display
@@ -46,19 +37,14 @@ export function transformTurnToUI(turn: Turn, index: number): UITurn {
   };
 }
 
-/**
- * Transform domain Scenario to UI Scenario with character data
- */
 export function transformScenarioToUI(
   scenario: Scenario,
   characters: Character[]
 ): UIScenario {
-  // Filter characters that are part of this scenario
   const scenarioCharacters = characters.filter((char) =>
     scenario.characters.includes(char.id)
   );
 
-  // Get all active character IDs from the current turn
   const currentTurn = scenario.turns[scenario.turns.length - 1];
   const activeCharacterIds = currentTurn?.character
     ? [currentTurn.character]
@@ -75,9 +61,6 @@ export function transformScenarioToUI(
   };
 }
 
-/**
- * Transform UI Scenario back to domain Scenario (for updates)
- */
 export function transformUIScenarioToDomain(
   uiScenario: UIScenario
 ): Partial<Scenario> {
@@ -90,9 +73,6 @@ export function transformUIScenarioToDomain(
   };
 }
 
-/**
- * Transform UI Character back to domain Character (for updates)
- */
 export function transformUICharacterToDomain(
   uiCharacter: UICharacter
 ): Partial<Character> {

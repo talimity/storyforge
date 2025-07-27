@@ -13,7 +13,6 @@ export const lorebookKeys = {
   detail: (id: string) => [...lorebookKeys.details(), id] as const,
 };
 
-// Get all lorebooks
 export function useLorebooks() {
   return useQuery({
     queryKey: lorebookKeys.lists(),
@@ -22,7 +21,6 @@ export function useLorebooks() {
   });
 }
 
-// Get single lorebook
 export function useLorebook(id: string) {
   return useQuery({
     queryKey: lorebookKeys.detail(id),
@@ -32,7 +30,6 @@ export function useLorebook(id: string) {
   });
 }
 
-// Create lorebook mutation
 export function useCreateLorebook() {
   const queryClient = useQueryClient();
 
@@ -45,7 +42,6 @@ export function useCreateLorebook() {
   });
 }
 
-// Update lorebook mutation
 export function useUpdateLorebook() {
   const queryClient = useQueryClient();
 
@@ -67,7 +63,6 @@ export function useUpdateLorebook() {
   });
 }
 
-// Delete lorebook mutation
 export function useDeleteLorebook() {
   const queryClient = useQueryClient();
 

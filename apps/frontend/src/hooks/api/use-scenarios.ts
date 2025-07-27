@@ -13,7 +13,6 @@ export const scenarioKeys = {
   detail: (id: string) => [...scenarioKeys.details(), id] as const,
 };
 
-// Get all scenarios
 export function useScenarios() {
   return useQuery({
     queryKey: scenarioKeys.lists(),
@@ -22,7 +21,6 @@ export function useScenarios() {
   });
 }
 
-// Get single scenario
 export function useScenario(id: string) {
   return useQuery({
     queryKey: scenarioKeys.detail(id),
@@ -32,7 +30,6 @@ export function useScenario(id: string) {
   });
 }
 
-// Create scenario mutation
 export function useCreateScenario() {
   const queryClient = useQueryClient();
 
@@ -40,13 +37,11 @@ export function useCreateScenario() {
     mutationFn: (scenario: Omit<Scenario, "id">) =>
       scenariosService.create(scenario),
     onSuccess: () => {
-      // Invalidate and refetch scenarios list
       queryClient.invalidateQueries({ queryKey: scenarioKeys.lists() });
     },
   });
 }
 
-// Update scenario mutation
 export function useUpdateScenario() {
   const queryClient = useQueryClient();
 
@@ -59,27 +54,24 @@ export function useUpdateScenario() {
       scenario: Partial<Scenario>;
     }) => scenariosService.update(id, scenario),
     onSuccess: (updatedScenario) => {
-      // Update the specific scenario in cache
       queryClient.setQueryData(
         scenarioKeys.detail(updatedScenario.id),
         updatedScenario
       );
-      // Invalidate the list to ensure consistency
+
       queryClient.invalidateQueries({ queryKey: scenarioKeys.lists() });
     },
   });
 }
 
-// Delete scenario mutation
 export function useDeleteScenario() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => scenariosService.delete(id),
     onSuccess: (_, deletedId) => {
-      // Remove from cache
       queryClient.removeQueries({ queryKey: scenarioKeys.detail(deletedId) });
-      // Invalidate list
+
       queryClient.invalidateQueries({ queryKey: scenarioKeys.lists() });
     },
   });

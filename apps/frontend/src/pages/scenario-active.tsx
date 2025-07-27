@@ -13,7 +13,6 @@ import { UIScenario } from "@storyforge/shared";
 export const ScenarioActive = () => {
   const { id } = useParams<{ id: string }>();
 
-  // Fetch scenario and characters data
   const {
     data: scenarioData,
     isLoading: scenarioLoading,
@@ -46,7 +45,6 @@ export const ScenarioActive = () => {
     alert("History toggle - to be implemented");
   };
 
-  // Show loading state
   if (scenarioLoading || charactersLoading) {
     return (
       <div className="min-h-screen bg-narrative-bg flex items-center justify-center">
@@ -62,7 +60,6 @@ export const ScenarioActive = () => {
     );
   }
 
-  // Show error state
   if (scenarioError) {
     return (
       <div className="min-h-screen bg-narrative-bg flex items-center justify-center">
@@ -86,7 +83,6 @@ export const ScenarioActive = () => {
     );
   }
 
-  // Show not found state
   if (!uiScenario || !scenario) {
     return (
       <div className="min-h-screen bg-narrative-bg flex items-center justify-center">

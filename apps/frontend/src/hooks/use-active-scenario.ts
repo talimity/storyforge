@@ -20,7 +20,6 @@ export const useScenario = (initialScenario?: UIScenario) => {
   const [inputText, setInputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Update state when initialScenario changes
   useEffect(() => {
     if (initialScenario) {
       setScenario(initialScenario);

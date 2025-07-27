@@ -13,7 +13,6 @@ export const characterKeys = {
   detail: (id: string) => [...characterKeys.details(), id] as const,
 };
 
-// Get all characters
 export function useCharacters() {
   return useQuery({
     queryKey: characterKeys.lists(),
@@ -22,7 +21,6 @@ export function useCharacters() {
   });
 }
 
-// Get single character
 export function useCharacter(id: string) {
   return useQuery({
     queryKey: characterKeys.detail(id),
@@ -32,7 +30,6 @@ export function useCharacter(id: string) {
   });
 }
 
-// Create character mutation
 export function useCreateCharacter() {
   const queryClient = useQueryClient();
 
@@ -40,13 +37,11 @@ export function useCreateCharacter() {
     mutationFn: (character: Omit<Character, "id">) =>
       charactersService.create(character),
     onSuccess: () => {
-      // Invalidate and refetch characters list
       queryClient.invalidateQueries({ queryKey: characterKeys.lists() });
     },
   });
 }
 
-// Update character mutation
 export function useUpdateCharacter() {
   const queryClient = useQueryClient();
 
@@ -68,7 +63,6 @@ export function useUpdateCharacter() {
   });
 }
 
-// Delete character mutation
 export function useDeleteCharacter() {
   const queryClient = useQueryClient();
 

@@ -76,8 +76,6 @@ storyforge/
 
 ### Comments Policy
 
-#### Core Principles
-
 Strongly tend towards not using any comments.
 - **Self-documenting code first** - Use clear naming and structure instead of comments
 - **Comments must add value** - If removing the comment doesn't lose information, it shouldn't exist

@@ -1,5 +1,3 @@
-// Base API client configuration
-
 const API_BASE_URL = "http://localhost:3001";
 
 export class ApiError extends Error {
@@ -14,8 +12,16 @@ export class ApiError extends Error {
 
 async function apiRequest<T>(
   endpoint: string,
+  options?: RequestInit
+): Promise<T>;
+async function apiRequest(
+  endpoint: string,
+  options?: RequestInit
+): Promise<void>;
+async function apiRequest<T>(
+  endpoint: string,
   options: RequestInit = {}
-): Promise<T> {
+): Promise<T | void> {
   const url = `${API_BASE_URL}${endpoint}`;
 
   const config: RequestInit = {
@@ -37,9 +43,8 @@ async function apiRequest<T>(
       );
     }
 
-    // Handle 204 No Content responses
     if (response.status === 204) {
-      return undefined as T;
+      return;
     }
 
     return await response.json();
@@ -48,7 +53,6 @@ async function apiRequest<T>(
       throw error;
     }
 
-    // Network or other errors
     throw new ApiError(
       0,
       error instanceof Error ? error.message : "Unknown error"
@@ -56,6 +60,7 @@ async function apiRequest<T>(
   }
 }
 
+/** Generic REST API client. */
 export const api = {
   get: <T>(endpoint: string) => apiRequest<T>(endpoint),
 
