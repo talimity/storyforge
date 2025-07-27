@@ -30,6 +30,19 @@ pnpm format
 
 # Build
 pnpm build
+
+# Dev servers
+# ⚠️ Don't use `pnpm dev` to start dev servers directly, as it will block.
+# Instead, use tmux to run a detached session.
+
+# View last [N] lines of logs
+tmux capture-pane -t dev -pJ -S - | awk NF | tail -[N]
+# List sessions
+tmux list-sessions
+# Kill session
+tmux kill-session -t dev
+# Start frontend and backend dev servers in tmux (note: they are likely already running)
+tmux new-session -d -s dev 'pnpm dev'
 ```
 
 ## Stack
