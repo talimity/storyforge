@@ -32,17 +32,13 @@ pnpm format
 pnpm build
 
 # Dev servers
-# ⚠️ Don't use `pnpm dev` to start dev servers directly, as it will block.
-# Instead, use tmux to run a detached session.
-
-# View last [N] lines of logs
-tmux capture-pane -t dev -pJ -S - | awk NF | tail -[N]
-# List sessions
-tmux list-sessions
-# Kill session
-tmux kill-session -t dev
-# Start frontend and backend dev servers in tmux (note: they are likely already running)
-tmux new-session -d -s dev 'pnpm dev'
+# ⚠️ IMPORTANT: If you use `pnpm dev` it will block your terminal.
+# If you need to start the servers in the background, you MUST use the `devctl` helper:
+devctl start      # Starts frontend/backend in the background
+devctl status     # "running" | "stopped"
+curl http://localhost:3001/health # Interact with the frontend or backend for your task
+devctl logs 100   # Show last 100 lines of logs (default 30)
+devctl stop       # Stop the dev servers
 ```
 
 ## Stack
