@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
 import { scenariosRoutes } from "./routes/scenarios";
 import { charactersRoutes } from "./routes/characters";
 import { lorebooksRoutes } from "./routes/lorebooks";
@@ -12,6 +13,8 @@ await fastify.register(cors, {
   origin: ["http://localhost:5173", "http://localhost:8080"],
   credentials: true,
 });
+
+await fastify.register(multipart);
 
 fastify.get("/health", async () => {
   return { status: "ok", timestamp: new Date().toISOString() };

@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { characterRepository } from "../repositories";
 import { Character } from "@storyforge/shared";
+import { CharacterCardParserService } from "../services/character-card-parser.service";
 
 interface GetCharacterParams {
   id: string;
@@ -113,4 +114,36 @@ export async function charactersRoutes(fastify: FastifyInstance) {
       }
     }
   );
+
+  fastify.post("/api/characters/import", async (request, reply) => {
+    try {
+      const data = await request.file();
+      
+      if (!data) {
+        return reply.code(400).send({ error: "No file provided" });
+      }
+
+      if (!data.mimetype || data.mimetype !== 'image/png') {
+        return reply.code(400).send({ error: "File must be a PNG image" });
+      }
+
+      const buffer = await data.toBuffer();
+      const parsedCard = await CharacterCardParserService.parseFromBuffer(buffer.buffer);
+
+      return {
+        success: true,
+        cardData: parsedCard.cardData,
+        avatar: parsedCard.avatar,
+        isV2: parsedCard.isV2,
+      };
+    } catch (error) {
+      fastify.log.error(error);
+      
+      if (error instanceof Error) {
+        return reply.code(400).send({ error: error.message });
+      }
+      
+      return reply.code(500).send({ error: "Failed to parse character card" });
+    }
+  });
 }

@@ -18,12 +18,17 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",
+    "@fastify/multipart": "^9.0.0",
     "@fastify/static": "^8.0.2",
     "@paralleldrive/cuid2": "^2.2.2",
     "@storyforge/shared": "workspace:*",
     "better-sqlite3": "^12.2.0",
     "drizzle-orm": "^0.44.3",
-    "fastify": "^5.1.0"
+    "fastify": "^5.1.0",
+    "png-chunk-text": "^1.0.0",
+    "png-chunks-encode": "^1.0.0",
+    "png-chunks-extract": "^1.0.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@mapbox/node-pre-gyp": "^2.0.0",
