@@ -38,7 +38,8 @@ devctl start      # Starts frontend/backend in the background
 devctl status     # "running" | "stopped"
 curl http://localhost:3001/health # Interact with the frontend or backend for your task
 devctl logs 100   # Show last 100 lines of logs (default 30)
-devctl stop       # Stop the dev servers
+devctl restart    # Restart both dev servers (this should not be necessary in most cases)
+devctl stop       # Stop both dev servers
 ```
 
 ## Stack
