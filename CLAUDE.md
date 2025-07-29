@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 StoryForge is an LLM-powered character roleplaying application that reimagines AI chat interfaces as a tabletop RPG experience. Unlike traditional 1-on-1 AI chat apps, StoryForge positions the user as a director/dungeon master orchestrating multi-character scenarios rather than being locked into a single character role. Agentic narrative engine uses specialized AI agents (Planner, Screenplay, Prose, etc.) to take advantage of the strengths of different models and prompt structures.
 
 ### Vision
-- **Multi-character scenarios**: Load and manage multiple characters using SillyTavern .png character cards
+- **Multi-character scenarios**: Load and manage multiple characters using TavernCard v2 .png character cards
 - **Flexible role management**: User can play any character, multiple characters, or remain in director mode
 - **Agentic narrative engine**: Turns are managed by a narrative engine that handles character actions, scene management, and AI interactions
 - **Event-driven narratives**: User-prompted twists, challenges, and character actions drive the story forward
@@ -17,6 +17,21 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 - **Bring your own AI models** - Players run their own LLMs locally or use cloud APIs
 - **No real-time multiplayer** - Focus on single-player experience with potential for future LAN/mobile
 - **TypeScript/Node.js focused** - Consistent language across stack for rapid development
+
+## Current Status
+
+Very early, still in the design phase. The codebase is not yet functional, and the architecture and core concepts are being defined.
+
+- ✅ UI framework and component library (shadcn/ui + Tailwind CSS)
+- ✅ Monorepo structure with pnpm
+- ✅ Basic Fastify API server
+- ✅ SQLite persistence layer
+- ❌ Character import / browsing / management
+- ❌ Scenario creation / play
+- ❌ LLM inference interface
+- ❌ AI agent architecture
+
+Important: Most of the code in this repository is scaffolding. Types, interfaces, and models for Character, Scenario, Turn, etc. are placeholder interfaces generated for the UI mockup. None of these types will be used in the final codebase, and they should not be used as a reference. As features are implemented, remove the placeholder types from /packages/shared/src/types/placeholders.ts and create individual files for each feature.
 
 ## Build & Test Commands
 ```bash
@@ -91,13 +106,3 @@ Strongly tend towards not using any comments.
 - **Comments must add value** - If removing the comment doesn't lose information, it shouldn't exist
 - **Explain WHY, not WHAT** - Focus on business logic and non-obvious relationships
 - **Maintenance risk** - Comments can become outdated; prefer refactoring over commenting
-
-## Current Implementation Status
-- ✅ UI framework and component library (shadcn/ui + Tailwind CSS)
-- ✅ Monorepo structure with pnpm
-- ✅ Responsive design with mobile detection
-- ✅ Basic Fastify API server
-- ❌ Backend API connections
-- ❌ AI agent integration
-- ❌ Data persistence
-- ❌ Character import/export (SillyTavern format planned)
