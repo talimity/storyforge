@@ -8,8 +8,9 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "format": "prettier --write \"**/*.{ts,tsx}\""
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "check": "run-p --continue-on-error lint typecheck"
   },
   "devDependencies": {}
 }

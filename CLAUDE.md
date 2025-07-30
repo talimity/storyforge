@@ -38,10 +38,9 @@ Important: Most of the code in this repository is scaffolding. Types, interfaces
 # Install dependencies
 pnpm i
 
-# eslint, tsc, prettier
-pnpm lint
-pnpm typecheck
-pnpm format
+# Code quality
+pnpm check # lint + typecheck
+pnpm format # apply Prettier
 
 # Build
 pnpm build
@@ -90,7 +89,12 @@ storyforge/
 
 ## Code Style Guidelines
 
-- **TypeScript**: Strict typing, no implicit any, no unused locals
+- **TypeScript**:
+  - Strict mode enabled
+  - Explicit `any` usage is not permitted
+  - Casting via `as` should be avoided unless absolutely necessary
+    - Write a type guard function or a type assertion function instead (e.g. `isCharacter(obj: unknown): obj is Character`)
+    - You can use Zod's `parse` method to do this for you on unknown data
 - **Naming conventions**:
   - Files: kebab-case
   - Identifiers: camelCase for functions/variables, PascalCase for classes/components

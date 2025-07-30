@@ -9,7 +9,8 @@
     "build": "tsc && vite build",
     "dev": "vite",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "lint": "eslint .",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "check": "run-p --continue-on-error lint typecheck",
     "preview": "vite preview"
   },
   "dependencies": {
