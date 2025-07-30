@@ -55,7 +55,7 @@ const TavernCardV2Schema = z.object({
       system_prompt: z.string(),
       post_history_instructions: z.string(),
       alternate_greetings: z.array(z.string()),
-      character_book: CharacterBookSchema.optional(),
+      character_book: CharacterBookSchema.nullish(),
       tags: z.array(z.string()),
       creator: z.string(),
       character_version: z.string(),

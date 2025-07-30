@@ -7,7 +7,6 @@ import { characterGreetingRepository } from "../repositories/character-greeting.
 import { characterExampleRepository } from "../repositories/character-example.repository";
 import { Character as DbCharacter } from "../db/schema/characters.js";
 
-// Helper function to convert database character to DTO
 function toCharacterDTO(dbCharacter: DbCharacter): SharedCharacter {
   const result: SharedCharacter = {
     id: dbCharacter.id,
@@ -180,7 +179,6 @@ export async function charactersRoutes(fastify: FastifyInstance) {
         buffer.buffer
       );
 
-      // Import the character
       const importService = new CharacterImportService(
         characterRepository,
         characterGreetingRepository,
@@ -192,7 +190,7 @@ export async function charactersRoutes(fastify: FastifyInstance) {
         buffer
       );
 
-      // Fetch the imported character with its relationships
+      // load relations
       const character = await characterRepository.findById(characterId);
       const greetings =
         await characterGreetingRepository.findByCharacterId(characterId);

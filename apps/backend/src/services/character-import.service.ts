@@ -6,6 +6,10 @@ import { NewCharacter } from "../db/schema/characters.js";
 import { NewCharacterGreeting } from "../db/schema/character-greetings.js";
 import { NewCharacterExample } from "../db/schema/character-examples.js";
 
+function isTavernCardV2(card: TavernCard): card is TavernCardV2 {
+  return "spec" in card && card.spec === "chara_card_v2";
+}
+
 export class CharacterImportService {
   constructor(
     private characterRepository: CharacterRepository,
@@ -13,17 +17,21 @@ export class CharacterImportService {
     private exampleRepository: CharacterExampleRepository
   ) {}
 
-  async importCharacter(card: TavernCard, imageBuffer: Buffer): Promise<string> {
-    const isV2 = "spec" in card && card.spec === "chara_card_v2";
-    
-    if (isV2) {
-      return this.importV2Character(card as TavernCardV2, imageBuffer);
+  async importCharacter(
+    card: TavernCard,
+    imageBuffer: Buffer
+  ): Promise<string> {
+    if (isTavernCardV2(card)) {
+      return this.importV2Character(card, imageBuffer);
     } else {
-      return this.importV1Character(card as TavernCardV1, imageBuffer);
+      return this.importV1Character(card, imageBuffer);
     }
   }
 
-  private async importV2Character(card: TavernCardV2, imageBuffer: Buffer): Promise<string> {
+  private async importV2Character(
+    card: TavernCardV2,
+    imageBuffer: Buffer
+  ): Promise<string> {
     const newCharacter: NewCharacter = {
       name: card.data.name,
       description: card.data.description,
@@ -41,7 +49,6 @@ export class CharacterImportService {
 
     const character = await this.characterRepository.create(newCharacter);
 
-    // Import primary greeting
     if (card.data.first_mes) {
       const primaryGreeting: NewCharacterGreeting = {
         characterId: character.id,
@@ -51,8 +58,7 @@ export class CharacterImportService {
       await this.greetingRepository.create(primaryGreeting);
     }
 
-    // Import alternate greetings
-    if (card.data.alternate_greetings && card.data.alternate_greetings.length > 0) {
+    if (card.data.alternate_greetings?.length > 0) {
       for (const greeting of card.data.alternate_greetings) {
         const alternateGreeting: NewCharacterGreeting = {
           characterId: character.id,
@@ -63,7 +69,6 @@ export class CharacterImportService {
       }
     }
 
-    // Import message examples
     if (card.data.mes_example) {
       const example: NewCharacterExample = {
         characterId: character.id,
@@ -75,7 +80,10 @@ export class CharacterImportService {
     return character.id;
   }
 
-  private async importV1Character(card: TavernCardV1, imageBuffer: Buffer): Promise<string> {
+  private async importV1Character(
+    card: TavernCardV1,
+    imageBuffer: Buffer
+  ): Promise<string> {
     const newCharacter: NewCharacter = {
       name: card.name,
       description: card.description,
@@ -93,7 +101,6 @@ export class CharacterImportService {
 
     const character = await this.characterRepository.create(newCharacter);
 
-    // Import primary greeting
     if (card.first_mes) {
       const primaryGreeting: NewCharacterGreeting = {
         characterId: character.id,
@@ -103,7 +110,6 @@ export class CharacterImportService {
       await this.greetingRepository.create(primaryGreeting);
     }
 
-    // Import message examples
     if (card.mes_example) {
       const example: NewCharacterExample = {
         characterId: character.id,

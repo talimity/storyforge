@@ -35,8 +35,10 @@
     /* Path Mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
-    }
+      "@storyforge/shared": [
+        "../../packages/shared/src"
+      ]
+    },
   },
   "include": [
     "src/**/*",
