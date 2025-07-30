@@ -1,8 +1,8 @@
-import { decode } from 'png-chunk-text';
-import pngEncode from 'png-chunks-encode';
-import pngExtract from 'png-chunks-extract';
-import { z } from 'zod';
-import { TavernCard, TavernCardV1, TavernCardV2 } from '@storyforge/shared';
+import { decode } from "png-chunk-text";
+import pngEncode from "png-chunks-encode";
+import pngExtract from "png-chunks-extract";
+import { z } from "zod";
+import { TavernCard } from "@storyforge/shared";
 
 const CharacterBookEntrySchema = z.object({
   keys: z.array(z.string()),
@@ -18,7 +18,7 @@ const CharacterBookEntrySchema = z.object({
   selective: z.boolean().optional(),
   secondary_keys: z.array(z.string()).optional(),
   constant: z.boolean().optional(),
-  position: z.enum(['before_char', 'after_char']).optional(),
+  position: z.enum(["before_char", "after_char"]).optional(),
 });
 
 const CharacterBookSchema = z.object({
@@ -41,25 +41,34 @@ const TavernCardV1Schema = z.object({
 });
 
 const TavernCardV2Schema = z.object({
-  spec: z.literal('chara_card_v2'),
-  spec_version: z.literal('2.0'),
-  data: z.object({
-    name: z.string(),
-    description: z.string(),
-    personality: z.string(),
-    scenario: z.string(),
-    first_mes: z.string(),
-    mes_example: z.string(),
-    creator_notes: z.string(),
-    system_prompt: z.string(),
-    post_history_instructions: z.string(),
-    alternate_greetings: z.array(z.string()),
-    character_book: CharacterBookSchema.optional(),
-    tags: z.array(z.string()),
-    creator: z.string(),
-    character_version: z.string(),
-    extensions: z.record(z.unknown()),
-  }),
+  spec: z.literal("chara_card_v2"),
+  spec_version: z.literal("2.0"),
+  data: z
+    .object({
+      name: z.string(),
+      description: z.string(),
+      personality: z.string(),
+      scenario: z.string(),
+      first_mes: z.string(),
+      mes_example: z.string(),
+      creator_notes: z.string(),
+      system_prompt: z.string(),
+      post_history_instructions: z.string(),
+      alternate_greetings: z.array(z.string()),
+      character_book: CharacterBookSchema.optional(),
+      tags: z.array(z.string()),
+      creator: z.string(),
+      character_version: z.string(),
+      extensions: z.record(z.unknown()),
+    })
+    .transform((data) => {
+      // Quirk: remove character_book if it is present, but set to undefined
+      if (data.character_book === undefined) {
+        const { character_book, ...rest } = data;
+        return rest;
+      }
+      return data;
+    }),
 });
 
 export interface ParsedCharacterCard {
@@ -69,41 +78,47 @@ export interface ParsedCharacterCard {
 }
 
 export class CharacterCardParserService {
-  static async parseFromBuffer(buffer: ArrayBuffer): Promise<ParsedCharacterCard> {
+  static async parseFromBuffer(
+    buffer: ArrayBuffer
+  ): Promise<ParsedCharacterCard> {
     const chunks = pngExtract(new Uint8Array(buffer));
 
     const textChunk = chunks
-      .filter((chunk) => chunk.name === 'tEXt')
+      .filter((chunk) => chunk.name === "tEXt")
       .map((chunk) => decode(chunk.data))
-      .find((decoded) => decoded.keyword === 'chara');
+      .find((decoded) => decoded.keyword === "chara");
 
     if (!textChunk) {
-      throw new Error('No character data found in PNG file');
+      throw new Error("No character data found in PNG file");
     }
 
     let cardData: TavernCard;
     let isV2 = false;
 
     try {
-      const decodedText = Buffer.from(textChunk.text, 'base64').toString('utf8');
+      const decodedText = Buffer.from(textChunk.text, "base64").toString(
+        "utf8"
+      );
       const rawCard = JSON.parse(decodedText);
 
-      if (rawCard.spec === 'chara_card_v2' && rawCard.spec_version === '2.0') {
-        cardData = TavernCardV2Schema.parse(rawCard) as TavernCardV2;
+      if (rawCard.spec === "chara_card_v2" && rawCard.spec_version === "2.0") {
+        cardData = TavernCardV2Schema.parse(rawCard);
         isV2 = true;
       } else {
-        cardData = TavernCardV1Schema.parse(rawCard) as TavernCardV1;
+        cardData = TavernCardV1Schema.parse(rawCard);
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new Error(`Invalid character card format: ${error.message}`);
       }
-      throw new Error(`Failed to parse character card: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to parse character card: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
 
-    const imageChunks = chunks.filter((chunk) => chunk.name !== 'tEXt');
+    const imageChunks = chunks.filter((chunk) => chunk.name !== "tEXt");
     const avatarBuffer = pngEncode(imageChunks);
-    const avatar = `data:image/png;base64,${Buffer.from(avatarBuffer).toString('base64')}`;
+    const avatar = `data:image/png;base64,${Buffer.from(avatarBuffer).toString("base64")}`;
 
     return {
       cardData,

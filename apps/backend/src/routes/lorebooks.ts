@@ -25,7 +25,7 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
         description: lorebook.description,
         entries: lorebook.entries.map((entry) => ({
           id: entry.id,
-          trigger: entry.triggers as string[],
+          trigger: entry.triggers,
           content: entry.content,
           enabled: entry.enabled,
         })),
@@ -56,7 +56,7 @@ export async function lorebooksRoutes(fastify: FastifyInstance) {
           description: lorebook.description,
           entries: lorebook.entries.map((entry) => ({
             id: entry.id,
-            trigger: entry.triggers as string[],
+            trigger: entry.triggers,
             content: entry.content,
             enabled: entry.enabled,
           })),

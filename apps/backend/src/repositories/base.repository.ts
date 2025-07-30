@@ -1,4 +1,4 @@
-import { eq, InferInsertModel } from "drizzle-orm";
+import { eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
 import type {
   AnySQLiteTable,
   SQLiteColumn,
@@ -14,11 +14,11 @@ export abstract class BaseRepository<TTable extends TableWithId> {
     protected table: TTable
   ) {}
 
-  async findAll() {
+  async findAll(): Promise<InferSelectModel<TTable>[]> {
     return this.db.select().from(this.table).all();
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<InferSelectModel<TTable> | undefined> {
     const results = await this.db
       .select()
       .from(this.table)
@@ -28,24 +28,24 @@ export abstract class BaseRepository<TTable extends TableWithId> {
     return results[0];
   }
 
-  async create(data: InferInsertModel<TTable>) {
+  async create(data: InferInsertModel<TTable>): Promise<InferSelectModel<TTable>> {
     const results = await this.db.insert(this.table).values(data).returning();
 
     if (!results[0]) {
       throw new Error("Failed to create record");
     }
 
-    return results[0];
+    return results[0] as InferSelectModel<TTable>;
   }
 
-  async update(id: string, data: Partial<InferInsertModel<TTable>>) {
+  async update(id: string, data: Partial<InferInsertModel<TTable>>): Promise<InferSelectModel<TTable> | undefined> {
     const results = await this.db
       .update(this.table)
       .set({ ...data })
       .where(eq(this.table.id, id))
       .returning();
 
-    return results[0];
+    return results[0] as InferSelectModel<TTable> | undefined;
   }
 
   async delete(id: string): Promise<boolean> {

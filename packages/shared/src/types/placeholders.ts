@@ -1,15 +1,11 @@
 // Note that this file is entirely placeholder generated for the UI mockup.
 
+import { UICharacter } from "./character";
+
 // ===== DOMAIN MODELS =====
 // These represent the core data structures as stored and transmitted
 
-export interface Character {
-  id: string;
-  name: string;
-  description: string;
-  personality: string;
-  avatar: string | null;
-}
+// Character type has been moved to ./character.ts
 
 export interface Scenario {
   id: string;
@@ -51,9 +47,7 @@ export interface ScenariosResponse {
   scenarios: Scenario[];
 }
 
-export interface CharactersResponse {
-  characters: Character[];
-}
+
 
 export interface LorebooksResponse {
   lorebooks: Lorebook[];
@@ -62,11 +56,7 @@ export interface LorebooksResponse {
 // ===== FRONTEND UI TYPES =====
 // These extend domain models with UI-specific state
 
-export interface UICharacter extends Character {
-  isActive?: boolean;
-  mood?: string;
-  status?: string;
-}
+// UICharacter has been moved to ./character.ts
 
 export interface UITurn {
   id: number; // Frontend uses incremental numbers for display

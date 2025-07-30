@@ -1,5 +1,6 @@
 import { BaseRepository } from "./base.repository";
 import { db, schema } from "../db/client";
+import { eq } from "drizzle-orm";
 import type { Character } from "../db/schema/characters";
 
 export class CharacterRepository extends BaseRepository<
@@ -35,7 +36,5 @@ export class CharacterRepository extends BaseRepository<
     return results.map((r) => r.character);
   }
 }
-
-import { eq } from "drizzle-orm";
 
 export const characterRepository = new CharacterRepository();

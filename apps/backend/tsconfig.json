@@ -23,17 +23,20 @@
     
     /* Emit */
     "outDir": "./dist",
-    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "removeComments": false,
     
     /* Module Resolution */
+    "baseUrl": ".",
+    "paths": {
+      "@storyforge/shared": ["../../packages/shared/src"]
+    },
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "scripts/**/*", "drizzle.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

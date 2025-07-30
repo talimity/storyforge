@@ -133,7 +133,7 @@ export class LorebookRepository extends BaseRepository<
       .where(eq(schema.lorebookEntries.enabled, true));
 
     return allEntries.filter((entry) => {
-      const entryTriggers = entry.triggers as string[];
+      const entryTriggers = entry.triggers;
       return entryTriggers.some((trigger) =>
         triggers.some((searchTrigger) =>
           searchTrigger.toLowerCase().includes(trigger.toLowerCase())

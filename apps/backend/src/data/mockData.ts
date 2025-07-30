@@ -1,31 +1,4 @@
-import { Scenario, Character, Lorebook } from "@storyforge/shared";
-
-export const mockCharacters: Character[] = [
-  {
-    id: "char-1",
-    name: "Lady Veridiana",
-    description:
-      "A calculating noble of the fae courts with centuries of political experience",
-    personality: "Calculating, eloquent, manipulative yet charming",
-    avatar: null,
-  },
-  {
-    id: "char-2",
-    name: "Lord Thorn",
-    description:
-      "A suspicious lord who watches the court proceedings with careful eyes",
-    personality: "Suspicious, watchful, protective of his interests",
-    avatar: null,
-  },
-  {
-    id: "char-3",
-    name: "The Shadow Broker",
-    description:
-      "A mysterious figure who deals in secrets and lurks in the shadows",
-    personality: "Amused, mysterious, always knows more than they reveal",
-    avatar: null,
-  },
-];
+import { Scenario, Lorebook } from "@storyforge/shared";
 
 export const mockScenarios: Scenario[] = [
   {

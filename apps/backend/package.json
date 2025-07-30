@@ -8,12 +8,15 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "pnpm tsx src/db/migrate.ts",
     "db:push": "drizzle-kit push",
+    "db:query": "pnpm tsx scripts/db-query.ts",
     "db:seed": "pnpm tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
     "dev": "pnpm tsx watch src/server.ts",
+    "check": "run-p --continue-on-error lint typecheck",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "lint": "eslint .",
+    "lint": "eslint . --ext .ts,.tsx --fix",
     "start": "node dist/server.js",
+    "test:import": "pnpm tsx scripts/test-card-import.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

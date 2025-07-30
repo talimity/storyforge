@@ -1,7 +1,7 @@
 import { db, closeDatabase } from "./client";
-import { characterRepository } from "../repositories/character.repository";
-import { scenarioRepository } from "../repositories/scenario.repository";
-import { lorebookRepository } from "../repositories/lorebook.repository";
+// import { characterRepository } from "../repositories/character.repository";
+// import { scenarioRepository } from "../repositories/scenario.repository";
+// import { lorebookRepository } from "../repositories/lorebook.repository";
 
 async function seed() {
   console.log("🌱 Starting database seed...");
@@ -16,6 +16,8 @@ async function seed() {
     db.delete(schema.lorebooks).run();
 
     console.log("Creating characters...");
+    // TODO: Update seed data for new character schema
+    /*
     const veridiana = await characterRepository.create({
       name: "Lady Veridiana",
       description:
@@ -43,8 +45,11 @@ async function seed() {
     console.log(
       `Created ${veridiana.name}, ${thorn.name}, ${shadowBroker.name}`
     );
+    */
 
     console.log("Creating scenario...");
+    // TODO: Update scenario creation after characters are updated
+    /*
     const scenario = await scenarioRepository.createWithCharacters(
       {
         name: "The Autumn Court Intrigue",
@@ -117,9 +122,11 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
       ]
     );
 
+    */
+    
     console.log("✅ Database seeded successfully!");
-    console.log(`  - Created 3 characters`);
-    console.log(`  - Created 1 scenario with 3 turns`);
+    // console.log(`  - Created 3 characters`);
+    // console.log(`  - Created 1 scenario with 3 turns`);
     console.log(`  - Created 1 lorebook with 2 entries`);
   } catch (error) {
     console.error("❌ Seed failed:", error);
