@@ -4,7 +4,9 @@ import { eq, desc } from "drizzle-orm";
 import type { Scenario, NewScenario } from "../db/schema/scenarios";
 import type { NewTurn, Turn } from "../db/schema/turns";
 
-export class ScenarioRepository extends BaseRepository<typeof schema.scenarios> {
+export class ScenarioRepository extends BaseRepository<
+  typeof schema.scenarios
+> {
   constructor() {
     super(db, schema.scenarios);
   }

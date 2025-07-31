@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from "./api-client";
 import { Lorebook, LorebooksResponse } from "@storyforge/shared";
 
 export const lorebooksService = {

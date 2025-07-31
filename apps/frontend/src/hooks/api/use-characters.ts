@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { charactersService } from "@/services";
-import { Character } from "@storyforge/shared";
+import { CharacterDTO } from "@storyforge/shared";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 
@@ -34,7 +34,7 @@ export function useCreateCharacter() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (character: Omit<Character, "id">) =>
+    mutationFn: (character: Omit<CharacterDTO, "id">) =>
       charactersService.create(character),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: characterKeys.lists() });
@@ -51,7 +51,7 @@ export function useUpdateCharacter() {
       character,
     }: {
       id: string;
-      character: Partial<Character>;
+      character: Partial<CharacterDTO>;
     }) => charactersService.update(id, character),
     onSuccess: (updatedCharacter) => {
       queryClient.setQueryData(

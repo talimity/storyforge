@@ -1,13 +1,13 @@
 import {
   Scenario,
-  Character,
+  CharacterDTO,
   Turn,
   UIScenario,
   UICharacter,
   UITurn,
 } from "@storyforge/shared";
 
-export function transformCharacterToUI(character: Character): UICharacter {
+export function transformCharacterToUI(character: CharacterDTO): UICharacter {
   return {
     ...character,
     isActive: false,
@@ -17,7 +17,7 @@ export function transformCharacterToUI(character: Character): UICharacter {
 }
 
 export function transformCharactersToUI(
-  characters: Character[],
+  characters: CharacterDTO[],
   activeCharacterIds: string[] = []
 ): UICharacter[] {
   return characters.map((character) => ({
@@ -39,7 +39,7 @@ export function transformTurnToUI(turn: Turn, index: number): UITurn {
 
 export function transformScenarioToUI(
   scenario: Scenario,
-  characters: Character[]
+  characters: CharacterDTO[]
 ): UIScenario {
   const scenarioCharacters = characters.filter((char) =>
     scenario.characters.includes(char.id)
@@ -75,7 +75,7 @@ export function transformUIScenarioToDomain(
 
 export function transformUICharacterToDomain(
   uiCharacter: UICharacter
-): Partial<Character> {
+): Partial<CharacterDTO> {
   const { isActive: _, mood: __, status: ___, ...domainFields } = uiCharacter;
   return domainFields;
 }

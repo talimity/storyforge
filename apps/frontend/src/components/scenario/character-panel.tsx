@@ -37,7 +37,7 @@ export const CharacterPanel = ({
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Avatar className="w-10 h-10 border-2 border-border">
-                    <AvatarImage src={character.avatar || undefined} />
+                    <AvatarImage src={undefined} />
                     <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
                       {character.name
                         .split(" ")
