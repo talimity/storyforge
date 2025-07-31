@@ -34,4 +34,7 @@ export const lorebookEntries = sqliteTable("lorebook_entries", {
 export type Lorebook = typeof lorebooks.$inferSelect;
 export type NewLorebook = typeof lorebooks.$inferInsert;
 export type LorebookEntry = typeof lorebookEntries.$inferSelect;
-export type NewLorebookEntry = typeof lorebookEntries.$inferInsert;
+export type NewLorebookEntry = Omit<
+  typeof lorebookEntries.$inferInsert,
+  "lorebookId"
+>;

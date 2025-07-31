@@ -47,8 +47,6 @@ export interface ScenariosResponse {
   scenarios: Scenario[];
 }
 
-
-
 export interface LorebooksResponse {
   lorebooks: Lorebook[];
 }

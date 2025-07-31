@@ -2,11 +2,9 @@ import { BaseRepository } from "./base.repository";
 import { db, schema } from "../db/client";
 import { eq, desc } from "drizzle-orm";
 import type { Scenario, NewScenario } from "../db/schema/scenarios";
-import type { Turn } from "../db/schema/turns";
+import type { NewTurn, Turn } from "../db/schema/turns";
 
-export class ScenarioRepository extends BaseRepository<
-  typeof schema.scenarios
-> {
+export class ScenarioRepository extends BaseRepository<typeof schema.scenarios> {
   constructor() {
     super(db, schema.scenarios);
   }
@@ -115,10 +113,7 @@ export class ScenarioRepository extends BaseRepository<
     });
   }
 
-  async addTurn(
-    scenarioId: string,
-    turn: Omit<Turn, "id" | "scenarioId" | "createdAt" | "updatedAt">
-  ): Promise<Turn> {
+  async addTurn(scenarioId: string, turn: NewTurn): Promise<Turn> {
     const lastTurn = await this.db
       .select({ orderIndex: schema.turns.orderIndex })
       .from(schema.turns)

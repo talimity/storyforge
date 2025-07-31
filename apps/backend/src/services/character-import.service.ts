@@ -1,22 +1,13 @@
-import { CharacterRepository } from "../repositories/character.repository.js";
-import { CharacterGreetingRepository } from "../repositories/character-greeting.repository.js";
-import { CharacterExampleRepository } from "../repositories/character-example.repository.js";
+import { characterRepository } from "../repositories/character.repository";
 import { TavernCard, TavernCardV1, TavernCardV2 } from "@storyforge/shared";
-import { NewCharacter } from "../db/schema/characters.js";
-import { NewCharacterGreeting } from "../db/schema/character-greetings.js";
-import { NewCharacterExample } from "../db/schema/character-examples.js";
+import { NewCharacterGreeting } from "../db/schema/character-greetings";
+import { NewCharacterExample } from "../db/schema/character-examples";
 
 function isTavernCardV2(card: TavernCard): card is TavernCardV2 {
   return "spec" in card && card.spec === "chara_card_v2";
 }
 
 export class CharacterImportService {
-  constructor(
-    private characterRepository: CharacterRepository,
-    private greetingRepository: CharacterGreetingRepository,
-    private exampleRepository: CharacterExampleRepository
-  ) {}
-
   async importCharacter(
     card: TavernCard,
     imageBuffer: Buffer
@@ -32,7 +23,7 @@ export class CharacterImportService {
     card: TavernCardV2,
     imageBuffer: Buffer
   ): Promise<string> {
-    const newCharacter: NewCharacter = {
+    const newCharacter = {
       name: card.data.name,
       description: card.data.description,
       legacyPersonality: card.data.personality,
@@ -47,36 +38,30 @@ export class CharacterImportService {
       cardImage: imageBuffer,
     };
 
-    const character = await this.characterRepository.create(newCharacter);
+    const greetings: NewCharacterGreeting[] = [];
+    const examples: NewCharacterExample[] = [];
 
     if (card.data.first_mes) {
-      const primaryGreeting: NewCharacterGreeting = {
-        characterId: character.id,
-        message: card.data.first_mes,
-        isPrimary: true,
-      };
-      await this.greetingRepository.create(primaryGreeting);
+      greetings.push({ message: card.data.first_mes, isPrimary: true });
     }
 
     if (card.data.alternate_greetings?.length > 0) {
       for (const greeting of card.data.alternate_greetings) {
-        const alternateGreeting: NewCharacterGreeting = {
-          characterId: character.id,
-          message: greeting,
-          isPrimary: false,
-        };
-        await this.greetingRepository.create(alternateGreeting);
+        greetings.push({ message: greeting, isPrimary: false });
       }
     }
 
     if (card.data.mes_example) {
-      const example: NewCharacterExample = {
-        characterId: character.id,
+      examples.push({
         exampleTemplate: card.data.mes_example,
-      };
-      await this.exampleRepository.create(example);
+      });
     }
 
+    const character = await characterRepository.createWithRelations(
+      newCharacter,
+      greetings,
+      examples
+    );
     return character.id;
   }
 
@@ -84,11 +69,11 @@ export class CharacterImportService {
     card: TavernCardV1,
     imageBuffer: Buffer
   ): Promise<string> {
-    const newCharacter: NewCharacter = {
+    const newCharacter = {
       name: card.name,
       description: card.description,
-      legacyPersonality: card.personality,
-      legacyScenario: card.scenario,
+      legacyPersonality: card.personality || null,
+      legacyScenario: card.scenario || null,
       creator: null,
       creatorNotes: null,
       customSystemPrompt: null,
@@ -99,25 +84,22 @@ export class CharacterImportService {
       cardImage: imageBuffer,
     };
 
-    const character = await this.characterRepository.create(newCharacter);
+    const greetings: NewCharacterGreeting[] = [];
+    const examples: NewCharacterExample[] = [];
 
     if (card.first_mes) {
-      const primaryGreeting: NewCharacterGreeting = {
-        characterId: character.id,
-        message: card.first_mes,
-        isPrimary: true,
-      };
-      await this.greetingRepository.create(primaryGreeting);
+      greetings.push({ message: card.first_mes, isPrimary: true });
     }
 
     if (card.mes_example) {
-      const example: NewCharacterExample = {
-        characterId: character.id,
-        exampleTemplate: card.mes_example,
-      };
-      await this.exampleRepository.create(example);
+      examples.push({ exampleTemplate: card.mes_example });
     }
 
+    const character = await characterRepository.createWithRelations(
+      newCharacter,
+      greetings,
+      examples
+    );
     return character.id;
   }
 }

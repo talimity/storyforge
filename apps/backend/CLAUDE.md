@@ -11,8 +11,10 @@
 - **Migrations**: Auto-generated in `src/db/migrations/`
 - **Schema**: Defined in `src/db/schema/` (characters, scenarios, turns, lorebooks)
 - **Repository Pattern**: Each model has dedicated repository in `src/repositories/`
+- **DTOs**: Data Transfer Objects in `@storyforge/shared` for type safety
 
 ## Key Implementation Notes
+- Use domain-driven design with repositories for data access. Create repositories only for aggregate roots.
 - Scenarios support character relationships and turn sequences with agent data
 - Lorebooks use trigger-based entry system with enable/disable states
 - Turn data includes optional agent outputs (planner, screenplay, prose)

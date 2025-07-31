@@ -123,7 +123,7 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
     );
 
     */
-    
+
     console.log("✅ Database seeded successfully!");
     // console.log(`  - Created 3 characters`);
     // console.log(`  - Created 1 scenario with 3 turns`);

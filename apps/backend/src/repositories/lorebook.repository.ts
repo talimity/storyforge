@@ -55,7 +55,7 @@ export class LorebookRepository extends BaseRepository<
 
   async createWithEntries(
     data: NewLorebook,
-    entries: Omit<NewLorebookEntry, "id" | "lorebookId" | "createdAt">[]
+    entries: NewLorebookEntry[]
   ): Promise<Lorebook> {
     const [lorebook] = await this.db
       .insert(this.table)
@@ -85,7 +85,7 @@ export class LorebookRepository extends BaseRepository<
 
   async addEntry(
     lorebookId: string,
-    entry: Omit<NewLorebookEntry, "id" | "lorebookId" | "createdAt">
+    entry: NewLorebookEntry
   ): Promise<LorebookEntry> {
     const [newEntry] = await this.db
       .insert(schema.lorebookEntries)
@@ -104,7 +104,7 @@ export class LorebookRepository extends BaseRepository<
 
   async updateEntry(
     entryId: string,
-    data: Partial<Omit<LorebookEntry, "id" | "lorebookId" | "createdAt">>
+    data: Partial<LorebookEntry>
   ): Promise<LorebookEntry | undefined> {
     const [updated] = await this.db
       .update(schema.lorebookEntries)

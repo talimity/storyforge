@@ -19,4 +19,7 @@ export const characterExamples = sqliteTable("character_examples", {
 });
 
 export type CharacterExample = typeof characterExamples.$inferSelect;
-export type NewCharacterExample = typeof characterExamples.$inferInsert;
+export type NewCharacterExample = Omit<
+  typeof characterExamples.$inferInsert,
+  "characterId"
+>;

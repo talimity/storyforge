@@ -28,7 +28,9 @@ export abstract class BaseRepository<TTable extends TableWithId> {
     return results[0];
   }
 
-  async create(data: InferInsertModel<TTable>): Promise<InferSelectModel<TTable>> {
+  async create(
+    data: InferInsertModel<TTable>
+  ): Promise<InferSelectModel<TTable>> {
     const results = await this.db.insert(this.table).values(data).returning();
 
     if (!results[0]) {
@@ -38,7 +40,10 @@ export abstract class BaseRepository<TTable extends TableWithId> {
     return results[0] as InferSelectModel<TTable>;
   }
 
-  async update(id: string, data: Partial<InferInsertModel<TTable>>): Promise<InferSelectModel<TTable> | undefined> {
+  async update(
+    id: string,
+    data: Partial<InferInsertModel<TTable>>
+  ): Promise<InferSelectModel<TTable> | undefined> {
     const results = await this.db
       .update(this.table)
       .set({ ...data })

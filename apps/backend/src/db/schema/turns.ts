@@ -32,4 +32,4 @@ export const turns = sqliteTable("turns", {
 });
 
 export type Turn = typeof turns.$inferSelect;
-export type NewTurn = typeof turns.$inferInsert;
+export type NewTurn = Omit<typeof turns.$inferInsert, "scenarioId">;

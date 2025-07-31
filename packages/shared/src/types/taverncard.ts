@@ -21,7 +21,7 @@ export interface CharacterBookEntry {
   selective?: boolean;
   secondary_keys?: string[];
   constant?: boolean;
-  position?: 'before_char' | 'after_char';
+  position?: "before_char" | "after_char";
 }
 
 export interface CharacterBook {
@@ -35,8 +35,8 @@ export interface CharacterBook {
 }
 
 export interface TavernCardV2 {
-  spec: 'chara_card_v2';
-  spec_version: '2.0';
+  spec: "chara_card_v2";
+  spec_version: "2.0";
   data: {
     name: string;
     description: string;

@@ -1,14 +1,12 @@
 import { FastifyInstance } from "fastify";
-import { characterRepository } from "../repositories";
-import { CharacterDTO as SharedCharacter } from "@storyforge/shared";
+import { characterRepository } from "../repositories/character.repository";
+import { CharacterDTO } from "@storyforge/shared";
 import { CharacterCardParserService } from "../services/character-card-parser.service";
 import { CharacterImportService } from "../services/character-import.service";
-import { characterGreetingRepository } from "../repositories/character-greeting.repository";
-import { characterExampleRepository } from "../repositories/character-example.repository";
-import { Character as DbCharacter } from "../db/schema/characters.js";
+import { Character as DbCharacter } from "../db/schema/characters";
 
-function toCharacterDTO(dbCharacter: DbCharacter): SharedCharacter {
-  const result: SharedCharacter = {
+function toCharacterDTO(dbCharacter: DbCharacter): CharacterDTO {
+  const result: CharacterDTO = {
     id: dbCharacter.id,
     name: dbCharacter.name,
     description: dbCharacter.description,
@@ -53,13 +51,17 @@ export async function charactersRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
 
       try {
-        const character = await characterRepository.findById(id);
+        const character = await characterRepository.findByIdWithRelations(id);
 
         if (!character) {
           return reply.code(404).send({ error: "Character not found" });
         }
 
-        return toCharacterDTO(character);
+        return {
+          ...toCharacterDTO(character),
+          greetings: character.greetings,
+          examples: character.examples,
+        };
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({ error: "Failed to fetch character" });
@@ -67,16 +69,19 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     }
   );
 
-  fastify.post<{ Body: Omit<SharedCharacter, "id"> }>(
+  fastify.post<{ Body: Omit<CharacterDTO, "id"> }>(
     "/api/characters",
     async (request, reply) => {
       try {
-        const newCharacter = await characterRepository.create({
-          name: request.body.name,
-          description: request.body.description,
+        const newCharacter = await characterRepository.createWithRelations({
+          ...request.body,
         });
 
-        return reply.code(201).send(toCharacterDTO(newCharacter));
+        return reply.code(201).send({
+          ...toCharacterDTO(newCharacter),
+          greetings: newCharacter.greetings,
+          examples: newCharacter.examples,
+        });
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({ error: "Failed to create character" });
@@ -84,7 +89,7 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     }
   );
 
-  fastify.put<{ Params: GetCharacterParams; Body: Partial<SharedCharacter> }>(
+  fastify.put<{ Params: GetCharacterParams; Body: Partial<CharacterDTO> }>(
     "/api/characters/:id",
     async (request, reply) => {
       const { id } = request.params;
@@ -179,23 +184,15 @@ export async function charactersRoutes(fastify: FastifyInstance) {
         buffer.buffer
       );
 
-      const importService = new CharacterImportService(
-        characterRepository,
-        characterGreetingRepository,
-        characterExampleRepository
-      );
+      const importService = new CharacterImportService();
 
       const characterId = await importService.importCharacter(
         parsedCard.cardData,
         buffer
       );
 
-      // load relations
-      const character = await characterRepository.findById(characterId);
-      const greetings =
-        await characterGreetingRepository.findByCharacterId(characterId);
-      const examples =
-        await characterExampleRepository.findByCharacterId(characterId);
+      const character =
+        await characterRepository.findByIdWithRelations(characterId);
 
       if (!character) {
         return reply
@@ -206,8 +203,8 @@ export async function charactersRoutes(fastify: FastifyInstance) {
       return {
         success: true,
         character: toCharacterDTO(character),
-        greetings,
-        examples,
+        greetings: character.greetings,
+        examples: character.examples,
         isV2: parsedCard.isV2,
       };
     } catch (error) {
