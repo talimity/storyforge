@@ -1,37 +1,62 @@
 # StoryForge - AI Tabletop Roleplay Engine
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## About
 
-StoryForge is an LLM-powered character roleplaying application that reimagines AI chat interfaces as a tabletop RPG experience. Unlike traditional 1-on-1 AI chat apps, StoryForge positions the user as a director/dungeon master orchestrating multi-character scenarios rather than being locked into a single character role. Agentic narrative engine uses specialized AI agents (Planner, Screenplay, Prose, etc.) to take advantage of the strengths of different models and prompt structures.
+StoryForge is an LLM-powered character roleplaying application that reimagines AI character chat interfaces as a tabletop RPG experience. The player is positioned as a director/dungeon master orchestrating multi-character scenarios rather than being locked into a single character role chatting with one other character. An agentic narrative engine generates turns by passsing inputs across multiple stages (Planner -> Screenplay -> Prose, or Dreamer -> Critic -> Writer) to improve the quality of the output.
 
 ### Vision
-- **Multi-character scenarios**: Load and manage multiple characters using TavernCard v2 .png character cards
-- **Flexible role management**: User can play any character, multiple characters, or remain in director mode
 - **Agentic narrative engine**: Turns are managed by a narrative engine that handles character actions, scene management, and AI interactions
-- **Event-driven narratives**: User-prompted twists, challenges, and character actions drive the story forward
+- **Flexible role management**: Player can act as any character, all characters, or only the narrator
+- **Event-driven narratives**: Player-prompted events force the narrative engine to generate new turns
 
 ### Technical Choices
-- **Single-user desktop application** - Not a hosted web service
+- **Single-user desktop application** - Not a hosted web service or commercial product
 - **Bring your own AI models** - Players run their own LLMs locally or use cloud APIs
-- **No real-time multiplayer** - Focus on single-player experience with potential for future LAN/mobile
-- **TypeScript/Node.js focused** - Consistent language across stack for rapid development
+- **TypeScript/Node.js focused** - Priority on type safety for maintainability
+- **Monorepo with pnpm** - All code in a single repository for easier management
 
 ## Current Status
 
-Very early, still in the design phase. The codebase is not yet functional, and the architecture and core concepts are being defined.
-
-- ✅ UI framework and component library (shadcn/ui + Tailwind CSS)
 - ✅ Monorepo structure with pnpm
-- ✅ Basic Fastify API server
-- ✅ SQLite persistence layer
-- ❌ Character import / browsing / management
-- ❌ Scenario creation / play
-- ❌ LLM inference interface
-- ❌ AI agent architecture
+- ✅ Basic Fastify backend application
+- ✅ Basic Vite React frontend application (with shadcn/ui and Tailwind CSS)
+- ✅ SQLite persistence layer (with Drizzle ORM)
+- ❌ LLM inference architecture
+  - ❌ Provider abstraction layer
+  - ❌ LLM provider implementation (MVP: OpenAI-compatible /chat/completions API)
+- ❌ Scenario runtime
+  - ❌ Prompt template rendering
+  - ❌ Narrative engine (agent-turn state machine)
+  - ❌ Scenario state persistence
+- ❌ API
+  - ✅ Character CRUD / SillyTavern character import
+  - ❌ Scenario CRUD
+  - ❌ Lorebook CRUD
+  - ❌ Prompt templates CRUD
+  - ❌ Agent workflow management
+  - ❌ Model / LLM provider management
+  - ❌ Scenario runtime API (likely WebSocket)
+- ❌ UI
+  - ❌ Library
+    - ❌ Characters
+    - ❌ Scenarios
+    - ❌ Lorebook
+    - ❌ Prompt templates
+  - ❌ Scenario player
+    - ❌ Editor (setup, character assignment)
+    - ❌ Runner (turn display, input, state feedback)
+  - ❌ Settings
+    - ❌ API key configuration
+    - ❌ Model configuration
+    - ❌ Agent workflow configuration
+- ❌ Electron wrapper (for desktop app)
+- ❌ Mobile
 
-Important: Most of the code in this repository is scaffolding. Types, interfaces, and models for Character, Scenario, Turn, etc. are placeholder interfaces generated for the UI mockup. None of these types will be used in the final codebase, and they should not be used as a reference. As features are implemented, remove the placeholder types from /packages/shared/src/types/placeholders.ts and create individual files for each feature.
+Project is still in validation phase. The goal is to build a working prototype that demonstrates the core idea of agentic narrative generation without getting bogged down in minutiae.
+
+Important: Most of the code currently in this repository is scaffolding. Types, interfaces, and models you may see for Lorebooks, Scenario, Turn, etc. are placeholder interfaces generated for a UI mockup. None of these types will be used in the final codebase, and they should not be used as a reference. As features are implemented, remove the placeholder types from /packages/shared/src/types/placeholders.ts and create individual files for each feature.
 
 ## Build & Test Commands
 ```bash
@@ -92,7 +117,7 @@ storyforge/
 - **TypeScript**:
   - Strict mode enabled
   - Explicit `any` usage is not permitted
-  - Casting via `as` should be avoided unless absolutely necessary
+  - Casting via `as` is to be avoided unless absolutely necessary
     - Write a type guard function or a type assertion function instead (e.g. `isCharacter(obj: unknown): obj is Character`)
     - You can use Zod's `parse` method to do this for you on unknown data
 - **Naming conventions**:
