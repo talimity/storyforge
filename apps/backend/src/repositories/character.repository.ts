@@ -15,7 +15,7 @@ export class CharacterRepository extends BaseRepository<
   typeof schema.characters
 > {
   constructor() {
-    super(db, schema.characters);
+    super(db, schema.characters, "character");
   }
 
   async findByName(name: string): Promise<Character | undefined> {

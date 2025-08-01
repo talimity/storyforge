@@ -8,7 +8,7 @@ export class ScenarioRepository extends BaseRepository<
   typeof schema.scenarios
 > {
   constructor() {
-    super(db, schema.scenarios);
+    super(db, schema.scenarios, "scenario");
   }
 
   async findAllWithRelations(): Promise<

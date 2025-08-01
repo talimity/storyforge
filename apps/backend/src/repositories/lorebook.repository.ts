@@ -8,7 +8,7 @@ export class LorebookRepository extends BaseRepository<
   typeof schema.lorebooks
 > {
   constructor() {
-    super(db, schema.lorebooks);
+    super(db, schema.lorebooks, "lorebook");
   }
 
   async findAllWithEntries(): Promise<

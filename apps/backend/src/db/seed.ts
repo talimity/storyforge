@@ -1,13 +1,16 @@
 import { db, closeDatabase } from "./client";
+import { createChildLogger } from "../logging";
 // import { characterRepository } from "../repositories/character.repository";
 // import { scenarioRepository } from "../repositories/scenario.repository";
 // import { lorebookRepository } from "../repositories/lorebook.repository";
 
+const logger = createChildLogger("db:seed");
+
 async function seed() {
-  console.log("🌱 Starting database seed...");
+  logger.info("🌱 Starting database seed...");
 
   try {
-    console.log("Clearing existing data...");
+    logger.info("Clearing existing data...");
     db.delete(schema.turns).run();
     db.delete(schema.scenarioCharacters).run();
     db.delete(schema.lorebookEntries).run();
@@ -15,7 +18,7 @@ async function seed() {
     db.delete(schema.characters).run();
     db.delete(schema.lorebooks).run();
 
-    console.log("Creating characters...");
+    logger.info("Creating characters...");
     // TODO: Update seed data for new character schema
     /*
     const veridiana = await characterRepository.create({
@@ -47,7 +50,7 @@ async function seed() {
     );
     */
 
-    console.log("Creating scenario...");
+    logger.info("Creating scenario...");
     // TODO: Update scenario creation after characters are updated
     /*
     const scenario = await scenarioRepository.createWithCharacters(
@@ -58,7 +61,7 @@ async function seed() {
       [veridiana.id, thorn.id, shadowBroker.id]
     );
 
-    console.log("Adding turns to scenario...");
+    logger.info("Adding turns to scenario...");
     await scenarioRepository.addTurn(scenario.id, {
       characterId: null,
       content:
@@ -97,7 +100,7 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
       },
     });
 
-    console.log("Creating lorebook...");
+    logger.info("Creating lorebook...");
     await lorebookRepository.createWithEntries(
       {
         name: "The Fae Courts",
@@ -124,12 +127,12 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
 
     */
 
-    console.log("✅ Database seeded successfully!");
-    // console.log(`  - Created 3 characters`);
-    // console.log(`  - Created 1 scenario with 3 turns`);
-    console.log(`  - Created 1 lorebook with 2 entries`);
+    logger.info("✅ Database seeded successfully!");
+    // logger.info(`  - Created 3 characters`);
+    // logger.info(`  - Created 1 scenario with 3 turns`);
+    logger.info(`  - Created 1 lorebook with 2 entries`);
   } catch (error) {
-    console.error("❌ Seed failed:", error);
+    logger.error("❌ Seed failed:", error);
     throw error;
   } finally {
     closeDatabase();
@@ -138,4 +141,7 @@ The tension in the air is palpable as all eyes turn to Lady Veridiana, waiting f
 
 import * as schema from "./schema";
 
-seed().catch(console.error);
+seed().catch((error) => {
+  logger.fatal(error, "Seed script failed");
+  process.exit(1);
+});

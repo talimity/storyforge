@@ -5,14 +5,21 @@ import type {
   SQLiteTransaction,
 } from "drizzle-orm/sqlite-core";
 import { StoryforgeSqliteDatabase } from "../db/client";
+import { createChildLogger } from "../logging";
+import type { Logger } from "pino";
 
 type TableWithId = AnySQLiteTable & { id: SQLiteColumn };
 
 export abstract class BaseRepository<TTable extends TableWithId> {
+  protected logger: Logger;
+
   constructor(
     protected db: StoryforgeSqliteDatabase,
-    protected table: TTable
-  ) {}
+    protected table: TTable,
+    loggerName: string
+  ) {
+    this.logger = createChildLogger(`repository:${loggerName}`);
+  }
 
   async findAll(): Promise<InferSelectModel<TTable>[]> {
     return this.db.select().from(this.table).all();
