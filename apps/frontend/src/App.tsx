@@ -8,7 +8,6 @@ import { Home } from "@/pages/home";
 import { Characters } from "@/pages/characters";
 import { Scenarios } from "@/pages/scenarios";
 import { ScenarioActive } from "@/pages/scenario-active";
-import { Lorebooks } from "@/pages/lorebooks";
 import { AgentConfigs } from "@/pages/agent-configs";
 import { ApiConfigs } from "@/pages/api-configs";
 import NotFound from "./pages/not-found";
@@ -27,7 +26,6 @@ const App = () => (
             <Route path="/characters" element={<Characters />} />
             <Route path="/scenarios" element={<Scenarios />} />
             <Route path="/scenario/:id" element={<ScenarioActive />} />
-            <Route path="/lorebooks" element={<Lorebooks />} />
             <Route path="/agents" element={<AgentConfigs />} />
             <Route path="/api" element={<ApiConfigs />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

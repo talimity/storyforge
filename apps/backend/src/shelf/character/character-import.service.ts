@@ -1,7 +1,7 @@
-import { characterRepository } from "../repositories/character.repository";
 import { TavernCard, TavernCardV1, TavernCardV2 } from "@storyforge/shared";
-import { NewCharacterGreeting } from "../db/schema/character-greetings";
-import { NewCharacterExample } from "../db/schema/character-examples";
+import { NewCharacterGreeting } from "@/db/schema/character-greetings";
+import { NewCharacterExample } from "@/db/schema/character-examples";
+import { characterRepository } from "./character.repository";
 
 function isTavernCardV2(card: TavernCard): card is TavernCardV2 {
   return "spec" in card && card.spec === "chara_card_v2";

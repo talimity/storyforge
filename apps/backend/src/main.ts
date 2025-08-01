@@ -3,12 +3,24 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import { config } from "./config";
 import { logger } from "./logging";
-import { scenariosRoutes } from "./routes/scenarios";
-import { charactersRoutes } from "./routes/characters";
-import { lorebooksRoutes } from "./routes/lorebooks";
+import { routeRegistry } from "@/api";
 
 const fastify = Fastify({
-  logger,
+  logger: config.logging.pretty
+    ? {
+        level: config.logging.level,
+        transport: {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "HH:MM:ss Z",
+            ignore: "pid,hostname",
+          },
+        },
+      }
+    : {
+        level: config.logging.level,
+      },
 });
 
 await fastify.register(cors, {
@@ -22,24 +34,22 @@ fastify.get("/health", async () => {
   return { status: "ok", timestamp: new Date().toISOString() };
 });
 
-await fastify.register(scenariosRoutes);
-await fastify.register(charactersRoutes);
-await fastify.register(lorebooksRoutes);
+await fastify.register(routeRegistry, { prefix: "/api" });
 
-const start = async () => {
+const init = async () => {
   try {
     await fastify.listen({
       port: config.server.port,
       host: config.server.host,
     });
     logger.info(
-      `🚀 Backend server running on http://${config.server.host}:${config.server.port}`
+      `Server running on http://${config.server.host}:${config.server.port}`
     );
-    logger.info(`🔑 LLM Provider: ${config.llm.defaultProvider}`);
+    logger.info(`LLM Provider: ${config.llm.defaultProvider}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
   }
 };
 
-start();
+init();

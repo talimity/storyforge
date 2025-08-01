@@ -7,7 +7,6 @@ This document outlines the React SPA that serves as the frontend for the StoryFo
 - `/characters` - Character management
 - `/scenarios` - Scenario listing 
 - `/scenario/:id` - Active scenario interface (full-screen)
-- `/lorebooks` - Lorebook management
 - `/agents` - Agent configuration (future AI settings)
 - `/api` - API configuration (future LLM endpoints)
 

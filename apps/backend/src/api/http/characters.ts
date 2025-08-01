@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { characterRepository } from "../repositories/character.repository";
+import { characterRepository } from "@/shelf/character/character.repository";
 import { CharacterDTO } from "@storyforge/shared";
-import { CharacterCardParserService } from "../services/character-card-parser.service";
-import { CharacterImportService } from "../services/character-import.service";
-import { Character as DbCharacter } from "../db/schema/characters";
+import { CharacterCardParserService } from "@/shelf/character/character-card-parser.service";
+import { CharacterImportService } from "@/shelf/character/character-import.service";
+import { Character as DbCharacter } from "@/db/schema/characters";
 
 function toCharacterDTO(dbCharacter: DbCharacter): CharacterDTO {
   const result: CharacterDTO = {
@@ -35,7 +35,7 @@ interface GetCharacterParams {
 }
 
 export async function charactersRoutes(fastify: FastifyInstance) {
-  fastify.get("/api/characters", async () => {
+  fastify.get("/characters", async () => {
     try {
       const characters = await characterRepository.findAll();
       return { characters: characters.map(toCharacterDTO) };
@@ -46,7 +46,7 @@ export async function charactersRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get<{ Params: GetCharacterParams }>(
-    "/api/characters/:id",
+    "/characters/:id",
     async (request, reply) => {
       const { id } = request.params;
 
@@ -70,7 +70,7 @@ export async function charactersRoutes(fastify: FastifyInstance) {
   );
 
   fastify.post<{ Body: Omit<CharacterDTO, "id"> }>(
-    "/api/characters",
+    "/characters",
     async (request, reply) => {
       try {
         const newCharacter = await characterRepository.createWithRelations({
@@ -90,7 +90,7 @@ export async function charactersRoutes(fastify: FastifyInstance) {
   );
 
   fastify.put<{ Params: GetCharacterParams; Body: Partial<CharacterDTO> }>(
-    "/api/characters/:id",
+    "/characters/:id",
     async (request, reply) => {
       const { id } = request.params;
 
@@ -123,7 +123,7 @@ export async function charactersRoutes(fastify: FastifyInstance) {
   );
 
   fastify.delete<{ Params: GetCharacterParams }>(
-    "/api/characters/:id",
+    "/characters/:id",
     async (request, reply) => {
       const { id } = request.params;
 
@@ -143,7 +143,7 @@ export async function charactersRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get<{ Params: GetCharacterParams }>(
-    "/api/characters/:id/image",
+    "/characters/:id/image",
     async (request, reply) => {
       const { id } = request.params;
 
@@ -167,7 +167,7 @@ export async function charactersRoutes(fastify: FastifyInstance) {
     }
   );
 
-  fastify.post("/api/characters/import", async (request, reply) => {
+  fastify.post("/characters/import", async (request, reply) => {
     try {
       const data = await request.file();
 

@@ -1,27 +1,26 @@
 # StoryForge Backend - Package Notes
 
+Note that most of this is not yet implemented. This is the planned structure.
+
 ## API Routes (Port 3001)
+
+### HTTP API
 - **Characters**: `/api/characters` - Full CRUD
-- **Scenarios**: `/api/scenarios` - CRUD + turn management at `/api/scenarios/:id/turns`
-- **Lorebooks**: `/api/lorebooks` - CRUD + entry management at `/api/lorebooks/:id/entries`
 - **Health**: `/health` - Simple health check
 
-## Data Layer
-- **ORM**: Drizzle with SQLite (local file: `data/storyforge.db`)
-- **Migrations**: Auto-generated in `src/db/migrations/`
-- **Schema**: Defined in `src/db/schema/` (characters, scenarios, turns, lorebooks)
-- **Repository Pattern**: Each model has dedicated repository in `src/repositories/`
-- **DTOs**: Data Transfer Objects in `@storyforge/shared` for type safety
+### WebSocket API
+TBD
 
-## Key Implementation Notes
-- Use domain-driven design with repositories for data access. Create repositories only for aggregate roots.
-- Scenarios support character relationships and turn sequences with agent data
-- Lorebooks use trigger-based entry system with enable/disable states
-- Turn data includes optional agent outputs (planner, screenplay, prose)
-- CORS configured for frontend dev servers (5173, 8080)
-- All routes use structured error handling with proper HTTP status codes
+## Layout
+
+- **engine**: Story execution engine; scenario orchestration, agent impl, context construction, persistence
+- **shelf**: User data repositories; CRUD operations for characters, scenarios, lorebooks, API keys, etc.
+- **inference**: LLM inference service; abstracts LLM provider details
+- **db**: Database layer; Drizzle ORM with SQLite
+- **api**: Fastify API handlers; HTTP for CRUD and WebSocket for scenario interaction
 
 ## Character Import System
+
 - **TavernCard Support**: Import character cards in TavernCard v1 or v2 format (.png files)
 - **Import Endpoint**: `POST /api/characters/import` - Accepts PNG files with embedded character data
 - **Data Mapping**: Automatically maps TavernCard fields to internal schema:
@@ -31,15 +30,12 @@
   - Card image stored as binary data in `card_image` BLOB column
 
 ## Utility Scripts
+
 - **Test Import**: `pnpm test:import` - Upload test character card from `data/` folder
 - **Database Query**: `pnpm db:query <command>` - Execute database operations
   - `characters` - Show all characters with greetings/examples
   - `select <table>` - Select all from table
-  - `count <table>` - Count rows in table  
+  - `count <table>` - Count rows in table
   - `schema` - Show database schema
   - `raw "<sql>"` - Execute raw SQL
   - `help` - Show usage info
-
-## Database Seeding
-- Run `pnpm db:seed` to populate with mock data
-- Mock data available in `src/data/mockData.ts`

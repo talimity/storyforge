@@ -1,5 +1,5 @@
 import pino from "pino";
-import { config } from "../config";
+import { config } from "./config";
 
 export const logger = pino(
   config.logging.pretty
@@ -22,5 +22,3 @@ export const logger = pino(
 export function createChildLogger(name: string) {
   return logger.child({ module: name });
 }
-
-export { pino };
