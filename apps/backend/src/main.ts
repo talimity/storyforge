@@ -42,10 +42,7 @@ const init = async () => {
       port: config.server.port,
       host: config.server.host,
     });
-    logger.info(
-      `Server running on http://${config.server.host}:${config.server.port}`
-    );
-    logger.info(`LLM Provider: ${config.llm.defaultProvider}`);
+    logger.info(`Storyforge server started`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

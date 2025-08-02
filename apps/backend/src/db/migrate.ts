@@ -1,6 +1,6 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { db } from "./client";
-import { createChildLogger } from "../logging";
+import { createChildLogger } from "@/logging";
 import path from "path";
 import { fileURLToPath } from "url";
 
