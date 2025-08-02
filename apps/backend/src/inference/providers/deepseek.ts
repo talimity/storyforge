@@ -7,21 +7,24 @@ import {
   ProviderCapabilities,
 } from "./base-provider";
 
-interface OpenRouterMessage {
+interface DeepSeekMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-interface OpenRouterRequest {
+interface DeepSeekRequest {
   model: string;
-  messages: OpenRouterMessage[];
+  messages: DeepSeekMessage[];
   temperature?: number;
   max_tokens?: number;
   stream?: boolean;
   stop?: string[];
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  top_p?: number;
 }
 
-interface OpenRouterResponse {
+interface DeepSeekResponse {
   choices: Array<{
     message: {
       content: string;
@@ -29,7 +32,7 @@ interface OpenRouterResponse {
   }>;
 }
 
-interface OpenRouterStreamDelta {
+interface DeepSeekStreamDelta {
   choices: Array<{
     delta: {
       content?: string;
@@ -37,23 +40,24 @@ interface OpenRouterStreamDelta {
   }>;
 }
 
-interface OpenRouterModel {
+interface DeepSeekModel {
   id: string;
-  name?: string;
-  description?: string;
+  object: string;
+  created: number;
+  owned_by: string;
 }
 
-export class OpenRouterProvider implements LLMProvider {
-  readonly id = "openrouter";
-  readonly name = "OpenRouter";
+export class DeepSeekProvider implements LLMProvider {
+  readonly id = "deepseek";
+  readonly name = "DeepSeek";
   private readonly apiKey: string;
-  private readonly baseUrl = "https://openrouter.ai/api/v1";
+  private readonly baseUrl = "https://api.deepseek.com";
 
   constructor() {
-    if (!config.llm.openrouter?.apiKey) {
-      throw new Error("OpenRouter API key not configured");
+    if (!config.llm.deepseek?.apiKey) {
+      throw new Error("DeepSeek API key not configured");
     }
-    this.apiKey = config.llm.openrouter.apiKey;
+    this.apiKey = config.llm.deepseek.apiKey;
   }
 
   get capabilities(): ProviderCapabilities {
@@ -83,7 +87,7 @@ export class OpenRouterProvider implements LLMProvider {
         );
       }
 
-      const data = (await response.json()) as { data: OpenRouterModel[] };
+      const data = (await response.json()) as { data: DeepSeekModel[] };
       let models = data.data.map((model) => model.id);
 
       if (filter) {
@@ -94,13 +98,13 @@ export class OpenRouterProvider implements LLMProvider {
       return models.sort();
     } catch (error) {
       throw new Error(
-        `Failed to list OpenRouter models: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to list DeepSeek models: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
 
   async generate(request: ChatCompletionRequest): Promise<GenerationResult> {
-    const openRouterRequest = this.buildRequest(request, false);
+    const deepSeekRequest = this.buildRequest(request, false);
 
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -109,32 +113,32 @@ export class OpenRouterProvider implements LLMProvider {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(openRouterRequest),
+        body: JSON.stringify(deepSeekRequest),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          `OpenRouter API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
+          `DeepSeek API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
         );
       }
 
-      const data = (await response.json()) as OpenRouterResponse;
+      const data = (await response.json()) as DeepSeekResponse;
 
       if (!data.choices || data.choices.length === 0) {
-        throw new Error("No choices returned from OpenRouter API");
+        throw new Error("No choices returned from DeepSeek API");
       }
 
       return {
         text: data.choices[0]!.message.content,
         metadata: {
-          model: openRouterRequest.model,
-          provider: "openrouter",
+          model: deepSeekRequest.model,
+          provider: "deepseek",
         },
       };
     } catch (error) {
       throw new Error(
-        `OpenRouter generation failed: ${error instanceof Error ? error.message : String(error)}`
+        `DeepSeek generation failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
@@ -142,7 +146,7 @@ export class OpenRouterProvider implements LLMProvider {
   async *generateStream(
     request: ChatCompletionRequest
   ): AsyncIterable<GenerationResultDelta, GenerationResult> {
-    const openRouterRequest = this.buildRequest(request, true);
+    const deepSeekRequest = this.buildRequest(request, true);
     let accumulatedText = "";
 
     try {
@@ -152,13 +156,13 @@ export class OpenRouterProvider implements LLMProvider {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(openRouterRequest),
+        body: JSON.stringify(deepSeekRequest),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          `OpenRouter API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
+          `DeepSeek API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
         );
       }
 
@@ -183,7 +187,7 @@ export class OpenRouterProvider implements LLMProvider {
               if (data.includes("[DONE]")) continue;
 
               try {
-                const json = JSON.parse(data) as OpenRouterStreamDelta;
+                const json = JSON.parse(data) as DeepSeekStreamDelta;
                 const content = json.choices[0]?.delta?.content;
                 if (content) {
                   accumulatedText += content;
@@ -202,13 +206,13 @@ export class OpenRouterProvider implements LLMProvider {
       return {
         text: accumulatedText,
         metadata: {
-          model: openRouterRequest.model,
-          provider: "openrouter",
+          model: deepSeekRequest.model,
+          provider: "deepseek",
         },
       };
     } catch (error) {
       throw new Error(
-        `OpenRouter streaming failed: ${error instanceof Error ? error.message : String(error)}`
+        `DeepSeek streaming failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
@@ -220,31 +224,31 @@ export class OpenRouterProvider implements LLMProvider {
   private buildRequest(
     request: ChatCompletionRequest,
     stream: boolean
-  ): OpenRouterRequest {
-    const messages: OpenRouterMessage[] = request.messages.map((msg) => ({
+  ): DeepSeekRequest {
+    const messages: DeepSeekMessage[] = request.messages.map(msg => ({
       role: msg.role,
-      content: msg.content,
+      content: msg.content
     }));
     const { parameters } = request;
 
-    const openRouterRequest: OpenRouterRequest = {
+    const deepSeekRequest: DeepSeekRequest = {
       model: request.model,
       messages,
       stream,
     };
 
     if (parameters.temperature !== undefined) {
-      openRouterRequest.temperature = parameters.temperature;
+      deepSeekRequest.temperature = parameters.temperature;
     }
 
     if (parameters.maxTokens !== undefined) {
-      openRouterRequest.max_tokens = parameters.maxTokens;
+      deepSeekRequest.max_tokens = parameters.maxTokens;
     }
 
     if (parameters.stopSequences && parameters.stopSequences.length > 0) {
-      openRouterRequest.stop = parameters.stopSequences;
+      deepSeekRequest.stop = parameters.stopSequences;
     }
 
-    return openRouterRequest;
+    return deepSeekRequest;
   }
 }

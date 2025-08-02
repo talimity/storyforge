@@ -1,8 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { OpenRouterProvider } from "@/inference/providers/openrouter";
+import { DeepSeekProvider } from "@/inference/providers/deepseek";
+import { MockProvider } from "@/inference/providers/mock";
+import { LLMProvider } from "@/inference/providers/base-provider";
+import { GenerationContextAdapter } from "@/inference/generation-context-adapter";
 
 interface ModelsQuery {
   filter?: string;
+  provider?: string;
 }
 
 interface CompletionBody {
@@ -20,39 +25,76 @@ interface CompletionBody {
     stopSequences?: string[];
   };
   model?: string;
+  provider?: string;
   stream?: boolean;
 }
 
 export async function debugRoutes(fastify: FastifyInstance) {
-  let openRouterProvider: OpenRouterProvider;
+  const providers = new Map<string, LLMProvider>();
+  
+  // Mock provider is always available for testing
+  providers.set("mock", new MockProvider());
   
   try {
-    openRouterProvider = new OpenRouterProvider();
+    providers.set("openrouter", new OpenRouterProvider());
   } catch (error) {
     fastify.log.warn("OpenRouter provider not configured:", error);
   }
+  
+  try {
+    providers.set("deepseek", new DeepSeekProvider());
+  } catch (error) {
+    fastify.log.warn("DeepSeek provider not configured:", error);
+  }
 
   fastify.get<{ Querystring: ModelsQuery }>("/debug/models", async (request) => {
-    if (!openRouterProvider) {
-      throw new Error("OpenRouter provider not configured");
+    const { filter, provider: requestedProvider } = request.query;
+    
+    if (requestedProvider) {
+      const provider = providers.get(requestedProvider);
+      if (!provider) {
+        throw new Error(`Provider '${requestedProvider}' not available`);
+      }
+      
+      try {
+        const models = await provider.listModels(filter);
+        return { 
+          models, 
+          count: models.length, 
+          provider: requestedProvider 
+        };
+      } catch (error) {
+        fastify.log.error(`Failed to list ${requestedProvider} models:`, error);
+        throw new Error(`Failed to list ${requestedProvider} models`);
+      }
     }
 
-    try {
-      const { filter } = request.query;
-      const models = await openRouterProvider.listModels(filter);
-      return { models, count: models.length };
-    } catch (error) {
-      fastify.log.error("Failed to list models:", error);
-      throw new Error("Failed to list models");
+    const allModels: { provider: string; models: string[] }[] = [];
+    for (const [providerName, provider] of providers) {
+      try {
+        const models = await provider.listModels(filter);
+        allModels.push({ provider: providerName, models });
+      } catch (error) {
+        fastify.log.warn(`Failed to list ${providerName} models:`, error);
+      }
     }
+    
+    return { providers: allModels };
   });
 
   fastify.post<{ Body: CompletionBody }>("/debug/completion", async (request, reply) => {
-    if (!openRouterProvider) {
-      throw new Error("OpenRouter provider not configured");
+    const { 
+      sections = [], 
+      parameters = {}, 
+      model = "mock-default", 
+      provider: requestedProvider = "mock",
+      stream = false 
+    } = request.body;
+    
+    const provider = providers.get(requestedProvider);
+    if (!provider) {
+      throw new Error(`Provider '${requestedProvider}' not available`);
     }
-
-    const { sections = [], parameters = {}, model = "openai/gpt-4o", stream = false } = request.body;
 
     const context = {
       sections: sections.length > 0 ? sections : [
@@ -75,13 +117,15 @@ export async function debugRoutes(fastify: FastifyInstance) {
       model
     };
 
+    const chatRequest = GenerationContextAdapter.toChatCompletionRequest(context);
+
     try {
       if (stream) {
         reply.header("Content-Type", "text/event-stream");
         reply.header("Cache-Control", "no-cache");
         reply.header("Connection", "keep-alive");
 
-        for await (const delta of openRouterProvider.generateStream(context)) {
+        for await (const delta of provider.generateStream(chatRequest)) {
           if (delta.text) {
             reply.raw.write(`data: ${JSON.stringify({ text: delta.text })}\n\n`);
           }
@@ -91,11 +135,12 @@ export async function debugRoutes(fastify: FastifyInstance) {
         reply.raw.end();
         return;
       } else {
-        const result = await openRouterProvider.generate(context);
+        const result = await provider.generate(chatRequest);
         return {
           text: result.text,
           metadata: result.metadata,
-          prompt: openRouterProvider.renderPrompt(context)
+          prompt: provider.renderPrompt(chatRequest),
+          provider: requestedProvider
         };
       }
     } catch (error) {
@@ -104,9 +149,12 @@ export async function debugRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.get("/debug/render-prompt", async () => {
-    if (!openRouterProvider) {
-      throw new Error("OpenRouter provider not configured");
+  fastify.get<{ Querystring: { provider?: string; model?: string } }>("/debug/render-prompt", async (request) => {
+    const { provider: requestedProvider = "mock", model = "mock-default" } = request.query;
+    
+    const provider = providers.get(requestedProvider);
+    if (!provider) {
+      throw new Error(`Provider '${requestedProvider}' not available`);
     }
 
     const context = {
@@ -136,14 +184,16 @@ export async function debugRoutes(fastify: FastifyInstance) {
         maxTokens: 200,
         temperature: 0.8
       },
-      model: "openai/gpt-4o"
+      model
     };
 
-    const rendered = openRouterProvider.renderPrompt(context);
+    const chatRequest = GenerationContextAdapter.toChatCompletionRequest(context);
+    const rendered = provider.renderPrompt(chatRequest);
     return {
       context,
+      chatRequest,
       rendered,
-      provider: openRouterProvider.name
+      provider: provider.name
     };
   });
 }

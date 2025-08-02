@@ -29,6 +29,17 @@ export interface GenerationContext {
   model: string;
 }
 
+export interface ChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+export interface ChatCompletionRequest {
+  messages: ChatMessage[];
+  parameters: InferenceParameters;
+  model: string;
+}
+
 export interface ProviderCapabilities {
   /** Whether the provider supports prefilling/prefixing the assistant's response */
   supportsPrefill: boolean;
@@ -60,13 +71,13 @@ export interface LLMProvider {
   listModels(filter?: string): Promise<string[]>;
 
   /** Requests text generation from the provider. */
-  generate(context: GenerationContext): Promise<GenerationResult>;
+  generate(request: ChatCompletionRequest): Promise<GenerationResult>;
 
   /** Requests text generation with streaming updates. */
   generateStream(
-    context: GenerationContext
+    request: ChatCompletionRequest
   ): AsyncIterable<GenerationResultDelta, GenerationResult>;
 
-  /** Returns the serialized payload for a given GenerationContext without making a request. */
-  renderPrompt(context: GenerationContext): string;
+  /** Returns the serialized payload for a given ChatCompletionRequest without making a request. */
+  renderPrompt(request: ChatCompletionRequest): string;
 }
