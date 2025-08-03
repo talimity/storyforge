@@ -128,25 +128,27 @@ storyforge
 
 ## Code Style Guidelines
 
-- **TypeScript**:
+- **TypeScript Code**:
   - Strict mode enabled
   - Explicit `any` usage is not permitted
   - Casting via `as` is to be avoided unless absolutely necessary
     - Write a type guard function or a type assertion function instead (e.g. `isCharacter(obj: unknown): obj is Character`)
-    - You can use Zod's `parse` method to do this for you on unknown data
+    - You can use Zod's `parse` method to do this for you on unknown inputs
+  - Try to minimize nested structures
+    - Use intermediate variables to clarify complex expressions (this also reduces the need for comments)
+    - Return early to avoid deep nesting in functions
+- **Imports**:
+  - Place native Node.js modules first, then third-party libraries, then local imports
+  - Use absolute imports with `@/` path mapping for clarity
 - **Naming conventions**:
   - Files: kebab-case
   - Identifiers: camelCase for functions/variables, PascalCase for classes/components
-- **Code structure**: Follow a clear, consistent folder structure;
-  - Group related files together (components, hooks, types)
-  - Use absolute imports with `@/` path mapping
-  - Put common isomorphic utilities in `packages/shared`
 
 ### Comments Policy
 
-Strongly tend towards not using any comments.
+When in doubt, just don't write the comment.
 
-- **Self-documenting code first** - Use clear naming and structure instead of comments
-- **Comments must add value** - If removing the comment doesn't lose information, it shouldn't exist
-- **Explain WHY, not WHAT** - Focus on business logic and non-obvious relationships
-- **Maintenance risk** - Comments can become outdated; prefer refactoring over commenting
+- **Self-documenting code first** - Use expressive identifiers for functions and variables to make the code self-explanatory
+- **Comments must add value** - Document edge cases, workarounds, or solutions that do not follow the obvious path
+- **Use JSDoc for public APIs** - Document functions, classes, and interfaces that are at the boundary of your module
+  - You don't need to add JSDoc annotations for parameters or return types if they are trivial

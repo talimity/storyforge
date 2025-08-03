@@ -19,6 +19,24 @@ TBD
 - **db**: Database layer; Drizzle ORM with SQLite
 - **api**: Fastify API handlers; HTTP for CRUD and WebSocket for scenario interaction
 
+## LLM Inference Architecture
+
+**Flow**: `GenerationContext` → `GenerationContextAdapter` → `ChatCompletionRequest` → `LLMProvider` → API payload
+
+- **GenerationContext**: Narrative-aware sections (system/reference/history/task) + parameters + model
+- **ChatCompletionRequest**: Standard `{messages: ChatMessage[], parameters, model}` - provider-agnostic
+- **GenerationContextAdapter**: Converts narrative contexts to standardized chat messages
+- **LLMProvider interface**: `generate()`, `generateStream()`, `listModels()`, `renderPrompt()`
+
+**Providers**: OpenRouter, DeepSeek, Mock
+
+**Debug endpoints** (`/api/debug/`):
+- `GET /models?provider=X&filter=Y` - List available models
+- `POST /completion` - Test completions with custom sections/parameters/streaming
+- `GET /render-prompt?provider=X&model=Y` - Show full transformation pipeline
+
+**Mock provider**: Pattern-based responses, configurable delays, streaming simulation, error testing
+
 ## Character Import System
 
 - **TavernCard Support**: Import character cards in TavernCard v1 or v2 format (.png files)
