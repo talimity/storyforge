@@ -1,11 +1,11 @@
+import type { NewCharacterExample } from "@/db/schema/character-examples";
+import type { NewCharacterGreeting } from "@/db/schema/character-greetings";
+import { characterRepository } from "./character.repository";
 import type {
   TavernCard,
   TavernCardV1,
   TavernCardV2,
-} from "@storyforge/shared";
-import type { NewCharacterExample } from "@/db/schema/character-examples";
-import type { NewCharacterGreeting } from "@/db/schema/character-greetings";
-import { characterRepository } from "./character.repository";
+} from "./parse-tavern-card";
 
 function isTavernCardV2(card: TavernCard): card is TavernCardV2 {
   return "spec" in card && card.spec === "chara_card_v2";

@@ -1,26 +1,22 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+
     /* Emit */
+    "outDir": "dist",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "removeComments": false,
+
     /* Module Resolution */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@storyforge/shared": ["../../packages/shared/src"]
-    },
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true
+    }
   },
   "include": ["src/**/*", "scripts/**/*", "drizzle.config.ts"],
   "exclude": ["node_modules", "dist"]

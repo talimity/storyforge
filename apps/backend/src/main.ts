@@ -1,7 +1,8 @@
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
+import websocket from "@fastify/websocket";
 import Fastify from "fastify";
-import { routeRegistry } from "@/api";
+import { registerAPI } from "@/api";
 import { config } from "./config";
 import { logger } from "./logging";
 
@@ -23,30 +24,31 @@ const fastify = Fastify({
       },
 });
 
+// Register plugins
 await fastify.register(cors, {
   origin: ["http://localhost:5173", "http://localhost:8080"],
   credentials: true,
 });
 
 await fastify.register(multipart);
+await fastify.register(websocket);
 
+// Health check
 fastify.get("/health", async () => {
   return { status: "ok", timestamp: new Date().toISOString() };
 });
 
-await fastify.register(routeRegistry, { prefix: "/api" });
+// Register all API routes (tRPC + REST)
+await registerAPI(fastify);
 
-const init = async () => {
-  try {
-    await fastify.listen({
-      port: config.server.port,
-      host: config.server.host,
-    });
-    logger.info(`Storyforge server started`);
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
-
-init();
+// Start server
+try {
+  await fastify.listen({
+    port: config.server.port,
+    host: config.server.host,
+  });
+  logger.info(`Storyforge server started on port ${config.server.port}`);
+} catch (err) {
+  fastify.log.error(err);
+  process.exit(1);
+}
