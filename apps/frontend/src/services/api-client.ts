@@ -21,7 +21,7 @@ async function apiRequest(
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
-): Promise<T | void> {
+): Promise<T | undefined> {
   const url = `${API_BASE_URL}${endpoint}`;
 
   const config: RequestInit = {

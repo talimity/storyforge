@@ -1,15 +1,15 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "@/components/layout";
-import { Home } from "@/pages/home";
-import { Characters } from "@/pages/characters";
-import { Scenarios } from "@/pages/scenarios";
-import { ScenarioActive } from "@/pages/scenario-active";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AgentConfigs } from "@/pages/agent-configs";
 import { ApiConfigs } from "@/pages/api-configs";
+import { Characters } from "@/pages/characters";
+import { Home } from "@/pages/home";
+import { ScenarioActive } from "@/pages/scenario-active";
+import { Scenarios } from "@/pages/scenarios";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();

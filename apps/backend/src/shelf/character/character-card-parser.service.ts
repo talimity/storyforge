@@ -1,13 +1,13 @@
+import type { TavernCard } from "@storyforge/shared";
 import { decode } from "png-chunk-text";
 import pngEncode from "png-chunks-encode";
 import pngExtract from "png-chunks-extract";
 import { z } from "zod";
-import { TavernCard } from "@storyforge/shared";
 
 const CharacterBookEntrySchema = z.object({
   keys: z.array(z.string()),
   content: z.string(),
-  extensions: z.record(z.unknown()),
+  extensions: z.object(),
   enabled: z.boolean(),
   insertion_order: z.number(),
   case_sensitive: z.boolean().optional(),
@@ -27,7 +27,7 @@ const CharacterBookSchema = z.object({
   scan_depth: z.number().optional(),
   token_budget: z.number().optional(),
   recursive_scanning: z.boolean().optional(),
-  extensions: z.record(z.unknown()),
+  extensions: z.object(),
   entries: z.array(CharacterBookEntrySchema),
 });
 
@@ -59,7 +59,7 @@ const TavernCardV2Schema = z.object({
       tags: z.array(z.string()),
       creator: z.string(),
       character_version: z.string(),
-      extensions: z.record(z.unknown()),
+      extensions: z.object(),
     })
     .transform((data) => {
       // Quirk: remove character_book if it is present, but set to undefined
@@ -77,6 +77,7 @@ export interface ParsedCharacterCard {
   isV2: boolean;
 }
 
+// TODO: just export this as a function instead of a service
 export class CharacterCardParserService {
   static async parseFromBuffer(
     buffer: ArrayBuffer

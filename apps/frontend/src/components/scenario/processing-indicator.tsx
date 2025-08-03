@@ -1,7 +1,7 @@
+import type { ProcessingStep } from "@storyforge/shared";
+import { Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Zap } from "lucide-react";
-import { ProcessingStep } from "@storyforge/shared";
 
 interface ProcessingIndicatorProps {
   steps: ProcessingStep[];

@@ -1,4 +1,18 @@
+import {
+  Edit,
+  Heart,
+  type LucideIcon,
+  Plus,
+  Search,
+  Star,
+  Swords,
+  Trash2,
+  Upload,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,21 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Plus,
-  Search,
-  Upload,
-  Edit,
-  Trash2,
-  Users,
-  Heart,
-  Star,
-  Swords,
-  LucideIcon,
-} from "lucide-react";
 
 export const Characters = () => {
   const [searchQuery, setSearchQuery] = useState("");

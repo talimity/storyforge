@@ -6,7 +6,6 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
@@ -16,12 +15,18 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "declaration": false,
-    "noEmit": true
+    "incremental": true
   },
   "files": [],
   "references": [
-    { "path": "./apps/frontend" },
-    { "path": "./apps/backend" },
-    { "path": "./packages/shared" }
+    {
+      "path": "./apps/frontend"
+    },
+    {
+      "path": "./apps/backend"
+    },
+    {
+      "path": "./packages/shared"
+    }
   ]
 }

@@ -1,4 +1,4 @@
-export { api, ApiError } from "./api-client";
-export { scenariosService } from "./scenarios";
+export { ApiError, api } from "./api-client";
 export { charactersService } from "./characters";
 export { lorebooksService } from "./lorebooks";
+export { scenariosService } from "./scenarios";

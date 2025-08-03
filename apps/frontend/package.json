@@ -4,14 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit",
     "build:dev": "vite build --mode development",
     "build": "tsc && vite build",
-    "dev": "vite",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "lint": "eslint . --ext .ts,.tsx --fix",
     "check": "run-p --continue-on-error lint typecheck",
-    "preview": "vite preview"
+    "dev": "vite",
+    "fmt": "biome format --write .",
+    "lint": "biome check --diagnostic-level error --write .",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -71,11 +71,8 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
-    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
-    "eslint-plugin-react-refresh": "^0.4.9",
-    "globals": "^16.3.0",
     "postcss": "^8.4.47",
-    "vite": "^7.0.5",
-    "tailwindcss": "^3.4.11"
+    "tailwindcss": "^3.4.11",
+    "vite": "^7.0.5"
   }
 }

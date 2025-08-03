@@ -1,6 +1,6 @@
 // Note that this file is entirely placeholder generated for the UI mockup.
 
-import { UICharacter } from "./character";
+import type { UICharacter } from "./character";
 
 // ===== DOMAIN MODELS =====
 // These represent the core data structures as stored and transmitted

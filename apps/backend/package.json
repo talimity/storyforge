@@ -5,15 +5,15 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "check": "run-p --continue-on-error lint typecheck",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "pnpm tsx src/db/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:query": "pnpm tsx scripts/db-query.ts",
     "db:studio": "drizzle-kit studio",
     "dev": "pnpm tsx watch src/main.ts",
-    "check": "run-p --continue-on-error lint typecheck",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "lint": "eslint . --ext .ts,.tsx --fix",
+    "fmt": "biome format --write .",
+    "lint": "biome check --diagnostic-level error --write .",
     "start": "node dist/main.js",
     "test:import": "pnpm tsx scripts/test-card-import.ts",
     "typecheck": "tsc --noEmit"
@@ -33,7 +33,7 @@
     "png-chunk-text": "^1.0.0",
     "png-chunks-encode": "^1.0.0",
     "png-chunks-extract": "^1.0.0",
-    "zod": "^3.23.8"
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@mapbox/node-pre-gyp": "^2.0.0",

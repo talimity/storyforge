@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm run --parallel dev",
-    "dev:frontend": "pnpm --filter frontend dev",
-    "dev:backend": "pnpm --filter backend dev",
     "build": "pnpm run --filter backend build && pnpm run --filter frontend build",
-    "lint": "pnpm run --parallel lint",
-    "format": "pnpm run --parallel format",
-    "typecheck": "pnpm run --parallel typecheck",
     "check": "run-p --continue-on-error lint typecheck",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev": "pnpm run --parallel dev",
+    "fmt": "biome format --write .",
+    "lint": "biome check --diagnostic-level error --write .",
+    "typecheck": "pnpm run --parallel typecheck",
     "usage": "ccusage blocks"
   },
   "workspaces": [
@@ -19,13 +19,10 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@eslint/js": "^9.9.0",
+    "@biomejs/biome": "^2.1.2",
     "ccusage": "^15.5.0",
-    "eslint": "^9.31.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.6.2",
     "tsx": "^4.20.3",
-    "typescript": "^5.5.3",
-    "typescript-eslint": "^8.0.1"
+    "typescript": "^5.5.3"
   }
 }

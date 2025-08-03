@@ -1,9 +1,9 @@
-import { FastifyInstance } from "fastify";
+import type { CharacterDTO } from "@storyforge/shared";
+import type { FastifyInstance } from "fastify";
+import type { Character as DbCharacter } from "@/db/schema/characters";
 import { characterRepository } from "@/shelf/character/character.repository";
-import { CharacterDTO } from "@storyforge/shared";
 import { CharacterCardParserService } from "@/shelf/character/character-card-parser.service";
 import { CharacterImportService } from "@/shelf/character/character-import.service";
-import { Character as DbCharacter } from "@/db/schema/characters";
 
 function toCharacterDTO(dbCharacter: DbCharacter): CharacterDTO {
   const result: CharacterDTO = {

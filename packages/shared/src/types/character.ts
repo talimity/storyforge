@@ -1,4 +1,4 @@
-import { TavernCard } from "./taverncard";
+import type { TavernCard } from "./taverncard";
 
 export interface CharacterDTO {
   id: string;

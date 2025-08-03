@@ -1,6 +1,6 @@
-import { sqliteTable, text, integer, blob } from "drizzle-orm/sqlite-core";
 import { createId } from "@paralleldrive/cuid2";
 import { sql } from "drizzle-orm";
+import { blob, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const characters = sqliteTable("characters", {
   id: text("id")
@@ -14,9 +14,7 @@ export const characters = sqliteTable("characters", {
   creatorNotes: text("creator_notes"),
   customSystemPrompt: text("custom_system_prompt"),
   customPostHistoryInstructions: text("custom_post_history_instructions"),
-  tags: text("tags", { mode: "json" })
-    .$type<string[]>()
-    .default(sql`'[]'`),
+  tags: text("tags", { mode: "json" }).$type<string[]>().default(sql`'[]'`),
   sfCharaVersion: text("sf_chara_version"),
   originalCardData: text("original_card_data", { mode: "json" }),
   cardImage: blob("card_image", { mode: "buffer" }),

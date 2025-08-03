@@ -1,5 +1,5 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createId } from "@paralleldrive/cuid2";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { characters } from "./characters";
 
 export const characterExamples = sqliteTable("character_examples", {

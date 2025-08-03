@@ -1,20 +1,20 @@
-import {
-  GenerationContext,
-  GenerationContextSectionRole,
+import type {
   ChatCompletionRequest,
   ChatMessage,
+  GenerationContext,
+  GenerationContextSectionRole,
 } from "./providers/base-provider";
 
-export class GenerationContextAdapter {
-  static toChatCompletionRequest(context: GenerationContext): ChatCompletionRequest {
+export const generationContextAdapter = {
+  toChatCompletionRequest(context: GenerationContext): ChatCompletionRequest {
     return {
-      messages: this.renderMessages(context),
+      messages: generationContextAdapter.renderMessages(context),
       parameters: context.parameters,
       model: context.model,
     };
-  }
+  },
 
-  private static renderMessages(context: GenerationContext): ChatMessage[] {
+  renderMessages(context: GenerationContext): ChatMessage[] {
     const messages: ChatMessage[] = [];
 
     // Sort sections by role priority: system -> reference -> history -> task
@@ -31,7 +31,9 @@ export class GenerationContextAdapter {
     });
 
     for (const section of sortedSections) {
-      const role = this.mapSectionRole(section.metadata?.role);
+      const role = generationContextAdapter.mapSectionRole(
+        section.metadata?.role
+      );
       messages.push({
         role,
         content: section.content,
@@ -39,27 +41,22 @@ export class GenerationContextAdapter {
     }
 
     // Ensure we have at least one user message for the API
-    if (messages.length === 0 || !messages.some((m) => m.role === "user")) {
-      messages.push({
-        role: "user",
-        content: "Please respond.",
-      });
-    }
+    messages.push({
+      role: "user",
+      content: "Please respond.",
+    });
 
     return messages;
-  }
+  },
 
-  private static mapSectionRole(
+  mapSectionRole(
     role?: "system" | "reference" | "history" | "task"
   ): "system" | "user" | "assistant" {
     switch (role) {
       case "system":
         return "system";
-      case "reference":
-      case "history":
-      case "task":
       default:
         return "user";
     }
-  }
-}
+  },
+};

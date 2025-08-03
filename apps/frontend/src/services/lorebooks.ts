@@ -1,5 +1,5 @@
+import type { Lorebook, LorebooksResponse } from "@storyforge/shared";
 import { api } from "./api-client";
-import { Lorebook, LorebooksResponse } from "@storyforge/shared";
 
 export const lorebooksService = {
   async getAll(): Promise<Lorebook[]> {

@@ -66,7 +66,7 @@ pnpm i
 
 # Code quality
 pnpm check # lint + typecheck
-pnpm format # apply Prettier
+pnpm fmt # apply Biome formatting
 
 # Build
 pnpm build
@@ -137,6 +137,7 @@ storyforge
   - Try to minimize nested structures
     - Use intermediate variables to clarify complex expressions (this also reduces the need for comments)
     - Return early to avoid deep nesting in functions
+  - Don't write classes with only static methods, just use a module
 - **Imports**:
   - Place native Node.js modules first, then third-party libraries, then local imports
   - Use absolute imports with `@/` path mapping for clarity

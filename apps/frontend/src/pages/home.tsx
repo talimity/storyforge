@@ -1,3 +1,6 @@
+import { BookOpen, Play, Plus, Users, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -6,9 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Play, Plus, Users, BookOpen, Zap } from "lucide-react";
-import { Link } from "react-router-dom";
 
 export const Home = () => {
   // Mock data for recent scenarios

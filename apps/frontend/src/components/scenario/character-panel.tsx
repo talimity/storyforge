@@ -1,8 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { InputMode, UICharacter } from "@storyforge/shared";
 import { Crown, User } from "lucide-react";
-import { UICharacter, InputMode } from "@storyforge/shared";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface CharacterPanelProps {
   characters: UICharacter[];

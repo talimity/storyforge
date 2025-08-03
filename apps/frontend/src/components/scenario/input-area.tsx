@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import type { InputMode } from "@storyforge/shared";
 import { Send } from "lucide-react";
-import { InputMode } from "@storyforge/shared";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface InputAreaProps {
   inputMode: InputMode;

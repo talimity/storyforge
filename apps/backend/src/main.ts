@@ -1,9 +1,9 @@
-import Fastify from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
+import Fastify from "fastify";
+import { routeRegistry } from "@/api";
 import { config } from "./config";
 import { logger } from "./logging";
-import { routeRegistry } from "@/api";
 
 const fastify = Fastify({
   logger: config.logging.pretty

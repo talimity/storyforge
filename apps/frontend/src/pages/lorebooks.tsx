@@ -1,4 +1,15 @@
+import {
+  BookOpen,
+  Edit,
+  Eye,
+  Hash,
+  Plus,
+  Scroll,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,18 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Scroll,
-  BookOpen,
-  Hash,
-  Eye,
-} from "lucide-react";
 
 export const Lorebooks = () => {
   const [searchQuery, setSearchQuery] = useState("");

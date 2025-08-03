@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { db, closeDatabase } from "../src/db/client";
 import { sql } from "drizzle-orm";
+import { closeDatabase, db } from "../src/db/client";
 import * as schema from "../src/db/schema/index";
 
 async function executeQuery() {

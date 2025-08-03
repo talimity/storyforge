@@ -1,12 +1,12 @@
 import {
-  Users,
   BookOpen,
-  Scroll,
   Bot,
+  Home,
   Key,
   Play,
-  Home,
+  Scroll,
   Settings,
+  Users,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 

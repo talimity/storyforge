@@ -1,4 +1,6 @@
+import { Bot, Copy, Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,9 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Bot, Eye, Copy } from "lucide-react";
 
 export const AgentConfigs = () => {
   const [searchQuery, setSearchQuery] = useState("");

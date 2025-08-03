@@ -1,5 +1,5 @@
+import type { CharacterDTO, CharactersResponse } from "@storyforge/shared";
 import { api } from "./api-client";
-import { CharacterDTO, CharactersResponse } from "@storyforge/shared";
 
 export const charactersService = {
   async getAll(): Promise<CharacterDTO[]> {

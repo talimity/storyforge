@@ -1,6 +1,10 @@
-import { TavernCard, TavernCardV1, TavernCardV2 } from "@storyforge/shared";
-import { NewCharacterGreeting } from "@/db/schema/character-greetings";
-import { NewCharacterExample } from "@/db/schema/character-examples";
+import type {
+  TavernCard,
+  TavernCardV1,
+  TavernCardV2,
+} from "@storyforge/shared";
+import type { NewCharacterExample } from "@/db/schema/character-examples";
+import type { NewCharacterGreeting } from "@/db/schema/character-greetings";
 import { characterRepository } from "./character.repository";
 
 function isTavernCardV2(card: TavernCard): card is TavernCardV2 {

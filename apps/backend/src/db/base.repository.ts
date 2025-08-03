@@ -1,12 +1,12 @@
-import { eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { eq, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import type {
   AnySQLiteTable,
   SQLiteColumn,
   SQLiteTransaction,
 } from "drizzle-orm/sqlite-core";
-import { StoryforgeSqliteDatabase } from "@/db/client";
-import { createChildLogger } from "@/logging";
 import type { Logger } from "pino";
+import type { StoryforgeSqliteDatabase } from "@/db/client";
+import { createChildLogger } from "@/logging";
 
 type TableWithId = AnySQLiteTable & { id: SQLiteColumn };
 
@@ -79,7 +79,7 @@ export abstract class BaseRepository<TTable extends TableWithId> {
     return result.length > 0;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // biome-ignore lint/suspicious/noExplicitAny: generic type for transaction
   transaction<T>(fn: (tx: SQLiteTransaction<any, any, any, any>) => T): T {
     return this.db.transaction(fn) as T;
   }

@@ -37,7 +37,7 @@ function validateConfig(): Config {
       ...(openaiApiKey && { openai: { apiKey: openaiApiKey } }),
     },
     server: {
-      port: parseInt(process.env.PORT || "3001", 10),
+      port: Number.parseInt(process.env.PORT || "3001", 10),
       host: process.env.HOST || "localhost",
     },
     database: {

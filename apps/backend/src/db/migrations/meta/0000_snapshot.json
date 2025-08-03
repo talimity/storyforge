@@ -95,12 +95,8 @@
           "name": "scenario_characters_scenario_id_scenarios_id_fk",
           "tableFrom": "scenario_characters",
           "tableTo": "scenarios",
-          "columnsFrom": [
-            "scenario_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["scenario_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -108,12 +104,8 @@
           "name": "scenario_characters_character_id_characters_id_fk",
           "tableFrom": "scenario_characters",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -233,12 +225,8 @@
           "name": "turns_scenario_id_scenarios_id_fk",
           "tableFrom": "turns",
           "tableTo": "scenarios",
-          "columnsFrom": [
-            "scenario_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["scenario_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -246,12 +234,8 @@
           "name": "turns_character_id_characters_id_fk",
           "tableFrom": "turns",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -321,12 +305,8 @@
           "name": "lorebook_entries_lorebook_id_lorebooks_id_fk",
           "tableFrom": "lorebook_entries",
           "tableTo": "lorebooks",
-          "columnsFrom": [
-            "lorebook_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lorebook_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

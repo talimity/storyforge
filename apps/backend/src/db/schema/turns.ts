@@ -1,7 +1,7 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createId } from "@paralleldrive/cuid2";
-import { scenarios } from "./scenarios";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { characters } from "./characters";
+import { scenarios } from "./scenarios";
 
 export const turns = sqliteTable("turns", {
   id: text("id")

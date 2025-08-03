@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Scenario } from "@storyforge/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { scenariosService } from "@/services";
-import { Scenario } from "@storyforge/shared";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 

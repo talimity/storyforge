@@ -1,5 +1,5 @@
 import { config } from "@/config";
-import {
+import type {
   ChatCompletionRequest,
   GenerationResult,
   GenerationResultDelta,
@@ -121,12 +121,12 @@ export class OpenRouterProvider implements LLMProvider {
 
       const data = (await response.json()) as OpenRouterResponse;
 
-      if (!data.choices || data.choices.length === 0) {
+      if (!data.choices?.[0]) {
         throw new Error("No choices returned from OpenRouter API");
       }
 
       return {
-        text: data.choices[0]!.message.content,
+        text: data.choices[0].message.content,
         metadata: {
           model: openRouterRequest.model,
           provider: "openrouter",
@@ -189,9 +189,7 @@ export class OpenRouterProvider implements LLMProvider {
                   accumulatedText += content;
                   yield { text: content };
                 }
-              } catch (parseError) {
-                continue;
-              }
+              } catch (_parseError) {}
             }
           }
         }

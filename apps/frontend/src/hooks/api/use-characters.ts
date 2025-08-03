@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { CharacterDTO } from "@storyforge/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { charactersService } from "@/services";
-import { CharacterDTO } from "@storyforge/shared";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 

@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
-import {
-  UIScenario,
-  UITurn,
+import type {
   InputMode,
   ProcessingStep,
+  UIScenario,
+  UITurn,
 } from "@storyforge/shared";
+import { useCallback, useEffect, useState } from "react";
 
 export const useScenario = (initialScenario?: UIScenario) => {
   const [scenario, setScenario] = useState<UIScenario | undefined>(

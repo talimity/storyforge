@@ -1,9 +1,9 @@
-import {
-  Scenario,
+import type {
   CharacterDTO,
+  Scenario,
   Turn,
-  UIScenario,
   UICharacter,
+  UIScenario,
   UITurn,
 } from "@storyforge/shared";
 

@@ -1,7 +1,7 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import type { UITurn } from "@storyforge/shared";
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
-import { UITurn } from "@storyforge/shared";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface TurnDisplayProps {
   turns: UITurn[];
@@ -60,7 +60,7 @@ export const TurnDisplay = ({
             <CardContent className="p-8">
               <div className="narrative-text space-y-4">
                 {currentTurn.content.split("\n\n").map((paragraph, index) => (
-                  <p key={index} className="leading-relaxed">
+                  <p key={String(index)} className="leading-relaxed">
                     {paragraph}
                   </p>
                 ))}

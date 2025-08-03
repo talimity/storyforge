@@ -1,4 +1,4 @@
-import {
+import type {
   ChatCompletionRequest,
   GenerationResult,
   GenerationResultDelta,
@@ -42,14 +42,16 @@ interface MockProviderConfig {
   };
 }
 
-type RequiredMockProviderConfig = Required<Omit<MockProviderConfig, 'streaming'>> & {
-  streaming: Required<NonNullable<MockProviderConfig['streaming']>>;
+type RequiredMockProviderConfig = Required<
+  Omit<MockProviderConfig, "streaming">
+> & {
+  streaming: Required<NonNullable<MockProviderConfig["streaming"]>>;
 };
 
 export class MockProvider implements LLMProvider {
   readonly id = "mock";
   readonly name = "Mock Provider";
-  
+
   private config: RequiredMockProviderConfig;
 
   constructor(config: MockProviderConfig = {}) {
@@ -92,14 +94,18 @@ export class MockProvider implements LLMProvider {
       },
       models: config.models ?? [
         "mock-fast",
-        "mock-slow", 
+        "mock-slow",
         "mock-creative",
         "mock-error",
         "mock-default",
       ],
       streaming: {
-        defaultChunkDelay: config.streaming?.defaultChunkDelay ?? defaultStreaming.defaultChunkDelay,
-        defaultWordsPerChunk: config.streaming?.defaultWordsPerChunk ?? defaultStreaming.defaultWordsPerChunk,
+        defaultChunkDelay:
+          config.streaming?.defaultChunkDelay ??
+          defaultStreaming.defaultChunkDelay,
+        defaultWordsPerChunk:
+          config.streaming?.defaultWordsPerChunk ??
+          defaultStreaming.defaultWordsPerChunk,
       },
     };
 
@@ -154,7 +160,7 @@ export class MockProvider implements LLMProvider {
 
   async listModels(filter?: string): Promise<string[]> {
     let models = [...this.config.models];
-    
+
     if (filter) {
       const filterLower = filter.toLowerCase();
       models = models.filter((id) => id.toLowerCase().includes(filterLower));
@@ -165,7 +171,7 @@ export class MockProvider implements LLMProvider {
 
   async generate(request: ChatCompletionRequest): Promise<GenerationResult> {
     const mockResponse = this.selectResponse(request);
-    
+
     // Simulate network delay
     if (mockResponse.delay && mockResponse.delay > 0) {
       await this.sleep(mockResponse.delay);
@@ -179,9 +185,9 @@ export class MockProvider implements LLMProvider {
     // Apply maxTokens if specified
     let responseText = mockResponse.text;
     if (request.parameters.maxTokens) {
-      const words = responseText.split(' ');
+      const words = responseText.split(" ");
       if (words.length > request.parameters.maxTokens) {
-        responseText = words.slice(0, request.parameters.maxTokens).join(' ') + '...';
+        responseText = `${words.slice(0, request.parameters.maxTokens).join(" ")}...`;
       }
     }
 
@@ -199,7 +205,7 @@ export class MockProvider implements LLMProvider {
     request: ChatCompletionRequest
   ): AsyncIterable<GenerationResultDelta, GenerationResult> {
     const mockResponse = this.selectResponse(request);
-    
+
     // Initial delay
     if (mockResponse.delay && mockResponse.delay > 0) {
       await this.sleep(mockResponse.delay);
@@ -211,29 +217,31 @@ export class MockProvider implements LLMProvider {
     }
 
     let responseText = mockResponse.text;
-    
+
     // Apply maxTokens if specified
     if (request.parameters.maxTokens) {
-      const words = responseText.split(' ');
+      const words = responseText.split(" ");
       if (words.length > request.parameters.maxTokens) {
-        responseText = words.slice(0, request.parameters.maxTokens).join(' ') + '...';
+        responseText = `${words.slice(0, request.parameters.maxTokens).join(" ")}...`;
       }
     }
 
     // Chunk the response
-    const words = responseText.split(' ');
-    const wordsPerChunk = mockResponse.wordsPerChunk ?? this.config.streaming.defaultWordsPerChunk;
-    const chunkDelay = mockResponse.chunkDelay ?? this.config.streaming.defaultChunkDelay;
-    
-    let accumulatedText = '';
-    
+    const words = responseText.split(" ");
+    const wordsPerChunk =
+      mockResponse.wordsPerChunk ?? this.config.streaming.defaultWordsPerChunk;
+    const chunkDelay =
+      mockResponse.chunkDelay ?? this.config.streaming.defaultChunkDelay;
+
+    let accumulatedText = "";
+
     for (let i = 0; i < words.length; i += wordsPerChunk) {
-      const chunk = words.slice(i, i + wordsPerChunk).join(' ');
-      const chunkText = i + wordsPerChunk >= words.length ? chunk : chunk + ' ';
-      
+      const chunk = words.slice(i, i + wordsPerChunk).join(" ");
+      const chunkText = i + wordsPerChunk >= words.length ? chunk : `${chunk} `;
+
       accumulatedText += chunkText;
       yield { text: chunkText };
-      
+
       // Don't delay after the last chunk
       if (i + wordsPerChunk < words.length && chunkDelay > 0) {
         await this.sleep(chunkDelay);
@@ -251,13 +259,17 @@ export class MockProvider implements LLMProvider {
   }
 
   renderPrompt(request: ChatCompletionRequest): string {
-    return JSON.stringify({
-      mockProvider: true,
-      model: request.model,
-      messages: request.messages,
-      parameters: request.parameters,
-      selectedResponse: this.selectResponse(request),
-    }, null, 2);
+    return JSON.stringify(
+      {
+        mockProvider: true,
+        model: request.model,
+        messages: request.messages,
+        parameters: request.parameters,
+        selectedResponse: this.selectResponse(request),
+      },
+      null,
+      2
+    );
   }
 
   private selectResponse(request: ChatCompletionRequest): MockResponse {
@@ -270,14 +282,17 @@ export class MockProvider implements LLMProvider {
     // Check pattern-based responses
     const lastUserMessage = [...request.messages]
       .reverse()
-      .find(msg => msg.role === 'user');
-    
+      .find((msg) => msg.role === "user");
+
     if (lastUserMessage) {
       for (const pattern of this.config.patterns) {
-        const match = typeof pattern.pattern === 'string' 
-          ? lastUserMessage.content.toLowerCase().includes(pattern.pattern.toLowerCase())
-          : pattern.pattern.test(lastUserMessage.content);
-          
+        const match =
+          typeof pattern.pattern === "string"
+            ? lastUserMessage.content
+                .toLowerCase()
+                .includes(pattern.pattern.toLowerCase())
+            : pattern.pattern.test(lastUserMessage.content);
+
         if (match) {
           return pattern.response;
         }
@@ -289,11 +304,11 @@ export class MockProvider implements LLMProvider {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  /** 
-   * Add a new response pattern at runtime 
+  /**
+   * Add a new response pattern at runtime
    */
   addPattern(pattern: string | RegExp, response: MockResponse): void {
     this.config.patterns.push({ pattern, response });

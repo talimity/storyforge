@@ -1,14 +1,14 @@
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Settings, Pause } from "lucide-react";
+import type { UIScenario } from "@storyforge/shared";
+import { ArrowLeft, Pause, Settings } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { CharacterPanel } from "@/components/scenario/character-panel";
-import { TurnDisplay } from "@/components/scenario/turn-display";
 import { InputArea } from "@/components/scenario/input-area";
 import { ProcessingIndicator } from "@/components/scenario/processing-indicator";
+import { TurnDisplay } from "@/components/scenario/turn-display";
+import { Button } from "@/components/ui/button";
+import { useCharacters, useScenario } from "@/hooks/api";
 import { useScenario as useScenarioState } from "@/hooks/use-active-scenario";
-import { useScenario, useCharacters } from "@/hooks/api";
 import { transformScenarioToUI } from "@/lib/transforms";
-import { UIScenario } from "@storyforge/shared";
 
 export const ScenarioActive = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +17,7 @@ export const ScenarioActive = () => {
     data: scenarioData,
     isLoading: scenarioLoading,
     error: scenarioError,
-  } = useScenario(id!);
+  } = useScenario(id ?? "");
   const { data: charactersData = [], isLoading: charactersLoading } =
     useCharacters();
 

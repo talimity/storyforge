@@ -1,49 +1,21 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
     "moduleResolution": "bundler",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
-    
-    /* Strict Type Checking */
-    "strict": true,
-    "noImplicitAny": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "useUnknownInCatchVariables": true,
-    
-    /* Additional Checks */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    
     /* Module Resolution */
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "allowImportingTsExtensions": true,
     "moduleDetection": "force",
-    "noEmit": true,
-    
     /* Path Mapping */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@storyforge/shared": [
-        "../../packages/shared/src"
-      ]
-    },
+      "@storyforge/shared": ["../../packages/shared/src"]
+    }
   },
-  "include": [
-    "src/**/*",
-    "src/**/*.tsx"
-  ],
+  "include": ["src/**/*", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

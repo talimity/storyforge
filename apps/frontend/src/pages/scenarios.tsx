@@ -1,4 +1,16 @@
+import {
+  BookOpen,
+  Clock,
+  Edit,
+  Play,
+  Plus,
+  Search,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,19 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Plus,
-  Search,
-  Play,
-  Edit,
-  Trash2,
-  BookOpen,
-  Users,
-  Clock,
-} from "lucide-react";
-import { Link } from "react-router-dom";
 
 export const Scenarios = () => {
   const [searchQuery, setSearchQuery] = useState("");

@@ -1,5 +1,5 @@
 import { config } from "@/config";
-import {
+import type {
   ChatCompletionRequest,
   GenerationResult,
   GenerationResultDelta,
@@ -125,12 +125,12 @@ export class DeepSeekProvider implements LLMProvider {
 
       const data = (await response.json()) as DeepSeekResponse;
 
-      if (!data.choices || data.choices.length === 0) {
+      if (!data.choices?.[0]) {
         throw new Error("No choices returned from DeepSeek API");
       }
 
       return {
-        text: data.choices[0]!.message.content,
+        text: data.choices[0].message.content,
         metadata: {
           model: deepSeekRequest.model,
           provider: "deepseek",
@@ -193,9 +193,7 @@ export class DeepSeekProvider implements LLMProvider {
                   accumulatedText += content;
                   yield { text: content };
                 }
-              } catch (parseError) {
-                continue;
-              }
+              } catch (_parseError) {}
             }
           }
         }
@@ -225,9 +223,9 @@ export class DeepSeekProvider implements LLMProvider {
     request: ChatCompletionRequest,
     stream: boolean
   ): DeepSeekRequest {
-    const messages: DeepSeekMessage[] = request.messages.map(msg => ({
+    const messages: DeepSeekMessage[] = request.messages.map((msg) => ({
       role: msg.role,
-      content: msg.content
+      content: msg.content,
     }));
     const { parameters } = request;
 

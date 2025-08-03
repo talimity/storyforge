@@ -1,5 +1,5 @@
+import type { Scenario, ScenariosResponse } from "@storyforge/shared";
 import { api } from "./api-client";
-import { Scenario, ScenariosResponse } from "@storyforge/shared";
 
 export const scenariosService = {
   async getAll(): Promise<Scenario[]> {
