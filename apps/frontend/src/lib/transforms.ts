@@ -1,13 +1,13 @@
-import type {
-  CharacterDTO,
-  Scenario,
-  Turn,
-  UICharacter,
-  UIScenario,
-  UITurn,
-} from "@storyforge/shared";
+import type { Character } from "@storyforge/api";
+import type { Scenario, Turn, UIScenario, UITurn } from "@storyforge/shared";
 
-export function transformCharacterToUI(character: CharacterDTO): UICharacter {
+export type UICharacter = Character & {
+  isActive: boolean; // Indicates if the character is currently active in the scenario
+  mood: string; // Mood of the character, e.g., "Happy", "Sad", "Angry"
+  status: string; // Status of the character, e.g., "Ready", "Busy", "Unavailable"
+};
+
+export function transformCharacterToUI(character: Character): UICharacter {
   return {
     ...character,
     isActive: false,
@@ -17,7 +17,7 @@ export function transformCharacterToUI(character: CharacterDTO): UICharacter {
 }
 
 export function transformCharactersToUI(
-  characters: CharacterDTO[],
+  characters: Character[],
   activeCharacterIds: string[] = []
 ): UICharacter[] {
   return characters.map((character) => ({
@@ -39,7 +39,7 @@ export function transformTurnToUI(turn: Turn, index: number): UITurn {
 
 export function transformScenarioToUI(
   scenario: Scenario,
-  characters: CharacterDTO[]
+  characters: Character[]
 ): UIScenario {
   const scenarioCharacters = characters.filter((char) =>
     scenario.characters.includes(char.id)
@@ -75,7 +75,7 @@ export function transformUIScenarioToDomain(
 
 export function transformUICharacterToDomain(
   uiCharacter: UICharacter
-): Partial<CharacterDTO> {
+): Partial<Character> {
   const { isActive: _, mood: __, status: ___, ...domainFields } = uiCharacter;
   return domainFields;
 }

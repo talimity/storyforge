@@ -23,11 +23,14 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 
 - ✅ Monorepo structure with pnpm
 - ✅ Basic Fastify backend application
+- ✅ tRPC for API contracts and routers
+- ✅ OpenAPI schema generation via trpc-to-openapi
 - ✅ Basic Vite React frontend application (with shadcn/ui and Tailwind CSS)
 - ✅ SQLite persistence layer (with Drizzle ORM)
-- ❌ LLM inference architecture
-  - ❌ Provider abstraction layer
-  - ❌ LLM provider implementation (MVP: OpenAI-compatible /chat/completions API)
+- ✅ LLM inference architecture
+  - ✅ Provider abstraction layer
+  - ✅ LLM provider implementation (MVP: OpenAI-compatible /chat/completions API)
+  - ❌ Provider/model registry
 - ❌ Scenario runtime
   - ❌ Prompt template rendering
   - ❌ Narrative engine (agent-turn state machine)
@@ -56,8 +59,6 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 
 Project is still in validation phase. The goal is to build a working prototype that demonstrates the core idea of agentic narrative generation without getting bogged down in minutiae.
 
-Important: Most of the code currently in this repository is scaffolding. Types, interfaces, and models you may see for Scenario, Turn, etc. are placeholder interfaces generated for a UI mockup. None of these types will be used in the final codebase, and they should not be used as a reference. As features are implemented, remove the placeholder types from /packages/shared/src/types/placeholders.ts and create individual files for each feature.
-
 ## Build & Test Commands
 
 ```bash
@@ -66,7 +67,8 @@ pnpm i
 
 # Code quality
 pnpm check # lint + typecheck
-pnpm fmt # apply Biome formatting
+pnpm lint # just lint
+pnpm typecheck # just typecheck
 
 # Build
 pnpm build
@@ -84,8 +86,8 @@ devctl stop       # Stop both dev servers
 
 ## Stack
 
-- **Frontend**: Vite + React + TypeScript + shadcn/ui + Tailwind CSS
-- **Backend**: Fastify + TypeScript + Drizzle ORM + SQLite
+- **Frontend**: Vite + React + shadcn/ui + Tailwind CSS
+- **Backend**: Fastify + tRPC + Drizzle ORM + SQLite
 - **Monorepo**: pnpm workspaces
 
 ## Monorepo Structure
@@ -97,9 +99,9 @@ storyforge
 │   │   ├── data               # Runtime data
 │   │   ├── scripts            # Scripts for development tasks
 │   │   └── src
-│   │       ├── api            # Fastify API handlers
-│   │       │   ├── http       # HTTP API (CRUD, etc.)
-│   │       │   └── ws         # WebSocket API (scenario interaction)
+│   │       ├── api            # Fastify routes
+│   │       │   ├── handlers   # tRPC handlers (CRUD operations)
+│   │       │   └── ws         # WebSocket API (realtime scenario interface)
 │   │       ├── db             # Drizzle ORM database layer
 │   │       │   ├── base.repository.ts # Base CRUD repo
 │   │       │   ├── migrations
@@ -123,8 +125,53 @@ storyforge
 │   │       ├── hooks          # React hooks
 │   │       └── types          # Frontend-specific types
 ├── packages                   # Shared packages
-│   └── shared                 # Currently, just TypeScript types
+│   ├── api                    # API contracts and types
+│   │   └── src
+│   │       ├── contracts      # tRPC contracts / Zod schemas
+│   │       └── types
+│   └── shared                 # Leftover shared types - do not use these
 ```
+
+
+
+.
+├── apps
+│   ├── backend
+│   │   ├── data
+│   │   ├── scripts
+│   │   └── src
+│   │       ├── db
+│   │       │   ├── migrations
+│   │       │   │   └── meta
+│   │       │   └── schema
+│   │       ├── engine
+│   │       ├── inference
+│   │       │   └── providers
+│   │       ├── shelf
+│   │       │   └── character
+│   │       └── trpc
+│   │           └── routers
+│   └── frontend
+│       └── src
+│           ├── components
+│           │   ├── scenario
+│           │   └── ui
+│           ├── hooks
+│           │   └── api
+│           ├── lib
+│           ├── pages
+│           ├── services
+│           └── types
+├── packages
+│   ├── api
+│   │   └── src
+│   │       ├── contracts
+│   │       └── types
+│   └── shared
+│       └── src
+│           └── types
+└── scripts
+
 
 ## Code Style Guidelines
 

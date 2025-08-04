@@ -2,9 +2,9 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
-import { registerAPI } from "@/api";
 import { config } from "./config";
 import { logger } from "./logging";
+import { registerAPI } from "./trpc/register";
 
 const fastify = Fastify({
   logger: config.logging.pretty
@@ -29,19 +29,17 @@ await fastify.register(cors, {
   origin: ["http://localhost:5173", "http://localhost:8080"],
   credentials: true,
 });
-
 await fastify.register(multipart);
 await fastify.register(websocket);
+
+// Register API routes
+await registerAPI(fastify);
 
 // Health check
 fastify.get("/health", async () => {
   return { status: "ok", timestamp: new Date().toISOString() };
 });
 
-// Register all API routes (tRPC + REST)
-await registerAPI(fastify);
-
-// Start server
 try {
   await fastify.listen({
     port: config.server.port,

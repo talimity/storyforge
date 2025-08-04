@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
-import { characterRepository } from "@/shelf/character/character.repository";
-import { CharacterImportService } from "@/shelf/character/character-import.service";
-import { parseTavernCard } from "@/shelf/character/parse-tavern-card";
-import { toCharacter } from "../trpc/routers/characters";
+import { characterRepository } from "../shelf/character/character.repository";
+import { CharacterImportService } from "../shelf/character/character-import.service";
+import { parseTavernCard } from "../shelf/character/parse-tavern-card";
+import { toCharacter } from "./routers/characters";
 
 export async function registerFileUploadRoutes(fastify: FastifyInstance) {
   // Handle file uploads outside of tRPC since tRPC doesn't handle multipart well

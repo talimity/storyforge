@@ -5,8 +5,8 @@ import type {
   SQLiteTransaction,
 } from "drizzle-orm/sqlite-core";
 import type { Logger } from "pino";
-import type { StoryforgeSqliteDatabase } from "@/db/client";
-import { createChildLogger } from "@/logging";
+import type { StoryforgeSqliteDatabase } from "../db/client";
+import { createChildLogger } from "../logging";
 
 type TableWithId = AnySQLiteTable & { id: SQLiteColumn };
 

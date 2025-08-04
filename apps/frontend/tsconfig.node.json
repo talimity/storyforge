@@ -8,7 +8,6 @@
     "moduleResolution": "bundler",
     "types": ["node"],
     "allowImportingTsExtensions": true,
-    "isolatedModules": true,
     "moduleDetection": "force"
   },
   "include": ["vite.config.ts", "postcss.config.js", "tailwind.config.ts"]

@@ -9,8 +9,8 @@ import {
 } from "@storyforge/api";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import type { Character as DbCharacter } from "@/db/schema/characters";
-import { characterRepository } from "@/shelf/character/character.repository";
+import type { Character as DbCharacter } from "../../db/schema/characters";
+import { characterRepository } from "../../shelf/character/character.repository";
 import { publicProcedure, router } from "../index";
 
 export function toCharacter(dbCharacter: DbCharacter): Character {

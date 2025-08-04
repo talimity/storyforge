@@ -1,32 +1,37 @@
 {
   "compilerOptions": {
+    // Language and module settings
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+
+    // Strictness and type checking
     "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "useUnknownInCatchVariables": true,
+    "useUnknownInCatchVariables": false,
+
+    // Project and build options
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "incremental": true,
+    "isolatedModules": true,
+
+    // Miscellaneous
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "declaration": false,
-    "incremental": true
+    "sourceMap": true
   },
   "files": [],
   "references": [
-    {
-      "path": "./apps/frontend"
-    },
-    {
-      "path": "./apps/backend"
-    },
-    {
-      "path": "./packages/shared"
-    }
+    { "path": "./apps/frontend" },
+    { "path": "./apps/backend" },
+    { "path": "./packages/shared" },
+    { "path": "./packages/api" }
   ]
 }

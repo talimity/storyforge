@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "@storyforge/backend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",
+    "@fastify/websocket": "^11.2.0",
     "@fastify/multipart": "^9.0.0",
     "@fastify/reply-from": "^11.0.0",
     "@fastify/static": "^8.0.2",

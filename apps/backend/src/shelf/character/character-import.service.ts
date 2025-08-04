@@ -1,5 +1,5 @@
-import type { NewCharacterExample } from "@/db/schema/character-examples";
-import type { NewCharacterGreeting } from "@/db/schema/character-greetings";
+import type { NewCharacterExample } from "../../db/schema/character-examples";
+import type { NewCharacterGreeting } from "../../db/schema/character-greetings";
 import { characterRepository } from "./character.repository";
 import type {
   TavernCard,

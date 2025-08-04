@@ -1,7 +1,5 @@
 // Note that this file is entirely placeholder generated for the UI mockup.
 
-import type { UICharacter } from "./character";
-
 // ===== DOMAIN MODELS =====
 // These represent the core data structures as stored and transmitted
 
@@ -70,7 +68,8 @@ export interface UIScenario {
   name: string;
   description: string;
   turnCount: number;
-  characters: UICharacter[];
+  // biome-ignore lint/suspicious/noExplicitAny: placeholder for now
+  characters: any[]; // TODO: Replace with Character from @storyforge/api when frontend is updated
   turns: UITurn[];
   currentTurnIndex: number;
 }

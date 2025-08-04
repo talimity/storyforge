@@ -6,12 +6,11 @@ import {
   renderPromptQuerySchema,
   renderPromptResponseSchema,
 } from "@storyforge/api";
-import { observable } from "@trpc/server/observable";
-import { generationContextAdapter } from "@/inference/generation-context-adapter";
-import type { LLMProvider } from "@/inference/providers/base-provider";
-import { DeepSeekProvider } from "@/inference/providers/deepseek";
-import { MockProvider } from "@/inference/providers/mock";
-import { OpenRouterProvider } from "@/inference/providers/openrouter";
+import { generationContextAdapter } from "../../inference/generation-context-adapter";
+import type { LLMProvider } from "../../inference/providers/base-provider";
+import { DeepSeekProvider } from "../../inference/providers/deepseek";
+import { MockProvider } from "../../inference/providers/mock";
+import { OpenRouterProvider } from "../../inference/providers/openrouter";
 import { publicProcedure, router } from "../index";
 
 // Initialize providers
@@ -159,88 +158,73 @@ export const debugRouter = router({
   // Streaming completion using tRPC subscriptions
   completionStream: publicProcedure
     .input(completionSchema)
-    .subscription(({ input }) => {
-      return observable<{ text: string }>((emit) => {
-        const {
-          sections = [],
-          parameters = {},
-          model = "mock-default",
-          provider = "mock",
-        } = input;
+    .subscription(async function* ({ input }) {
+      const {
+        sections = [],
+        parameters = {},
+        model = "mock-default",
+        provider = "mock",
+      } = input;
 
-        const llmProvider = providers.get(provider);
-        if (!llmProvider) {
-          throw new Error(`Provider '${provider}' not available`);
-        }
+      const llmProvider = providers.get(provider);
+      if (!llmProvider) {
+        throw new Error(`Provider '${provider}' not available`);
+      }
 
-        const context = {
-          sections:
-            sections.length > 0
-              ? sections.map((s) => {
-                  const section: {
-                    id: string;
-                    content: string;
-                    metadata?: {
-                      role?: "system" | "reference" | "history" | "task";
-                      priority?: number;
-                    };
-                  } = {
-                    id: s.id,
-                    content: s.content,
+      const context = {
+        sections:
+          sections.length > 0
+            ? sections.map((s) => {
+                const section: {
+                  id: string;
+                  content: string;
+                  metadata?: {
+                    role?: "system" | "reference" | "history" | "task";
+                    priority?: number;
                   };
-                  if (s.metadata) {
-                    section.metadata = {};
-                    if (s.metadata.role !== undefined) {
-                      section.metadata.role = s.metadata.role;
-                    }
-                    if (s.metadata.priority !== undefined) {
-                      section.metadata.priority = s.metadata.priority;
-                    }
+                } = {
+                  id: s.id,
+                  content: s.content,
+                };
+                if (s.metadata) {
+                  section.metadata = {};
+                  if (s.metadata.role !== undefined) {
+                    section.metadata.role = s.metadata.role;
                   }
-                  return section;
-                })
-              : [
-                  {
-                    id: "default-system",
-                    content: "You are a helpful AI assistant.",
-                    metadata: { role: "system" as const },
-                  },
-                  {
-                    id: "default-task",
-                    content: "Please respond to this test message.",
-                    metadata: { role: "task" as const },
-                  },
-                ],
-          parameters: {
-            maxTokens: parameters.maxTokens || 150,
-            temperature: parameters.temperature || 0.7,
-            stopSequences: parameters.stopSequences || [],
-          },
-          model,
-        };
+                  if (s.metadata.priority !== undefined) {
+                    section.metadata.priority = s.metadata.priority;
+                  }
+                }
+                return section;
+              })
+            : [
+                {
+                  id: "default-system",
+                  content: "You are a helpful AI assistant.",
+                  metadata: { role: "system" as const },
+                },
+                {
+                  id: "default-task",
+                  content: "Please respond to this test message.",
+                  metadata: { role: "task" as const },
+                },
+              ],
+        parameters: {
+          maxTokens: parameters.maxTokens || 150,
+          temperature: parameters.temperature || 0.7,
+          stopSequences: parameters.stopSequences || [],
+        },
+        model,
+      };
 
-        const chatRequest =
-          generationContextAdapter.toChatCompletionRequest(context);
+      const chatRequest =
+        generationContextAdapter.toChatCompletionRequest(context);
 
-        // Start async streaming
-        (async () => {
-          try {
-            for await (const delta of llmProvider.generateStream(chatRequest)) {
-              if (delta.text) {
-                emit.next({ text: delta.text });
-              }
-            }
-            emit.complete();
-          } catch (error) {
-            emit.error(error);
-          }
-        })();
-
-        // Return cleanup function
-        return () => {
-          // Cleanup if needed
-        };
-      });
+      for await (const delta of llmProvider.generateStream(chatRequest)) {
+        if (delta.text) {
+          yield { text: delta.text };
+        }
+      }
     }),
 
   renderPrompt: publicProcedure

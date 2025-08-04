@@ -4,8 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm run --filter backend build && pnpm run --filter frontend build",
+    "build:packages": "pnpm run --parallel --filter './packages/*' build",
+    "build:apps": "pnpm run --parallel --filter './apps/*' build",
+    "build": "pnpm run build:packages && pnpm run build:apps",
     "check": "run-p --continue-on-error lint typecheck",
+    "clean": "pnpm run --parallel clean",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
     "dev": "pnpm run --parallel dev",

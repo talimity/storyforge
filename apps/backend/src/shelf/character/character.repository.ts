@@ -1,15 +1,15 @@
 import { and, eq } from "drizzle-orm";
-import { BaseRepository } from "@/db/base.repository";
-import { db, schema } from "@/db/client";
+import { BaseRepository } from "../../db/base.repository";
+import { db, schema } from "../../db/client";
 import type {
   CharacterExample,
   NewCharacterExample,
-} from "@/db/schema/character-examples";
+} from "../../db/schema/character-examples";
 import type {
   CharacterGreeting,
   NewCharacterGreeting,
-} from "@/db/schema/character-greetings";
-import type { Character, NewCharacter } from "@/db/schema/characters";
+} from "../../db/schema/character-greetings";
+import type { Character, NewCharacter } from "../../db/schema/characters";
 
 export class CharacterRepository extends BaseRepository<
   typeof schema.characters
