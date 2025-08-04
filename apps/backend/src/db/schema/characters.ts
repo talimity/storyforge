@@ -15,7 +15,7 @@ export const characters = sqliteTable("characters", {
   customSystemPrompt: text("custom_system_prompt"),
   customPostHistoryInstructions: text("custom_post_history_instructions"),
   tags: text("tags", { mode: "json" }).$type<string[]>().default(sql`'[]'`),
-  sfCharaVersion: text("sf_chara_version"),
+  revision: text("revision"),
   originalCardData: text("original_card_data", { mode: "json" }),
   cardImage: blob("card_image", { mode: "buffer" }),
   createdAt: integer("created_at", { mode: "timestamp" })

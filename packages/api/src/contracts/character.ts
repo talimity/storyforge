@@ -15,7 +15,7 @@ export const createCharacterSchema = z.object({
   customSystemPrompt: z.string().nullish(),
   customPostHistoryInstructions: z.string().nullish(),
   tags: z.array(z.string()).default([]),
-  sfCharaVersion: z.string().default("1.0"),
+  revision: z.string().default("1.0"),
   originalCardData: z.any().nullish(),
 });
 
@@ -54,7 +54,7 @@ export const characterSchema = z.object({
   customSystemPrompt: z.string().nullable(),
   customPostHistoryInstructions: z.string().nullable(),
   tags: z.array(z.string()),
-  sfCharaVersion: z.string().nullable(),
+  revision: z.string().nullable(),
   originalCardData: z.any().nullable(),
   imagePath: z.string().nullable(),
   createdAt: z.union([z.string(), z.date()]),

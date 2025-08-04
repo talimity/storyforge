@@ -6,6 +6,28 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 StoryForge is an LLM-powered character roleplaying application that reimagines AI character chat interfaces as a tabletop RPG experience. The player is positioned as a director/dungeon master orchestrating multi-character scenarios rather than being locked into a single character role chatting with one other character. An agentic narrative engine generates turns by passsing inputs across multiple stages (Planner -> Screenplay -> Prose, or Dreamer -> Critic -> Writer) to improve the quality of the output.
 
+### Build & Test Commands
+
+```bash
+# Code quality
+pnpm check # lint + typecheck
+pnpm lint # just lint
+pnpm typecheck # just typecheck
+
+# Build (tsc)
+pnpm build
+
+# Dev servers
+# ⚠️ IMPORTANT: If you use `pnpm dev` it will block your terminal.
+# If you need to start the servers in the background, you MUST use the `devctl` helper:
+devctl start      # Starts frontend/backend in the background
+devctl status     # "running" | "stopped"
+curl http://localhost:3001/health # Interact with the frontend or backend for your task
+devctl logs 100   # Show last 100 lines of logs (default 30)
+devctl restart    # Restart both dev servers (this should not be necessary in most cases)
+devctl stop       # Stop both dev servers
+```
+
 ### Vision
 
 - **Agentic narrative engine**: Turns are managed by a narrative engine that handles character actions, scene management, and AI interactions
@@ -59,31 +81,6 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 
 Project is still in validation phase. The goal is to build a working prototype that demonstrates the core idea of agentic narrative generation without getting bogged down in minutiae.
 
-## Build & Test Commands
-
-```bash
-# Install dependencies
-pnpm i
-
-# Code quality
-pnpm check # lint + typecheck
-pnpm lint # just lint
-pnpm typecheck # just typecheck
-
-# Build
-pnpm build
-
-# Dev servers
-# ⚠️ IMPORTANT: If you use `pnpm dev` it will block your terminal.
-# If you need to start the servers in the background, you MUST use the `devctl` helper:
-devctl start      # Starts frontend/backend in the background
-devctl status     # "running" | "stopped"
-curl http://localhost:3001/health # Interact with the frontend or backend for your task
-devctl logs 100   # Show last 100 lines of logs (default 30)
-devctl restart    # Restart both dev servers (this should not be necessary in most cases)
-devctl stop       # Stop both dev servers
-```
-
 ## Stack
 
 - **Frontend**: Vite + React + shadcn/ui + Tailwind CSS
@@ -99,9 +96,6 @@ storyforge
 │   │   ├── data               # Runtime data
 │   │   ├── scripts            # Scripts for development tasks
 │   │   └── src
-│   │       ├── api            # Fastify routes
-│   │       │   ├── handlers   # tRPC handlers (CRUD operations)
-│   │       │   └── ws         # WebSocket API (realtime scenario interface)
 │   │       ├── db             # Drizzle ORM database layer
 │   │       │   ├── base.repository.ts # Base CRUD repo
 │   │       │   ├── migrations
@@ -116,7 +110,8 @@ storyforge
 │   │       ├── shelf          # User data management (simple CRUD)
 │   │       │   ├── character
 │   │       │   └── scenario
-│   │       └── types
+│   │       └── trpc           # tRPC API layer
+│   │           └── routers     # tRPC routers
 │   ├── frontend               # Vite React app (:8080)
 │   │   └── src
 │   │       ├── components     # UI components
@@ -131,47 +126,6 @@ storyforge
 │   │       └── types
 │   └── shared                 # Leftover shared types - do not use these
 ```
-
-
-
-.
-├── apps
-│   ├── backend
-│   │   ├── data
-│   │   ├── scripts
-│   │   └── src
-│   │       ├── db
-│   │       │   ├── migrations
-│   │       │   │   └── meta
-│   │       │   └── schema
-│   │       ├── engine
-│   │       ├── inference
-│   │       │   └── providers
-│   │       ├── shelf
-│   │       │   └── character
-│   │       └── trpc
-│   │           └── routers
-│   └── frontend
-│       └── src
-│           ├── components
-│           │   ├── scenario
-│           │   └── ui
-│           ├── hooks
-│           │   └── api
-│           ├── lib
-│           ├── pages
-│           ├── services
-│           └── types
-├── packages
-│   ├── api
-│   │   └── src
-│   │       ├── contracts
-│   │       └── types
-│   └── shared
-│       └── src
-│           └── types
-└── scripts
-
 
 ## Code Style Guidelines
 

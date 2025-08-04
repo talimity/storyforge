@@ -84,49 +84,30 @@ export class CharacterRepository extends BaseRepository<
   ): Promise<
     Character & { greetings: CharacterGreeting[]; examples: CharacterExample[] }
   > {
-    return await this.transaction(async (tx) => {
-      const [character] = await tx
-        .insert(this.table)
-        .values(characterData)
-        .returning();
+    const character = await this.create(characterData);
 
-      if (!character) {
-        throw new Error("Failed to create character");
+    const createdGreetings: CharacterGreeting[] = [];
+    const createdExamples: CharacterExample[] = [];
+
+    if (greetings.length > 0) {
+      for (const greeting of greetings) {
+        const created = await this.addGreeting(character.id, greeting);
+        createdGreetings.push(created);
       }
+    }
 
-      const createdGreetings: CharacterGreeting[] = [];
-      const createdExamples: CharacterExample[] = [];
-
-      if (greetings.length > 0) {
-        const greetingInserts = greetings.map((greeting) => ({
-          ...greeting,
-          characterId: character.id,
-        }));
-        const insertedGreetings = await tx
-          .insert(schema.characterGreetings)
-          .values(greetingInserts)
-          .returning();
-        createdGreetings.push(...insertedGreetings);
+    if (examples.length > 0) {
+      for (const example of examples) {
+        const created = await this.addExample(character.id, example);
+        createdExamples.push(created);
       }
+    }
 
-      if (examples.length > 0) {
-        const exampleInserts = examples.map((example) => ({
-          ...example,
-          characterId: character.id,
-        }));
-        const insertedExamples = await tx
-          .insert(schema.characterExamples)
-          .values(exampleInserts)
-          .returning();
-        createdExamples.push(...insertedExamples);
-      }
-
-      return {
-        ...character,
-        greetings: createdGreetings,
-        examples: createdExamples,
-      };
-    });
+    return {
+      ...character,
+      greetings: createdGreetings,
+      examples: createdExamples,
+    };
   }
 
   async addGreeting(

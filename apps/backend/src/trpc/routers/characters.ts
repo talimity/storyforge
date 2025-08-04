@@ -25,7 +25,7 @@ export function toCharacter(dbCharacter: DbCharacter): Character {
     customSystemPrompt: dbCharacter.customSystemPrompt,
     customPostHistoryInstructions: dbCharacter.customPostHistoryInstructions,
     tags: dbCharacter.tags || [],
-    sfCharaVersion: dbCharacter.sfCharaVersion,
+    revision: dbCharacter.revision,
     originalCardData: dbCharacter.originalCardData
       ? JSON.parse(JSON.stringify(dbCharacter.originalCardData))
       : null,

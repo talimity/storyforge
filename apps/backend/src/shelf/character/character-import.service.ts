@@ -37,7 +37,7 @@ export class CharacterImportService {
       customSystemPrompt: card.data.system_prompt,
       customPostHistoryInstructions: card.data.post_history_instructions,
       tags: card.data.tags,
-      sfCharaVersion: card.data.character_version,
+      revision: card.data.character_version,
       originalCardData: JSON.stringify(card),
       cardImage: imageBuffer,
     };
@@ -83,7 +83,7 @@ export class CharacterImportService {
       customSystemPrompt: null,
       customPostHistoryInstructions: null,
       tags: [],
-      sfCharaVersion: null,
+      revision: null,
       originalCardData: JSON.stringify(card),
       cardImage: imageBuffer,
     };
