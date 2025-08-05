@@ -31,12 +31,21 @@ export async function registerAPI(fastify: FastifyInstance) {
   // tRPC procedures
   const openApiHttpHandler = createOpenApiHttpHandler({
     router: appRouter,
-    // biome-ignore lint/suspicious/noExplicitAny: We need to use any here for Fastify compatibility
-    createContext: ({ req, res }) => ({ req: req as any, res: res as any }),
+    createContext: async ({ req, res }) => {
+      // For OpenAPI endpoints, we need to create a context that matches the tRPC context
+      // The req/res here are Node.js IncomingMessage/ServerResponse objects
+      // biome-ignore lint/suspicious/noExplicitAny: janky trpc-to-openapi fastify integration
+      return createContext({ req, res } as any);
+    },
   });
   fastify.all("/api/*", async (request, reply) => {
+    // Forward the raw Node.js request/response objects to the OpenAPI handler
+    // But ensure the parsed body from Fastify is available on the raw request
+    if (request.body) {
+      // biome-ignore lint/suspicious/noExplicitAny: janky trpc-to-openapi fastify integration
+      (request.raw as any).body = request.body;
+    }
     await openApiHttpHandler(request.raw, reply.raw);
-    reply.sent = true;
   });
 
   // Serve a static OpenAPI document at /openapi.json

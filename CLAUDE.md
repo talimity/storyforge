@@ -26,6 +26,11 @@ curl http://localhost:3001/health # Interact with the frontend or backend for yo
 devctl logs 100   # Show last 100 lines of logs (default 30)
 devctl restart    # Restart both dev servers (this should not be necessary in most cases)
 devctl stop       # Stop both dev servers
+
+# Manually query the backend
+# Always use `timeout` to avoid hanging.
+timeout 10 curl http://localhost:3001/trpc/router.procedure?input={...} # tRPC
+timeout 10 curl http://localhost:3001/api/resource/action?param=value # REST adapter
 ```
 
 ### Vision
