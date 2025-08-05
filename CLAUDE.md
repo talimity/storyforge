@@ -14,7 +14,7 @@ pnpm check # lint + typecheck
 pnpm lint # just lint
 pnpm typecheck # just typecheck
 
-# Build (tsc)
+# Remember to rebuild when changing contracts in packages/api
 pnpm build
 
 # Dev servers
@@ -22,15 +22,12 @@ pnpm build
 # If you need to start the servers in the background, you MUST use the `devctl` helper:
 devctl start      # Starts frontend/backend in the background
 devctl status     # "running" | "stopped"
-curl http://localhost:3001/health # Interact with the frontend or backend for your task
-devctl logs 100   # Show last 100 lines of logs (default 30)
-devctl restart    # Restart both dev servers (this should not be necessary in most cases)
-devctl stop       # Stop both dev servers
-
-# Manually query the backend
-# Always use `timeout` to avoid hanging.
+# Query the backend API (always use `timeout` to avoid hanging)
 timeout 10 curl http://localhost:3001/trpc/router.procedure?input={...} # tRPC
 timeout 10 curl http://localhost:3001/api/resource/action?param=value # REST adapter
+devctl logs 100   # Show last n lines of dev server logs (default 30)
+devctl restart    # Restart both dev servers (this should not be necessary in most cases)
+devctl stop       # Stop both dev servers
 ```
 
 ### Vision
@@ -84,8 +81,6 @@ timeout 10 curl http://localhost:3001/api/resource/action?param=value # REST ada
 - ❌ Electron wrapper (for desktop app)
 - ❌ Mobile
 
-Project is still in validation phase. The goal is to build a working prototype that demonstrates the core idea of agentic narrative generation without getting bogged down in minutiae.
-
 ## Stack
 
 - **Frontend**: Vite + React + shadcn/ui + Tailwind CSS
@@ -115,8 +110,8 @@ storyforge
 │   │       ├── shelf          # User data management (simple CRUD)
 │   │       │   ├── character
 │   │       │   └── scenario
-│   │       └── trpc           # tRPC API layer
-│   │           └── routers     # tRPC routers
+│   │       └── trpc           # API handlers
+│   │           └── routers    # tRPC routers
 │   ├── frontend               # Vite React app (:8080)
 │   │   └── src
 │   │       ├── components     # UI components
@@ -159,3 +154,7 @@ When in doubt, just don't write the comment.
 - **Comments must add value** - Document edge cases, workarounds, or solutions that do not follow the obvious path
 - **Use JSDoc for public APIs** - Document functions, classes, and interfaces that are at the boundary of your module
   - You don't need to add JSDoc annotations for parameters or return types if they are trivial
+
+### Other tips
+
+Use the `context7` tool to look up documentation for any GitHub repository. You may wish to do this to ensure you have up-to-date documentation for new libraries like Tailwind v4 or for any libaries you are not familiar with.

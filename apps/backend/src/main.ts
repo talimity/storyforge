@@ -2,6 +2,7 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
+import { FastifySSEPlugin } from "fastify-sse-v2";
 import { config } from "./config";
 import { logger } from "./logging";
 import { registerAPI } from "./trpc/register";
@@ -19,20 +20,19 @@ const fastify = Fastify({
           },
         },
       }
-    : {
-        level: config.logging.level,
-      },
+    : { level: config.logging.level },
 });
 
-// Register plugins
+// Plugins
 await fastify.register(cors, {
   origin: ["http://localhost:5173", "http://localhost:8080"],
   credentials: true,
 });
 await fastify.register(multipart);
 await fastify.register(websocket);
+await fastify.register(FastifySSEPlugin);
 
-// Register API routes
+// Entry point for all API/RPC routes
 await registerAPI(fastify);
 
 // Health check

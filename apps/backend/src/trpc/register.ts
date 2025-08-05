@@ -5,16 +5,18 @@ import { appRouter } from "./app-router";
 import { createContext } from "./context";
 import { registerFileUploadRoutes } from "./file-upload";
 import { openApiDocument } from "./openapi";
+import { registerSSERoutes } from "./sse";
 
 /**
  * Register all tRPC and REST (via trpc-to-openapi) routes given a Fastify
  * instance.
  */
 export async function registerAPI(fastify: FastifyInstance) {
-  // Register file upload routes (outside tRPC for multipart handling)
+  // Register non-tRPC routes for file uploads and SSE
   await registerFileUploadRoutes(fastify);
+  await registerSSERoutes(fastify);
 
-  // Register tRPC and enable WebSocket support for subscriptions
+  // Register tRPC routers
   await fastify.register(fastifyTRPCPlugin, {
     prefix: "/trpc",
     useWSS: true,
@@ -27,8 +29,7 @@ export async function registerAPI(fastify: FastifyInstance) {
     },
   });
 
-  // Create OpenAPI HTTP handler and register so we get REST endpoints for our
-  // tRPC procedures
+  // Set up trpc-to-openapi for RESTful API endpoints
   const openApiHttpHandler = createOpenApiHttpHandler({
     router: appRouter,
     createContext: async ({ req, res }) => {
@@ -48,6 +49,6 @@ export async function registerAPI(fastify: FastifyInstance) {
     await openApiHttpHandler(request.raw, reply.raw);
   });
 
-  // Serve a static OpenAPI document at /openapi.json
+  // Serve OpenAPI spec
   fastify.get("/openapi.json", async () => openApiDocument);
 }
