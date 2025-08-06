@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { BaseRepository } from "../../db/base.repository";
-import { db, schema } from "../../db/client";
+import { type StoryforgeSqliteDatabase, schema } from "../../db/client";
 import type {
   CharacterExample,
   NewCharacterExample,
@@ -14,8 +14,8 @@ import type { Character, NewCharacter } from "../../db/schema/characters";
 export class CharacterRepository extends BaseRepository<
   typeof schema.characters
 > {
-  constructor() {
-    super(db, schema.characters, "character");
+  constructor(database: StoryforgeSqliteDatabase) {
+    super(database, schema.characters, "character");
   }
 
   async findByName(name: string): Promise<Character | undefined> {
@@ -260,5 +260,3 @@ export class CharacterRepository extends BaseRepository<
     return greeting;
   }
 }
-
-export const characterRepository = new CharacterRepository();

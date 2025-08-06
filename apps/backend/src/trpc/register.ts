@@ -1,8 +1,8 @@
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import type { FastifyInstance } from "fastify";
 import { createOpenApiHttpHandler } from "trpc-to-openapi";
+import { createAppContext } from "../app-context";
 import { appRouter } from "./app-router";
-import { createContext } from "./context";
 import { registerFileUploadRoutes } from "./file-upload";
 import { openApiDocument } from "./openapi";
 import { registerSSERoutes } from "./sse";
@@ -22,7 +22,7 @@ export async function registerAPI(fastify: FastifyInstance) {
     useWSS: true,
     trpcOptions: {
       router: appRouter,
-      createContext,
+      createContext: createAppContext,
       onError({ error }: { error: Error }) {
         fastify.log.error({ error }, "tRPC error");
       },
@@ -32,13 +32,9 @@ export async function registerAPI(fastify: FastifyInstance) {
   // Set up trpc-to-openapi for RESTful API endpoints
   const openApiHttpHandler = createOpenApiHttpHandler({
     router: appRouter,
-    createContext: async ({ req, res }) => {
-      // For OpenAPI endpoints, we need to create a context that matches the tRPC context
-      // The req/res here are Node.js IncomingMessage/ServerResponse objects
-      // biome-ignore lint/suspicious/noExplicitAny: janky trpc-to-openapi fastify integration
-      return createContext({ req, res } as any);
-    },
-  });
+    createContext: createAppContext,
+    // biome-ignore lint/suspicious/noExplicitAny: trpc-to-openapi expects node:http types and does not like fastify
+  } as any);
   fastify.all("/api/*", async (request, reply) => {
     // Forward the raw Node.js request/response objects to the OpenAPI handler
     // But ensure the parsed body from Fastify is available on the raw request

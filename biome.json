@@ -18,7 +18,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/scripts/*"],
+      "includes": ["**/scripts/*", "**/*.test.ts*", "**/src/test/**"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -31,7 +31,12 @@
       }
     },
     {
-      "includes": ["./apps/backend/**", "!**/scripts/*", "!**/*.test.ts*"],
+      "includes": [
+        "./apps/backend/**",
+        "!**/scripts/*",
+        "!**/*.test.ts*",
+        "!**/src/test/**"
+      ],
       "plugins": ["./biome-rules/no-console-use-pino.grit"]
     }
   ],

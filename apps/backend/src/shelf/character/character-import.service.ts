@@ -1,6 +1,6 @@
 import type { NewCharacterExample } from "../../db/schema/character-examples";
 import type { NewCharacterGreeting } from "../../db/schema/character-greetings";
-import { characterRepository } from "./character.repository";
+import type { CharacterRepository } from "./character.repository";
 import type {
   TavernCard,
   TavernCardV1,
@@ -12,6 +12,8 @@ function isTavernCardV2(card: TavernCard): card is TavernCardV2 {
 }
 
 export class CharacterImportService {
+  constructor(private repository: CharacterRepository) {}
+
   async importCharacter(
     card: TavernCard,
     imageBuffer: Buffer
@@ -61,7 +63,7 @@ export class CharacterImportService {
       });
     }
 
-    const character = await characterRepository.createWithRelations(
+    const character = await this.repository.createWithRelations(
       newCharacter,
       greetings,
       examples
@@ -99,7 +101,7 @@ export class CharacterImportService {
       examples.push({ exampleTemplate: card.mes_example });
     }
 
-    const character = await characterRepository.createWithRelations(
+    const character = await this.repository.createWithRelations(
       newCharacter,
       greetings,
       examples

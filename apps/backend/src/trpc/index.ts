@@ -1,9 +1,9 @@
 import { initTRPC } from "@trpc/server";
 import type { OpenApiMeta } from "trpc-to-openapi";
-import type { Context } from "./context";
+import type { AppContext } from "../app-context";
 
 const t = initTRPC
-  .context<Context>()
+  .context<AppContext>()
   .meta<OpenApiMeta>()
   .create({
     errorFormatter({ shape }) {
@@ -12,4 +12,5 @@ const t = initTRPC
   });
 
 export const router = t.router;
+export const mergeRouters = t.mergeRouters;
 export const publicProcedure = t.procedure;

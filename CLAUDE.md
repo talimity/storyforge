@@ -4,15 +4,18 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## About
 
-StoryForge is an LLM-powered character roleplaying application that reimagines AI character chat interfaces as a tabletop RPG experience. The player is positioned as a director/dungeon master orchestrating multi-character scenarios rather than being locked into a single character role chatting with one other character. An agentic narrative engine generates turns by passsing inputs across multiple stages (Planner -> Screenplay -> Prose, or Dreamer -> Critic -> Writer) to improve the quality of the output.
+StoryForge is an LLM-powered character roleplaying application that reimagines AI character chat interfaces as a tabletop RPG experience. The player is positioned as a director/dungeon master orchestrating multi-character scenarios rather than being locked into a single character role chatting with one other character. An agentic narrative engine generates turns by passing inputs across multiple stages (Planner -> Screenplay -> Prose, or Dreamer -> Critic -> Writer) to improve the quality of the output.
 
 ### Build & Test Commands
 
 ```bash
 # Code quality
-pnpm check # lint + typecheck
-pnpm lint # just lint
-pnpm typecheck # just typecheck
+pnpm lint
+pnpm typecheck
+pnpm check # both
+
+# Run tests (backend, integration-only)
+pnpm test
 
 # Remember to rebuild when changing contracts in packages/api
 pnpm build
@@ -22,9 +25,6 @@ pnpm build
 # If you need to start the servers in the background, you MUST use the `devctl` helper:
 devctl start      # Starts frontend/backend in the background
 devctl status     # "running" | "stopped"
-# Query the backend API (always use `timeout` to avoid hanging)
-timeout 10 curl http://localhost:3001/trpc/router.procedure?input={...} # tRPC
-timeout 10 curl http://localhost:3001/api/resource/action?param=value # REST adapter
 devctl logs 100   # Show last n lines of dev server logs (default 30)
 devctl restart    # Restart both dev servers (this should not be necessary in most cases)
 devctl stop       # Stop both dev servers
@@ -38,35 +38,66 @@ devctl stop       # Stop both dev servers
 
 ### Technical Choices
 
-- **Single-user desktop application** - Not a hosted web service or commercial product
-- **Bring your own AI models** - Players run their own LLMs locally or use cloud APIs
-- **TypeScript/Node.js focused** - Priority on type safety for maintainability
-- **Monorepo with pnpm** - All code in a single repository for easier management
+- **Single-user desktop application** - Not a hosted web service or commercial product, stack runs locally
+- **Bring your own API key** - Players provide cloud inference API keys or local models
+- **TypeScript/Node.js focused** - Nothing exotic, shared code for easier consistency
+- **Monorepo with pnpm** - To facilitate shared code and possible multiple frontends
 
 ## Current Status
 
-- ✅ Monorepo structure with pnpm
-- ✅ Basic Fastify backend application
-- ✅ tRPC for API contracts and routers
+- ✅ Monorepo with pnpm
+- ✅ Fastify, Drizzle with SQLite, and tRPC setup
 - ✅ OpenAPI schema generation via trpc-to-openapi
-- ✅ Basic Vite React frontend application (with shadcn/ui and Tailwind CSS)
-- ✅ SQLite persistence layer (with Drizzle ORM)
+- ❌ Vite React frontend application
 - ✅ LLM inference architecture
   - ✅ Provider abstraction layer
-  - ✅ LLM provider implementation (MVP: OpenAI-compatible /chat/completions API)
+  - ✅ LLM provider implementation
+    - ✅ OpenRouter Chat Completion
+    - ✅ DeepSeek Chat Completion
+    - ❌ OpenAI-compat Chat Completion (OpenAI, llama.cpp, vllm, etc.)
   - ❌ Provider/model registry
-- ❌ Scenario runtime
-  - ❌ Prompt template rendering
-  - ❌ Narrative engine (agent-turn state machine)
-  - ❌ Scenario state persistence
-- ❌ API
-  - ✅ Character CRUD / SillyTavern character import
-  - ✅ Scenario CRUD
-  - ❌ Prompt templates CRUD
-  - ❌ Agent workflow management
-  - ❌ Model / LLM provider management
-  - ❌ Scenario runtime API (likely WebSocket)
-- ❌ UI
+- ❌ Story engine
+  - ❌ Scenario runtime (read input, generate-with-agents, present, loop)
+  - ❌ Context construction (build context from turn history, chara data, prompt templates, and agent config)
+  - ❌ Turn generation (agent workflow executor)
+    - ❌ Dummy workflow (no behavior, agent just sends input to LLM verbatim)
+    - ❌ Dreamer -> Critic -> Writer workflow
+    - ❌ Planner -> Screenplay -> Prose workflow
+    - ❌ Convert hardcoded workflows to custom node graph
+  - ❌ Scenario runtime manager (scenario lifecycle/input orchestration)
+  - ❌ Persistence
+    - ❌ Chapter repo (groups turns into chapters, which can be summarized and pruned from context)
+    - ❌ Turn repo (stores turns with metadata, can be queried by scenario runtime)
+  - ❌ LLM input/output transforms
+    - ❌ Regex (trim unwanted content from LLM output)
+    - ❌ Structured output (parse LLM YAML/JSON output to structured, typed data for another agent)
+  - ❌ Events
+    - ❌ Turn events (e.g. turn started, turn completed)
+    - ❌ Agent events (e.g. workflow start, agent input, agent output, agent error, wokflow complete)
+- ❌ Shelf (user content management)
+  - ✅ Characters / SillyTavern character import
+  - ✅ Scenario CRUD / character assignment
+  - ❌ LLM provider creds and config
+  - ❌ Prompt templates
+  - ❌ Assets (chara images, scene backgrounds, CSS themes)
+  - ❌ Regex templates (e.g., 'Convert straight quotes to curly quotes')
+  - ❌ Agent workflows
+  - ❌ Settings (simple KV store, mostly for UI state and prefs)
+- ❌ tRPC API
+  - ✅ Character shelf
+  - ✅ Scenario shelf
+  - ❌ Scenario interact
+  - ❌ Prompt templates shelf
+  - ❌ LLM providers
+  - ❌ Asset upload and management
+  - ❌ Regex templates
+  - ❌ Agent workflows
+  - ❌ Settings
+- ❌ Frontend
+  - ❌ Scaffolding
+    - ❌ Vite + React
+    - ❌ DaisyUI 5
+    - ❌ Tailwind 4
   - ❌ Library
     - ❌ Characters
     - ❌ Scenarios
@@ -78,12 +109,13 @@ devctl stop       # Stop both dev servers
     - ❌ API key configuration
     - ❌ Model configuration
     - ❌ Agent workflow configuration
-- ❌ Electron wrapper (for desktop app)
-- ❌ Mobile
+  - ❌ Mobile affordances
+- ❌ Packaging
+  - ❌ just use docker
 
 ## Stack
 
-- **Frontend**: Vite + React + shadcn/ui + Tailwind CSS
+- **Frontend**: Vite + React + DaisyUI 5 + Tailwind 4
 - **Backend**: Fastify + tRPC + Drizzle ORM + SQLite
 - **Monorepo**: pnpm workspaces
 
@@ -114,17 +146,12 @@ storyforge
 │   │           └── routers    # tRPC routers
 │   ├── frontend               # Vite React app (:8080)
 │   │   └── src
-│   │       ├── components     # UI components
-│   │       │   └── ui         # Design system components
-│   │       ├── pages          # Route pages
-│   │       ├── hooks          # React hooks
-│   │       └── types          # Frontend-specific types
-├── packages                   # Shared packages
-│   ├── api                    # API contracts and types
-│   │   └── src
-│   │       ├── contracts      # tRPC contracts / Zod schemas
-│   │       └── types
-│   └── shared                 # Leftover shared types - do not use these
+│   │       └── ...            # Nothing, all placeholder currently
+└── packages                   # Shared packages
+    └── api                    # API contracts and types
+        └── src
+            ├── contracts      # tRPC contracts / Zod schemas
+            └── types
 ```
 
 ## Code Style Guidelines
@@ -160,6 +187,6 @@ When in doubt, just don't write the comment.
 - **Use JSDoc for public APIs** - Document functions, classes, and interfaces that are at the boundary of your module
   - You don't need to add JSDoc annotations for parameters or return types if they are trivial
 
-### Other tips
+### Other Tips
 
-Use the `context7` tool to look up documentation for any GitHub repository. You may wish to do this to ensure you have up-to-date documentation for new libraries like Tailwind v4 or for any libaries you are not familiar with.
+Use the `context7` tool to look up documentation for any GitHub repository. You may wish to do this to ensure you have up-to-date documentation for new libraries like Tailwind v4 or for any libraries you are not familiar with.

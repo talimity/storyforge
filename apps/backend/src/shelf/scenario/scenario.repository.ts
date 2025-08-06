@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
 import { BaseRepository } from "../../db/base.repository";
-import { db, schema } from "../../db/client";
+import { type StoryforgeSqliteDatabase, schema } from "../../db/client";
 import type { NewScenario, Scenario } from "../../db/schema/scenarios";
 import {
   type ScenarioCharacterAssignment,
-  scenarioCharacterRepository,
+  ScenarioCharacterRepository,
 } from "./scenario-character.repository";
 
 export interface ScenarioWithCharacters extends Scenario {
@@ -24,8 +24,12 @@ export interface CreateScenarioData
 export class ScenarioRepository extends BaseRepository<
   typeof schema.scenarios
 > {
-  constructor() {
-    super(db, schema.scenarios, "scenario");
+  constructor(
+    database: StoryforgeSqliteDatabase,
+    // TODO: this is highly questionable, repo should not depend on another; extract to service
+    private scenarioCharacterRepo = new ScenarioCharacterRepository(database)
+  ) {
+    super(database, schema.scenarios, "scenario");
   }
 
   async findByIdWithCharacters(
@@ -35,7 +39,7 @@ export class ScenarioRepository extends BaseRepository<
     const scenario = await this.findById(id);
     if (!scenario) return undefined;
 
-    const assignments = await scenarioCharacterRepository.getAssignedCharacters(
+    const assignments = await this.scenarioCharacterRepo.getAssignedCharacters(
       id,
       includeInactive
     );
@@ -71,19 +75,17 @@ export class ScenarioRepository extends BaseRepository<
     // Create the scenario first
     const scenario = await super.create(scenarioData);
 
-    // Assign characters
+    // Assign characters if any are provided
     const assignments: ScenarioCharacterAssignment[] = [];
     for (let i = 0; i < characterIds.length; i++) {
       const characterId = characterIds[i];
       if (!characterId) {
         throw new Error(`No chara ID provided at index ${i}`);
       }
-      const assignment = await scenarioCharacterRepository.assignCharacter(
+      const assignment = await this.scenarioCharacterRepo.assignCharacter(
         scenario.id,
         characterId,
-        {
-          orderIndex: i,
-        }
+        { orderIndex: i }
       );
       assignments.push(assignment);
     }
@@ -111,5 +113,3 @@ export class ScenarioRepository extends BaseRepository<
     return super.delete(id);
   }
 }
-
-export const scenarioRepository = new ScenarioRepository();

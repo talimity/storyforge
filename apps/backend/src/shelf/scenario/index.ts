@@ -2,7 +2,7 @@ export type {
   CreateScenarioData,
   ScenarioWithCharacters,
 } from "./scenario.repository";
-export { ScenarioRepository, scenarioRepository } from "./scenario.repository";
+export { ScenarioRepository } from "./scenario.repository";
 export {
   transformScenarioCharacterAssignment,
   transformScenarioWithCharacters,
@@ -12,7 +12,4 @@ export type {
   CharacterOrder,
   ScenarioCharacterAssignment,
 } from "./scenario-character.repository";
-export {
-  ScenarioCharacterRepository,
-  scenarioCharacterRepository,
-} from "./scenario-character.repository";
+export { ScenarioCharacterRepository } from "./scenario-character.repository";

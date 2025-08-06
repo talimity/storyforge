@@ -1,36 +1,37 @@
 import type { FastifyInstance } from "fastify";
-import { characterRepository } from "../shelf/character/character.repository";
+import { CharacterRepository } from "../shelf/character/character.repository";
 import { transformCharacter } from "../shelf/character/character.transforms";
 import { CharacterImportService } from "../shelf/character/character-import.service";
 import { parseTavernCard } from "../shelf/character/parse-tavern-card";
 
 export async function registerFileUploadRoutes(fastify: FastifyInstance) {
   // Handle file uploads outside of tRPC since tRPC doesn't handle multipart well
-  fastify.post("/api/characters/import", async (request, reply) => {
-    const data = await request.file();
+  fastify.post("/api/characters/import", async (req) => {
+    const { db, logger } = req.appContext;
+    const data = await req.file();
 
     if (!data) {
-      return reply.code(400).send({ error: "No file provided" });
+      throw fastify.httpErrors.badRequest("No file provided");
     }
 
     if (data.mimetype !== "image/png") {
-      return reply.code(400).send({ error: "File must be a PNG image" });
+      throw fastify.httpErrors.notAcceptable("File must be a PNG image");
     }
 
     try {
       const buffer = await data.toBuffer();
       const parsedCard = await parseTavernCard(buffer.buffer);
-      const importService = new CharacterImportService();
+      const characterRepository = new CharacterRepository(db);
+      const importService = new CharacterImportService(characterRepository);
       const characterId = await importService.importCharacter(
         parsedCard.cardData,
         buffer
       );
-
       const character =
         await characterRepository.findByIdWithRelations(characterId);
 
       if (!character) {
-        throw new Error("Failed to retrieve imported character");
+        throw fastify.httpErrors.notFound("Character not found");
       }
 
       // Return the same shape as the tRPC endpoint would
@@ -42,10 +43,10 @@ export async function registerFileUploadRoutes(fastify: FastifyInstance) {
         isV2: parsedCard.isV2,
       };
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
-        error: error instanceof Error ? error.message : "Import failed",
-      });
+      logger.error(error, "Failed to import character from file");
+      throw fastify.httpErrors.internalServerError(
+        error instanceof Error ? error.message : "Import failed"
+      );
     }
   });
 }

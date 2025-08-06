@@ -1,6 +1,6 @@
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { BaseRepository } from "../../db/base.repository";
-import { db, schema } from "../../db/client";
+import { type StoryforgeSqliteDatabase, schema } from "../../db/client";
 import type { Character } from "../../db/schema/characters";
 import type { ScenarioCharacter } from "../../db/schema/scenario-characters";
 
@@ -22,8 +22,8 @@ export interface CharacterOrder {
 export class ScenarioCharacterRepository extends BaseRepository<
   typeof schema.scenarioCharacters
 > {
-  constructor() {
-    super(db, schema.scenarioCharacters, "scenario-character");
+  constructor(database: StoryforgeSqliteDatabase) {
+    super(database, schema.scenarioCharacters, "scenario-character");
   }
 
   async findByScenarioId(
@@ -366,6 +366,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
   ): Promise<ScenarioCharacterAssignment[]> {
     return this.findByCharacterId(characterId, true);
   }
-}
 
-export const scenarioCharacterRepository = new ScenarioCharacterRepository();
+  // TODO: Private func to resolve conflicting order indices when assignment
+  // changes are made.
+}

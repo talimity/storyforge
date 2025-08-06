@@ -8,7 +8,7 @@ import {
 } from "@storyforge/api";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { characterRepository } from "../../shelf/character/character.repository";
+import { CharacterRepository } from "../../shelf/character/character.repository";
 import { transformCharacter } from "../../shelf/character/character.transforms";
 import { publicProcedure, router } from "../index";
 
@@ -24,7 +24,8 @@ export const charactersRouter = router({
     })
     .input(z.void())
     .output(charactersListResponseSchema)
-    .query(async () => {
+    .query(async ({ ctx }) => {
+      const characterRepository = new CharacterRepository(ctx.db);
       const characters = await characterRepository.findAll();
       return { characters: characters.map(transformCharacter) };
     }),
@@ -40,7 +41,8 @@ export const charactersRouter = router({
     })
     .input(characterIdSchema)
     .output(characterWithRelationsSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const characterRepository = new CharacterRepository(ctx.db);
       const character = await characterRepository.findByIdWithRelations(
         input.id
       );
@@ -70,7 +72,8 @@ export const charactersRouter = router({
     })
     .input(createCharacterSchema)
     .output(characterWithRelationsSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const characterRepository = new CharacterRepository(ctx.db);
       const newCharacter = await characterRepository.createWithRelations(input);
 
       return {
@@ -91,7 +94,8 @@ export const charactersRouter = router({
     })
     .input(updateCharacterSchema)
     .output(characterSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const characterRepository = new CharacterRepository(ctx.db);
       const { id, ...updateData } = input;
       const filteredUpdateData: Record<string, string> = {};
 
@@ -127,7 +131,8 @@ export const charactersRouter = router({
     })
     .input(characterIdSchema)
     .output(z.void())
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const characterRepository = new CharacterRepository(ctx.db);
       const deleted = await characterRepository.delete(input.id);
 
       if (!deleted) {
@@ -150,6 +155,7 @@ export const charactersRouter = router({
     .input(characterIdSchema)
     .output(z.instanceof(Buffer))
     .query(async ({ input, ctx }) => {
+      const characterRepository = new CharacterRepository(ctx.db);
       const character = await characterRepository.findById(input.id);
 
       if (!character || !character.cardImage) {
