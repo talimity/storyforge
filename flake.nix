@@ -2,17 +2,28 @@
   description = "Node 24 development environment with pnpm, TypeScript, and ESLint";
 
   inputs = {
-    nixpkgs.url    = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+      flake-utils,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
         pkgsUnstable = import nixpkgs-unstable { inherit system; };
 
+        # devctl is a utility script that allows Claude Code to manage dev
+        # servers running in the background using tmux, so as to avoid it
+        # blocking itself by running `pnpm dev` in the foreground.
         devctl = pkgs.writeShellScriptBin "devctl" ''
           #!/usr/bin/env bash
           set -euo pipefail
@@ -93,7 +104,8 @@
           esac
         '';
 
-      in {
+      in
+      {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             nodejs_24

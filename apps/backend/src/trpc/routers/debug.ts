@@ -21,12 +21,14 @@ providers.set("mock", new MockProvider());
 try {
   providers.set("openrouter", new OpenRouterProvider());
 } catch (error) {
+  // biome-ignore lint/plugin/noConsole: placeholder code
   console.warn("OpenRouter provider not configured:", error);
 }
 
 try {
   providers.set("deepseek", new DeepSeekProvider());
 } catch (error) {
+  // biome-ignore lint/plugin/noConsole: placeholder code
   console.warn("DeepSeek provider not configured:", error);
 }
 
@@ -42,7 +44,7 @@ export const debugRouter = router({
     })
     .input(modelsQuerySchema)
     .output(modelsResponseSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const { filter, provider } = input;
 
       if (provider) {
@@ -65,7 +67,7 @@ export const debugRouter = router({
           const models = await llmProvider.listModels(filter);
           allModels.push({ provider: providerName, models });
         } catch (error) {
-          console.warn(`Failed to list ${providerName} models:`, error);
+          ctx.logger.warn(error, `Failed to list ${providerName} models:`);
         }
       }
 

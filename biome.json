@@ -29,6 +29,10 @@
           }
         }
       }
+    },
+    {
+      "includes": ["./apps/backend/**", "!**/scripts/*", "!**/*.test.ts*"],
+      "plugins": ["./biome-rules/no-console-use-pino.grit"]
     }
   ],
   "linter": {
@@ -48,6 +52,9 @@
       },
       "style": {
         "noNonNullAssertion": "error"
+      },
+      "complexity": {
+        "noStaticOnlyClass": "error"
       }
     }
   },

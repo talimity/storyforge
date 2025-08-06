@@ -1,6 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { characters } from "./characters";
 
 export const scenarios = sqliteTable("scenarios", {
   id: text("id")
@@ -8,6 +7,18 @@ export const scenarios = sqliteTable("scenarios", {
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
   description: text("description").notNull(),
+  status: text("status")
+    .$type<"active" | "archived">()
+    .notNull()
+    .default("active"), // 'active' | 'archived'
+  settings: text("settings", { mode: "json" })
+    .$type<Record<string, unknown>>()
+    .notNull()
+    .default({}),
+  metadata: text("metadata", { mode: "json" })
+    .$type<Record<string, unknown>>()
+    .notNull()
+    .default({}),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -16,20 +27,5 @@ export const scenarios = sqliteTable("scenarios", {
     .$onUpdate(() => new Date()),
 });
 
-export const scenarioCharacters = sqliteTable("scenario_characters", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  scenarioId: text("scenario_id")
-    .notNull()
-    .references(() => scenarios.id, { onDelete: "cascade" }),
-  characterId: text("character_id")
-    .notNull()
-    .references(() => characters.id, { onDelete: "cascade" }),
-  orderIndex: integer("order_index").notNull().default(0),
-});
-
 export type Scenario = typeof scenarios.$inferSelect;
 export type NewScenario = typeof scenarios.$inferInsert;
-export type ScenarioCharacter = typeof scenarioCharacters.$inferSelect;
-export type NewScenarioCharacter = typeof scenarioCharacters.$inferInsert;

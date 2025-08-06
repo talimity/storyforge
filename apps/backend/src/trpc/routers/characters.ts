@@ -1,5 +1,4 @@
 import {
-  type Character,
   characterIdSchema,
   characterSchema,
   charactersListResponseSchema,
@@ -9,33 +8,9 @@ import {
 } from "@storyforge/api";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import type { Character as DbCharacter } from "../../db/schema/characters";
 import { characterRepository } from "../../shelf/character/character.repository";
+import { transformCharacter } from "../../shelf/character/character.transforms";
 import { publicProcedure, router } from "../index";
-
-export function toCharacter(dbCharacter: DbCharacter): Character {
-  return {
-    id: dbCharacter.id,
-    name: dbCharacter.name,
-    description: dbCharacter.description,
-    legacyPersonality: dbCharacter.legacyPersonality,
-    legacyScenario: dbCharacter.legacyScenario,
-    creator: dbCharacter.creator,
-    creatorNotes: dbCharacter.creatorNotes,
-    customSystemPrompt: dbCharacter.customSystemPrompt,
-    customPostHistoryInstructions: dbCharacter.customPostHistoryInstructions,
-    tags: dbCharacter.tags || [],
-    revision: dbCharacter.revision,
-    originalCardData: dbCharacter.originalCardData
-      ? JSON.parse(JSON.stringify(dbCharacter.originalCardData))
-      : null,
-    imagePath: dbCharacter.cardImage
-      ? `/api/characters/${dbCharacter.id}/image`
-      : null,
-    createdAt: dbCharacter.createdAt,
-    updatedAt: dbCharacter.updatedAt,
-  };
-}
 
 export const charactersRouter = router({
   list: publicProcedure
@@ -51,7 +26,7 @@ export const charactersRouter = router({
     .output(charactersListResponseSchema)
     .query(async () => {
       const characters = await characterRepository.findAll();
-      return { characters: characters.map(toCharacter) };
+      return { characters: characters.map(transformCharacter) };
     }),
 
   getById: publicProcedure
@@ -78,7 +53,7 @@ export const charactersRouter = router({
       }
 
       return {
-        ...toCharacter(character),
+        ...transformCharacter(character),
         greetings: character.greetings,
         examples: character.examples,
       };
@@ -99,7 +74,7 @@ export const charactersRouter = router({
       const newCharacter = await characterRepository.createWithRelations(input);
 
       return {
-        ...toCharacter(newCharacter),
+        ...transformCharacter(newCharacter),
         greetings: newCharacter.greetings,
         examples: newCharacter.examples,
       };
@@ -138,7 +113,7 @@ export const charactersRouter = router({
         });
       }
 
-      return toCharacter(updatedCharacter);
+      return transformCharacter(updatedCharacter);
     }),
 
   delete: publicProcedure

@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { characterRepository } from "../shelf/character/character.repository";
+import { transformCharacter } from "../shelf/character/character.transforms";
 import { CharacterImportService } from "../shelf/character/character-import.service";
 import { parseTavernCard } from "../shelf/character/parse-tavern-card";
-import { toCharacter } from "./routers/characters";
 
 export async function registerFileUploadRoutes(fastify: FastifyInstance) {
   // Handle file uploads outside of tRPC since tRPC doesn't handle multipart well
@@ -36,7 +36,7 @@ export async function registerFileUploadRoutes(fastify: FastifyInstance) {
       // Return the same shape as the tRPC endpoint would
       return {
         success: true,
-        character: toCharacter(character),
+        character: transformCharacter(character),
         greetings: character.greetings,
         examples: character.examples,
         isV2: parsedCard.isV2,

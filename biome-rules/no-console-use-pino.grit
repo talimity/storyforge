@@ -1,0 +1,6 @@
+language js
+
+// Match any console.<method>(singleArg)
+`console.$method($arg)` where {
+  register_diagnostic(span=$method, message="Use Pino instead of console statements. Within tRPC routers, get the Fastify logger instance via Context. Outside routers, create a child logger via logging.ts.", severity="error")
+}

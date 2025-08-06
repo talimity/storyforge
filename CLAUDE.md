@@ -61,7 +61,7 @@ devctl stop       # Stop both dev servers
   - ❌ Scenario state persistence
 - ❌ API
   - ✅ Character CRUD / SillyTavern character import
-  - ❌ Scenario CRUD
+  - ✅ Scenario CRUD
   - ❌ Prompt templates CRUD
   - ❌ Agent workflow management
   - ❌ Model / LLM provider management
@@ -138,7 +138,12 @@ storyforge
   - Try to minimize nested structures
     - Use intermediate variables to clarify complex expressions (this also reduces the need for comments)
     - Return early to avoid deep nesting in functions
-  - Don't write classes with only static methods, just use a module
+- **Classes and Interfaces**:
+    - Prefer plain functions and objects over classes
+    - Start with interfaces when you need to define a contract
+    - Use classes only when you need to maintain state or implement polymorphism or inheritance
+      - Avoid inheritance in general
+    - Never write a class that only contains static members
 - **Imports**:
   - Place native Node.js modules first, then third-party libraries, then local imports
   - Use absolute imports with `@/` path mapping for clarity

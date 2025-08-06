@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 import type { CompletionInput } from "@storyforge/api";
-import { readFileSync } from "fs";
-import { resolve } from "path";
 
 // Simple command line argument parser
 function parseArgs() {

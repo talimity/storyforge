@@ -2,14 +2,29 @@
 
 Note that most of this is not yet implemented. This is the planned structure.
 
-## API Routes (Port 3001)
+## Web API
 
-### HTTP API
-- **Characters**: `/api/characters` - Full CRUD
+Web API is served on port 3001. The API is built with Fastify and tRPC and includes trpc-to-openapi to expose most tRPC procedures as RESTful endpoints.
+
+A few functions (anything involving file uploads or SSE) must use Fastify routes directly, but tRPC is used for most API interactions.
+
+### tRPC/OpenAPI Routes
+- **Characters**:
+  - tRPC: `/trpc/characters.*`
+  - OpenAPI: `/api/characters`
+  - CRUD operations for characters, including import from SillyTavern character cards
+- **Scenarios**:
+  - tRPC: `/trpc/scenarios.*`
+  - OpenAPI: `/api/scenarios`
+  - CRUD operations for scenarios, and assignments of characters to scenarios
+- **LLM Provider Debug**:
+  - tRPC: `/trpc/debug.*`
+  - OpenAPI: `/api/debug`
+  - Intended for testing LLM providers, listing models, and rendering prompts in lieu of a full UI
 - **Health**: `/health` - Simple health check
 
 ### WebSocket API
-TBD
+TBD, for realtime scenario interaction and agent updates.
 
 ## Layout
 
@@ -17,7 +32,7 @@ TBD
 - **shelf**: User data repositories; CRUD operations for characters, scenarios, lorebooks, API keys, etc.
 - **inference**: LLM inference service; abstracts LLM provider details
 - **db**: Database layer; Drizzle ORM with SQLite
-- **api**: Fastify API handlers; HTTP for CRUD and WebSocket for scenario interaction
+- **trpc**: All tRPC procedures and OpenAPI schema generation
 
 ## LLM Inference Architecture
 
@@ -35,18 +50,6 @@ TBD
 - `POST /completion` - Test completions with custom sections/parameters/streaming
 - `GET /render-prompt?provider=X&model=Y` - Show full transformation pipeline
 
-**Mock provider**: Pattern-based responses, configurable delays, streaming simulation, error testing
-
-## Character Import System
-
-- **TavernCard Support**: Import character cards in TavernCard v1 or v2 format (.png files)
-- **Import Endpoint**: `POST /api/characters/import` - Accepts PNG files with embedded character data
-- **Data Mapping**: Automatically maps TavernCard fields to internal schema:
-  - `first_mes` + `alternate_greetings` → `character_greetings` table
-  - `mes_example` → `character_examples` table
-  - Original card data preserved in `original_card_data` JSON column
-  - Card image stored as binary data in `card_image` BLOB column
-
 ## Utility Scripts
 
 - **Test Import**: `pnpm test:import` - Upload test character card from `data/` folder
@@ -57,3 +60,23 @@ TBD
   - `schema` - Show database schema
   - `raw "<sql>"` - Execute raw SQL
   - `help` - Show usage info
+
+## Patterns
+
+When adding a new domain object (e.g., character, scenario), follow these steps:
+1. **Database Schema**: Create a new table in `db/schema/` and add a migration in `db/migrations/`.
+2. **Repositories**: 
+  - Create a new repository in `db/` extending `BaseRepository`.
+  - Does the entity have child entities? Evaluate...
+    - Entities that are **aggregate members** (cannot exist without parent, no external references) stay in the parent repository
+    - Entities that are **associated aggregate roots** (have their own lifecycle, referenced by multiple aggregates, or have complex relationships) get their own repository
+3. **Contracts**: Define tRPC contracts for reads and writes in the `api` package.
+4. **Services**:
+  - For simple content entities, create a service in `shelf/`.
+  - For complex entities part of the story engine, create a service in `engine/`.
+  - If database and API contract shapes are not identical, create a `*.transforms.ts` file for transformations.
+    - Do not write a validation layer; almost everything can be validated by the Zod contracts.
+    - Any business logic should be in the service layer. 
+5. **tRPC Procedures**: Add new tRPC procedures in `trpc/` for CRUD operations.
+  - Include OpenAPI metadata in the procedure definition.
+  - Procedures MUST NOT contain business logic.

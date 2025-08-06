@@ -110,6 +110,17 @@ export class CharacterRepository extends BaseRepository<
     };
   }
 
+  override async update(
+    id: string,
+    data: Partial<NewCharacter>
+  ): Promise<Character | undefined> {
+    return super.update(id, data);
+  }
+
+  override async delete(id: string): Promise<boolean> {
+    return super.delete(id);
+  }
+
   async addGreeting(
     characterId: string,
     greeting: NewCharacterGreeting

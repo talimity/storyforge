@@ -1,0 +1,38 @@
+import { createId } from "@paralleldrive/cuid2";
+import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+import { characters } from "./characters";
+import { scenarios } from "./scenarios";
+
+export const scenarioCharacters = sqliteTable(
+  "scenario_characters",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    scenarioId: text("scenario_id")
+      .notNull()
+      .references(() => scenarios.id, { onDelete: "cascade" }),
+    characterId: text("character_id")
+      .notNull()
+      .references(() => characters.id, { onDelete: "cascade" }),
+    role: text("role"), // Optional character role in scenario
+    orderIndex: integer("order_index").notNull().default(0), // Display/turn order
+    assignedAt: integer("assigned_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()), // When character was first assigned
+    unassignedAt: integer("unassigned_at", { mode: "timestamp" }), // When character was unassigned (NULL if active)
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    // Only one record per scenario-character pair
+    uniqueScenarioCharacter: unique().on(table.scenarioId, table.characterId),
+  })
+);
+
+export type ScenarioCharacter = typeof scenarioCharacters.$inferSelect;
+export type NewScenarioCharacter = typeof scenarioCharacters.$inferInsert;

@@ -1,6 +1,5 @@
 import { type CompletionInput, completionSchema } from "@storyforge/api";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
 import { generationContextAdapter } from "../inference/generation-context-adapter";
 import type { LLMProvider } from "../inference/providers/base-provider";
 import { DeepSeekProvider } from "../inference/providers/deepseek";
@@ -14,12 +13,14 @@ providers.set("mock", new MockProvider());
 try {
   providers.set("openrouter", new OpenRouterProvider());
 } catch (error) {
+  // biome-ignore lint/plugin/noConsole: placeholder code
   console.warn("OpenRouter provider not configured:", error);
 }
 
 try {
   providers.set("deepseek", new DeepSeekProvider());
 } catch (error) {
+  // biome-ignore lint/plugin/noConsole: placeholder code
   console.warn("DeepSeek provider not configured:", error);
 }
 
