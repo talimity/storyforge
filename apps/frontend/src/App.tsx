@@ -1,40 +1,73 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Layout } from "@/components/layout";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AgentConfigs } from "@/pages/agent-configs";
-import { ApiConfigs } from "@/pages/api-configs";
-import { Characters } from "@/pages/characters";
-import { Home } from "@/pages/home";
-import { ScenarioActive } from "@/pages/scenario-active";
-import { Scenarios } from "@/pages/scenarios";
-import NotFound from "./pages/not-found";
+import {
+  Box,
+  Button,
+  Checkbox,
+  ClientOnly,
+  Heading,
+  HStack,
+  Progress,
+  RadioGroup,
+  Skeleton,
+  VStack,
+} from "@chakra-ui/react";
+import { ColorModeToggle } from "./components/color-mode-toggle";
 
-const queryClient = new QueryClient();
+export default function Page() {
+  return (
+    <Box textAlign="center" fontSize="xl" pt="30vh">
+      <VStack gap="8">
+        <img alt="chakra logo" src="/static/logo.svg" width="80" height="80" />
+        <Heading size="2xl" letterSpacing="tight">
+          Welcome to Chakra UI v3 + Vite!
+        </Heading>
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/characters" element={<Characters />} />
-            <Route path="/scenarios" element={<Scenarios />} />
-            <Route path="/scenario/:id" element={<ScenarioActive />} />
-            <Route path="/agents" element={<AgentConfigs />} />
-            <Route path="/api" element={<ApiConfigs />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        <HStack gap="10">
+          <Checkbox.Root defaultChecked>
+            <Checkbox.HiddenInput />
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Label>Checkbox</Checkbox.Label>
+          </Checkbox.Root>
 
-export default App;
+          <RadioGroup.Root display="inline-flex" defaultValue="1">
+            <RadioGroup.Item value="1" mr="2">
+              <RadioGroup.ItemHiddenInput />
+              <RadioGroup.ItemControl>
+                <RadioGroup.ItemIndicator />
+              </RadioGroup.ItemControl>
+              <RadioGroup.ItemText lineHeight="1">Radio</RadioGroup.ItemText>
+            </RadioGroup.Item>
+
+            <RadioGroup.Item value="2">
+              <RadioGroup.ItemHiddenInput />
+              <RadioGroup.ItemControl>
+                <RadioGroup.ItemIndicator />
+              </RadioGroup.ItemControl>
+              <RadioGroup.ItemText lineHeight="1">Radio</RadioGroup.ItemText>
+            </RadioGroup.Item>
+          </RadioGroup.Root>
+
+          <Button variant="solid">Solid Button</Button>
+        </HStack>
+
+        <Progress.Root width="300px" value={65} striped>
+          <Progress.Track>
+            <Progress.Range />
+          </Progress.Track>
+        </Progress.Root>
+
+        <HStack>
+          <Button>Let's go!</Button>
+          <Button variant="outline">bun install @chakra-ui/react</Button>
+        </HStack>
+      </VStack>
+
+      <Box pos="absolute" top="4" right="4">
+        <ClientOnly fallback={<Skeleton w="10" h="10" rounded="md" />}>
+          <ColorModeToggle />
+        </ClientOnly>
+      </Box>
+    </Box>
+  );
+}

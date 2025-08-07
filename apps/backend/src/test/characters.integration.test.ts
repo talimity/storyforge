@@ -1,13 +1,11 @@
-import multipart from "@fastify/multipart";
-import Fastify from "fastify";
 import { beforeEach, describe, expect, it } from "vitest";
-import { appContextPlugin } from "../app-context";
 import {
   getFixtureCount,
   loadCharacterFixtures,
   seedCharacterFixtures,
 } from "../test/fixtures";
-import { createFreshTestCaller } from "../test/setup";
+import { createFreshTestCaller, createTestFastifyServer } from "../test/setup";
+import { registerAssetServeRoute } from "../trpc/asset-serve";
 import { registerFileUploadRoutes } from "../trpc/file-upload";
 
 describe("characters router integration", () => {
@@ -175,7 +173,7 @@ describe("characters router integration", () => {
     });
   });
 
-  describe("characters.getImage", () => {
+  describe("Character Image HTTP Endpoint", () => {
     it("should return image buffer for character with image", async () => {
       const fixtures = await seedCharacterFixtures(testDb);
       expect(fixtures.length).toBeGreaterThan(0);
@@ -183,47 +181,76 @@ describe("characters router integration", () => {
       const characters = await caller.characters.list();
       const firstCharacter = characters.characters[0];
 
-      const result = await caller.characters.getImage({
-        id: firstCharacter!.id,
+      const fastify = await createTestFastifyServer(testDb);
+      registerAssetServeRoute(fastify);
+
+      const response = await fastify.inject({
+        method: "GET",
+        url: `/api/characters/${firstCharacter!.id}/image`,
       });
-      expect(result).toBeInstanceOf(Buffer);
-      expect(result.length).toBeGreaterThan(0);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers["content-type"]).toBe("image/png");
+      expect(response.rawPayload).toBeInstanceOf(Buffer);
+      expect(response.rawPayload.length).toBeGreaterThan(0);
+
+      await fastify.close();
     });
 
-    it("should throw NOT_FOUND for invalid id", async () => {
-      await expect(
-        caller.characters.getImage({ id: "invalid-id" })
-      ).rejects.toThrow("Character or image not found");
+    it("should return 404 for invalid id", async () => {
+      const fastify = await createTestFastifyServer(testDb);
+      registerAssetServeRoute(fastify);
+
+      await fastify.ready();
+
+      const response = await fastify.inject({
+        method: "GET",
+        url: "/api/characters/invalid-id/image",
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.json()).toEqual({
+        error: "Not Found",
+        message: "Character or image not found",
+        statusCode: 404,
+      });
+
+      await fastify.close();
     });
 
-    it("should throw NOT_FOUND for character without image", async () => {
-      // Create character without image
+    it("should return 404 for character without image", async () => {
       const newCharacter = await caller.characters.create({
         name: "No Image Character",
         description: "Character without image",
       });
 
-      await expect(
-        caller.characters.getImage({ id: newCharacter.id })
-      ).rejects.toThrow("Character or image not found");
+      const fastify = await createTestFastifyServer(testDb);
+      registerAssetServeRoute(fastify);
+
+      const response = await fastify.inject({
+        method: "GET",
+        url: `/api/characters/${newCharacter.id}/image`,
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.json()).toEqual({
+        error: "Not Found",
+        message: "Character or image not found",
+        statusCode: 404,
+      });
+
+      await fastify.close();
     });
   });
 
   describe("HTTP Import Endpoint", () => {
-    async function createTestServer() {
-      const fastify = Fastify({ logger: false });
-      await fastify.register(multipart);
-      await fastify.register(appContextPlugin, { db: testDb });
-      await registerFileUploadRoutes(fastify);
-      return fastify;
-    }
-
     it("should import character card from PNG file", async () => {
       const fixtures = await loadCharacterFixtures();
       expect(fixtures.length).toBeGreaterThan(0);
-
       const fixture = fixtures[0];
-      const fastify = await createTestServer();
+
+      const fastify = await createTestFastifyServer(testDb);
+      registerFileUploadRoutes(fastify);
 
       // Create proper multipart form data for file upload
       const FormData = (await import("form-data")).default;
@@ -259,7 +286,8 @@ describe("characters router integration", () => {
     });
 
     it("should reject non-PNG files", async () => {
-      const fastify = await createTestServer();
+      const fastify = await createTestFastifyServer(testDb);
+      registerFileUploadRoutes(fastify);
 
       const response = await fastify.inject({
         method: "POST",
@@ -276,7 +304,8 @@ describe("characters router integration", () => {
     });
 
     it("should reject request with no file", async () => {
-      const fastify = await createTestServer();
+      const fastify = await createTestFastifyServer(testDb);
+      registerFileUploadRoutes(fastify);
 
       const response = await fastify.inject({
         method: "POST",
@@ -289,7 +318,8 @@ describe("characters router integration", () => {
     });
 
     it("should handle invalid PNG files gracefully", async () => {
-      const fastify = await createTestServer();
+      const fastify = await createTestFastifyServer(testDb);
+      registerFileUploadRoutes(fastify);
 
       // Create a buffer that looks like PNG but has invalid character data
       const invalidPngBuffer = Buffer.alloc(100);

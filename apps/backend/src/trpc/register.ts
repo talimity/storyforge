@@ -1,8 +1,9 @@
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import type { FastifyInstance } from "fastify";
 import { createOpenApiHttpHandler } from "trpc-to-openapi";
-import { createAppContext } from "../app-context";
+import { createAppContext } from "./app-context";
 import { appRouter } from "./app-router";
+import { registerAssetServeRoute } from "./asset-serve";
 import { registerFileUploadRoutes } from "./file-upload";
 import { openApiDocument } from "./openapi";
 import { registerSSERoutes } from "./sse";
@@ -11,13 +12,14 @@ import { registerSSERoutes } from "./sse";
  * Register all tRPC and REST (via trpc-to-openapi) routes given a Fastify
  * instance.
  */
-export async function registerAPI(fastify: FastifyInstance) {
-  // Register non-tRPC routes for file uploads and SSE
-  await registerFileUploadRoutes(fastify);
-  await registerSSERoutes(fastify);
+export function registerAPI(fastify: FastifyInstance) {
+  // Register non-tRPC routes for file uploads, images, and SSE
+  registerFileUploadRoutes(fastify);
+  registerAssetServeRoute(fastify);
+  registerSSERoutes(fastify);
 
   // Register tRPC routers
-  await fastify.register(fastifyTRPCPlugin, {
+  fastify.register(fastifyTRPCPlugin, {
     prefix: "/trpc",
     useWSS: true,
     trpcOptions: {

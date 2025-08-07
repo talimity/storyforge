@@ -4,7 +4,7 @@ import sensible from "@fastify/sensible";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
 import { FastifySSEPlugin } from "fastify-sse-v2";
-import { appContextPlugin } from "./app-context";
+import { appContextPlugin } from "./app-context-plugin";
 import { config } from "./config";
 import { logger } from "./logging";
 import { registerAPI } from "./trpc/register";
@@ -26,20 +26,20 @@ const fastify = Fastify({
 });
 
 // Plugins
-await fastify.register(cors, {
+fastify.register(cors, {
   origin: ["http://localhost:5173", "http://localhost:8080"],
   credentials: true,
 });
-await fastify.register(sensible);
-await fastify.register(multipart);
-await fastify.register(websocket);
-await fastify.register(FastifySSEPlugin);
+fastify.register(sensible);
+fastify.register(multipart);
+fastify.register(websocket);
+fastify.register(FastifySSEPlugin);
 
 // Add context to all requests
-await fastify.register(appContextPlugin);
+fastify.register(appContextPlugin);
 
 // Entry point for all API/RPC routes
-await registerAPI(fastify);
+registerAPI(fastify);
 
 // Health check
 fastify.get("/health", async () => {

@@ -93,11 +93,10 @@ devctl stop       # Stop both dev servers
   - ❌ Regex templates
   - ❌ Agent workflows
   - ❌ Settings
-- ❌ Frontend
-  - ❌ Scaffolding
-    - ❌ Vite + React
-    - ❌ DaisyUI 5
-    - ❌ Tailwind 4
+- ✅ Frontend
+  - ✅ Scaffolding
+    - ✅ Vite + React
+    - ✅ Chakra UI v3
   - ❌ Library
     - ❌ Characters
     - ❌ Scenarios
@@ -115,7 +114,7 @@ devctl stop       # Stop both dev servers
 
 ## Stack
 
-- **Frontend**: Vite + React + DaisyUI 5 + Tailwind 4
+- **Frontend**: Vite + React + Chakra UI v3
 - **Backend**: Fastify + tRPC + Drizzle ORM + SQLite
 - **Monorepo**: pnpm workspaces
 
@@ -189,4 +188,4 @@ When in doubt, just don't write the comment.
 
 ### Other Tips
 
-Use the `context7` tool to look up documentation for any GitHub repository. You may wish to do this to ensure you have up-to-date documentation for new libraries like Tailwind v4 or for any libraries you are not familiar with.
+Use the `context7` tool to look up documentation for any GitHub repository. You may wish to do this to ensure you have up-to-date documentation for newer libraries.

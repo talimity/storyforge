@@ -4,7 +4,7 @@ import { transformCharacter } from "../shelf/character/character.transforms";
 import { CharacterImportService } from "../shelf/character/character-import.service";
 import { parseTavernCard } from "../shelf/character/parse-tavern-card";
 
-export async function registerFileUploadRoutes(fastify: FastifyInstance) {
+export function registerFileUploadRoutes(fastify: FastifyInstance) {
   // Handle file uploads outside of tRPC since tRPC doesn't handle multipart well
   fastify.post("/api/characters/import", async (req) => {
     const { db, logger } = req.appContext;

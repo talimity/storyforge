@@ -1,10 +1,22 @@
-import { createRoot } from "react-dom/client";
-import App from "./App";
-import "./index.css";
+import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { ThemeProvider } from "next-themes";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { RouterProvider } from "react-router-dom";
+import { Toaster } from "./components/ui/toaster";
+import { TRPCReactProvider } from "./lib/providers";
+import { router } from "./router";
 
-const root = document.getElementById("root");
-if (!root) {
-  throw new Error("Root element not found");
-}
-
-createRoot(root).render(<App />);
+// biome-ignore lint/style/noNonNullAssertion: We are sure the root element exists.
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <TRPCReactProvider>
+      <ChakraProvider value={defaultSystem}>
+        <ThemeProvider attribute="class">
+          <RouterProvider router={router} />
+          <Toaster />
+        </ThemeProvider>
+      </ChakraProvider>
+    </TRPCReactProvider>
+  </React.StrictMode>
+);

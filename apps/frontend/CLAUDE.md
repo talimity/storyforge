@@ -1,32 +1,45 @@
 # StoryForge Frontend - Package Notes
 
-This document outlines the React SPA that serves as the frontend for the StoryForge character roleplaying application.
+## Frontend Design System Guidelines
+- **Vite + React**: Use Vite for fast development and React for UI components.
+- **Chakra UI v3**: Utilize Chakra UI v3 components for consistent styling and theming.
+- **tRPC**: Use tRPC for type-safe API calls between frontend and backend.
+- **Zustand**: Use Zustand for managing shared state across components.
 
-## Routes (Port 8080 dev server)
-- `/` - Home dashboard
-- `/characters` - Character management
-- `/scenarios` - Scenario listing 
-- `/scenario/:id` - Active scenario interface (full-screen)
-- `/agents` - Agent configuration (future AI settings)
-- `/api` - API configuration (future LLM endpoints)
+## `chakra-ui` tool
+You can invoke the `chakra-ui` Model Context Protocol tool to quickly look up documentation for Chakra UI v3, including:
+- Component props
+- Example usage
+- Theming options
+- Theme customization, given design tokens
 
-## Architecture
-- **Framework**: Vite + React + TypeScript + React Router
-- **UI**: shadcn/ui + Tailwind CSS (extensive component library in `components/ui/`)
-- **State**: TanStack Query for server state + React hooks
-- **API**: Custom fetch client (`services/api.ts`) pointing to backend:3001
+Use this tool whenever you need to reference Chakra UI documentation or examples, especially if you are not sure absolutely sure how to achieve a specific design.
 
-## Key Components
-- **Layout**: Sidebar navigation with conditional header (hidden on active scenarios)
-- **Scenario Components**: Specialized UI in `components/scenario/` for gameplay
-- **API Hooks**: React Query hooks in `hooks/api/` for data fetching
-- **Services**: Typed API clients in `services/` for each entity
+## Playwright Testing Tool
 
-## Development Notes
-- Uses `@/` path alias for clean imports
-- Mobile-responsive with useIsMobile hook
-- ApiError class for structured error handling
-- Layout adapts for active scenario (full-screen experience)
-- All UI components follow shadcn/ui patterns
+The `mcp__playwright__*` tools provide browser automation capabilities for testing the frontend application. These tools can:
 
-**Important**: The frontend should be as dumb as possible. Push as much logic and state to the backend as feasible. This frontend may be completely replaced in the future, so keep it simple and focused on presentation.
+**Core Interactions**:
+- `browser_navigate` - Navigate to URLs (e.g., localhost:5173)
+- `browser_click` - Click elements using references from page snapshots
+- `browser_take_screenshot` - Capture visual state for debugging/verification
+- `browser_snapshot` - Get accessibility tree with element references
+- `browser_resize` - Test responsive layouts at different screen sizes
+
+**Advanced Testing**:
+- `browser_type` - Fill forms and input fields
+- `browser_file_upload` - Test file upload functionality
+- `browser_evaluate` - Execute JavaScript for complex interactions
+- `browser_network_requests` - Monitor API calls and network activity
+- `browser_console_messages` - Check for JavaScript errors
+
+**Use Cases**:
+- Verify UI components render correctly
+- Test responsive design behavior
+- End-to-end testing of user workflows (e.g., character import)
+- Debug layout issues with visual screenshots
+- Validate navigation and routing
+
+The dev server should be running on localhost:5173 for testing. Use these tools to verify functionality after implementing new features or fixing bugs.
+
+**Note**: Do not run `browser_install` - it will fail on NixOS but is not required. The Playwright tools work without browser installation.

@@ -142,31 +142,4 @@ export const charactersRouter = router({
         });
       }
     }),
-
-  getImage: publicProcedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: "/api/characters/{id}/image",
-        tags: ["characters"],
-        summary: "Get character image",
-      },
-    })
-    .input(characterIdSchema)
-    .output(z.instanceof(Buffer))
-    .query(async ({ input, ctx }) => {
-      const characterRepository = new CharacterRepository(ctx.db);
-      const character = await characterRepository.findById(input.id);
-
-      if (!character || !character.cardImage) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Character or image not found",
-        });
-      }
-
-      // Handle response type in context
-      ctx.res.type("image/png");
-      return character.cardImage;
-    }),
 });

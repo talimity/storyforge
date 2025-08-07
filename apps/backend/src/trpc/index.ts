@@ -1,6 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import type { OpenApiMeta } from "trpc-to-openapi";
-import type { AppContext } from "../app-context";
+import type { AppContext } from "./app-context";
 
 const t = initTRPC
   .context<AppContext>()

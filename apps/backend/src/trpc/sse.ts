@@ -148,7 +148,7 @@ async function completionStreamHandler(
 /**
  * Register SSE routes for streaming completions
  */
-export async function registerSSERoutes(fastify: FastifyInstance) {
+export function registerSSERoutes(fastify: FastifyInstance) {
   fastify.post(
     "/api/debug/completion/stream",
     {

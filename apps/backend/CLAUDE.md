@@ -1,7 +1,5 @@
 # StoryForge Backend - Package Notes
 
-Note that most of this is not yet implemented. This is the planned structure.
-
 ## Web API
 
 Web API is served on port 3001. The API is built with Fastify and tRPC and includes trpc-to-openapi to expose most tRPC procedures as RESTful endpoints.
