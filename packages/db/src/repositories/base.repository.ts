@@ -1,21 +1,15 @@
 import { eq, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import type { AnySQLiteTable, SQLiteColumn } from "drizzle-orm/sqlite-core";
-import type { Logger } from "pino";
-import type { StoryforgeSqliteDatabase } from "../db/client";
-import { createChildLogger } from "../logging";
+import type { StoryforgeSqliteDatabase } from "../client";
 
 type TableWithId = AnySQLiteTable & { id: SQLiteColumn };
 
 export abstract class BaseRepository<TTable extends TableWithId> {
-  protected logger: Logger;
-
   constructor(
     protected db: StoryforgeSqliteDatabase,
     protected table: TTable,
-    loggerName: string
-  ) {
-    this.logger = createChildLogger(`repository:${loggerName}`);
-  }
+    protected loggerName: string
+  ) {}
 
   async findAll(): Promise<InferSelectModel<TTable>[]> {
     return this.db.select().from(this.table).all();

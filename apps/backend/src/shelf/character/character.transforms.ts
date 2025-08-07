@@ -1,5 +1,5 @@
 import type { Character } from "@storyforge/api";
-import type { Character as DbCharacter } from "../../db/schema";
+import type { Character as DbCharacter } from "@storyforge/db";
 
 /**
  * Transforms a database character record to API format

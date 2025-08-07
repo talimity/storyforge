@@ -1,15 +1,15 @@
 import { and, eq } from "drizzle-orm";
-import { BaseRepository } from "../../db/base.repository";
-import { type StoryforgeSqliteDatabase, schema } from "../../db/client";
+import { type StoryforgeSqliteDatabase, schema } from "../client";
 import type {
   CharacterExample,
   NewCharacterExample,
-} from "../../db/schema/character-examples";
+} from "../schema/character-examples";
 import type {
   CharacterGreeting,
   NewCharacterGreeting,
-} from "../../db/schema/character-greetings";
-import type { Character, NewCharacter } from "../../db/schema/characters";
+} from "../schema/character-greetings";
+import type { Character, NewCharacter } from "../schema/characters";
+import { BaseRepository } from "./base.repository";
 
 export class CharacterRepository extends BaseRepository<
   typeof schema.characters

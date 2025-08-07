@@ -80,7 +80,7 @@ export interface ParsedCharacterCard {
 }
 
 export async function parseTavernCard(
-  buffer: ArrayBuffer
+  buffer: ArrayBufferLike
 ): Promise<ParsedCharacterCard> {
   const chunks = pngExtract(new Uint8Array(buffer));
 

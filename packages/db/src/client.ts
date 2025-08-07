@@ -1,18 +1,10 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import * as schema from "./schema";
+import { createDatabaseConfig } from "./config";
+import * as schema from "./schema/index";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const dbPath =
-  process.env.DATABASE_URL || path.join(__dirname, "../../data/storyforge.db");
-
-import { mkdirSync } from "node:fs";
-
-mkdirSync(path.dirname(dbPath), { recursive: true });
+const config = createDatabaseConfig();
+const dbPath = config.path;
 
 const sqlite = new Database(dbPath);
 sqlite.pragma("journal_mode = WAL");

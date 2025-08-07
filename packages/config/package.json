@@ -1,7 +1,6 @@
 {
-  "name": "@storyforge/shared",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@storyforge/config",
+  "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,5 +12,12 @@
     "lint": "biome check --diagnostic-level error --write .",
     "typecheck": "tsc --noEmit"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "find-up": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
 }

@@ -1,20 +1,27 @@
 {
   "name": "@storyforge/backend",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "./dist/main.js",
+  "types": "./dist/types.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/main.js",
+      "types": "./dist/main.d.ts"
+    },
+    "./types": {
+      "import": "./dist/types.js",
+      "types": "./dist/types.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build",
     "check": "run-p --continue-on-error lint typecheck",
     "clean": "rm -rf dist",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "pnpm tsx src/db/migrate.ts",
-    "db:push": "drizzle-kit push",
-    "db:query": "pnpm tsx scripts/db-query.ts",
-    "db:studio": "drizzle-kit studio",
     "dev": "pnpm tsx watch src/main.ts",
     "fmt": "biome format --write .",
-    "lint": "biome check --diagnostic-level error --write .",
+    "lint": "biome check --diagnostic-level error --write --unsafe .",
     "start": "node dist/main.js",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -31,11 +38,9 @@
     "@fastify/websocket": "^11.2.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "@storyforge/api": "workspace:*",
-    "@storyforge/shared": "workspace:*",
-    "@trpc/server": "^11.4.3",
-    "better-sqlite3": "^12.2.0",
-    "dotenv": "^17.2.1",
-    "drizzle-orm": "^0.44.3",
+    "@storyforge/config": "workspace:*",
+    "@storyforge/db": "workspace:*",
+    "@trpc/server": "catalog:",
     "fastify": "^5.4.0",
     "fastify-plugin": "^5.0.1",
     "fastify-sse-v2": "^4.2.1",
@@ -49,13 +54,12 @@
   },
   "devDependencies": {
     "@mapbox/node-pre-gyp": "^2.0.0",
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^24.1.0",
     "@types/png-chunk-text": "^1.0.3",
     "@types/png-chunks-encode": "^1.0.2",
     "@types/png-chunks-extract": "^1.0.2",
-    "drizzle-kit": "^0.31.4",
     "form-data": "^4.0.4",
-    "vitest": "^3.2.4"
+    "vitest": "catalog:",
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
   }
 }

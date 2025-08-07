@@ -5,13 +5,14 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
 
     // Strictness and type checking
     "strict": true,
+    "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "useUnknownInCatchVariables": false,
 
@@ -25,13 +26,12 @@
     // Miscellaneous
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "sourceMap": true
+    "noErrorTruncation": false,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@storyforge/*": ["packages/*/src"]
+    }
   },
-  "files": [],
-  "references": [
-    { "path": "./apps/frontend" },
-    { "path": "./apps/backend" },
-    { "path": "./packages/shared" },
-    { "path": "./packages/api" }
-  ]
+  "files": []
 }

@@ -1,6 +1,8 @@
-import type { NewCharacterExample } from "../../db/schema/character-examples";
-import type { NewCharacterGreeting } from "../../db/schema/character-greetings";
-import type { CharacterRepository } from "./character.repository";
+import type {
+  CharacterRepository,
+  NewCharacterExample,
+  NewCharacterGreeting,
+} from "@storyforge/db";
 import type {
   TavernCard,
   TavernCardV1,

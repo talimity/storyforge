@@ -6,9 +6,9 @@ import {
   createCharacterSchema,
   updateCharacterSchema,
 } from "@storyforge/api";
+import { CharacterRepository } from "@storyforge/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { CharacterRepository } from "../../shelf/character/character.repository";
 import { transformCharacter } from "../../shelf/character/character.transforms";
 import { publicProcedure, router } from "../index";
 

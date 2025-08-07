@@ -1,19 +1,19 @@
 {
   "name": "storyforge",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build:packages": "pnpm run --parallel --filter './packages/*' build",
-    "build:apps": "pnpm run --parallel --filter './apps/*' build",
-    "build": "pnpm run build:packages && pnpm run build:apps",
+    "build:frontend": "pnpm --filter frontend run build",
+    "build:clean": "tsc --build --clean && tsc --build",
+    "build": "tsc --build",
     "check": "run-p --continue-on-error lint typecheck",
     "clean": "pnpm run --parallel clean",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
     "dev": "pnpm run --parallel dev",
     "fmt": "biome format --write .",
-    "lint": "biome check --diagnostic-level error --write .",
+    "lint": "biome check --diagnostic-level error --write --unsafe .",
     "typecheck": "pnpm run --parallel typecheck",
     "usage": "ccusage blocks"
   },
@@ -22,10 +22,10 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@biomejs/biome": "^2.1.2",
-    "ccusage": "^15.5.0",
+    "@biomejs/biome": "^2.1.3",
+    "ccusage": "^15.5.2",
     "npm-run-all": "^4.1.5",
-    "tsx": "^4.20.3",
-    "typescript": "^5.5.3"
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   }
 }

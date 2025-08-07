@@ -1,5 +1,5 @@
+import { db as dbClient, type StoryforgeSqliteDatabase } from "@storyforge/db";
 import fp from "fastify-plugin";
-import { db as dbClient, type StoryforgeSqliteDatabase } from "./db/client";
 import { createAppContext, createTestAppContext } from "./trpc/app-context";
 
 type AppContextPluginOptions = {

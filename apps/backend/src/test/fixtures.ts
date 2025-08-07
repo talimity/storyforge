@@ -1,8 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { StoryforgeSqliteDatabase } from "../db/client";
-import { CharacterRepository } from "../shelf/character/character.repository";
+import type { StoryforgeSqliteDatabase } from "@storyforge/db";
+import { CharacterRepository } from "@storyforge/db";
 import { CharacterImportService } from "../shelf/character/character-import.service";
 import {
   type ParsedCharacterCard,

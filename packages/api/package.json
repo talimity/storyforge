@@ -1,6 +1,6 @@
 {
   "name": "@storyforge/api",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -14,15 +14,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@storyforge/shared": "workspace:*",
-    "@trpc/server": "^11.0.0-rc.676",
+    "@trpc/server": "catalog:",
     "fastify": "^5.1.0",
     "trpc-to-openapi": "^2.0.0-rc.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@types/node": "^22.10.2",
-    "typescript": "^5.7.2"
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
   }
 }

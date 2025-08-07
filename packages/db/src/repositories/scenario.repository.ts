@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import { BaseRepository } from "../../db/base.repository";
-import { type StoryforgeSqliteDatabase, schema } from "../../db/client";
-import type { NewScenario, Scenario } from "../../db/schema/scenarios";
+import { type StoryforgeSqliteDatabase, schema } from "../client";
+import type { NewScenario, Scenario } from "../schema/scenarios";
+import { BaseRepository } from "./base.repository";
 import {
   type ScenarioCharacterAssignment,
   ScenarioCharacterRepository,

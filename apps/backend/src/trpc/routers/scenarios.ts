@@ -10,11 +10,13 @@ import {
   unassignCharacterSchema,
   updateScenarioSchema,
 } from "@storyforge/api";
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 import {
   ScenarioCharacterRepository,
   ScenarioRepository,
+} from "@storyforge/db";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import {
   transformScenarioCharacterAssignment,
   transformScenarioWithCharacters,
 } from "../../shelf/scenario";

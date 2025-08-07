@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-import * as schema from "@storyforge/db";
-import { closeDatabase, db } from "@storyforge/db";
+import { sql } from "drizzle-orm";
+import { closeDatabase, db } from "../src/client";
+import * as schema from "../src/schema/index";
 
 async function executeQuery() {
   const args = process.argv.slice(2);
@@ -80,7 +81,6 @@ Examples:
 }
 
 async function executeRawQuery(query: string) {
-  const { sql } = await import("drizzle-orm");
   console.log(`🔍 Executing: ${query}`);
   const result = db.all(sql.raw(query));
   console.log(`📊 Results (${result.length} rows):`);
@@ -88,7 +88,6 @@ async function executeRawQuery(query: string) {
 }
 
 async function selectAll(tableName: string) {
-  const { sql } = await import("drizzle-orm");
   console.log(`🔍 Selecting all from ${tableName}`);
   const result = db.all(sql.raw(`SELECT * FROM ${tableName}`));
   console.log(`📊 Results (${result.length} rows):`);
@@ -96,7 +95,6 @@ async function selectAll(tableName: string) {
 }
 
 async function countRows(tableName: string) {
-  const { sql } = await import("drizzle-orm");
   console.log(`🔍 Counting rows in ${tableName}`);
   const result = db.get(
     sql.raw(`SELECT COUNT(*) as count FROM ${tableName}`)
@@ -105,7 +103,6 @@ async function countRows(tableName: string) {
 }
 
 async function showSchema() {
-  const { sql } = await import("drizzle-orm");
   console.log("🏗️  Database Schema:");
   const tables = db.all(
     sql.raw(`
@@ -123,7 +120,6 @@ async function showSchema() {
 }
 
 async function showCharactersWithRelations() {
-  const { sql } = await import("drizzle-orm");
   console.log("👥 Characters with their greetings and examples:");
 
   const characters = await db.select().from(schema.characters);
@@ -142,7 +138,7 @@ async function showCharactersWithRelations() {
 
     if (greetings.length > 0) {
       console.log(`   💬 Greetings (${greetings.length}):`);
-      greetings.forEach((g: any, i: number) => {
+      greetings.forEach((g, i) => {
         const marker = g.isPrimary ? "⭐" : "  ";
         console.log(
           `   ${marker} ${i + 1}. ${g.message.substring(0, 100)}${g.message.length > 100 ? "..." : ""}`
@@ -158,7 +154,7 @@ async function showCharactersWithRelations() {
 
     if (examples.length > 0) {
       console.log(`   📝 Examples (${examples.length}):`);
-      examples.forEach((e: any, i: number) => {
+      examples.forEach((e, i) => {
         console.log(
           `      ${i + 1}. ${e.exampleTemplate.substring(0, 100)}${e.exampleTemplate.length > 100 ? "..." : ""}`
         );

@@ -1,5 +1,5 @@
+import { CharacterRepository } from "@storyforge/db";
 import type { FastifyInstance } from "fastify";
-import { CharacterRepository } from "../shelf/character/character.repository";
 import { transformCharacter } from "../shelf/character/character.transforms";
 import { CharacterImportService } from "../shelf/character/character-import.service";
 import { parseTavernCard } from "../shelf/character/parse-tavern-card";

@@ -2,6 +2,7 @@
 
 import {
   Toaster as ChakraToaster,
+  type CreateToasterReturn,
   createToaster,
   Portal,
   Spinner,
@@ -9,7 +10,7 @@ import {
   Toast,
 } from "@chakra-ui/react";
 
-export const toaster = createToaster({
+export const toaster: CreateToasterReturn = createToaster({
   placement: "bottom-end",
   pauseOnPageIdle: true,
 });

@@ -1,17 +1,17 @@
+import { CharacterRepository } from "@storyforge/db";
 import { beforeEach, describe, expect, it } from "vitest";
-import { CharacterRepository } from "../shelf/character/character.repository";
 import { createFreshTestCaller } from "./setup";
 
 describe("scenarios router integration", () => {
-  let caller: ReturnType<typeof createFreshTestCaller>["caller"];
-  let testDb: ReturnType<typeof createFreshTestCaller>["db"];
+  let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
+  let testDb: Awaited<ReturnType<typeof createFreshTestCaller>>["db"];
 
   let testChara: Awaited<
     ReturnType<CharacterRepository["createWithRelations"]>
   >;
 
   beforeEach(async () => {
-    const testContext = createFreshTestCaller();
+    const testContext = await createFreshTestCaller();
     caller = testContext.caller;
     testDb = testContext.db;
 
@@ -175,7 +175,7 @@ describe("scenarios router integration", () => {
       // Verify list doesn't contain the deleted scenario
       const scenarios = await caller.scenarios.list({});
       expect(
-        scenarios.scenarios.find((s) => s.id === newScenario.id)
+        scenarios.scenarios.find((s: any) => s.id === newScenario.id)
       ).toBeUndefined();
     });
 

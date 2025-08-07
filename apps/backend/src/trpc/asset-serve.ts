@@ -1,5 +1,5 @@
+import { CharacterRepository } from "@storyforge/db";
 import type { FastifyInstance } from "fastify";
-import { CharacterRepository } from "../shelf/character/character.repository";
 
 export function registerAssetServeRoute(fastify: FastifyInstance) {
   // Handle character image serving as binary data (bypasses tRPC serialization)

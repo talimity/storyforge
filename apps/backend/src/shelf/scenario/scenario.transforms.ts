@@ -2,7 +2,7 @@ import type {
   ScenarioCharacterAssignment,
   ScenarioWithCharacters,
 } from "@storyforge/api";
-import type { Character as DbCharacter } from "../../db/schema/characters";
+import type { Character as DbCharacter } from "@storyforge/db";
 import { transformCharacter } from "../character/character.transforms";
 
 /**

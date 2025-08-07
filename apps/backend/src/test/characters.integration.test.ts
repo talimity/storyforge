@@ -9,11 +9,11 @@ import { registerAssetServeRoute } from "../trpc/asset-serve";
 import { registerFileUploadRoutes } from "../trpc/file-upload";
 
 describe("characters router integration", () => {
-  let caller: ReturnType<typeof createFreshTestCaller>["caller"];
-  let testDb: ReturnType<typeof createFreshTestCaller>["db"];
+  let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
+  let testDb: Awaited<ReturnType<typeof createFreshTestCaller>>["db"];
 
-  beforeEach(() => {
-    const testContext = createFreshTestCaller();
+  beforeEach(async () => {
+    const testContext = await createFreshTestCaller();
     caller = testContext.caller;
     testDb = testContext.db;
   });

@@ -2,10 +2,10 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import sensible from "@fastify/sensible";
 import websocket from "@fastify/websocket";
+import { config } from "@storyforge/config";
 import Fastify from "fastify";
 import { FastifySSEPlugin } from "fastify-sse-v2";
 import { appContextPlugin } from "./app-context-plugin";
-import { config } from "./config";
 import { logger } from "./logging";
 import { registerAPI } from "./trpc/register";
 
@@ -56,3 +56,5 @@ try {
   fastify.log.error(err);
   process.exit(1);
 }
+
+export type { AppRouter } from "./trpc/app-router";

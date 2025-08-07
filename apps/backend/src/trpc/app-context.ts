@@ -1,6 +1,6 @@
+import type { StoryforgeSqliteDatabase } from "@storyforge/db";
+import { db as dbClient } from "@storyforge/db";
 import type { FastifyBaseLogger, FastifyReply, FastifyRequest } from "fastify";
-import type { StoryforgeSqliteDatabase } from "../db/client";
-import { db as dbClient } from "../db/client";
 
 export interface AppContext {
   req: FastifyRequest;

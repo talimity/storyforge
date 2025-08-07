@@ -1,5 +1,5 @@
+import type { AppRouter } from "@storyforge/backend";
 import { createTRPCReact, httpBatchLink, loggerLink } from "@trpc/react-query";
-import type { AppRouter } from "../../../backend/src/trpc/app-router";
 
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -29,10 +29,6 @@ export function createTRPCClient() {
         : []),
       httpBatchLink({
         url: `${getBaseUrl()}/trpc`,
-
-        fetch(url, options) {
-          return fetch(url, { ...options });
-        },
       }),
     ],
   });

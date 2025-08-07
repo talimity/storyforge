@@ -1,8 +1,8 @@
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
-import { BaseRepository } from "../../db/base.repository";
-import { type StoryforgeSqliteDatabase, schema } from "../../db/client";
-import type { Character } from "../../db/schema/characters";
-import type { ScenarioCharacter } from "../../db/schema/scenario-characters";
+import { type StoryforgeSqliteDatabase, schema } from "../client";
+import type { Character } from "../schema/characters";
+import type { ScenarioCharacter } from "../schema/scenario-characters";
+import { BaseRepository } from "./base.repository";
 
 export interface ScenarioCharacterAssignment extends ScenarioCharacter {
   character: Character;

@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./apps/frontend" },
+    { "path": "./apps/backend" },
+    { "path": "./packages/db" },
+    { "path": "./packages/api" },
+    { "path": "./packages/config" }
+  ],
+  "extends": "./tsconfig.base.json"
+}
