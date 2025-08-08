@@ -49,14 +49,15 @@ devctl stop       # Stop both dev servers
 - ✅ Monorepo with pnpm
 - ✅ Fastify, Drizzle with SQLite, and tRPC setup
 - ✅ OpenAPI schema generation via trpc-to-openapi
-- ❌ Vite React frontend application
+- ✅ Shared packages (config, db, api)
+- ✅ Vite React frontend application
 - ✅ LLM inference architecture
   - ✅ Provider abstraction layer
   - ✅ LLM provider implementation
     - ✅ OpenRouter Chat Completion
     - ✅ DeepSeek Chat Completion
     - ❌ OpenAI-compat Chat Completion (OpenAI, llama.cpp, vllm, etc.)
-  - ❌ Provider/model registry
+  - ❌ Model registry (add models and specify which provider to use)
 - ❌ Story engine
   - ❌ Scenario runtime (read input, generate-with-agents, present, loop)
   - ❌ Context construction (build context from turn history, chara data, prompt templates, and agent config)
@@ -78,7 +79,8 @@ devctl stop       # Stop both dev servers
 - ❌ Shelf (user content management)
   - ✅ Characters / SillyTavern character import
   - ✅ Scenario CRUD / character assignment
-  - ❌ LLM provider creds and config
+  - ❌ LLM provider configuration
+  - ❌ Model registry
   - ❌ Prompt templates
   - ❌ Assets (chara images, scene backgrounds, CSS themes)
   - ❌ Regex templates (e.g., 'Convert straight quotes to curly quotes')
@@ -100,6 +102,10 @@ devctl stop       # Stop both dev servers
     - ✅ Chakra UI v3
   - ❌ Library
     - ❌ Characters
+      - ✅ Character list (very basic)
+      - ✅ Character card with actions
+      - ✅ Character import workflow
+      - ❌ Character editor
     - ❌ Scenarios
     - ❌ Prompt templates
   - ❌ Scenario player
@@ -117,6 +123,7 @@ devctl stop       # Stop both dev servers
 
 - **Frontend**: Vite + React + Chakra UI v3
 - **Backend**: Fastify + tRPC + Drizzle ORM + SQLite
+- **Shared Packages**: Configuration, Database layer, API contracts
 - **Monorepo**: pnpm workspaces
 
 ## Monorepo Structure
@@ -125,13 +132,9 @@ devctl stop       # Stop both dev servers
 storyforge
 ├── apps
 │   ├── backend                # Fastify backend application (:3001)
-│   │   ├── data               # Runtime data
+│   │   ├── data               # Fixtures, test characters
 │   │   ├── scripts            # Scripts for development tasks
 │   │   └── src
-│   │       ├── db             # Drizzle ORM database layer
-│   │       │   ├── base.repository.ts # Base CRUD repo
-│   │       │   ├── migrations
-│   │       │   └── schema
 │   │       ├── engine         # Story engine
 │   │       │   ├── agents     # Agent workflows
 │   │       │   ├── context    # Context building
@@ -142,51 +145,72 @@ storyforge
 │   │       ├── shelf          # User data management (simple CRUD)
 │   │       │   ├── character
 │   │       │   └── scenario
+│   │       ├── test           # Integration tests
 │   │       └── trpc           # API handlers
 │   │           └── routers    # tRPC routers
 │   ├── frontend               # Vite React app (:8080)
 │   │   └── src
-│   │       └── ...            # Nothing, all placeholder currently
+│   │       ├── components     # Reusable components, by feature
+│   │       ├── lib            # Client utilities
+│   │       └── pages          # Page components
 └── packages                   # Shared packages
-    └── api                    # API contracts and types
+    ├── api                    # API contracts and types
+    │   └── src
+    │       ├── contracts      # tRPC contracts / Zod schemas  
+    │       └── types
+    ├── config                 # Configuration management
+    │   └── src
+    │       └── index.ts       # Config/environment loader
+    └── db                     # Database layer
         └── src
-            ├── contracts      # tRPC contracts / Zod schemas
-            └── types
+            ├── migrations     # Database migrations
+            ├── repositories   # Data access layer
+            ├── schema         # Database schema definitions
+            └── client.ts      # Database client
 ```
 
 ## Code Style Guidelines
 
 - **TypeScript Code**:
   - Strict mode enabled
-  - Explicit `any` usage is not permitted
-  - Casting via `as` is to be avoided unless absolutely necessary
-    - Write a type guard function or a type assertion function instead (e.g. `isCharacter(obj: unknown): obj is Character`)
-    - You can use Zod's `parse` method to do this for you on unknown inputs
-  - Try to minimize nested structures
-    - Use intermediate variables to clarify complex expressions (this also reduces the need for comments)
+  - Explicit `any` usage is forbidden
+  - Casting via `as` is strongly discouraged
+    - Instead: type guard or assertion guard (e.g. `assertIsCharacter(obj: unknown): asserts obj is Character`)
+    - Instead: use Zod's `parse` for complex, structured data validation
+  - Minimize nested structures
+    - Use intermediate variables to make expressions clearer
     - Return early to avoid deep nesting in functions
 - **Classes and Interfaces**:
-    - Prefer plain functions and objects over classes
-    - Start with interfaces when you need to define a contract
-    - Use classes only when you need to maintain state or implement polymorphism or inheritance
-      - Avoid inheritance in general
+    - Prefer functions and objects over classes
+    - Polymorphism: use interfaces for type contracts, not classes
+    - Use classes only when you need to share state/behavior
+    - Rethink architectures that rely on inheritance
     - Never write a class that only contains static members
 - **Imports**:
-  - Place native Node.js modules first, then third-party libraries, then local imports
-  - Use absolute imports with `@/` path mapping for clarity
+  - Run `pnpm lint` to auto-sort imports
+  - Use `@/` for absolute imports in frontend
+  - Never deep import from other packages
 - **Naming conventions**:
   - Files: kebab-case
   - Identifiers: camelCase for functions/variables, PascalCase for classes/components
 
 ### Comments Policy
 
-When in doubt, just don't write the comment.
+When in doubt, skip the comment.
 
 - **Self-documenting code first** - Use expressive identifiers for functions and variables to make the code self-explanatory
-- **Comments must add value** - Document edge cases, workarounds, or solutions that do not follow the obvious path
+- **Comments must add value** - Do add comments for edge cases, workarounds, or solutions that don't follow the obvious path
 - **Use JSDoc for public APIs** - Document functions, classes, and interfaces that are at the boundary of your module
-  - You don't need to add JSDoc annotations for parameters or return types if they are trivial
+  - Skip parameter/return type JSDoc if the name and type make it obvious
 
-### Other Tips
+## Tools
+Several MCP utilities are available to help you with conducting research, troubleshooting, or testing.
 
-Use the `context7` tool to look up documentation for any GitHub repository. You may wish to do this to ensure you have up-to-date documentation for newer libraries.
+- **context7** - Retrieves docs from any GitHub repository
+  - We're using new versions of many libraries so use this often instead of relying on outdated memory.
+- **chakra-ui** - Docs and examples for specific Chakra UI components
+- **react-icons-mcp** - Search for icons from the react-icons library
+- **GlobTool/GrepTool**: Fast code analysis and pattern detection
+- **playwright** - Control a browser to validate frontend functionality
+
+IMPORTANT: Always delegate research tasks or playwright validation to an agent using dispatch_agent. Avoid invoking the tools directly. Similarly, if you need to analyze many files in the codebase to understand some architecture or broad structure, ask an agent to do this for you and return a summary.
