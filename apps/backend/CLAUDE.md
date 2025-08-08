@@ -29,8 +29,10 @@ TBD, for realtime scenario interaction and agent updates.
 - **engine**: Story execution engine; scenario orchestration, agent impl, context construction, persistence
 - **shelf**: User data repositories; CRUD operations for characters, scenarios, lorebooks, API keys, etc.
 - **inference**: LLM inference service; abstracts LLM provider details
-- **db**: Database layer; Drizzle ORM with SQLite
+- **test**: Integration tests for the backend API
 - **trpc**: All tRPC procedures and OpenAPI schema generation
+
+**Note**: Database layer, configuration, and API contracts have been extracted to shared packages (`@storyforge/db`, `@storyforge/config`, `@storyforge/api`).
 
 ## LLM Inference Architecture
 
@@ -62,13 +64,13 @@ TBD, for realtime scenario interaction and agent updates.
 ## Patterns
 
 When adding a new domain object (e.g., character, scenario), follow these steps:
-1. **Database Schema**: Create a new table in `db/schema/` and add a migration in `db/migrations/`.
+1. **Database Schema**: Create a new table in `packages/db/src/schema/` and add a migration in `packages/db/src/migrations/`.
 2. **Repositories**: 
-  - Create a new repository in `db/` extending `BaseRepository`.
+  - Create a new repository in `packages/db/src/repositories/` extending `BaseRepository`.
   - Does the entity have child entities? Evaluate...
     - Entities that are **aggregate members** (cannot exist without parent, no external references) stay in the parent repository
     - Entities that are **associated aggregate roots** (have their own lifecycle, referenced by multiple aggregates, or have complex relationships) get their own repository
-3. **Contracts**: Define tRPC contracts for reads and writes in the `api` package.
+3. **Contracts**: Define tRPC contracts for reads and writes in the `packages/api/src/contracts/` package.
 4. **Services**:
   - For simple content entities, create a service in `shelf/`.
   - For complex entities part of the story engine, create a service in `engine/`.

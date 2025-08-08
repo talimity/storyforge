@@ -13,23 +13,66 @@ import { MockProvider } from "../../inference/providers/mock";
 import { OpenRouterProvider } from "../../inference/providers/openrouter";
 import { publicProcedure, router } from "../index";
 
-// Initialize providers
+// Lazy-load providers to avoid initialization errors in test environments
 // TODO: Set up a proper configuration system for providers
 const providers = new Map<string, LLMProvider>();
-providers.set("mock", new MockProvider());
 
-try {
-  providers.set("openrouter", new OpenRouterProvider());
-} catch (error) {
-  // biome-ignore lint/plugin/noConsole: placeholder code
-  console.warn("OpenRouter provider not configured:", error);
+function getProvider(providerName: string): LLMProvider {
+  // Return cached provider if already created
+  const cachedProvider = providers.get(providerName);
+  if (cachedProvider) {
+    return cachedProvider;
+  }
+
+  // Create provider on demand
+  let provider: LLMProvider;
+  switch (providerName) {
+    case "mock":
+      provider = new MockProvider();
+      break;
+    case "openrouter":
+      try {
+        provider = new OpenRouterProvider();
+      } catch (error) {
+        throw new Error(`OpenRouter provider not configured: ${error}`);
+      }
+      break;
+    case "deepseek":
+      try {
+        provider = new DeepSeekProvider();
+      } catch (error) {
+        throw new Error(`DeepSeek provider not configured: ${error}`);
+      }
+      break;
+    default:
+      throw new Error(`Unknown provider: ${providerName}`);
+  }
+
+  // Cache the provider
+  providers.set(providerName, provider);
+  return provider;
 }
 
-try {
-  providers.set("deepseek", new DeepSeekProvider());
-} catch (error) {
-  // biome-ignore lint/plugin/noConsole: placeholder code
-  console.warn("DeepSeek provider not configured:", error);
+function getAvailableProviders(): string[] {
+  const availableProviders = ["mock"]; // Mock is always available
+
+  // Check if OpenRouter is configured
+  try {
+    new OpenRouterProvider();
+    availableProviders.push("openrouter");
+  } catch {
+    // OpenRouter not configured, skip
+  }
+
+  // Check if DeepSeek is configured
+  try {
+    new DeepSeekProvider();
+    availableProviders.push("deepseek");
+  } catch {
+    // DeepSeek not configured, skip
+  }
+
+  return availableProviders;
 }
 
 export const debugRouter = router({
@@ -48,22 +91,25 @@ export const debugRouter = router({
       const { filter, provider } = input;
 
       if (provider) {
-        const llmProvider = providers.get(provider);
-        if (!llmProvider) {
-          throw new Error(`Provider '${provider}' not available`);
+        try {
+          const llmProvider = getProvider(provider);
+          const models = await llmProvider.listModels(filter);
+          return {
+            models,
+            count: models.length,
+            provider,
+          };
+        } catch (error) {
+          throw new Error(`Provider '${provider}' not available: ${error}`);
         }
-
-        const models = await llmProvider.listModels(filter);
-        return {
-          models,
-          count: models.length,
-          provider,
-        };
       }
 
       const allModels: { provider: string; models: string[] }[] = [];
-      for (const [providerName, llmProvider] of providers) {
+      const availableProviders = getAvailableProviders();
+
+      for (const providerName of availableProviders) {
         try {
+          const llmProvider = getProvider(providerName);
           const models = await llmProvider.listModels(filter);
           allModels.push({ provider: providerName, models });
         } catch (error) {
@@ -94,10 +140,7 @@ export const debugRouter = router({
         provider = "mock",
       } = input;
 
-      const llmProvider = providers.get(provider);
-      if (!llmProvider) {
-        throw new Error(`Provider '${provider}' not available`);
-      }
+      const llmProvider = getProvider(provider);
 
       const context = {
         sections:
@@ -168,10 +211,7 @@ export const debugRouter = router({
         provider = "mock",
       } = input;
 
-      const llmProvider = providers.get(provider);
-      if (!llmProvider) {
-        throw new Error(`Provider '${provider}' not available`);
-      }
+      const llmProvider = getProvider(provider);
 
       const context = {
         sections:
@@ -243,10 +283,7 @@ export const debugRouter = router({
     .query(async ({ input }) => {
       const { provider = "mock", model = "mock-default" } = input;
 
-      const llmProvider = providers.get(provider);
-      if (!llmProvider) {
-        throw new Error(`Provider '${provider}' not available`);
-      }
+      const llmProvider = getProvider(provider);
 
       const context = {
         sections: [
