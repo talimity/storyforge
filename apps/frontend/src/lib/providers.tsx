@@ -1,8 +1,8 @@
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
-import { makeQueryClient } from "./query-client";
-import { createTRPCClient, trpc } from "./trpc";
+import { makeQueryClient } from "@/lib/query-client";
+import { createTRPCClient, trpc } from "@/lib/trpc";
 
 let browserQueryClient: QueryClient | undefined;
 

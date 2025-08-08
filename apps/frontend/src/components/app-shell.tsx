@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ColorModeToggle } from "./color-mode-toggle";
+import { ColorModeToggle } from "@/components/color-mode-toggle";
 
 const NavigationContent = () => {
   const navigate = useNavigate();

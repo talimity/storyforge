@@ -149,11 +149,8 @@ export function CharacterImportModal({
         duration: 5000,
       });
 
-      // Wait a moment then close modal and refresh list
-      setTimeout(() => {
-        onImportSuccess();
-        handleClose();
-      }, 1000);
+      onImportSuccess();
+      handleClose();
     } catch (err) {
       toaster.create({
         title: "Import failed",

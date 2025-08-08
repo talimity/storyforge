@@ -18,7 +18,8 @@ pnpm check # both
 pnpm test
 
 # Remember to rebuild when changing contracts in packages/api
-pnpm build
+pnpm build # tsc -b against entire project
+pnpm build:frontend # Vite build
 
 # Dev servers
 # ⚠️ IMPORTANT: If you use `pnpm dev` it will block your terminal.
