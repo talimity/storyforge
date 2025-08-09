@@ -2,80 +2,68 @@ import {
   Box,
   Button,
   ClientOnly,
-  Collapsible,
   Container,
   Drawer,
   Flex,
-  Grid,
-  GridItem,
   Portal,
   Show,
   Skeleton,
-  Stack,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { LuMenu } from "react-icons/lu";
+import { Outlet } from "react-router-dom";
 import { ColorModeToggle } from "@/components/color-mode-toggle";
-
-const NavigationContent = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const isActive = (path: string) => location.pathname === path;
-
-  return (
-    <Stack p={4} gap={2}>
-      <Button
-        variant={isActive("/dashboard") ? "solid" : "ghost"}
-        justifyContent="flex-start"
-        width="100%"
-        onClick={() => navigate("/dashboard")}
-      >
-        📊 Dashboard
-      </Button>
-      <Button
-        variant={isActive("/characters") ? "solid" : "ghost"}
-        justifyContent="flex-start"
-        width="100%"
-        onClick={() => navigate("/characters")}
-      >
-        👤 Characters
-      </Button>
-      <Button
-        variant={isActive("/scenarios") ? "solid" : "ghost"}
-        justifyContent="flex-start"
-        width="100%"
-        onClick={() => navigate("/scenarios")}
-      >
-        📖 Scenarios
-      </Button>
-    </Stack>
-  );
-};
+import { Logo } from "@/components/logo";
+import { Sidebar } from "@/components/sidebar";
 
 export function AppShell() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useBreakpointValue({ base: true, md: false });
 
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar-expanded");
+    if (saved !== null) {
+      setSidebarExpanded(JSON.parse(saved));
+    }
+  }, []);
+
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem("sidebar-expanded", JSON.stringify(sidebarExpanded));
+  }, [sidebarExpanded]);
+
+  const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
+
   return (
-    <Box minH="100vh">
+    <Box minH="100vh" data-testid="app-shell">
       {/* Mobile Layout */}
       <Show when={isMobile}>
-        <Drawer.Root placement="start">
+        <Drawer.Root
+          open={drawerOpen}
+          onOpenChange={(e) => setDrawerOpen(e.open)}
+        >
           <Flex
             as="header"
             p={4}
             borderBottomWidth="1px"
             justify="space-between"
             align="center"
+            bg="bg.surface"
+            data-testid="mobile-header"
           >
             <Drawer.Trigger asChild>
-              <Button variant="ghost" size="sm">
-                ☰
+              <Button
+                variant="ghost"
+                size="sm"
+                data-testid="mobile-menu-button"
+              >
+                <LuMenu />
               </Button>
             </Drawer.Trigger>
-            <Box fontWeight="bold">StoryForge</Box>
+            <Logo collapsed />
             <ClientOnly fallback={<Skeleton w="10" h="10" rounded="md" />}>
               <ColorModeToggle />
             </ClientOnly>
@@ -83,17 +71,20 @@ export function AppShell() {
           <Portal>
             <Drawer.Backdrop />
             <Drawer.Positioner>
-              <Drawer.Content>
+              <Drawer.Content data-testid="mobile-drawer">
                 <Drawer.Header>
                   <Drawer.Title>Navigation</Drawer.Title>
+                  <Drawer.CloseTrigger />
                 </Drawer.Header>
-                <Drawer.Body>
-                  <NavigationContent />
+                <Drawer.Body p="0">
+                  <Box onClick={() => setDrawerOpen(false)}>
+                    <Sidebar collapsed={false} onToggleCollapse={() => {}} />
+                  </Box>
                 </Drawer.Body>
               </Drawer.Content>
             </Drawer.Positioner>
           </Portal>
-          <Box p={4}>
+          <Box as="main" p={4} data-testid="mobile-main-content">
             <Outlet />
           </Box>
         </Drawer.Root>
@@ -101,55 +92,29 @@ export function AppShell() {
 
       {/* Desktop Layout */}
       <Show when={!isMobile}>
-        <Grid
-          templateAreas={`"sidebar header"
-                          "sidebar main"`}
-          templateColumns={sidebarOpen ? "250px 1fr" : "60px 1fr"}
-          templateRows="60px 1fr"
-          minH="100vh"
-          transition="all 0.2s"
-        >
-          <GridItem area="sidebar" borderRightWidth="1px">
-            <Collapsible.Root
-              open={sidebarOpen}
-              onOpenChange={({ open }) => setSidebarOpen(open)}
-            >
-              <Flex
-                p={4}
-                borderBottomWidth="1px"
-                justify={sidebarOpen ? "space-between" : "center"}
-              >
-                <Collapsible.Trigger asChild>
-                  <Button variant="ghost" size="sm">
-                    ☰
-                  </Button>
-                </Collapsible.Trigger>
-                <Collapsible.Content>
-                  <Box fontWeight="bold" fontSize="sm">
-                    StoryForge
-                  </Box>
-                </Collapsible.Content>
-              </Flex>
-              <Collapsible.Content>
-                <NavigationContent />
-              </Collapsible.Content>
-            </Collapsible.Root>
-          </GridItem>
+        <Flex minH="100vh" data-testid="desktop-layout">
+          {/* Sidebar */}
+          <Sidebar
+            collapsed={!sidebarExpanded}
+            onToggleCollapse={toggleSidebar}
+          />
 
-          <GridItem area="header" borderBottomWidth="1px">
-            <Flex align="center" justify="flex-end" p={4}>
-              <ClientOnly fallback={<Skeleton w="10" h="10" rounded="md" />}>
-                <ColorModeToggle />
-              </ClientOnly>
-            </Flex>
-          </GridItem>
-
-          <GridItem area="main" overflow="auto">
-            <Container p={6} maxW="container.xl">
-              <Outlet />
-            </Container>
-          </GridItem>
-        </Grid>
+          {/* Main Content */}
+          <Flex
+            as="main"
+            direction="column"
+            flex="1"
+            overflow="hidden"
+            data-testid="desktop-main-content"
+          >
+            {/* Main Content Area */}
+            <Box flex="1" overflow="auto">
+              <Container p={6} maxW="container.xl">
+                <Outlet />
+              </Container>
+            </Box>
+          </Flex>
+        </Flex>
       </Show>
     </Box>
   );

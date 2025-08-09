@@ -7,6 +7,7 @@
 - **Zustand**: Use Zustand for managing shared state across components.
 - **Icons**: Use `react-icons` for iconography; prefer Lucide (`react-icons/lu`) when possible.
   - Use the `react-icons-mcp` tool to look up icons from Lucide or other icon sets.
+  - Note: Lucide icons tend to be named after what they literally display ('Edit' -> 'LuPencil', 'Home' -> 'LuHouse')
 
 ## Research tools
 **IMPORTANT: You must always delegate research tasks to an agent, for ef

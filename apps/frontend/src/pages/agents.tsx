@@ -1,13 +1,13 @@
 import { Container, Heading, Text } from "@chakra-ui/react";
 
-export function DashboardPage() {
+export function AgentsPage() {
   return (
     <Container>
       <Heading size="xl" mb={4}>
-        Dashboard
+        Agents
       </Heading>
       <Text color="fg.muted">
-        Welcome to StoryForge - your AI tabletop roleplay engine.
+        Create and manage agent workflows for narrative generation.
       </Text>
     </Container>
   );

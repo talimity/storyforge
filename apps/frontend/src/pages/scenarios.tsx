@@ -1,13 +1,22 @@
-import { Box, Button, Heading, Text, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Container,
+  Heading,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 
 export function ScenariosPage() {
   return (
-    <Box>
-      <Heading size="lg" mb={4}>
+    <Container>
+      <Heading size="xl" mb={4}>
         Scenario Library
       </Heading>
+      <Text color="fg.muted" mb={4}>
+        Create and manage your roleplay scenarios.
+      </Text>
       <VStack align="start" gap={4}>
-        <Text>Create and manage your roleplay scenarios.</Text>
         <Button variant="solid" colorPalette="green">
           Create Scenario
         </Button>
@@ -23,6 +32,6 @@ export function ScenariosPage() {
           No scenarios yet. Create your first scenario to begin.
         </Box>
       </VStack>
-    </Box>
+    </Container>
   );
 }

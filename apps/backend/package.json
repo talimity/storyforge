@@ -60,6 +60,7 @@
     "form-data": "^4.0.4",
     "vitest": "catalog:",
     "typescript": "catalog:",
-    "@types/node": "catalog:"
+    "@types/node": "catalog:",
+    "tsx": "catalog:"
   }
 }

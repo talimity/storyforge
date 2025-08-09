@@ -1,7 +1,7 @@
 import {
-  Box,
   Button,
   Center,
+  Container,
   Grid,
   Heading,
   HStack,
@@ -33,9 +33,9 @@ export function CharactersPage() {
   };
 
   return (
-    <Box>
+    <Container>
       <HStack justify="space-between" align="center" mb={6}>
-        <Heading size="lg">Character Library</Heading>
+        <Heading size="xl">Character Library</Heading>
         <Button variant="solid" colorPalette="blue" onClick={openImportModal}>
           Import Character
         </Button>
@@ -110,6 +110,6 @@ export function CharactersPage() {
         onClose={() => setIsImportModalOpen(false)}
         onImportSuccess={handleImportSuccess}
       />
-    </Box>
+    </Container>
   );
 }
