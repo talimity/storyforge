@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   ClientOnly,
   Container,
   Drawer,
@@ -16,6 +15,7 @@ import { Outlet } from "react-router-dom";
 import { ColorModeToggle } from "@/components/color-mode-toggle";
 import { Logo } from "@/components/logo";
 import { Sidebar } from "@/components/sidebar";
+import { Button } from "@/components/ui";
 
 export function AppShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -92,7 +92,7 @@ export function AppShell() {
 
       {/* Desktop Layout */}
       <Show when={!isMobile}>
-        <Flex minH="100vh" data-testid="desktop-layout">
+        <Flex h="100vh" data-testid="desktop-layout">
           {/* Sidebar */}
           <Sidebar
             collapsed={!sidebarExpanded}
@@ -104,11 +104,11 @@ export function AppShell() {
             as="main"
             direction="column"
             flex="1"
-            overflow="hidden"
+            overflow="auto"
             data-testid="desktop-main-content"
           >
             {/* Main Content Area */}
-            <Box flex="1" overflow="auto">
+            <Box flex="1">
               <Container p={6} maxW="container.xl">
                 <Outlet />
               </Container>

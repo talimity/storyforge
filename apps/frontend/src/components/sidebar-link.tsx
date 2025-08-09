@@ -1,7 +1,7 @@
-import { Button } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Tooltip } from "@/components/ui/tooltip";
+
+import { Button, Tooltip } from "@/components/ui";
 
 interface SidebarLinkProps {
   to: string;
@@ -21,21 +21,23 @@ export function SidebarLink({
 
   const linkContent = (
     <Button
+      colorPalette="grey"
       variant="ghost"
       w="full"
       h="10"
-      justifyContent="start"
+      justifyContent={collapsed ? "center" : "start"}
       gap="3"
       verticalAlign={"super"}
       px={collapsed ? "2" : "4"}
-      color={isActive ? "colorPalette.fg" : "fg.muted"}
-      bg={isActive ? "colorPalette.subtle" : undefined}
+      color={isActive ? "content.emphasized" : "content.subtle"}
+      bg={isActive ? "surface.emphasized" : undefined}
       _hover={{
-        bg: "colorPalette.subtle",
-        color: "colorPalette.fg",
+        bg: "surface.emphasized",
+        color: "content.emphasized",
       }}
       transition="all 0.2s"
       asChild
+      overflow="hidden"
     >
       <Link to={to}>
         {icon}

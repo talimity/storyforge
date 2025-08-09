@@ -1,6 +1,6 @@
-import { Button } from "@chakra-ui/react";
 import { useTheme } from "next-themes";
 import { LuMoon, LuSun } from "react-icons/lu";
+import { Button } from "@/components/ui";
 
 interface ColorModeToggleProps {
   collapsed?: boolean;
@@ -14,6 +14,7 @@ export function ColorModeToggle({ collapsed = false }: ColorModeToggleProps) {
 
   return (
     <Button
+      colorPalette="grey"
       variant="ghost"
       width="full"
       justifyContent="start"

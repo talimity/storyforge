@@ -1,11 +1,5 @@
-import {
-  Box,
-  Button,
-  Container,
-  Heading,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, Container, Heading, Text, VStack } from "@chakra-ui/react";
+import { Button } from "@/components/ui";
 
 export function ScenariosPage() {
   return (
@@ -17,7 +11,7 @@ export function ScenariosPage() {
         Create and manage your roleplay scenarios.
       </Text>
       <VStack align="start" gap={4}>
-        <Button variant="solid" colorPalette="green">
+        <Button variant="solid" colorPalette="primary">
           Create Scenario
         </Button>
         <Box

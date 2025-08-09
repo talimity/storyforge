@@ -1,0 +1,46 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
+  "root": false,
+  "extends": "//",
+  "overrides": [
+    {
+      "includes": ["src/components/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "off",
+              "options": {}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "linter": {
+    "rules": {
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "@chakra-ui/react": {
+                "importNames": [
+                  "Button",
+                  "Checkbox",
+                  "Field",
+                  "Radio",
+                  "RadioGroup",
+                  "Select",
+                  "Switch",
+                  "ToolTip"
+                ],
+                "message": "Use the equivalent closed component from @/components/ui instead of importing from @chakra-ui/react directly."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

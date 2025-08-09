@@ -6,6 +6,7 @@ import { DashboardPage } from "./pages/dashboard";
 import { ModelsPage } from "./pages/models";
 import { ScenariosPage } from "./pages/scenarios";
 import { SettingsPage } from "./pages/settings";
+import { ThemeDemoPage } from "./pages/theme-demo";
 
 export const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
       {
         path: "agents",
         element: <AgentsPage />,
+      },
+      {
+        path: "theme-demo",
+        element: <ThemeDemoPage />,
       },
       {
         path: "settings",

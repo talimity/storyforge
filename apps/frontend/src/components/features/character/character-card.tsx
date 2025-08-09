@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Card,
   Dialog,
   IconButton,
@@ -12,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuMenu, LuPencilLine, LuTrash, LuUsers } from "react-icons/lu";
+import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 
 interface CharacterCardProps {
@@ -47,7 +47,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
   return (
     <Card.Root
       width="240px"
-      variant="outline"
+      layerStyle="surface"
       overflow="hidden"
       className="group"
     >

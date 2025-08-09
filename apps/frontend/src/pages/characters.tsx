@@ -1,5 +1,4 @@
 import {
-  Button,
   Center,
   Container,
   Grid,
@@ -15,6 +14,7 @@ import {
   CharacterCard,
   CharacterCardSkeleton,
 } from "@/components/features/character/character-card";
+import { Button } from "@/components/ui";
 import { EmptyState } from "@/components/ui/empty-state";
 import { trpc } from "@/lib/trpc";
 
@@ -36,7 +36,11 @@ export function CharactersPage() {
     <Container>
       <HStack justify="space-between" align="center" mb={6}>
         <Heading size="xl">Character Library</Heading>
-        <Button variant="solid" colorPalette="blue" onClick={openImportModal}>
+        <Button
+          variant="solid"
+          colorPalette="primary"
+          onClick={openImportModal}
+        >
           Import Character
         </Button>
       </HStack>

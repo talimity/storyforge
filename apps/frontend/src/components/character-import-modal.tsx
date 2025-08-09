@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Dialog,
   HStack,
   Icon,
@@ -12,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
-import { toaster } from "./ui/toaster";
+import { Button, toaster } from "@/components/ui";
 
 interface CharacterImportModalProps {
   isOpen: boolean;
@@ -325,7 +324,7 @@ export function CharacterImportModal({
                   Cancel
                 </Button>
                 <Button
-                  colorPalette="blue"
+                  colorPalette="primary"
                   onClick={handleUpload}
                   disabled={selectedFiles.length === 0 || isUploading}
                   loading={isUploading}

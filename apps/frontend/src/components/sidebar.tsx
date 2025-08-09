@@ -1,17 +1,19 @@
 import {
   Box,
-  Button,
   ClientOnly,
+  Separator,
   Skeleton,
   Stack,
   Text,
 } from "@chakra-ui/react";
+import type { ReactNode } from "react";
 import {
   LuBookOpen,
   LuBrain,
   LuChevronLeft,
   LuChevronRight,
   LuHouse,
+  LuPaintBucket,
   LuSettings,
   LuUsers,
   LuWorkflow,
@@ -19,6 +21,7 @@ import {
 import { ColorModeToggle } from "./color-mode-toggle";
 import { Logo } from "./logo";
 import { SidebarLink } from "./sidebar-link";
+import { Button } from "./ui";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -30,14 +33,14 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     <Stack
       as="nav"
       h="100vh"
-      w={collapsed ? "64px" : "280px"}
-      bg="bg.surface"
+      w={collapsed ? "64px" : "240px"}
+      bg="surface.subtle/80"
       boxShadow={
         collapsed ? "1px 0 0 0 var(--chakra-colors-border)" : undefined
       }
       borderRightWidth={collapsed ? "0" : "1px"}
       transition="width 0.2s"
-      position="relative"
+      position="sticky"
       data-testid="sidebar"
     >
       {/* Logo Section */}
@@ -83,19 +86,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         />
 
         {/* Library Section */}
-        {!collapsed && (
-          <Text
-            fontSize="xs"
-            fontWeight="semibold"
-            color="fg.muted"
-            px="4"
-            py="2"
-            textTransform="uppercase"
-            letterSpacing="wider"
-          >
-            Library
-          </Text>
-        )}
+        {collapsed ? <Separator /> : <SectionHeader>Library</SectionHeader>}
 
         <SidebarLink
           to="/characters"
@@ -124,6 +115,20 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           label="Agents"
           collapsed={collapsed}
         />
+
+        {/* Dev tools Section */}
+        {collapsed ? (
+          <Separator />
+        ) : (
+          <SectionHeader>Developer Tools</SectionHeader>
+        )}
+
+        <SidebarLink
+          to="/theme-demo"
+          icon={<LuPaintBucket />}
+          label="Design System"
+          collapsed={collapsed}
+        />
       </Stack>
 
       {/* Settings at Bottom */}
@@ -143,5 +148,22 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         </Stack>
       </Box>
     </Stack>
+  );
+}
+
+function SectionHeader({ children }: { children: ReactNode }) {
+  return (
+    <Text
+      fontSize="xs"
+      fontWeight="semibold"
+      color="fg.muted"
+      px="4"
+      py="2"
+      textTransform="uppercase"
+      letterSpacing="wider"
+      textWrap="nowrap"
+    >
+      {children}
+    </Text>
   );
 }
