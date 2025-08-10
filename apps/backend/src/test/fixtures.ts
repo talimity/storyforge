@@ -12,8 +12,8 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Path to fixture data
-const dataPath = path.join(__dirname, "../../data");
+// Path to fixture data (moved to root data/ directory)
+const dataPath = path.join(__dirname, "../../../../data");
 
 export interface CharacterFixture {
   id: string;

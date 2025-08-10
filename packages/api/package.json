@@ -15,9 +15,8 @@
   },
   "dependencies": {
     "@trpc/server": "catalog:",
-    "fastify": "^5.1.0",
-    "trpc-to-openapi": "^2.0.0-rc.2",
-    "zod": "^3.23.8"
+    "trpc-to-openapi": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:",

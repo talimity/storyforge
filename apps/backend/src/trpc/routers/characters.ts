@@ -1,5 +1,7 @@
 import {
   characterIdSchema,
+  characterImportResponseSchema,
+  characterImportSchema,
   characterSchema,
   charactersListResponseSchema,
   characterWithRelationsSchema,
@@ -9,8 +11,10 @@ import {
 import { CharacterRepository } from "@storyforge/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { transformCharacter } from "../../shelf/character/character.transforms";
-import { publicProcedure, router } from "../index";
+import { transformCharacter } from "@/shelf/character/character.transforms";
+import { CharacterImportService } from "@/shelf/character/character-import.service";
+import { parseTavernCard } from "@/shelf/character/parse-tavern-card";
+import { publicProcedure, router } from "@/trpc/index";
 
 export const charactersRouter = router({
   list: publicProcedure
@@ -61,6 +65,44 @@ export const charactersRouter = router({
       };
     }),
 
+  import: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/characters/import",
+        tags: ["characters"],
+        summary: "Import a character from a file",
+      },
+    })
+    .input(characterImportSchema)
+    .output(characterImportResponseSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { charaDataUri } = input;
+
+      try {
+        const buffer = Buffer.from(charaDataUri.split(",")[1], "base64");
+        const parsedCard = await parseTavernCard(buffer.buffer);
+        const characterRepository = new CharacterRepository(ctx.db);
+        const importService = new CharacterImportService(characterRepository);
+        const newChara = await importService.importCharacter(
+          parsedCard.cardData,
+          buffer
+        );
+
+        return {
+          success: true,
+          characterId: newChara,
+          character: transformCharacter(newChara),
+        };
+      } catch (error) {
+        ctx.logger.error(error, "Error importing character from TavernCard");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to import character",
+        });
+      }
+    }),
+
   create: publicProcedure
     .meta({
       openapi: {
@@ -72,9 +114,20 @@ export const charactersRouter = router({
     })
     .input(createCharacterSchema)
     .output(characterWithRelationsSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input: rawInput, ctx }) => {
+      const { avatarDataUri, ...input } = rawInput;
+      let cardImage: Buffer | undefined;
+
+      if (avatarDataUri) {
+        const base64Data = avatarDataUri.split(",")[1];
+        cardImage = Buffer.from(base64Data, "base64");
+      }
+
       const characterRepository = new CharacterRepository(ctx.db);
-      const newCharacter = await characterRepository.createWithRelations(input);
+      const newCharacter = await characterRepository.createWithRelations({
+        ...input,
+        cardImage,
+      });
 
       return {
         ...transformCharacter(newCharacter),

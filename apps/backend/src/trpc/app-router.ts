@@ -1,7 +1,7 @@
-import { router } from "./index";
-import { charactersRouter } from "./routers/characters";
-import { debugRouter } from "./routers/debug";
-import { scenariosRouter } from "./routers/scenarios";
+import { router } from "@/trpc/index";
+import { charactersRouter } from "@/trpc/routers/characters";
+import { debugRouter } from "@/trpc/routers/debug";
+import { scenariosRouter } from "@/trpc/routers/scenarios";
 
 export const allRouters = {
   characters: charactersRouter,

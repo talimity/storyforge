@@ -1,10 +1,10 @@
 import { type CompletionInput, completionSchema } from "@storyforge/api";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { generationContextAdapter } from "../inference/generation-context-adapter";
-import type { LLMProvider } from "../inference/providers/base-provider";
-import { DeepSeekProvider } from "../inference/providers/deepseek";
-import { MockProvider } from "../inference/providers/mock";
-import { OpenRouterProvider } from "../inference/providers/openrouter";
+import { generationContextAdapter } from "@/inference/generation-context-adapter";
+import type { LLMProvider } from "@/inference/providers/base-provider";
+import { DeepSeekProvider } from "@/inference/providers/deepseek";
+import { MockProvider } from "@/inference/providers/mock";
+import { OpenRouterProvider } from "@/inference/providers/openrouter";
 
 // Initialize providers (reusing the same logic as debug router)
 const providers = new Map<string, LLMProvider>();

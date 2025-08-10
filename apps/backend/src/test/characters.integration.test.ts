@@ -6,7 +6,6 @@ import {
 } from "../test/fixtures";
 import { createFreshTestCaller, createTestFastifyServer } from "../test/setup";
 import { registerAssetServeRoute } from "../trpc/asset-serve";
-import { registerFileUploadRoutes } from "../trpc/file-upload";
 
 describe("characters router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
@@ -32,7 +31,7 @@ describe("characters router integration", () => {
       expect(result.characters).toHaveLength(fixtureCount);
       expect(result.characters[0]).toHaveProperty("id");
       expect(result.characters[0]).toHaveProperty("name");
-      expect(result.characters[0]).toHaveProperty("description");
+      // Note: characters.list returns stub objects without description field
     });
   });
 
@@ -96,6 +95,42 @@ describe("characters router integration", () => {
       expect(result.description).toBe(newCharacter.description);
       expect(result).toHaveProperty("id");
     });
+
+    it("should create character with avatar image", async () => {
+      const fixtures = await loadCharacterFixtures();
+      expect(fixtures.length).toBeGreaterThan(0);
+      const fixture = fixtures[0];
+
+      const base64Data = fixture!.imageBuffer.toString("base64");
+      const avatarDataUri = `data:image/png;base64,${base64Data}`;
+
+      const newCharacter = {
+        name: "Character with Avatar",
+        description: "Character with image avatar",
+        avatarDataUri,
+      };
+
+      const result = await caller.characters.create(newCharacter);
+      expect(result.name).toBe(newCharacter.name);
+      expect(result.description).toBe(newCharacter.description);
+      expect(result).toHaveProperty("id");
+
+      // Verify that the character was created with an image by checking if we can fetch it
+      const fastify = await createTestFastifyServer(testDb);
+      registerAssetServeRoute(fastify);
+
+      const response = await fastify.inject({
+        method: "GET",
+        url: `/api/characters/${result.id}/image`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers["content-type"]).toBe("image/png");
+      expect(response.rawPayload).toBeInstanceOf(Buffer);
+      expect(response.rawPayload.length).toBeGreaterThan(0);
+
+      await fastify.close();
+    });
   });
 
   describe("characters.update", () => {
@@ -133,7 +168,7 @@ describe("characters router integration", () => {
 
       const characters = await caller.characters.list();
       const firstCharacter = characters.characters[0];
-      const originalDescription = firstCharacter!.description;
+      const originalCreatorNotes = firstCharacter!.creatorNotes;
 
       const updateData = {
         id: firstCharacter!.id,
@@ -142,7 +177,7 @@ describe("characters router integration", () => {
 
       const result = await caller.characters.update(updateData);
       expect(result.name).toBe(updateData.name);
-      expect(result.description).toBe(originalDescription); // Should remain unchanged
+      expect(result.creatorNotes).toBe(originalCreatorNotes); // Should remain unchanged
     });
   });
 
@@ -243,100 +278,48 @@ describe("characters router integration", () => {
     });
   });
 
-  describe("HTTP Import Endpoint", () => {
-    it("should import character card from PNG file", async () => {
+  describe("characters.import", () => {
+    it("should import character card from base64 PNG data URI", async () => {
       const fixtures = await loadCharacterFixtures();
       expect(fixtures.length).toBeGreaterThan(0);
       const fixture = fixtures[0];
 
-      const fastify = await createTestFastifyServer(testDb);
-      registerFileUploadRoutes(fastify);
+      // Convert the image buffer to base64 data URI
+      const base64Data = fixture!.imageBuffer.toString("base64");
+      const charaDataUri = `data:image/png;base64,${base64Data}`;
 
-      // Create proper multipart form data for file upload
-      const FormData = (await import("form-data")).default;
-      const form = new FormData();
-      form.append("file", fixture!.imageBuffer, {
-        filename: "test-character.png",
-        contentType: "image/png",
-      });
+      const result = await caller.characters.import({ charaDataUri });
 
-      const response = await fastify.inject({
-        method: "POST",
-        url: "/api/characters/import",
-        payload: form,
-        headers: form.getHeaders(),
-      });
-
-      if (response.statusCode !== 200) {
-        console.log("Import response:", response.statusCode, response.payload);
-      }
-
-      expect(response.statusCode).toBe(200);
-      const result = JSON.parse(response.payload);
       expect(result.success).toBe(true);
       expect(result.character).toHaveProperty("id");
       expect(result.character).toHaveProperty("name");
-      expect(result).toHaveProperty("greetings");
-      expect(result).toHaveProperty("examples");
-      expect(result).toHaveProperty("isV2");
-      expect(Array.isArray(result.greetings)).toBe(true);
-      expect(Array.isArray(result.examples)).toBe(true);
-
-      await fastify.close();
+      expect(result.character.name).toBe(fixture!.name);
     });
 
-    it("should reject non-PNG files", async () => {
-      const fastify = await createTestFastifyServer(testDb);
-      registerFileUploadRoutes(fastify);
+    it("should throw error for invalid base64 data URI", async () => {
+      const invalidDataUri = "data:image/png;base64,invalid-base64-data";
 
-      const response = await fastify.inject({
-        method: "POST",
-        url: "/api/characters/import",
-        payload: Buffer.from("not a png file"),
-        headers: {
-          "content-type": "text/plain",
-        },
-      });
-
-      expect(response.statusCode).toBe(406); // Fastify returns 406 for wrong content type
-
-      await fastify.close();
+      await expect(
+        caller.characters.import({ charaDataUri: invalidDataUri })
+      ).rejects.toThrow();
     });
 
-    it("should reject request with no file", async () => {
-      const fastify = await createTestFastifyServer(testDb);
-      registerFileUploadRoutes(fastify);
+    it("should throw error for non-image data URI", async () => {
+      const textDataUri = "data:text/plain;base64,SGVsbG8gV29ybGQ=";
 
-      const response = await fastify.inject({
-        method: "POST",
-        url: "/api/characters/import",
-      });
-
-      expect(response.statusCode).toBe(406); // Fastify returns 406 for missing multipart data
-
-      await fastify.close();
+      await expect(
+        caller.characters.import({ charaDataUri: textDataUri })
+      ).rejects.toThrow();
     });
 
-    it("should handle invalid PNG files gracefully", async () => {
-      const fastify = await createTestFastifyServer(testDb);
-      registerFileUploadRoutes(fastify);
+    it("should handle corrupted PNG data gracefully", async () => {
+      // Create corrupted PNG data (valid base64 but invalid PNG)
+      const corruptedPngData = Buffer.alloc(100, 0).toString("base64");
+      const charaDataUri = `data:image/png;base64,${corruptedPngData}`;
 
-      // Create a buffer that looks like PNG but has invalid character data
-      const invalidPngBuffer = Buffer.alloc(100);
-      invalidPngBuffer.write("\x89PNG\r\n\x1a\n", 0); // PNG signature
-
-      const response = await fastify.inject({
-        method: "POST",
-        url: "/api/characters/import",
-        payload: invalidPngBuffer,
-        headers: {
-          "content-type": "image/png",
-        },
-      });
-
-      expect(response.statusCode).toBe(415); // Fastify multipart returns 415 for invalid files
-
-      await fastify.close();
+      await expect(caller.characters.import({ charaDataUri })).rejects.toThrow(
+        "Failed to import character"
+      );
     });
   });
 });

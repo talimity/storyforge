@@ -19,8 +19,8 @@ import { z } from "zod";
 import {
   transformScenarioCharacterAssignment,
   transformScenarioWithCharacters,
-} from "../../shelf/scenario";
-import { publicProcedure, router } from "../index";
+} from "@/shelf/scenario";
+import { publicProcedure, router } from "@/trpc/index";
 
 export const scenariosRouter = router({
   list: publicProcedure

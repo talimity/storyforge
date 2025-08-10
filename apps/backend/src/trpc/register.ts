@@ -1,20 +1,18 @@
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import type { FastifyInstance } from "fastify";
 import { createOpenApiHttpHandler } from "trpc-to-openapi";
-import { createAppContext } from "./app-context";
-import { appRouter } from "./app-router";
-import { registerAssetServeRoute } from "./asset-serve";
-import { registerFileUploadRoutes } from "./file-upload";
-import { openApiDocument } from "./openapi";
-import { registerSSERoutes } from "./sse";
+import { createAppContext } from "@/trpc/app-context";
+import { appRouter } from "@/trpc/app-router";
+import { registerAssetServeRoute } from "@/trpc/asset-serve";
+import { openApiDocument } from "@/trpc/openapi";
+import { registerSSERoutes } from "@/trpc/sse";
 
 /**
  * Register all tRPC and REST (via trpc-to-openapi) routes given a Fastify
  * instance.
  */
 export function registerAPI(fastify: FastifyInstance) {
-  // Register non-tRPC routes for file uploads, images, and SSE
-  registerFileUploadRoutes(fastify);
+  // Register non-tRPC routes for images, and SSE
   registerAssetServeRoute(fastify);
   registerSSERoutes(fastify);
 

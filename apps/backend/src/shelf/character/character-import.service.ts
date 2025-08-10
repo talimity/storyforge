@@ -16,10 +16,7 @@ function isTavernCardV2(card: TavernCard): card is TavernCardV2 {
 export class CharacterImportService {
   constructor(private repository: CharacterRepository) {}
 
-  async importCharacter(
-    card: TavernCard,
-    imageBuffer: Buffer
-  ): Promise<string> {
+  async importCharacter(card: TavernCard, imageBuffer: Buffer) {
     if (isTavernCardV2(card)) {
       return this.importV2Character(card, imageBuffer);
     } else {
@@ -27,10 +24,7 @@ export class CharacterImportService {
     }
   }
 
-  private async importV2Character(
-    card: TavernCardV2,
-    imageBuffer: Buffer
-  ): Promise<string> {
+  private async importV2Character(card: TavernCardV2, imageBuffer: Buffer) {
     const newCharacter = {
       name: card.data.name,
       description: card.data.description,
@@ -65,18 +59,14 @@ export class CharacterImportService {
       });
     }
 
-    const character = await this.repository.createWithRelations(
+    return await this.repository.createWithRelations(
       newCharacter,
       greetings,
       examples
     );
-    return character.id;
   }
 
-  private async importV1Character(
-    card: TavernCardV1,
-    imageBuffer: Buffer
-  ): Promise<string> {
+  private async importV1Character(card: TavernCardV1, imageBuffer: Buffer) {
     const newCharacter = {
       name: card.name,
       description: card.description,
@@ -103,11 +93,10 @@ export class CharacterImportService {
       examples.push({ exampleTemplate: card.mes_example });
     }
 
-    const character = await this.repository.createWithRelations(
+    return await this.repository.createWithRelations(
       newCharacter,
       greetings,
       examples
     );
-    return character.id;
   }
 }

@@ -49,8 +49,8 @@
     "png-chunk-text": "^1.0.0",
     "png-chunks-encode": "^1.0.0",
     "png-chunks-extract": "^1.0.0",
-    "trpc-to-openapi": "^2.3.2",
-    "zod": "^3.25.76"
+    "trpc-to-openapi": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@mapbox/node-pre-gyp": "^2.0.0",

@@ -6,12 +6,12 @@ import {
   renderPromptQuerySchema,
   renderPromptResponseSchema,
 } from "@storyforge/api";
-import { generationContextAdapter } from "../../inference/generation-context-adapter";
-import type { LLMProvider } from "../../inference/providers/base-provider";
-import { DeepSeekProvider } from "../../inference/providers/deepseek";
-import { MockProvider } from "../../inference/providers/mock";
-import { OpenRouterProvider } from "../../inference/providers/openrouter";
-import { publicProcedure, router } from "../index";
+import { generationContextAdapter } from "@/inference/generation-context-adapter";
+import type { LLMProvider } from "@/inference/providers/base-provider";
+import { DeepSeekProvider } from "@/inference/providers/deepseek";
+import { MockProvider } from "@/inference/providers/mock";
+import { OpenRouterProvider } from "@/inference/providers/openrouter";
+import { publicProcedure, router } from "@/trpc/index";
 
 // Lazy-load providers to avoid initialization errors in test environments
 // TODO: Set up a proper configuration system for providers

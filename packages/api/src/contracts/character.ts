@@ -1,5 +1,29 @@
 import { z } from "zod";
 
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+
+const imageInputSchema = z.string().refine(
+  (val) => {
+    if (val === null) return true;
+
+    const parts = val.match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
+    if (!parts) return false;
+
+    const estSize = Math.ceil((parts[2].length * 3) / 4); //b64 overhead
+    if (estSize > MAX_IMAGE_SIZE) {
+      return false;
+    }
+
+    try {
+      z.string().base64().parse(parts[2]);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  { message: "Provided image must be a valid PNG/JPEG under 10MB" }
+);
+
 // Input schemas
 export const characterIdSchema = z.object({
   id: z.string().min(1),
@@ -8,6 +32,7 @@ export const characterIdSchema = z.object({
 export const createCharacterSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
+  avatarDataUri: z.union([z.null(), imageInputSchema]).optional(),
   legacyPersonality: z.string().nullish(),
   legacyScenario: z.string().nullish(),
   creator: z.string().nullish(),
@@ -16,7 +41,6 @@ export const createCharacterSchema = z.object({
   customPostHistoryInstructions: z.string().nullish(),
   tags: z.array(z.string()).default([]),
   revision: z.string().default("1.0"),
-  originalCardData: z.any().nullish(),
 });
 
 export const updateCharacterSchema = z.object({
@@ -76,19 +100,14 @@ export const characterWithRelationsSchema = characterSchema.extend({
   examples: z.array(characterExampleSchema),
 });
 
-// File upload schema
 export const characterImportSchema = z.object({
-  fileBuffer: z.instanceof(Buffer),
-  mimeType: z.string(),
+  charaDataUri: imageInputSchema,
 });
 
 // Response schemas
 export const characterImportResponseSchema = z.object({
   success: z.boolean(),
   character: characterSchema,
-  greetings: z.array(z.any()),
-  examples: z.array(z.any()),
-  isV2: z.boolean(),
 });
 
 export const charactersListResponseSchema = z.object({
