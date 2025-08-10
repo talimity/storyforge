@@ -28,6 +28,8 @@
                 "importNames": [
                   "Button",
                   "Checkbox",
+                  "Dialog",
+                  "EmptyState",
                   "Field",
                   "Radio",
                   "RadioGroup",

@@ -1,7 +1,6 @@
 import {
   Box,
   Card,
-  Dialog,
   IconButton,
   Image,
   Menu,
@@ -11,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuMenu, LuPencilLine, LuTrash, LuUsers } from "react-icons/lu";
+import { Dialog } from "@/components/ui";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 
@@ -18,7 +18,6 @@ interface CharacterCardProps {
   character: {
     id: string;
     name: string;
-    description: string;
     imagePath: string | null;
   };
 }
@@ -81,12 +80,10 @@ export function CharacterCard({ character }: CharacterCardProps) {
               position="absolute"
               top={2}
               right={2}
-              bg="bg.subtle"
-              _hover={{ bg: "bg.muted" }}
+              colorPalette="neutral"
               opacity={0}
               _groupHover={{ opacity: 1 }}
               _focus={{ opacity: 1 }}
-              transition="opacity 0.2s ease-in-out"
             >
               <LuMenu />
             </IconButton>
@@ -118,48 +115,42 @@ export function CharacterCard({ character }: CharacterCardProps) {
           {character.name}
         </Text>
       </Card.Body>
-
       <Dialog.Root
         role="alertdialog"
         open={isDeleteDialogOpen}
         onOpenChange={(e) => setIsDeleteDialogOpen(e.open)}
         placement="center"
       >
-        <Portal>
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content>
-              <Dialog.Header>
-                <Dialog.Title>Delete Character</Dialog.Title>
-              </Dialog.Header>
-              <Dialog.Body>
-                <Text>
-                  Are you sure you want to delete "{character.name}"? This
-                  action cannot be undone.
-                </Text>
-              </Dialog.Body>
-              <Dialog.Footer>
-                <Dialog.ActionTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsDeleteDialogOpen(false)}
-                    disabled={deleteCharacterMutation.isPending}
-                  >
-                    Cancel
-                  </Button>
-                </Dialog.ActionTrigger>
-                <Button
-                  colorPalette="red"
-                  onClick={handleDelete}
-                  loading={deleteCharacterMutation.isPending}
-                  disabled={deleteCharacterMutation.isPending}
-                >
-                  Delete
-                </Button>
-              </Dialog.Footer>
-            </Dialog.Content>
-          </Dialog.Positioner>
-        </Portal>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Delete Character</Dialog.Title>
+          </Dialog.Header>
+          <Dialog.Body>
+            <Text>
+              Are you sure you want to delete "{character.name}"? This action
+              cannot be undone.
+            </Text>
+          </Dialog.Body>
+          <Dialog.Footer>
+            <Dialog.ActionTrigger asChild>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+                disabled={deleteCharacterMutation.isPending}
+              >
+                Cancel
+              </Button>
+            </Dialog.ActionTrigger>
+            <Button
+              colorPalette="red"
+              onClick={handleDelete}
+              loading={deleteCharacterMutation.isPending}
+              disabled={deleteCharacterMutation.isPending}
+            >
+              Delete
+            </Button>
+          </Dialog.Footer>
+        </Dialog.Content>
       </Dialog.Root>
     </Card.Root>
   );

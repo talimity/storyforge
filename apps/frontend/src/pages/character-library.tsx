@@ -1,24 +1,18 @@
-import {
-  Center,
-  Container,
-  Grid,
-  Heading,
-  HStack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Center, Grid, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuUsers } from "react-icons/lu";
-import { CharacterImportModal } from "@/components/character-import-modal";
+import { CharacterImportDialog } from "@/components/dialogs/character-import";
 import {
   CharacterCard,
   CharacterCardSkeleton,
 } from "@/components/features/character/character-card";
 import { Button } from "@/components/ui";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SimplePageHeader } from "@/components/ui/page-header";
+import { SplitButton } from "@/components/ui/split-button";
 import { trpc } from "@/lib/trpc";
 
-export function CharactersPage() {
+export function CharacterLibraryPage() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const charactersQuery = trpc.characters.list.useQuery();
   const utils = trpc.useUtils();
@@ -33,17 +27,30 @@ export function CharactersPage() {
   };
 
   return (
-    <Container>
-      <HStack justify="space-between" align="center" mb={6}>
-        <Heading size="xl">Character Library</Heading>
-        <Button
-          variant="solid"
-          colorPalette="primary"
-          onClick={openImportModal}
-        >
-          Import Character
-        </Button>
-      </HStack>
+    <>
+      <SimplePageHeader
+        title="Character Library"
+        actions={[
+          <SplitButton
+            key="character-actions"
+            buttonLabel="Import Characters"
+            menuItems={[
+              {
+                label: "Create New Character",
+                value: "create",
+              },
+            ]}
+            onClick={openImportModal}
+            onSelect={({ value }) => {
+              if (value === "create") {
+                alert("Todo");
+              }
+            }}
+            colorPalette="primary"
+            variant="solid"
+          />,
+        ]}
+      />
 
       {charactersQuery.isLoading && (
         <Grid
@@ -94,14 +101,9 @@ export function CharactersPage() {
 
       {charactersQuery.data && charactersQuery.data.characters.length > 0 && (
         <Grid
-          templateColumns={{
-            base: "repeat(auto-fill, 240px)",
-            sm: "repeat(auto-fill, 240px)",
-            md: "repeat(auto-fill, 240px)",
-            lg: "repeat(auto-fill, 240px)",
-          }}
+          templateColumns="repeat(auto-fit, 240px)"
+          justifyContent="center"
           gap={4}
-          justifyContent="start"
         >
           {charactersQuery.data.characters.map((character) => (
             <CharacterCard key={character.id} character={character} />
@@ -109,11 +111,11 @@ export function CharactersPage() {
         </Grid>
       )}
 
-      <CharacterImportModal
+      <CharacterImportDialog
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImportSuccess={handleImportSuccess}
       />
-    </Container>
+    </>
   );
 }

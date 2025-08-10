@@ -1,14 +1,11 @@
-import { Container, Heading, Text } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
+import { SimplePageHeader } from "@/components/ui/page-header";
 
 export function DashboardPage() {
   return (
-    <Container>
-      <Heading size="xl" mb={4}>
-        Dashboard
-      </Heading>
-      <Text color="fg.muted">
-        Welcome to StoryForge - your AI tabletop roleplay engine.
-      </Text>
-    </Container>
+    <>
+      <SimplePageHeader title="Dashboard" tagline="Welcome back!" />
+      <Box>TODO</Box>
+    </>
   );
 }

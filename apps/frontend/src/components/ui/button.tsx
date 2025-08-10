@@ -16,34 +16,10 @@ export interface ButtonProps extends ChakraButtonProps, ButtonLoadingProps {}
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(props, ref) {
-    const {
-      colorPalette = "neutral",
-      loading,
-      disabled,
-      loadingText,
-      children,
-      ...rest
-    } = props;
-
-    // todo: there's probably a better way to handle this declaratively
-    const neutralStyleProps =
-      colorPalette === "neutral"
-        ? {
-            colorPalette: "neutral",
-            layerStyle: props.layerStyle || "surface",
-            _hover: { layerStyle: "interactive" },
-            boxShadow: "base",
-            borderColor: props.variant === "ghost" ? "transparent" : undefined,
-          }
-        : { colorPalette };
+    const { loading, disabled, loadingText, children, ...rest } = props;
 
     return (
-      <ChakraButton
-        {...neutralStyleProps}
-        disabled={loading || disabled}
-        ref={ref}
-        {...rest}
-      >
+      <ChakraButton disabled={loading || disabled} ref={ref} {...rest}>
         {loading && !loadingText ? (
           <>
             <AbsoluteCenter display="inline-flex">

@@ -57,6 +57,7 @@
     "@types/png-chunk-text": "^1.0.3",
     "@types/png-chunks-encode": "^1.0.2",
     "@types/png-chunks-extract": "^1.0.2",
+    "drizzle-orm": "catalog:",
     "form-data": "^4.0.4",
     "vitest": "catalog:",
     "typescript": "catalog:",

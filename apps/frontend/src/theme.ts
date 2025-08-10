@@ -12,7 +12,7 @@ const tokens = defineTokens({
   colors: {
     // Neutral scale for primary content surfaces
     neutral: {
-      50: { value: "hsl(35, 25%, 98%)" }, // Lightest parchment
+      50: { value: "hsl(40, 23%, 98%)" }, // Lightest parchment
       100: { value: "hsl(35, 25%, 95%)" }, // Main parchment
       200: { value: "hsl(40, 20%, 90%)" }, // Aged parchment
       300: { value: "hsl(40, 15%, 88%)" }, // Muted parchment
@@ -71,6 +71,22 @@ const tokens = defineTokens({
 // Semantic tokens for the two-material system
 const semanticTokens = defineSemanticTokens({
   colors: {
+    // Set chakra defaults
+    bg: {
+      DEFAULT: { value: "{colors.neutral.100}" },
+      panel: { value: "{colors.neutral.50}" },
+      muted: { value: "{colors.neutral.200}" },
+      emphasized: { value: "{colors.neutral.300}" },
+    },
+    fg: {
+      DEFAULT: { value: "{colors.neutral.800}" },
+      muted: { value: "{colors.neutral.600}" },
+      subtle: { value: "{colors.neutral.700}" },
+      emphasized: { value: "{colors.neutral.950}" },
+    },
+    border: {
+      DEFAULT: { value: "{colors.neutral.500}" }, // default borders
+    },
     // Primary surface (paper in light mode, dark in dark mode)
     surface: {
       base: { value: "{colors.neutral.100}" },
@@ -110,13 +126,12 @@ const semanticTokens = defineSemanticTokens({
     },
     // Color palette semantic tokens for components
     neutral: {
-      solid: { value: "{colors.surface-contrast}" },
-      contrast: { value: "{colors.content-contrast}" },
-      bg: { value: "{colors.surface}" },
-      fg: { value: "{colors.content}" },
-      muted: { value: "{colors.surface.muted}" },
-      subtle: { value: "{colors.surface.subtle}" },
-      emphasized: { value: "{colors.surface.emphasized}" },
+      solid: { value: "{colors.neutral.400}" },
+      contrast: { value: "{colors.neutral.900}" },
+      fg: { value: "{colors.neutral.700}" },
+      muted: { value: "{colors.neutral.500}" },
+      subtle: { value: "{colors.neutral.300}" },
+      emphasized: { value: "{colors.neutral.400}" },
       focusRing: { value: "{colors.accent.500}" },
     },
     // Primary palette
@@ -127,7 +142,7 @@ const semanticTokens = defineSemanticTokens({
       muted: { value: "{colors.accent.100}" },
       subtle: { value: "{colors.accent.100}" },
       emphasized: { value: "{colors.accent.300}" },
-      focusRing: { value: "{colors.accent.500}/40" },
+      focusRing: { value: "{colors.accent.500}" },
     },
     // Secondary palette (emerald)
     secondary: {
@@ -137,7 +152,7 @@ const semanticTokens = defineSemanticTokens({
       muted: { value: "{colors.emerald.300}" },
       subtle: { value: "{colors.emerald.400}" },
       emphasized: { value: "{colors.emerald.700}" },
-      focusRing: { value: "{colors.emerald.500}/40" },
+      focusRing: { value: "{colors.emerald.500}" },
     },
     // Gold accent palette
     accent: {
@@ -147,7 +162,7 @@ const semanticTokens = defineSemanticTokens({
       muted: { value: "{colors.gold.300}" },
       subtle: { value: "{colors.gold.400}" },
       emphasized: { value: "{colors.gold.600}" },
-      focusRing: { value: "{colors.gold.500}/40" },
+      focusRing: { value: "{colors.gold.500}" },
     },
     // Danger palette
     danger: {
@@ -157,7 +172,7 @@ const semanticTokens = defineSemanticTokens({
       muted: { value: "{colors.red.100}" },
       subtle: { value: "{colors.red.200}" },
       emphasized: { value: "{colors.red.300}" },
-      focusRing: { value: "{colors.red.500}/40" },
+      focusRing: { value: "{colors.red.500}" },
     },
     // Success palette
     success: {
@@ -167,7 +182,7 @@ const semanticTokens = defineSemanticTokens({
       muted: { value: "{colors.green.100}" },
       subtle: { value: "{colors.green.200}" },
       emphasized: { value: "{colors.green.300}" },
-      focusRing: { value: "{colors.green.500}/40" },
+      focusRing: { value: "{colors.green.500}" },
     },
     // Info palette
     info: {
@@ -177,7 +192,7 @@ const semanticTokens = defineSemanticTokens({
       muted: { value: "{colors.blue.100}" },
       subtle: { value: "{colors.blue.200}" },
       emphasized: { value: "{colors.blue.300}" },
-      focusRing: { value: "{colors.blue.500}/40" },
+      focusRing: { value: "{colors.blue.500}" },
     },
   },
   gradients: {
@@ -203,6 +218,7 @@ const layerStyles = defineLayerStyles({
       backgroundImage: "surfaceGradient",
       borderColor: "surface.border",
       borderRadius: "md",
+      borderWidth: "1px",
       boxShadow: "subtle",
     },
   },
@@ -214,6 +230,7 @@ const layerStyles = defineLayerStyles({
       backgroundImage: "contrastGradient",
       borderColor: "surfaceContrast.border",
       borderRadius: "md",
+      borderWidth: "1px",
       boxShadow: "medium",
     },
   },
@@ -286,24 +303,34 @@ export const inputRecipe = {
 const buttonRecipe = {
   variants: {
     variant: {
-      outline: {
-        color: "colorPalette.fg",
+      solid: {
         _hover: {
-          bg: "colorPalette.solid/90",
+          bg: "colorPalette.solid/75",
           color: "colorPalette.contrast",
         },
         _expanded: {
-          bg: "colorPalette.solid/90",
+          bg: "colorPalette.solid/75",
+          color: "colorPalette.contrast",
+        },
+      },
+      outline: {
+        color: "colorPalette.fg",
+        _hover: {
+          bg: "colorPalette.solid/75",
+          color: "colorPalette.contrast",
+        },
+        _expanded: {
+          bg: "colorPalette.solid/75",
           color: "colorPalette.contrast",
         },
       },
       ghost: {
         _hover: {
-          bg: "colorPalette.solid/90",
+          bg: "colorPalette.solid/75",
           color: "colorPalette.contrast",
         },
         _expanded: {
-          bg: "colorPalette.solid/90",
+          bg: "colorPalette.solid/75",
           color: "colorPalette.contrast",
         },
       },
@@ -321,8 +348,8 @@ const buttonRecipe = {
 export const storyforgeTheme = defineConfig({
   globalCss: {
     body: {
-      bg: "var(--chakra-colors-surface)",
-      color: "var(--chakra-colors-content)",
+      // bg: "var(--chakra-colors-surface)",
+      // color: "var(--chakra-colors-content)",
       fontFamily: "var(--chakra-fonts-body)",
     },
     "h1, h2, h3, h4, h5, h6": {

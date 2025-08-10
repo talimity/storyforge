@@ -10,10 +10,18 @@ import {
   Input,
   Separator,
   Stack,
+  Tabs,
   Text,
   Textarea,
   VStack,
 } from "@chakra-ui/react";
+import {
+  LuBook,
+  LuLayoutGrid,
+  LuLayoutList,
+  LuPlus,
+  LuUsers,
+} from "react-icons/lu";
 import {
   Button,
   Checkbox,
@@ -25,9 +33,29 @@ import {
   SelectValueText,
   Switch,
 } from "@/components/ui";
+import { PageHeader, SimplePageHeader } from "@/components/ui/page-header";
+
+export function ThemeDemoPage() {
+  return (
+    <>
+      <SimplePageHeader
+        title="Design System Demo"
+        tagline="A demonstration of the StoryForge theme's materials, colors, and
+        typography."
+      />
+
+      <MaterialExample />
+      <TypographyExample />
+      <CustomHeadingExample />
+      <PageHeaderExamples />
+      <InlineFormExample />
+      <FormExample />
+    </>
+  );
+}
 
 // Example: Using the two-material system
-export function MaterialExample() {
+function MaterialExample() {
   return (
     <Stack gap={6} p={8}>
       {/* Primary surface material (paper-like in light mode) */}
@@ -62,7 +90,7 @@ export function MaterialExample() {
           <Heading size="lg" mb={4} color="contentContrast.emphasized">
             Contrast Surface
           </Heading>
-          <Text>
+          <Text color="contentContrast.muted">
             This uses the contrast material with inverted color relationships.
           </Text>
           <Button mt={4} colorPalette="accent">
@@ -75,7 +103,7 @@ export function MaterialExample() {
 }
 
 // Example: Using text styles
-export function TypographyExample() {
+function TypographyExample() {
   return (
     <Box p={8}>
       {/* Headings will inherit from global CSS */}
@@ -124,7 +152,7 @@ export const StoryHeading = chakra("h2", {
 });
 
 // Usage
-export function CustomHeadingExample() {
+function CustomHeadingExample() {
   return (
     <>
       <StoryHeading size="xl">Chapter Title</StoryHeading>
@@ -134,25 +162,173 @@ export function CustomHeadingExample() {
   );
 }
 
-export function ThemeDemoPage() {
+function PageHeaderExamples() {
   return (
-    <Box p={8}>
-      <Heading mb={6}>Design System Playground</Heading>
-      <Text mb={8} color="content.muted">
-        A demonstration of the StoryForge theme's materials, colors, and
-        typography.
-      </Text>
+    <VStack gap={8} align="stretch">
+      <Text mb={4}>Header with tabs only</Text>
+      <Box layerStyle="surface" p={6}>
+        <PageHeader.Root>
+          <PageHeader.Title>Character Management</PageHeader.Title>
+          <PageHeader.Tabs
+            tabs={[
+              { value: "characters", label: "Characters", icon: <LuUsers /> },
+              { value: "scenarios", label: "Scenarios", icon: <LuBook /> },
+            ]}
+            defaultValue="characters"
+            onChange={(value) => console.log("Tab changed:", value)}
+          >
+            <Tabs.Content value="characters">
+              <Box p={4} bg="surface.subtle" borderRadius="md">
+                <Text>Character content goes here...</Text>
+              </Box>
+            </Tabs.Content>
+            <Tabs.Content value="scenarios">
+              <Box p={4} bg="surface.subtle" borderRadius="md">
+                <Text>Scenario content goes here...</Text>
+              </Box>
+            </Tabs.Content>
+          </PageHeader.Tabs>
+        </PageHeader.Root>
+      </Box>
 
-      <MaterialExample />
-      <TypographyExample />
-      <CustomHeadingExample />
-      <InlineFormExample />
-      <FormExample />
-    </Box>
+      <Text mb={4}>Header with views, sorts, and actions, but no tabs</Text>
+      <Box layerStyle="surface" p={6}>
+        <PageHeader.Root>
+          <PageHeader.Title>Campaign Assets</PageHeader.Title>
+          <PageHeader.Tagline>
+            Manage images, audio, and other media files
+          </PageHeader.Tagline>
+          <PageHeader.Controls>
+            <PageHeader.Sort
+              options={[
+                { value: "name", label: "Name" },
+                { value: "date", label: "Date" },
+                { value: "size", label: "Size" },
+              ]}
+              defaultValue="name"
+              onChange={(value) => console.log("Sort changed:", value)}
+            />
+            <PageHeader.ViewModes
+              options={[
+                { value: "list", label: <LuLayoutList /> },
+                { value: "grid", label: <LuLayoutGrid /> },
+              ]}
+              defaultValue="grid"
+              onChange={(value) => console.log("View mode changed:", value)}
+            />
+            <Button size="sm">
+              <LuPlus /> Upload Asset
+            </Button>
+          </PageHeader.Controls>
+          <Box p={4} bg="surface.subtle" borderRadius="md">
+            <Text>Asset grid/list would be rendered here...</Text>
+          </Box>
+        </PageHeader.Root>
+      </Box>
+
+      {/* Header with Tabs and Sorting */}
+      <Text mb={4}>Header with tabs and sorting, but no actions</Text>
+      <Box layerStyle="surface" p={6}>
+        <PageHeader.Root>
+          <PageHeader.Title>Asset Library</PageHeader.Title>
+          <PageHeader.Tagline>
+            Browse and organize your scenario resources
+          </PageHeader.Tagline>
+          <PageHeader.Tabs
+            tabs={[
+              { value: "images", label: "Images", badge: "24" },
+              { value: "audio", label: "Audio", badge: "12" },
+            ]}
+            defaultValue="images"
+            onChange={(value) => console.log("Tab changed:", value)}
+          >
+            <PageHeader.Controls>
+              <PageHeader.Sort
+                options={[
+                  { value: "name", label: "Name" },
+                  { value: "date", label: "Date" },
+                  { value: "size", label: "Size" },
+                ]}
+                defaultValue="name"
+                onChange={(value) => console.log("Sort changed:", value)}
+              />
+            </PageHeader.Controls>
+            <Tabs.Content value="images">
+              <Box p={4} bg="surface.subtle" borderRadius="md">
+                <Text>Image assets sorted by selection...</Text>
+              </Box>
+            </Tabs.Content>
+            <Tabs.Content value="audio">
+              <Box p={4} bg="surface.subtle" borderRadius="md">
+                <Text>Audio assets sorted by selection...</Text>
+              </Box>
+            </Tabs.Content>
+          </PageHeader.Tabs>
+        </PageHeader.Root>
+      </Box>
+
+      {/* Full-featured Header */}
+      <Text mb={4}>Header with everything</Text>
+      <Box layerStyle="surface" p={6}>
+        <PageHeader.Root>
+          <PageHeader.Title>Scenario Dashboard</PageHeader.Title>
+          <PageHeader.Tagline>
+            Overview of your scenario progress and assets
+          </PageHeader.Tagline>
+          <PageHeader.Tabs
+            tabs={[
+              { value: "overview", label: "Overview", badge: "5" },
+              { value: "assets", label: "Assets" },
+              { value: "settings", label: "Settings" },
+            ]}
+            defaultValue="overview"
+            onChange={(value) => console.log("Tab changed:", value)}
+          >
+            <PageHeader.Controls>
+              <PageHeader.Sort
+                options={[
+                  { value: "name", label: "Name" },
+                  { value: "date", label: "Date" },
+                  { value: "size", label: "Size" },
+                ]}
+                defaultValue="name"
+                onChange={(value) => console.log("Sort changed:", value)}
+              />
+              <PageHeader.ViewModes
+                options={[
+                  { value: "list", label: <LuLayoutList /> },
+                  { value: "grid", label: <LuLayoutGrid /> },
+                ]}
+                defaultValue="grid"
+                onChange={(value) => console.log("View mode changed:", value)}
+              />
+              <Button variant="solid" colorPalette="primary">
+                <LuPlus /> New Campaign
+              </Button>
+            </PageHeader.Controls>
+            <Tabs.Content value="overview">
+              <Box p={4} bg="surface.subtle" borderRadius="md">
+                <Text>Overview content with campaign stats...</Text>
+              </Box>
+            </Tabs.Content>
+            <Tabs.Content value="assets">
+              <Box p={4} bg="surface.subtle" borderRadius="md">
+                <Text>Asset management content...</Text>
+              </Box>
+            </Tabs.Content>
+            <Tabs.Content value="settings">
+              <Box p={4} bg="surface.subtle" borderRadius="md">
+                <Text>Settings and configurations...</Text>
+              </Box>
+            </Tabs.Content>
+          </PageHeader.Tabs>
+        </PageHeader.Root>
+      </Box>
+    </VStack>
   );
 }
 
-export function FormExample() {
+function FormExample() {
   return (
     <Box p={8} bg="surface" minH="100vh">
       <VStack gap={8} maxW="800px" mx="auto">
@@ -386,14 +562,17 @@ export function FormExample() {
 // Example: Inline form for quick actions
 export function InlineFormExample() {
   return (
-    <Box layerStyle="contrast" p={6}>
+    <Box layerStyle="contrast" p={6} mx={12} my={4} borderRadius="md">
       <Heading size="sm" mb={3} color="contentContrast.emphasized">
         Quick Action
       </Heading>
       <HStack gap={3}>
         <Input variant="onContrast" placeholder="Enter command..." flex={1} />
-        <Button colorPalette="accent" variant="solid" size="sm">
+        <Button colorPalette="accent" variant="solid" size="md">
           Execute
+        </Button>
+        <Button colorPalette="accent" variant="solid">
+          Button
         </Button>
       </HStack>
     </Box>

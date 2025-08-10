@@ -1,10 +1,10 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "./components/app-shell";
 import { AgentsPage } from "./pages/agents";
-import { CharactersPage } from "./pages/characters";
+import { CharacterLibraryPage } from "./pages/character-library";
 import { DashboardPage } from "./pages/dashboard";
 import { ModelsPage } from "./pages/models";
-import { ScenariosPage } from "./pages/scenarios";
+import { ScenarioLibraryPage } from "./pages/scenario-library";
 import { SettingsPage } from "./pages/settings";
 import { ThemeDemoPage } from "./pages/theme-demo";
 
@@ -23,11 +23,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "characters",
-        element: <CharactersPage />,
+        element: <CharacterLibraryPage />,
       },
       {
         path: "scenarios",
-        element: <ScenariosPage />,
+        element: <ScenarioLibraryPage />,
       },
       {
         path: "models",

@@ -16,11 +16,21 @@ export function Logo({ collapsed = false }: LogoProps) {
       borderBottomWidth="1px"
       data-testid="logo"
     >
-      <Center color="fg" flexShrink={0} boxSize={"10"} transition="all 0.2s">
+      <Center
+        color="content"
+        flexShrink={0}
+        boxSize={"10"}
+        transition="all 0.2s"
+      >
         <LuScroll size={collapsed ? 20 : 20} />
       </Center>
       {!collapsed && (
-        <Text fontWeight="semibold" fontSize="2xl" fontFamily={"heading"}>
+        <Text
+          color="content.emphasized"
+          fontWeight="semibold"
+          fontSize="2xl"
+          fontFamily={"heading"}
+        >
           StoryForge
         </Text>
       )}

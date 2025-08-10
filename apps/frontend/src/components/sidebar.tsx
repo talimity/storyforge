@@ -33,11 +33,9 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     <Stack
       as="nav"
       h="100vh"
-      w={collapsed ? "64px" : "240px"}
-      bg="surface.subtle/80"
-      boxShadow={
-        collapsed ? "1px 0 0 0 var(--chakra-colors-border)" : undefined
-      }
+      w={collapsed ? "64px" : "230px"}
+      bg="bg.panel"
+      boxShadow={collapsed ? "1px 0 0 0 var(--chakra-colors-border)" : "xl"}
       borderRightWidth={collapsed ? "0" : "1px"}
       transition="width 0.2s"
       position="sticky"
@@ -58,7 +56,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         boxSize="6"
         minW="unset"
         onClick={onToggleCollapse}
-        bg="bg.surface"
+        // bg="bg"
         borderWidth="1px"
         _hover={{
           bg: "bg.subtle",
@@ -156,7 +154,7 @@ function SectionHeader({ children }: { children: ReactNode }) {
     <Text
       fontSize="xs"
       fontWeight="semibold"
-      color="fg.muted"
+      color="content.muted"
       px="4"
       py="2"
       textTransform="uppercase"

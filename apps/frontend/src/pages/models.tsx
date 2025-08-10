@@ -1,14 +1,24 @@
-import { Container, Heading, Text } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
+import { Button, SimplePageHeader } from "@/components/ui";
 
 export function ModelsPage() {
   return (
-    <Container>
-      <Heading size="xl" mb={4}>
-        Models
-      </Heading>
-      <Text color="fg.muted">
-        Configure LLM models and providers for your scenarios.
-      </Text>
-    </Container>
+    <>
+      <SimplePageHeader
+        title="Models"
+        tagline="Manage your AI models and configurations."
+        actions={[
+          <Button
+            key="add-model"
+            variant="solid"
+            colorPalette="primary"
+            onClick={() => {}}
+          >
+            Add Model
+          </Button>,
+        ]}
+      />
+      <Box>TODO</Box>
+    </>
   );
 }

@@ -1,0 +1,326 @@
+import {
+  Badge,
+  Box,
+  type Container,
+  Flex,
+  Heading,
+  type HeadingProps,
+  HStack,
+  NativeSelect,
+  SegmentGroup,
+  Spacer,
+  type StackProps,
+  Tabs,
+  Text,
+  type TextProps,
+} from "@chakra-ui/react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  type PropsWithChildren,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+import { LuArrowUpDown } from "react-icons/lu";
+
+// Root component that manages layout
+interface PageHeaderRootProps extends PropsWithChildren {
+  containerProps?: {
+    maxW?: string;
+    py?: React.ComponentProps<typeof Container>["py"];
+  };
+}
+
+// Updated PageHeaderRoot component with better wrapping behavior
+function PageHeaderRoot({ children, containerProps }: PageHeaderRootProps) {
+  const childArray = Children.toArray(children).filter((child) =>
+    isValidElement(child)
+  );
+
+  // Find key components
+  const title = childArray.find((child) => child.type === PageHeaderTitle) as
+    | ReactElement<PageHeaderTitleProps>
+    | undefined;
+
+  const tagline = childArray.find(
+    (child) => child.type === PageHeaderTagline
+  ) as ReactElement<PageHeaderTaglineProps> | undefined;
+
+  const controls = childArray.find(
+    (child) => child.type === PageHeaderControls
+  ) as ReactElement<PageHeaderControlsProps> | undefined;
+
+  const tabs = childArray.find((child) => child.type === PageHeaderTabs) as
+    | ReactElement<PageHeaderTabsProps>
+    | undefined;
+
+  const otherChildren = childArray.filter(
+    (child) =>
+      !(
+        isValidElement(child) &&
+        (child.type === PageHeaderTitle ||
+          child.type === PageHeaderTagline ||
+          child.type === PageHeaderControls ||
+          child.type === PageHeaderTabs)
+      )
+  );
+
+  // If we have tabs, render standard layout (tabs will handle controls internally)
+  if (tabs) {
+    return (
+      <Box {...containerProps} data-testid="page-header">
+        {title}
+        {tagline}
+        {tabs}
+        {otherChildren}
+      </Box>
+    );
+  }
+
+  // If we have controls but no tabs, create optimized layout with wrapping
+  if (controls && title) {
+    // Clone title without bottom margin when we have a tagline
+    const titleWithAdjustedSpacing = tagline
+      ? cloneElement(title, { ...title.props, mb: 0 })
+      : title;
+
+    return (
+      <Box {...containerProps} data-testid="page-header">
+        <Flex wrap="wrap" align="flex-start" gap={4} mb={4}>
+          {/* Group title and tagline together */}
+          <Box flex="1 1 auto" minW="0">
+            {titleWithAdjustedSpacing}
+            {tagline}
+          </Box>
+          {/* Controls wrap when needed - no top padding when wrapped */}
+          <Box
+            flex="0 0 auto"
+            pt={{ base: 0, md: title.props.py || "6" }}
+            alignSelf={{ base: "stretch", md: "start" }}
+            w={{ base: "full", md: "auto" }}
+          >
+            {controls}
+          </Box>
+        </Flex>
+        {otherChildren}
+      </Box>
+    );
+  }
+  // Standard layout without controls
+  return (
+    <Box {...containerProps} mb={8} data-testid="page-header">
+      {children}
+    </Box>
+  );
+}
+
+// Title component
+interface PageHeaderTitleProps extends HeadingProps {
+  children: ReactNode;
+}
+
+function PageHeaderTitle({
+  children,
+  size = "3xl",
+  py = "6",
+  ...props
+}: PageHeaderTitleProps) {
+  return (
+    <Heading size={size} py={py} {...props}>
+      {children}
+    </Heading>
+  );
+}
+
+// Tagline component
+interface PageHeaderTaglineProps extends TextProps {
+  children: ReactNode;
+}
+
+function PageHeaderTagline({ children, ...props }: PageHeaderTaglineProps) {
+  return (
+    <Text color="content.muted" mb={4} {...props}>
+      {children}
+    </Text>
+  );
+}
+
+// Sort selector component
+interface SortOption {
+  value: string;
+  label: string;
+}
+
+interface PageHeaderSortProps {
+  options: SortOption[];
+  defaultValue?: string;
+  onChange?: (value: string) => void;
+  label?: ReactNode;
+}
+
+function PageHeaderSort({
+  options,
+  defaultValue,
+  onChange,
+  label = <LuArrowUpDown />,
+}: PageHeaderSortProps) {
+  return (
+    <HStack hideBelow="md">
+      <Text fontWeight="medium" textStyle="sm">
+        {label}
+      </Text>
+      <NativeSelect.Root width="100px" defaultValue={defaultValue}>
+        <NativeSelect.Field
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </NativeSelect.Field>
+        <NativeSelect.Indicator />
+      </NativeSelect.Root>
+    </HStack>
+  );
+}
+
+// View mode selector component
+interface ViewModeOption {
+  value: string;
+  label: ReactNode;
+}
+
+interface PageHeaderViewModesProps {
+  options: ViewModeOption[];
+  defaultValue?: string;
+  onChange?: (value: string) => void;
+}
+
+function PageHeaderViewModes({
+  options,
+  defaultValue,
+  onChange,
+}: PageHeaderViewModesProps) {
+  return (
+    <SegmentGroup.Root
+      hideBelow="md"
+      defaultValue={defaultValue || options[0]?.value}
+      onValueChange={
+        onChange
+          ? (details) => details.value && onChange(details.value)
+          : undefined
+      }
+    >
+      <SegmentGroup.Indicator />
+      <SegmentGroup.Items items={options} />
+    </SegmentGroup.Root>
+  );
+}
+
+// Controls wrapper component
+interface PageHeaderControlsProps extends StackProps {
+  children: ReactNode;
+}
+
+function PageHeaderControls({ children, ...props }: PageHeaderControlsProps) {
+  return (
+    <HStack gap={4} flexShrink={0} {...props}>
+      {children}
+    </HStack>
+  );
+}
+
+// Tabs wrapper component
+interface TabConfig {
+  value: string;
+  label: string;
+  icon?: ReactNode;
+  badge?: string | number;
+}
+
+interface PageHeaderTabsProps {
+  tabs: TabConfig[];
+  defaultValue?: string;
+  onChange?: (value: string) => void;
+  children?: ReactNode;
+}
+
+function PageHeaderTabs({
+  tabs,
+  defaultValue,
+  onChange,
+  children,
+}: PageHeaderTabsProps) {
+  // Extract any Controls from children to place them in the tab list
+  const childArray = Children.toArray(children);
+  const controls = childArray.find(
+    (child) => isValidElement(child) && child.type === PageHeaderControls
+  ) as ReactElement<PageHeaderControlsProps> | undefined;
+
+  const tabContents = childArray.filter(
+    (child) => isValidElement(child) && child.type === Tabs.Content
+  );
+
+  return (
+    <Tabs.Root
+      size="lg"
+      defaultValue={defaultValue || tabs[0]?.value}
+      onValueChange={
+        onChange
+          ? (details) => details.value && onChange(details.value)
+          : undefined
+      }
+    >
+      <Tabs.List>
+        {tabs.map((tab) => (
+          <Tabs.Trigger key={tab.value} value={tab.value}>
+            {tab.icon}
+            {tab.label}
+            {tab.badge && <Badge>{tab.badge}</Badge>}
+          </Tabs.Trigger>
+        ))}
+        {controls && (
+          <>
+            <Spacer />
+            <HStack pos="relative" bottom="2" gap="4">
+              {controls.props.children}
+            </HStack>
+          </>
+        )}
+      </Tabs.List>
+      {tabContents}
+    </Tabs.Root>
+  );
+}
+
+// Export compound component
+export const PageHeader = {
+  Root: PageHeaderRoot,
+  Title: PageHeaderTitle,
+  Tagline: PageHeaderTagline,
+  Controls: PageHeaderControls,
+  Sort: PageHeaderSort,
+  ViewModes: PageHeaderViewModes,
+  Tabs: PageHeaderTabs,
+};
+
+// Preset for simple headers
+export const SimplePageHeader = ({
+  title,
+  tagline,
+  actions,
+  children,
+}: PropsWithChildren<{
+  title: PageHeaderTitleProps["children"];
+  tagline?: PageHeaderTaglineProps["children"];
+  actions?: ReactNode;
+}>) => (
+  <PageHeader.Root>
+    <PageHeader.Title>{title}</PageHeader.Title>
+    {tagline && <PageHeader.Tagline>{tagline}</PageHeader.Tagline>}
+    {actions && <PageHeader.Controls>{actions}</PageHeader.Controls>}
+    {children}
+  </PageHeader.Root>
+);

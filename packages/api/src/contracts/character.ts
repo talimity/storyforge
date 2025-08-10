@@ -61,6 +61,16 @@ export const characterSchema = z.object({
   updatedAt: z.union([z.string(), z.date()]),
 });
 
+export const stubCharacterSchema = characterSchema.pick({
+  id: true,
+  name: true,
+  tags: true,
+  creatorNotes: true,
+  imagePath: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const characterWithRelationsSchema = characterSchema.extend({
   greetings: z.array(characterGreetingSchema),
   examples: z.array(characterExampleSchema),
@@ -82,7 +92,7 @@ export const characterImportResponseSchema = z.object({
 });
 
 export const charactersListResponseSchema = z.object({
-  characters: z.array(characterSchema),
+  characters: z.array(stubCharacterSchema),
 });
 
 // Export inferred types

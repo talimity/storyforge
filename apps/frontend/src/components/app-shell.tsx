@@ -18,19 +18,13 @@ import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui";
 
 export function AppShell() {
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    const saved = localStorage.getItem("sidebar-expanded");
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useBreakpointValue({ base: true, md: false });
 
-  // Load sidebar state from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("sidebar-expanded");
-    if (saved !== null) {
-      setSidebarExpanded(JSON.parse(saved));
-    }
-  }, []);
-
-  // Save sidebar state to localStorage
   useEffect(() => {
     localStorage.setItem("sidebar-expanded", JSON.stringify(sidebarExpanded));
   }, [sidebarExpanded]);
@@ -38,7 +32,7 @@ export function AppShell() {
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
 
   return (
-    <Box minH="100vh" data-testid="app-shell">
+    <Box minH="100vh" data-testid="app-shell" colorPalette="neutral">
       {/* Mobile Layout */}
       <Show when={isMobile}>
         <Drawer.Root
@@ -108,11 +102,11 @@ export function AppShell() {
             data-testid="desktop-main-content"
           >
             {/* Main Content Area */}
-            <Box flex="1">
-              <Container p={6} maxW="container.xl">
-                <Outlet />
-              </Container>
-            </Box>
+            {/* <Box flex="1"> */}
+            <Container p={6} maxW="container.xl" data-testid="main-container">
+              <Outlet />
+            </Container>
+            {/* </Box> */}
           </Flex>
         </Flex>
       </Show>
