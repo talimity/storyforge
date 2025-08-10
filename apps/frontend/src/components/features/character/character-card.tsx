@@ -1,17 +1,24 @@
 import {
   Box,
   Card,
+  HStack,
   IconButton,
   Image,
   Menu,
   Portal,
   Skeleton,
   Text,
+  VisuallyHidden,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { LuMenu, LuPencilLine, LuTrash, LuUsers } from "react-icons/lu";
-import { Dialog } from "@/components/ui";
-import { Button } from "@/components/ui/button";
+import {
+  LuCheck,
+  LuMenu,
+  LuPencilLine,
+  LuTrash,
+  LuUsers,
+} from "react-icons/lu";
+import { Button, Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
 
 interface CharacterCardProps {
@@ -20,9 +27,15 @@ interface CharacterCardProps {
     name: string;
     imagePath: string | null;
   };
+  isSelected?: boolean;
+  onSelectionToggle?: () => void;
 }
 
-export function CharacterCard({ character }: CharacterCardProps) {
+export function CharacterCard({
+  character,
+  isSelected = false,
+  onSelectionToggle,
+}: CharacterCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const utils = trpc.useUtils();
   const deleteCharacterMutation = trpc.characters.delete.useMutation({
@@ -49,6 +62,8 @@ export function CharacterCard({ character }: CharacterCardProps) {
       layerStyle="surface"
       overflow="hidden"
       className="group"
+      cursor={onSelectionToggle ? "pointer" : "default"}
+      onClick={onSelectionToggle}
     >
       <Box position="relative">
         {imageUrl ? (
@@ -84,6 +99,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
               opacity={0}
               _groupHover={{ opacity: 1 }}
               _focus={{ opacity: 1 }}
+              onClick={(e) => e.stopPropagation()}
             >
               <LuMenu />
             </IconButton>
@@ -111,9 +127,24 @@ export function CharacterCard({ character }: CharacterCardProps) {
         </Menu.Root>
       </Box>
       <Card.Body p={3}>
-        <Text fontWeight="medium" fontSize="sm" truncate>
-          {character.name}
-        </Text>
+        <HStack>
+          {isSelected && (
+            <Box
+              height="20px"
+              width="20px"
+              layerStyle="contrast"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <LuCheck size={16} color="white" />
+              <VisuallyHidden>Selected</VisuallyHidden>
+            </Box>
+          )}
+          <Text fontWeight="medium" fontSize="sm" truncate>
+            {character.name}
+          </Text>
+        </HStack>
       </Card.Body>
       <Dialog.Root
         role="alertdialog"

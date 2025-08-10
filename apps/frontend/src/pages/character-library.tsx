@@ -1,29 +1,47 @@
-import { Center, Grid, Text, VStack } from "@chakra-ui/react";
+import { ActionBar, Center, Grid, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
-import { LuUsers } from "react-icons/lu";
+import { LuPlay, LuUsers } from "react-icons/lu";
 import { CharacterImportDialog } from "@/components/dialogs/character-import";
 import {
   CharacterCard,
   CharacterCardSkeleton,
 } from "@/components/features/character/character-card";
-import { Button } from "@/components/ui";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SimplePageHeader } from "@/components/ui/page-header";
-import { SplitButton } from "@/components/ui/split-button";
+import {
+  ActionBarContent,
+  Button,
+  CloseButton,
+  EmptyState,
+  SimplePageHeader,
+  SplitButton,
+} from "@/components/ui";
+
 import { trpc } from "@/lib/trpc";
 
 export function CharacterLibraryPage() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(
+    new Set()
+  );
   const charactersQuery = trpc.characters.list.useQuery();
   const utils = trpc.useUtils();
 
-  const handleImportSuccess = () => {
-    // refresh characters list after import
-    utils.characters.list.invalidate();
+  const toggleCharacterSelection = (characterId: string) => {
+    setSelectedCharacterIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(characterId)) {
+        newSet.delete(characterId);
+      } else {
+        newSet.add(characterId);
+      }
+      return newSet;
+    });
   };
 
-  const openImportModal = () => {
-    setIsImportModalOpen(true);
+  const handleStartScenario = () => {
+    const selectedCount = selectedCharacterIds.size;
+    alert(
+      `Starting scenario with ${selectedCount} character${selectedCount === 1 ? "" : "s"}`
+    );
   };
 
   return (
@@ -34,13 +52,8 @@ export function CharacterLibraryPage() {
           <SplitButton
             key="character-actions"
             buttonLabel="Import Characters"
-            menuItems={[
-              {
-                label: "Create New Character",
-                value: "create",
-              },
-            ]}
-            onClick={openImportModal}
+            menuItems={[{ label: "Create New Character", value: "create" }]}
+            onClick={() => setIsImportModalOpen(true)}
             onSelect={({ value }) => {
               if (value === "create") {
                 alert("Todo");
@@ -95,7 +108,7 @@ export function CharacterLibraryPage() {
           title="No characters yet"
           description="Import a character card to get started with StoryForge"
           actionLabel="Import Character"
-          onActionClick={openImportModal}
+          onActionClick={() => setIsImportModalOpen(true)}
         />
       )}
 
@@ -106,7 +119,12 @@ export function CharacterLibraryPage() {
           gap={4}
         >
           {charactersQuery.data.characters.map((character) => (
-            <CharacterCard key={character.id} character={character} />
+            <CharacterCard
+              key={character.id}
+              character={character}
+              isSelected={selectedCharacterIds.has(character.id)}
+              onSelectionToggle={() => toggleCharacterSelection(character.id)}
+            />
           ))}
         </Grid>
       )}
@@ -114,8 +132,33 @@ export function CharacterLibraryPage() {
       <CharacterImportDialog
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        onImportSuccess={handleImportSuccess}
+        onImportSuccess={() => utils.characters.list.invalidate()}
       />
+
+      <ActionBar.Root open={selectedCharacterIds.size > 1} closeOnEscape={true}>
+        <ActionBarContent layerStyle="contrast" colorPalette="contrast">
+          <ActionBar.SelectionTrigger>
+            <Text>{selectedCharacterIds.size} selected</Text>
+          </ActionBar.SelectionTrigger>
+          <ActionBar.Separator />
+          <Button
+            variant="solid"
+            colorPalette="accent"
+            size="sm"
+            onClick={handleStartScenario}
+          >
+            <LuPlay />
+            Start New Scenario
+          </Button>
+          <ActionBar.CloseTrigger asChild>
+            <CloseButton
+              size="sm"
+              colorPalette="neutral"
+              onClick={() => setSelectedCharacterIds(new Set())}
+            />
+          </ActionBar.CloseTrigger>
+        </ActionBarContent>
+      </ActionBar.Root>
     </>
   );
 }

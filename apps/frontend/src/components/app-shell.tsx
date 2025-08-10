@@ -103,7 +103,12 @@ export function AppShell() {
           >
             {/* Main Content Area */}
             {/* <Box flex="1"> */}
-            <Container p={6} maxW="container.xl" data-testid="main-container">
+            <Container
+              p={6}
+              pb={24} // Provide space for action bars/sticky footers
+              maxW="container.xl"
+              data-testid="main-container"
+            >
               <Outlet />
             </Container>
             {/* </Box> */}

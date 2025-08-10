@@ -1,3 +1,4 @@
+export * from "./action-bar";
 export * from "./button";
 export * from "./checkbox";
 export * from "./close-button";
@@ -7,6 +8,8 @@ export * from "./field";
 export * from "./page-header";
 export * from "./radio";
 export * from "./select";
+export * from "./split-button";
 export * from "./switch";
 export * from "./toaster";
+export * from "./toggle-tip";
 export * from "./tooltip";
