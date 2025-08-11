@@ -36,6 +36,7 @@ export class CharacterImportService {
     const newCharacter = {
       name: card.data.name,
       description: card.data.description,
+      cardType: "character" as const,
       legacyPersonality: card.data.personality,
       legacyScenario: card.data.scenario,
       creator: card.data.creator,
@@ -83,6 +84,7 @@ export class CharacterImportService {
     const newCharacter = {
       name: card.name,
       description: card.description,
+      cardType: "character" as const,
       legacyPersonality: card.personality || null,
       legacyScenario: card.scenario || null,
       creator: null,

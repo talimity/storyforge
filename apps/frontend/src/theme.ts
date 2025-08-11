@@ -71,7 +71,7 @@ const tokens = defineTokens({
 // Semantic tokens for the two-material system
 const semanticTokens = defineSemanticTokens({
   colors: {
-    // Set chakra defaults
+    // Set chakra defaults to get most components working out of the box
     bg: {
       DEFAULT: { value: "{colors.neutral.100}" },
       panel: { value: "{colors.neutral.50}" },
@@ -85,7 +85,7 @@ const semanticTokens = defineSemanticTokens({
       emphasized: { value: "{colors.neutral.950}" },
     },
     border: {
-      DEFAULT: { value: "{colors.neutral.500}" }, // default borders
+      DEFAULT: { value: "{colors.neutral.500}" },
     },
     // Primary surface (paper in light mode, dark in dark mode)
     surface: {
@@ -271,7 +271,7 @@ export const inputRecipe = {
     variant: {
       outline: {
         bg: "{colors.white}/60",
-        fg: "{colors.content}",
+        color: "{colors.content}",
         _placeholder: {
           color: "{colors.content}/60",
         },
@@ -282,7 +282,7 @@ export const inputRecipe = {
       },
       onContrast: {
         bg: "{colors.surface}/10",
-        fg: "{colors.contentContrast}",
+        color: "{colors.contentContrast}",
         _placeholder: {
           color: "{colors.contentContrast}/60",
         },
@@ -348,9 +348,7 @@ const buttonRecipe = {
 export const storyforgeTheme = defineConfig({
   globalCss: {
     body: {
-      // bg: "var(--chakra-colors-surface)",
-      // color: "var(--chakra-colors-content)",
-      fontFamily: "var(--chakra-fonts-body)",
+      // fontFamily: "var(--chakra-fonts-body)",
     },
     "h1, h2, h3, h4, h5, h6": {
       fontFamily: "var(--chakra-fonts-heading)",

@@ -1,0 +1,1 @@
+ALTER TABLE `characters` ADD `card_type` text DEFAULT 'character' NOT NULL;

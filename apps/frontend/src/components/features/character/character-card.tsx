@@ -18,6 +18,7 @@ import {
   LuTrash,
   LuUsers,
 } from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
 import { Button, Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
 
@@ -26,6 +27,7 @@ interface CharacterCardProps {
     id: string;
     name: string;
     imagePath: string | null;
+    avatarPath: string | null;
   };
   isSelected?: boolean;
   onSelectionToggle?: () => void;
@@ -36,6 +38,7 @@ export function CharacterCard({
   isSelected = false,
   onSelectionToggle,
 }: CharacterCardProps) {
+  const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const utils = trpc.useUtils();
   const deleteCharacterMutation = trpc.characters.delete.useMutation({
@@ -54,6 +57,10 @@ export function CharacterCard({
 
   const handleDelete = () => {
     deleteCharacterMutation.mutate({ id: character.id });
+  };
+
+  const handleEdit = () => {
+    navigate(`/characters/${character.id}/edit`);
   };
 
   return (
@@ -107,7 +114,7 @@ export function CharacterCard({
           <Portal>
             <Menu.Positioner>
               <Menu.Content>
-                <Menu.Item value="edit">
+                <Menu.Item value="edit" onClick={handleEdit}>
                   <LuPencilLine />
                   <Box flex="1">Edit</Box>
                 </Menu.Item>

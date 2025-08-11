@@ -1,6 +1,7 @@
 import { ActionBar, Center, Grid, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuPlay, LuUsers } from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
 import { CharacterImportDialog } from "@/components/dialogs/character-import";
 import {
   CharacterCard,
@@ -18,6 +19,7 @@ import {
 import { trpc } from "@/lib/trpc";
 
 export function CharacterLibraryPage() {
+  const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(
     new Set()
@@ -56,7 +58,7 @@ export function CharacterLibraryPage() {
             onClick={() => setIsImportModalOpen(true)}
             onSelect={({ value }) => {
               if (value === "create") {
-                alert("Todo");
+                navigate("/characters/create");
               }
             }}
             colorPalette="primary"

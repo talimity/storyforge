@@ -335,12 +335,7 @@ export function CharacterImportDialog({
           </HStack>
         </Dialog.Footer>
 
-        <Dialog.CloseTrigger
-          disabled={isUploading}
-          position="absolute"
-          top="2"
-          right="2"
-        />
+        <Dialog.CloseTrigger disabled={isUploading} />
       </Dialog.Content>
     </Dialog.Root>
   );

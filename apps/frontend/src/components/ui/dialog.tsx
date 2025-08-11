@@ -1,8 +1,4 @@
-import {
-  Dialog as ChakraDialog,
-  createOverlay,
-  Portal,
-} from "@chakra-ui/react";
+import { Dialog as ChakraDialog, Portal } from "@chakra-ui/react";
 import * as React from "react";
 import { CloseButton } from "./close-button";
 
@@ -69,38 +65,3 @@ export const Dialog = {
   Trigger: ChakraDialog.Trigger,
   ActionTrigger: ChakraDialog.ActionTrigger,
 };
-
-type ManagedDialogProps = DialogContentProps & {
-  title?: string;
-  body?: React.ReactNode;
-  content?: React.ReactNode;
-  actions?: React.ReactNode;
-};
-export const dialog = createOverlay<ManagedDialogProps>((props) => {
-  const {
-    title,
-    body,
-    content,
-    actions,
-    portalled = true,
-    portalRef,
-    backdrop = true,
-    ...rest
-  } = props;
-
-  return (
-    <ChakraDialog.Root>
-      <DialogContent
-        portalled={portalled}
-        portalRef={portalRef}
-        backdrop={backdrop}
-        {...rest}
-      >
-        {title && <ChakraDialog.Header>{title}</ChakraDialog.Header>}
-        {content || <ChakraDialog.Body>{body}</ChakraDialog.Body>}
-        {actions && <ChakraDialog.Footer>{actions}</ChakraDialog.Footer>}
-        <DialogCloseTrigger />
-      </DialogContent>
-    </ChakraDialog.Root>
-  );
-});

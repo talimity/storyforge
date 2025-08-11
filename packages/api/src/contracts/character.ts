@@ -2,6 +2,14 @@ import { z } from "zod";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
+export const cardTypeSchema = z.enum([
+  "character",
+  "group",
+  "persona",
+  "scenario",
+]);
+export type CardType = z.infer<typeof cardTypeSchema>;
+
 const imageInputSchema = z.string().refine(
   (val) => {
     const parts = val.match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
@@ -30,6 +38,7 @@ export const characterIdSchema = z.object({
 export const createCharacterSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
+  cardType: cardTypeSchema.default("character"),
   imageDataUri: imageInputSchema.nullish(),
   legacyPersonality: z.string().nullish(),
   legacyScenario: z.string().nullish(),
@@ -45,6 +54,7 @@ export const updateCharacterSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1).optional(),
   description: z.string().optional(),
+  cardType: cardTypeSchema.optional(),
   imageDataUri: imageInputSchema.nullish(),
 });
 
@@ -70,6 +80,7 @@ export const characterSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
+  cardType: cardTypeSchema,
   legacyPersonality: z.string().nullable(),
   legacyScenario: z.string().nullable(),
   creator: z.string().nullable(),
@@ -80,6 +91,7 @@ export const characterSchema = z.object({
   revision: z.string().nullable(),
   originalCardData: z.any().nullable(),
   imagePath: z.string().nullable(),
+  avatarPath: z.string().nullable(),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
 });
@@ -87,8 +99,10 @@ export const characterSchema = z.object({
 export const stubCharacterSchema = characterSchema.pick({
   id: true,
   name: true,
+  cardType: true,
   tags: true,
   creatorNotes: true,
+  avatarPath: true,
   imagePath: true,
   createdAt: true,
   updatedAt: true,

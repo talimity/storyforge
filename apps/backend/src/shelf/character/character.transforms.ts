@@ -11,6 +11,7 @@ export function transformCharacter(dbCharacter: DbCharacter): Character {
     id: dbCharacter.id,
     name: dbCharacter.name,
     description: dbCharacter.description,
+    cardType: dbCharacter.cardType,
     legacyPersonality: dbCharacter.legacyPersonality,
     legacyScenario: dbCharacter.legacyScenario,
     creator: dbCharacter.creator,
@@ -24,6 +25,9 @@ export function transformCharacter(dbCharacter: DbCharacter): Character {
       : null,
     imagePath: dbCharacter.cardImage
       ? `/api/characters/${dbCharacter.id}/image`
+      : null,
+    avatarPath: dbCharacter.cardImage
+      ? `/api/characters/${dbCharacter.id}/avatar`
       : null,
     createdAt: dbCharacter.createdAt,
     updatedAt: dbCharacter.updatedAt,

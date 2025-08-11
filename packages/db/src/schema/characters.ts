@@ -8,6 +8,10 @@ export const characters = sqliteTable("characters", {
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
   description: text("description").notNull(),
+  cardType: text("card_type")
+    .$type<"character" | "group" | "persona" | "scenario">()
+    .notNull()
+    .default("character"),
   legacyPersonality: text("legacy_personality"),
   legacyScenario: text("legacy_scenario"),
   creator: text("creator"),

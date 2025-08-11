@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "./components/app-shell";
 import { AgentsPage } from "./pages/agents";
+import { CharacterCreatePage } from "./pages/character-create";
+import { CharacterEditPage } from "./pages/character-edit";
 import { CharacterLibraryPage } from "./pages/character-library";
 import { DashboardPage } from "./pages/dashboard";
 import { ModelsPage } from "./pages/models";
@@ -24,6 +26,14 @@ export const router = createBrowserRouter([
       {
         path: "characters",
         element: <CharacterLibraryPage />,
+      },
+      {
+        path: "characters/create",
+        element: <CharacterCreatePage />,
+      },
+      {
+        path: "characters/:id/edit",
+        element: <CharacterEditPage />,
       },
       {
         path: "scenarios",
