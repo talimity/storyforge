@@ -10,6 +10,7 @@ import { logger } from "./logging";
 import { registerAPI } from "./trpc/register";
 
 const fastify = Fastify({
+  bodyLimit: 1024 * 1024 * 15, // 15MB
   logger: config.logging.pretty
     ? {
         level: config.logging.level,

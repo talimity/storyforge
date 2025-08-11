@@ -18,6 +18,16 @@ export const characters = sqliteTable("characters", {
   revision: text("revision"),
   originalCardData: text("original_card_data", { mode: "json" }),
   cardImage: blob("card_image", { mode: "buffer" }),
+  cardFocalPoint: text("card_focal_point", { mode: "json" })
+    .$type<{
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+      c: number; // confidence
+    }>()
+    .notNull()
+    .default(sql`'{"x":0.5,"y":0.3,"w":0.5,"h":0.5,"c":0}'`), // default for portrait images
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

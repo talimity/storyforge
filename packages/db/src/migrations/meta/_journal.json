@@ -15,6 +15,20 @@
       "when": 1753505488685,
       "tag": "0001_volatile_ser_duncan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1754337493640,
+      "tag": "0002_messy_otto_octavius",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1754342044833,
+      "tag": "0003_kind_white_queen",
+      "breakpoints": true
     }
   ]
 }

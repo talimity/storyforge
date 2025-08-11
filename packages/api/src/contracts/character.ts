@@ -4,12 +4,10 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
 const imageInputSchema = z.string().refine(
   (val) => {
-    if (val === null) return true;
-
     const parts = val.match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
     if (!parts) return false;
 
-    const estSize = Math.ceil((parts[2].length * 3) / 4); //b64 overhead
+    const estSize = Math.ceil((parts[2].length * 3) / 4);
     if (estSize > MAX_IMAGE_SIZE) {
       return false;
     }
@@ -32,7 +30,7 @@ export const characterIdSchema = z.object({
 export const createCharacterSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
-  avatarDataUri: z.union([z.null(), imageInputSchema]).optional(),
+  imageDataUri: imageInputSchema.nullish(),
   legacyPersonality: z.string().nullish(),
   legacyScenario: z.string().nullish(),
   creator: z.string().nullish(),
@@ -47,6 +45,7 @@ export const updateCharacterSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1).optional(),
   description: z.string().optional(),
+  imageDataUri: imageInputSchema.nullish(),
 });
 
 // Core entity schemas

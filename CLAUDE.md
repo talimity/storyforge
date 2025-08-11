@@ -161,12 +161,13 @@ storyforge
     ├── config                 # Configuration management
     │   └── src
     │       └── index.ts       # Config/environment loader
-    └── db                     # Database layer
-        └── src
-            ├── migrations     # Database migrations
-            ├── repositories   # Data access layer
-            ├── schema         # Database schema definitions
-            └── client.ts      # Database client
+    │── db                     # Database layer
+    │   └── src
+    │       ├── migrations     # Database migrations
+    │       ├── repositories   # Data access layer
+    │       ├── schema         # Database schema definitions
+    │       └── client.ts      # Database client
+    └── yolo-onnx              # yolov8n-face wrapper
 ```
 
 ## Code Style Guidelines

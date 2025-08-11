@@ -1,13 +1,15 @@
 import type {
   CharacterRepository,
+  NewCharacter,
   NewCharacterExample,
   NewCharacterGreeting,
 } from "@storyforge/db";
+import { identifyCharacterFace } from "@/shelf/character/character-image.service";
 import type {
   TavernCard,
   TavernCardV1,
   TavernCardV2,
-} from "./parse-tavern-card";
+} from "@/shelf/character/utils/parse-tavern-card";
 
 function isTavernCardV2(card: TavernCard): card is TavernCardV2 {
   return "spec" in card && card.spec === "chara_card_v2";
@@ -17,14 +19,20 @@ export class CharacterImportService {
   constructor(private repository: CharacterRepository) {}
 
   async importCharacter(card: TavernCard, imageBuffer: Buffer) {
+    const focalPoint = await identifyCharacterFace(imageBuffer);
+
     if (isTavernCardV2(card)) {
-      return this.importV2Character(card, imageBuffer);
+      return this.importV2Character(card, imageBuffer, focalPoint);
     } else {
-      return this.importV1Character(card, imageBuffer);
+      return this.importV1Character(card, imageBuffer, focalPoint);
     }
   }
 
-  private async importV2Character(card: TavernCardV2, imageBuffer: Buffer) {
+  private async importV2Character(
+    card: TavernCardV2,
+    imageBuffer: Buffer,
+    focalPoint: NewCharacter["cardFocalPoint"]
+  ) {
     const newCharacter = {
       name: card.data.name,
       description: card.data.description,
@@ -38,6 +46,7 @@ export class CharacterImportService {
       revision: card.data.character_version,
       originalCardData: JSON.stringify(card),
       cardImage: imageBuffer,
+      cardFocalPoint: focalPoint,
     };
 
     const greetings: NewCharacterGreeting[] = [];
@@ -66,7 +75,11 @@ export class CharacterImportService {
     );
   }
 
-  private async importV1Character(card: TavernCardV1, imageBuffer: Buffer) {
+  private async importV1Character(
+    card: TavernCardV1,
+    imageBuffer: Buffer,
+    focalPoint: NewCharacter["cardFocalPoint"]
+  ) {
     const newCharacter = {
       name: card.name,
       description: card.description,
@@ -80,6 +93,7 @@ export class CharacterImportService {
       revision: null,
       originalCardData: JSON.stringify(card),
       cardImage: imageBuffer,
+      cardFocalPoint: focalPoint,
     };
 
     const greetings: NewCharacterGreeting[] = [];

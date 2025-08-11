@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, toaster } from "@/components/ui";
+import { trpc } from "@/lib/trpc";
 
 interface CharacterImportDialog {
   isOpen: boolean;
@@ -28,6 +29,9 @@ export function CharacterImportDialog({
   const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>(
     {}
   );
+
+  const utils = trpc.useUtils();
+  const importMutation = trpc.characters.import.useMutation();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -87,39 +91,38 @@ export function CharacterImportDialog({
     });
   };
 
+  const convertFileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        resolve(result);
+      };
+      reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const uploadFile = async (file: File): Promise<void> => {
-    const formData = new FormData();
-    formData.append("file", file);
+    try {
+      const charaDataUri = await convertFileToDataUri(file);
+      const result = await importMutation.mutateAsync({ charaDataUri });
 
-    const response = await fetch(
-      "http://localhost:3001/api/characters/import",
-      {
-        method: "POST",
-        body: formData,
+      if (!result.success) {
+        throw new Error(`Failed to import ${file.name}`);
       }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
+    } catch (error) {
       let errorMessage = `Failed to upload ${file.name}`;
 
-      if (response.status === 406) {
-        errorMessage = `Invalid file format: ${file.name}`;
-      } else if (response.status === 415) {
-        errorMessage = `Invalid PNG file or missing character data: ${file.name}`;
-      } else if (errorText) {
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          errorMessage = errorText;
-        }
+      if (error instanceof Error) {
+        // Handle tRPC errors and other errors
+        errorMessage = error.message.includes("TRPCError")
+          ? `Invalid PNG file or missing character data: ${file.name}`
+          : error.message;
       }
 
       throw new Error(errorMessage);
     }
-
-    return response.json();
   };
 
   const handleUpload = async () => {
@@ -146,6 +149,7 @@ export function CharacterImportDialog({
         duration: 5000,
       });
 
+      utils.characters.list.invalidate();
       onImportSuccess();
       handleClose();
     } catch (err) {

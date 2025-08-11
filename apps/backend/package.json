@@ -40,6 +40,7 @@
     "@storyforge/api": "workspace:*",
     "@storyforge/config": "workspace:*",
     "@storyforge/db": "workspace:*",
+    "@storyforge/yolo-onnx": "workspace:*",
     "@trpc/server": "catalog:",
     "fastify": "^5.4.0",
     "fastify-plugin": "^5.0.1",
@@ -49,6 +50,7 @@
     "png-chunk-text": "^1.0.0",
     "png-chunks-encode": "^1.0.0",
     "png-chunks-extract": "^1.0.0",
+    "sharp": "catalog:",
     "trpc-to-openapi": "catalog:",
     "zod": "catalog:"
   },

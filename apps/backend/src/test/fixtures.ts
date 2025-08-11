@@ -7,7 +7,7 @@ import { CharacterImportService } from "../shelf/character/character-import.serv
 import {
   type ParsedCharacterCard,
   parseTavernCard,
-} from "../shelf/character/parse-tavern-card";
+} from "../shelf/character/utils/parse-tavern-card";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

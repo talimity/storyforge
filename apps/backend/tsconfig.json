@@ -13,6 +13,7 @@
   "references": [
     { "path": "../../packages/api" },
     { "path": "../../packages/config" },
-    { "path": "../../packages/db" }
+    { "path": "../../packages/db" },
+    { "path": "../../packages/yolo-onnx" }
   ]
 }

@@ -1,0 +1,25 @@
+{
+  "name": "@storyforge/yolo-onnx",
+  "description": "Convenience package for yolov8n-face focal point detection via ONNX",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "check": "run-p --continue-on-error lint typecheck",
+    "clean": "rm -rf dist",
+    "fmt": "biome format --write .",
+    "lint": "biome check --diagnostic-level error --write .",
+    "typecheck": "tsc --noEmit",
+    "detect": "tsx test-face-detection.ts"
+  },
+  "dependencies": {
+    "onnxruntime-node": "1.22.0-rev",
+    "sharp": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

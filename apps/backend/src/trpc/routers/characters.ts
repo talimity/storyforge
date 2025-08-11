@@ -12,8 +12,9 @@ import { CharacterRepository } from "@storyforge/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { transformCharacter } from "@/shelf/character/character.transforms";
+import { maybeProcessCharaImage } from "@/shelf/character/character-image.service";
 import { CharacterImportService } from "@/shelf/character/character-import.service";
-import { parseTavernCard } from "@/shelf/character/parse-tavern-card";
+import { parseTavernCard } from "@/shelf/character/utils/parse-tavern-card";
 import { publicProcedure, router } from "@/trpc/index";
 
 export const charactersRouter = router({
@@ -115,18 +116,12 @@ export const charactersRouter = router({
     .input(createCharacterSchema)
     .output(characterWithRelationsSchema)
     .mutation(async ({ input: rawInput, ctx }) => {
-      const { avatarDataUri, ...input } = rawInput;
-      let cardImage: Buffer | undefined;
-
-      if (avatarDataUri) {
-        const base64Data = avatarDataUri.split(",")[1];
-        cardImage = Buffer.from(base64Data, "base64");
-      }
+      const { imageDataUri, ...input } = rawInput;
 
       const characterRepository = new CharacterRepository(ctx.db);
       const newCharacter = await characterRepository.createWithRelations({
         ...input,
-        cardImage,
+        ...(await maybeProcessCharaImage(imageDataUri)),
       });
 
       return {
@@ -149,7 +144,7 @@ export const charactersRouter = router({
     .output(characterSchema)
     .mutation(async ({ input, ctx }) => {
       const characterRepository = new CharacterRepository(ctx.db);
-      const { id, ...updateData } = input;
+      const { id, imageDataUri, ...updateData } = input;
       const filteredUpdateData: Record<string, string> = {};
 
       for (const [key, value] of Object.entries(updateData)) {
@@ -158,10 +153,10 @@ export const charactersRouter = router({
         }
       }
 
-      const updatedCharacter = await characterRepository.update(
-        id,
-        filteredUpdateData
-      );
+      const updatedCharacter = await characterRepository.update(id, {
+        ...filteredUpdateData,
+        ...(await maybeProcessCharaImage(imageDataUri)),
+      });
 
       if (!updatedCharacter) {
         throw new TRPCError({
