@@ -21,6 +21,7 @@ import {
   type PropsWithChildren,
   type ReactElement,
   type ReactNode,
+  useEffect,
 } from "react";
 import { LuArrowUpDown } from "react-icons/lu";
 
@@ -65,6 +66,14 @@ function PageHeaderRoot({ children, containerProps }: PageHeaderRootProps) {
           child.type === PageHeaderTabs)
       )
   );
+
+  useEffect(() => {
+    if (title) {
+      document.title = `${title.props.children} - StoryForge`;
+    } else {
+      document.title = "StoryForge";
+    }
+  }, [title]);
 
   // If we have tabs, render standard layout (tabs will handle controls internally)
   if (tabs) {
@@ -317,10 +326,12 @@ export const SimplePageHeader = ({
   tagline?: PageHeaderTaglineProps["children"];
   actions?: ReactNode;
 }>) => (
-  <PageHeader.Root>
-    <PageHeader.Title>{title}</PageHeader.Title>
-    {tagline && <PageHeader.Tagline>{tagline}</PageHeader.Tagline>}
-    {actions && <PageHeader.Controls>{actions}</PageHeader.Controls>}
-    {children}
-  </PageHeader.Root>
+  <>
+    <PageHeader.Root>
+      <PageHeader.Title>{title}</PageHeader.Title>
+      {tagline && <PageHeader.Tagline>{tagline}</PageHeader.Tagline>}
+      {actions && <PageHeader.Controls>{actions}</PageHeader.Controls>}
+      {children}
+    </PageHeader.Root>
+  </>
 );

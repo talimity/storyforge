@@ -1,9 +1,9 @@
-import { Box } from "@chakra-ui/react";
+import { Box, Container } from "@chakra-ui/react";
 import { Button, SimplePageHeader } from "@/components/ui";
 
 export function ModelsPage() {
   return (
-    <>
+    <Container>
       <SimplePageHeader
         title="Models"
         tagline="Manage your AI models and configurations."
@@ -19,6 +19,6 @@ export function ModelsPage() {
         ]}
       />
       <Box>TODO</Box>
-    </>
+    </Container>
   );
 }

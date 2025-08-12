@@ -29,7 +29,7 @@ export function CharacterEditPage() {
     onSuccess: (updatedCharacter) => {
       showSuccessToast({
         title: "Character updated",
-        description: `${updatedCharacter.name} has been updated successfully.`,
+        description: `Your changes to ${updatedCharacter.name} have been saved.`,
       });
 
       // Invalidate the character list and detail cache to refresh the data
@@ -115,7 +115,7 @@ export function CharacterEditPage() {
   // Loading state
   if (isLoadingCharacter) {
     return (
-      <Container maxW="5xl" py={6}>
+      <Container>
         <Stack gap={8} align="center">
           <SimplePageHeader
             title="Edit Character"
@@ -130,7 +130,7 @@ export function CharacterEditPage() {
   // Error state (character not found)
   if (loadError || !character) {
     return (
-      <Container maxW="5xl" py={6}>
+      <Container>
         <Stack gap={8} align="center">
           <SimplePageHeader
             title="Character Not Found"
@@ -161,34 +161,30 @@ export function CharacterEditPage() {
 
   return (
     <>
-      <Container maxW="5xl" py={6}>
-        <Stack gap={8}>
-          <SimplePageHeader
-            title="Edit Character"
-            tagline={`Editing "${character.name}"`}
-            actions={
-              <Button
-                colorPalette="red"
-                variant="outline"
-                onClick={handleDelete}
-                disabled={
-                  deleteCharacterMutation.isPending ||
-                  updateCharacterMutation.isPending
-                }
-              >
-                Delete Character
-              </Button>
-            }
-          />
-
-          <CharacterForm
-            initialData={initialFormData}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isSubmitting={updateCharacterMutation.isPending}
-            submitLabel="Update Character"
-          />
-        </Stack>
+      <Container>
+        <SimplePageHeader
+          title="Edit Character"
+          actions={
+            <Button
+              colorPalette="red"
+              variant="outline"
+              onClick={handleDelete}
+              disabled={
+                deleteCharacterMutation.isPending ||
+                updateCharacterMutation.isPending
+              }
+            >
+              Delete Character
+            </Button>
+          }
+        />
+        <CharacterForm
+          initialData={initialFormData}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isSubmitting={updateCharacterMutation.isPending}
+          submitLabel="Update Character"
+        />
       </Container>
 
       {/* Delete confirmation dialog */}

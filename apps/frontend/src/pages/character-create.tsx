@@ -1,4 +1,4 @@
-import { Container, Stack } from "@chakra-ui/react";
+import { Container } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { CharacterForm } from "@/components/features/character/character-form";
 import { SimplePageHeader } from "@/components/ui";
@@ -55,20 +55,14 @@ export function CharacterCreatePage() {
   };
 
   return (
-    <Container maxW="5xl" py={6}>
-      <Stack gap={8}>
-        <SimplePageHeader
-          title="Create Character"
-          tagline="Create a new character for your StoryForge scenarios"
-        />
-
-        <CharacterForm
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isSubmitting={createCharacterMutation.isPending}
-          submitLabel="Create Character"
-        />
-      </Stack>
+    <Container>
+      <SimplePageHeader title="Create Character" />
+      <CharacterForm
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        isSubmitting={createCharacterMutation.isPending}
+        submitLabel="Create Character"
+      />
     </Container>
   );
 }

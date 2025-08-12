@@ -29,7 +29,8 @@ export function Logo({ collapsed = false }: LogoProps) {
           color="content.emphasized"
           fontWeight="semibold"
           fontSize="2xl"
-          fontFamily={"heading"}
+          fontFamily="heading"
+          userSelect="none"
         >
           StoryForge
         </Text>

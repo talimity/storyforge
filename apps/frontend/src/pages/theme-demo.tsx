@@ -2,6 +2,7 @@
 import {
   Box,
   Card,
+  Container,
   chakra,
   createListCollection,
   Fieldset,
@@ -20,7 +21,7 @@ import {
   LuLayoutGrid,
   LuLayoutList,
   LuPlus,
-  LuUsers,
+  LuUsersRound,
 } from "react-icons/lu";
 import {
   Button,
@@ -37,7 +38,7 @@ import { PageHeader, SimplePageHeader } from "@/components/ui/page-header";
 
 export function ThemeDemoPage() {
   return (
-    <>
+    <Container>
       <SimplePageHeader
         title="Design System Demo"
         tagline="A demonstration of the StoryForge theme's materials, colors, and
@@ -50,7 +51,7 @@ export function ThemeDemoPage() {
       <PageHeaderExamples />
       <InlineFormExample />
       <FormExample />
-    </>
+    </Container>
   );
 }
 
@@ -171,7 +172,11 @@ function PageHeaderExamples() {
           <PageHeader.Title>Character Management</PageHeader.Title>
           <PageHeader.Tabs
             tabs={[
-              { value: "characters", label: "Characters", icon: <LuUsers /> },
+              {
+                value: "characters",
+                label: "Characters",
+                icon: <LuUsersRound />,
+              },
               { value: "scenarios", label: "Scenarios", icon: <LuBook /> },
             ]}
             defaultValue="characters"

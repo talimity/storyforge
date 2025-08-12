@@ -15,7 +15,7 @@ import {
   LuHouse,
   LuPaintBucket,
   LuSettings,
-  LuUsers,
+  LuUsersRound,
   LuWorkflow,
 } from "react-icons/lu";
 import { ColorModeToggle } from "./color-mode-toggle";
@@ -46,24 +46,19 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
       {/* Collapse Toggle Button */}
       <Button
-        variant="ghost"
-        size="sm"
+        variant="plain"
+        size="2xs"
         position="absolute"
-        top="11"
-        right="-3"
-        zIndex="10"
+        top="4"
+        right="-1.5"
+        zIndex="12"
         rounded="full"
-        boxSize="6"
-        minW="unset"
+        boxSize="8"
+        // minW="unset"
         onClick={onToggleCollapse}
-        // bg="bg"
-        borderWidth="1px"
-        _hover={{
-          bg: "bg.subtle",
-        }}
         data-testid="sidebar-toggle"
       >
-        {collapsed ? <LuChevronRight size={14} /> : <LuChevronLeft size={14} />}
+        {collapsed ? <LuChevronRight /> : <LuChevronLeft />}
       </Button>
 
       {/* Main Navigation */}
@@ -88,7 +83,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
         <SidebarLink
           to="/characters"
-          icon={<LuUsers />}
+          icon={<LuUsersRound />}
           label="Characters"
           collapsed={collapsed}
         />

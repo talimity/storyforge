@@ -1,0 +1,184 @@
+import {
+  Avatar,
+  Box,
+  HStack,
+  IconButton,
+  Menu,
+  Portal,
+  Skeleton,
+  Stack,
+  Text,
+  VisuallyHidden,
+} from "@chakra-ui/react";
+import type { CardType } from "@storyforge/api";
+import {
+  LuCheck,
+  LuMenu,
+  LuPencilLine,
+  LuSquareUserRound,
+  LuTrash,
+} from "react-icons/lu";
+import { CharacterDeleteDialog } from "@/components/dialogs/character-delete";
+import { useCharacterActions } from "@/components/features/character/use-character-actions";
+
+interface CompactCharacterCardProps {
+  character: {
+    id: string;
+    name: string;
+    cardType: CardType;
+    avatarPath: string | null;
+  };
+  isSelected?: boolean;
+  onSelectionToggle?: () => void;
+}
+
+const cardTypeLabels: Record<CardType, string> = {
+  character: "Character",
+  group: "Group",
+  persona: "Persona",
+  scenario: "Scenario",
+};
+
+export function CompactCharacterCard({
+  character,
+  isSelected = false,
+  onSelectionToggle,
+}: CompactCharacterCardProps) {
+  const {
+    isDeleteDialogOpen,
+    deleteCharacterMutation,
+    handleDelete,
+    handleEdit,
+    openDeleteDialog,
+    closeDeleteDialog,
+  } = useCharacterActions(character.id);
+
+  const avatarUrl = character.avatarPath
+    ? `http://localhost:3001/api/characters/${character.id}/avatar`
+    : undefined;
+
+  return (
+    <>
+      <HStack
+        gap={4}
+        p={3}
+        borderRadius="md"
+        layerStyle="surface"
+        cursor={onSelectionToggle ? "pointer" : "default"}
+        onClick={onSelectionToggle}
+        _hover={{ bg: "bg.muted" }}
+        className="group"
+        position="relative"
+        width="100%"
+        minWidth={0}
+      >
+        <Avatar.Root size="md" shape="rounded">
+          <Avatar.Image src={avatarUrl} />
+          <Avatar.Fallback>
+            <LuSquareUserRound size={20} />
+          </Avatar.Fallback>
+        </Avatar.Root>
+
+        <Stack gap={0} flex={1} minWidth={0}>
+          <HStack minWidth={0} width="100%">
+            {isSelected && (
+              <Box
+                height="20px"
+                width="20px"
+                layerStyle="contrast"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                borderRadius="sm"
+              >
+                <LuCheck size={16} color="white" />
+                <VisuallyHidden>Selected</VisuallyHidden>
+              </Box>
+            )}
+            <Text fontWeight="medium" truncate flex={1} minWidth={0}>
+              {character.name}
+            </Text>
+          </HStack>
+          <Text color="fg.muted" textStyle="sm">
+            {cardTypeLabels[character.cardType]}
+          </Text>
+        </Stack>
+
+        <Menu.Root positioning={{ placement: "bottom-end" }}>
+          <Box
+            display="flex"
+            alignItems="center"
+            // Hide the button visually and from layout unless hovered/focused
+            width={{ base: 0 }}
+            overflow="hidden"
+            _groupHover={{ width: "auto", overflow: "visible" }}
+            _focusWithin={{ width: "auto", overflow: "visible" }}
+            transition="width 0.2s"
+          >
+            <Menu.Trigger asChild>
+              <IconButton
+                aria-label="Character options"
+                variant="subtle"
+                size="sm"
+                colorPalette="neutral"
+                opacity={0}
+                _groupHover={{ opacity: 1 }}
+                _focus={{ opacity: 1 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <LuMenu />
+              </IconButton>
+            </Menu.Trigger>
+          </Box>
+          <Portal>
+            <Menu.Positioner>
+              <Menu.Content>
+                <Menu.Item value="edit" onClick={handleEdit}>
+                  <LuPencilLine />
+                  <Box flex="1">Edit</Box>
+                </Menu.Item>
+                <Menu.Item
+                  value="delete"
+                  color="fg.error"
+                  _hover={{ bg: "bg.error", color: "fg.error" }}
+                  onClick={openDeleteDialog}
+                  disabled={deleteCharacterMutation.isPending}
+                >
+                  <LuTrash />
+                  <Box flex="1">Delete</Box>
+                </Menu.Item>
+              </Menu.Content>
+            </Menu.Positioner>
+          </Portal>
+        </Menu.Root>
+      </HStack>
+
+      <CharacterDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={(_e) => closeDeleteDialog()}
+        characterName={character.name}
+        onConfirmDelete={handleDelete}
+        isDeleting={deleteCharacterMutation.isPending}
+      />
+    </>
+  );
+}
+
+export function CompactCharacterCardSkeleton() {
+  return (
+    <HStack
+      gap={4}
+      p={3}
+      borderRadius="md"
+      layerStyle="surface"
+      cursor="default"
+      opacity={0.6}
+    >
+      <Skeleton width="40px" height="40px" borderRadius="md" />
+      <Stack gap={0} flex={1} minWidth={0}>
+        <Skeleton width="100px" height="16px" borderRadius="md" />
+        <Skeleton width="80px" height="14px" borderRadius="md" />
+      </Stack>
+    </HStack>
+  );
+}

@@ -10,17 +10,15 @@ import {
   Text,
   VisuallyHidden,
 } from "@chakra-ui/react";
-import { useState } from "react";
 import {
   LuCheck,
   LuMenu,
   LuPencilLine,
+  LuSquareUserRound,
   LuTrash,
-  LuUsers,
 } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
-import { Button, Dialog } from "@/components/ui";
-import { trpc } from "@/lib/trpc";
+import { CharacterDeleteDialog } from "@/components/dialogs/character-delete";
+import { useCharacterActions } from "@/components/features/character/use-character-actions";
 
 interface CharacterCardProps {
   character: {
@@ -38,30 +36,18 @@ export function CharacterCard({
   isSelected = false,
   onSelectionToggle,
 }: CharacterCardProps) {
-  const navigate = useNavigate();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const utils = trpc.useUtils();
-  const deleteCharacterMutation = trpc.characters.delete.useMutation({
-    onSuccess: () => {
-      utils.characters.list.invalidate();
-      setIsDeleteDialogOpen(false);
-    },
-    onError: (error) => {
-      console.error("Failed to delete character:", error);
-    },
-  });
+  const {
+    isDeleteDialogOpen,
+    deleteCharacterMutation,
+    handleDelete,
+    handleEdit,
+    openDeleteDialog,
+    closeDeleteDialog,
+  } = useCharacterActions(character.id);
 
   const imageUrl = character.imagePath
     ? `http://localhost:3001/api/characters/${character.id}/image`
     : null;
-
-  const handleDelete = () => {
-    deleteCharacterMutation.mutate({ id: character.id });
-  };
-
-  const handleEdit = () => {
-    navigate(`/characters/${character.id}/edit`);
-  };
 
   return (
     <Card.Root
@@ -90,7 +76,7 @@ export function CharacterCard({
             justifyContent="center"
             color="gray.500"
           >
-            <LuUsers size={64} />
+            <LuSquareUserRound size={64} />
           </Box>
         )}
         <Menu.Root positioning={{ placement: "bottom-end" }}>
@@ -122,7 +108,7 @@ export function CharacterCard({
                   value="delete"
                   color="fg.error"
                   _hover={{ bg: "bg.error", color: "fg.error" }}
-                  onClick={() => setIsDeleteDialogOpen(true)}
+                  onClick={openDeleteDialog}
                   disabled={deleteCharacterMutation.isPending}
                 >
                   <LuTrash />
@@ -153,43 +139,13 @@ export function CharacterCard({
           </Text>
         </HStack>
       </Card.Body>
-      <Dialog.Root
-        role="alertdialog"
-        open={isDeleteDialogOpen}
-        onOpenChange={(e) => setIsDeleteDialogOpen(e.open)}
-        placement="center"
-      >
-        <Dialog.Content>
-          <Dialog.Header>
-            <Dialog.Title>Delete Character</Dialog.Title>
-          </Dialog.Header>
-          <Dialog.Body>
-            <Text>
-              Are you sure you want to delete "{character.name}"? This action
-              cannot be undone.
-            </Text>
-          </Dialog.Body>
-          <Dialog.Footer>
-            <Dialog.ActionTrigger asChild>
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteDialogOpen(false)}
-                disabled={deleteCharacterMutation.isPending}
-              >
-                Cancel
-              </Button>
-            </Dialog.ActionTrigger>
-            <Button
-              colorPalette="red"
-              onClick={handleDelete}
-              loading={deleteCharacterMutation.isPending}
-              disabled={deleteCharacterMutation.isPending}
-            >
-              Delete
-            </Button>
-          </Dialog.Footer>
-        </Dialog.Content>
-      </Dialog.Root>
+      <CharacterDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={() => closeDeleteDialog()}
+        characterName={character.name}
+        onConfirmDelete={handleDelete}
+        isDeleting={deleteCharacterMutation.isPending}
+      />
     </Card.Root>
   );
 }

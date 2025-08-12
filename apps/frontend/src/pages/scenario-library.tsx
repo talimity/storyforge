@@ -1,10 +1,10 @@
-import { Box, VStack } from "@chakra-ui/react";
+import { Box, Container, VStack } from "@chakra-ui/react";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
 
 export function ScenarioLibraryPage() {
   return (
-    <>
+    <Container>
       <SimplePageHeader
         title="Scenario Library"
         actions={[
@@ -31,6 +31,6 @@ export function ScenarioLibraryPage() {
           No scenarios yet. Create your first scenario to begin.
         </Box>
       </VStack>
-    </>
+    </Container>
   );
 }
