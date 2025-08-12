@@ -128,6 +128,7 @@ export const debugRouter = router({
         path: "/api/debug/completion",
         tags: ["debug"],
         summary: "Generate text completion",
+        enabled: false, // Disable for now, use completionStream instead
       },
     })
     .input(completionSchema)
@@ -202,6 +203,15 @@ export const debugRouter = router({
 
   // Streaming completion using tRPC subscriptions
   completionStream: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/debug/completion-stream",
+        tags: ["debug"],
+        summary: "Generate text completion (streaming)",
+        enabled: false,
+      },
+    })
     .input(completionSchema)
     .subscription(async function* ({ input }) {
       const {

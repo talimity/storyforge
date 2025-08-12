@@ -9,11 +9,12 @@ catalog:
   '@types/node': ^24.1.0
   drizzle-orm: ^0.44.3
   sharp: ^0.34.3
-  trpc-to-openapi: ^2.3.2
+  trpc-to-openapi: ^3.0.0
   tsx: ^4.20.3
   typescript: ^5.9.2
   vitest: ^3.2.4
-  zod: 3.25.76
+  zod: ^4.0.14
+  zod-openapi: ^5.0.1
 
 catalogMode: manual
 

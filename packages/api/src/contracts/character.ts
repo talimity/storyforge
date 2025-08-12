@@ -15,15 +15,20 @@ const imageInputSchema = z.string().refine(
     const parts = val.match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
     if (!parts) return false;
 
-    const estSize = Math.ceil((parts[2].length * 3) / 4);
+    // Validate size (base64 string length)
+    const estSize = (parts[2].length * 3) / 4;
     if (estSize > MAX_IMAGE_SIZE) {
+      console.error(
+        `Size validation failed: ${estSize} bytes exceeds ${MAX_IMAGE_SIZE} bytes`
+      );
       return false;
     }
 
     try {
       z.string().base64().parse(parts[2]);
       return true;
-    } catch {
+    } catch (e) {
+      console.error("Base64 validation failed", parts[2].slice(0, 20), e);
       return false;
     }
   },

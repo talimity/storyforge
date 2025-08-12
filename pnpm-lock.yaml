@@ -25,8 +25,8 @@ catalogs:
       specifier: ^0.34.3
       version: 0.34.3
     trpc-to-openapi:
-      specifier: ^2.3.2
-      version: 2.3.2
+      specifier: ^3.0.0
+      version: 3.0.0
     tsx:
       specifier: ^4.20.3
       version: 4.20.3
@@ -37,8 +37,11 @@ catalogs:
       specifier: ^3.2.4
       version: 3.2.4
     zod:
-      specifier: 3.25.76
-      version: 3.25.76
+      specifier: ^4.0.14
+      version: 4.0.14
+    zod-openapi:
+      specifier: ^5.0.1
+      version: 5.3.0
 
 importers:
 
@@ -127,10 +130,13 @@ importers:
         version: 0.34.3
       trpc-to-openapi:
         specifier: 'catalog:'
-        version: 2.3.2(@trpc/server@11.3.1(typescript@5.9.2))(zod-openapi@4.2.4(zod@3.25.76))(zod@3.25.76)
+        version: 3.0.0(@trpc/server@11.3.1(typescript@5.9.2))(zod-openapi@5.3.0(zod@4.0.14))(zod@4.0.14)
       zod:
         specifier: 'catalog:'
-        version: 3.25.76
+        version: 4.0.14
+      zod-openapi:
+        specifier: 'catalog:'
+        version: 5.3.0(zod@4.0.14)
     devDependencies:
       '@mapbox/node-pre-gyp':
         specifier: ^2.0.0
@@ -203,7 +209,7 @@ importers:
         version: 7.7.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       zod:
         specifier: 'catalog:'
-        version: 3.25.76
+        version: 4.0.14
     devDependencies:
       '@chakra-ui/cli':
         specifier: ^3.24.0
@@ -243,10 +249,10 @@ importers:
         version: 11.3.1(typescript@5.9.2)
       trpc-to-openapi:
         specifier: 'catalog:'
-        version: 2.3.2(@trpc/server@11.3.1(typescript@5.9.2))(zod-openapi@4.2.4(zod@3.25.76))(zod@3.25.76)
+        version: 3.0.0(@trpc/server@11.3.1(typescript@5.9.2))(zod-openapi@5.3.0(zod@4.0.14))(zod@4.0.14)
       zod:
         specifier: 'catalog:'
-        version: 3.25.76
+        version: 4.0.14
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -3437,12 +3443,12 @@ packages:
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
-  trpc-to-openapi@2.3.2:
-    resolution: {integrity: sha512-uDZou+5a+H77yhiqfzVRBXzTSX8/mQUGeFpr8+VtZmpzUBOmv5XYbyEtWpG7fOdGWZkB99wuuKeWUwNwwOGaXQ==}
+  trpc-to-openapi@3.0.0:
+    resolution: {integrity: sha512-iyG1rmEGzsQeoFn+AcP0fGhDuzh/A7u2MHDUYMAUdaSt72koSG7RJxO9K/7YW9e8vHQcJtVG/Zy+8DvYOr/jWw==}
     peerDependencies:
       '@trpc/server': ^11.1.0
-      zod: ^3.23.8
-      zod-openapi: 4.2.4
+      zod: ^4.0.0
+      zod-openapi: ^5.0.1
 
   ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
@@ -3691,14 +3697,17 @@ packages:
     resolution: {integrity: sha512-AyeEbWOu/TAXdxlV9wmGcR0+yh2j3vYPGOECcIj2S7MkrLyC7ne+oye2BKTItt0ii2PHk4cDy+95+LshzbXnGg==}
     engines: {node: '>=12.20'}
 
-  zod-openapi@4.2.4:
-    resolution: {integrity: sha512-tsrQpbpqFCXqVXUzi3TPwFhuMtLN3oNZobOtYnK6/5VkXsNdnIgyNr4r8no4wmYluaxzN3F7iS+8xCW8BmMQ8g==}
-    engines: {node: '>=18'}
+  zod-openapi@5.3.0:
+    resolution: {integrity: sha512-hv3DU37kV39v0MEiQ0vcL06NLS9bTHTb7FNtuFk2zhuATsi+UNcNN6y03z7qbI9NdC6LJS+Knk5shOSCUMwsDQ==}
+    engines: {node: '>=20'}
     peerDependencies:
-      zod: ^3.21.4
+      zod: ^3.25.74 || ^4.0.0
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.0.14:
+    resolution: {integrity: sha512-nGFJTnJN6cM2v9kXL+SOBq3AtjQby3Mv5ySGFof5UGRHrRioSJ5iG680cYNjE/yWk671nROcpPj4hAS8nyLhSw==}
 
 snapshots:
 
@@ -7145,14 +7154,14 @@ snapshots:
 
   tr46@0.0.3: {}
 
-  trpc-to-openapi@2.3.2(@trpc/server@11.3.1(typescript@5.9.2))(zod-openapi@4.2.4(zod@3.25.76))(zod@3.25.76):
+  trpc-to-openapi@3.0.0(@trpc/server@11.3.1(typescript@5.9.2))(zod-openapi@5.3.0(zod@4.0.14))(zod@4.0.14):
     dependencies:
       '@trpc/server': 11.3.1(typescript@5.9.2)
       co-body: 6.2.0
       h3: 1.15.1
       openapi3-ts: 4.4.0
-      zod: 3.25.76
-      zod-openapi: 4.2.4(zod@3.25.76)
+      zod: 4.0.14
+      zod-openapi: 5.3.0(zod@4.0.14)
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu': 4.6.1
 
@@ -7419,8 +7428,10 @@ snapshots:
 
   yocto-queue@1.2.1: {}
 
-  zod-openapi@4.2.4(zod@3.25.76):
+  zod-openapi@5.3.0(zod@4.0.14):
     dependencies:
-      zod: 3.25.76
+      zod: 4.0.14
 
   zod@3.25.76: {}
+
+  zod@4.0.14: {}

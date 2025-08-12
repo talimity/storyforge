@@ -52,7 +52,8 @@
     "png-chunks-extract": "^1.0.0",
     "sharp": "catalog:",
     "trpc-to-openapi": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "zod-openapi": "catalog:"
   },
   "devDependencies": {
     "@mapbox/node-pre-gyp": "^2.0.0",

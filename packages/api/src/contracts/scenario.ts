@@ -10,8 +10,8 @@ export const createScenarioSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().max(2000),
   status: z.enum(["active", "archived"]).default("active"),
-  settings: z.record(z.unknown()).default({}),
-  metadata: z.record(z.unknown()).default({}),
+  settings: z.record(z.string(), z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
   characterIds: z.array(z.string()).default([]), // Initial character assignments
 });
 
@@ -20,8 +20,8 @@ export const updateScenarioSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().max(2000).optional(),
   status: z.enum(["active", "archived"]).optional(),
-  settings: z.record(z.unknown()).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
 // Character assignment schemas
@@ -65,8 +65,8 @@ export const scenarioSchema = z.object({
   name: z.string(),
   description: z.string(),
   status: z.enum(["active", "archived"]),
-  settings: z.record(z.unknown()),
-  metadata: z.record(z.unknown()),
+  settings: z.record(z.string(), z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
 });
