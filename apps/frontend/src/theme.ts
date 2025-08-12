@@ -56,6 +56,52 @@ const tokens = defineTokens({
       800: { value: "hsl(150, 50%, 15%)" },
       900: { value: "hsl(150, 55%, 10%)" },
     },
+
+    neutralDark: {
+      50: { value: "hsl(30, 5%, 8%)" }, // Darkest charcoal
+      100: { value: "hsl(30, 6%, 10%)" }, // Main dark surface
+      200: { value: "hsl(30, 7%, 12%)" }, // Slightly lighter
+      300: { value: "hsl(30, 8%, 14%)" },
+      400: { value: "hsl(30, 8%, 16%)" },
+      500: { value: "hsl(30, 10%, 20%)" }, // Borders
+      600: { value: "hsl(35, 12%, 65%)" }, // Muted text
+      700: { value: "hsl(35, 15%, 75%)" },
+      800: { value: "hsl(35, 18%, 85%)" }, // Main text
+      900: { value: "hsl(35, 20%, 90%)" }, // Bright text
+      950: { value: "hsl(35, 25%, 94%)" }, // Brightest (not white)
+    },
+    // Dark mode: slightly warmer/lighter for contrast areas
+    accentDark: {
+      50: { value: "hsl(25, 10%, 12%)" },
+      100: { value: "hsl(25, 12%, 14%)" },
+      200: { value: "hsl(25, 14%, 16%)" },
+      300: { value: "hsl(25, 15%, 18%)" },
+      400: { value: "hsl(25, 15%, 20%)" },
+      500: { value: "hsl(25, 15%, 22%)" }, // Main contrast surface
+      600: { value: "hsl(25, 15%, 24%)" },
+      700: { value: "hsl(25, 15%, 26%)" },
+      800: { value: "hsl(25, 12%, 28%)" },
+      900: { value: "hsl(25, 10%, 30%)" },
+      950: { value: "hsl(25, 8%, 32%)" },
+    },
+    // Dark mode highlights - more muted but still distinctive
+    goldDark: {
+      300: { value: "hsl(48, 50%, 25%)" },
+      400: { value: "hsl(46, 55%, 35%)" },
+      500: { value: "hsl(45, 60%, 45%)" }, // Main gold - dimmer
+      600: { value: "hsl(43, 65%, 50%)" },
+      700: { value: "hsl(41, 70%, 55%)" },
+    },
+    emeraldDark: {
+      200: { value: "hsl(150, 25%, 20%)" },
+      300: { value: "hsl(150, 30%, 25%)" },
+      400: { value: "hsl(150, 35%, 30%)" },
+      500: { value: "hsl(150, 40%, 35%)" }, // Main emerald - dimmer
+      600: { value: "hsl(150, 45%, 40%)" },
+      700: { value: "hsl(150, 50%, 45%)" },
+      800: { value: "hsl(150, 55%, 50%)" },
+      900: { value: "hsl(150, 60%, 55%)" },
+    },
   },
   fonts: {
     heading: { value: "'Aleo', serif" },
@@ -71,139 +117,442 @@ const tokens = defineTokens({
 // Semantic tokens for the two-material system
 const semanticTokens = defineSemanticTokens({
   colors: {
-    // Set chakra defaults to get most components working out of the box
+    // Chakra defaults with light/dark support
     bg: {
-      DEFAULT: { value: "{colors.neutral.100}" },
-      panel: { value: "{colors.neutral.50}" },
-      muted: { value: "{colors.neutral.200}" },
-      emphasized: { value: "{colors.neutral.300}" },
+      DEFAULT: {
+        value: {
+          _light: "{colors.neutral.100}",
+          _dark: "{colors.neutralDark.100}",
+        },
+      },
+      panel: {
+        value: {
+          _light: "{colors.neutral.50}",
+          _dark: "{colors.neutralDark.50}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.neutral.200}",
+          _dark: "{colors.neutralDark.200}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.neutral.300}",
+          _dark: "{colors.neutralDark.300}",
+        },
+      },
     },
     fg: {
-      DEFAULT: { value: "{colors.neutral.800}" },
-      muted: { value: "{colors.neutral.600}" },
-      subtle: { value: "{colors.neutral.700}" },
-      emphasized: { value: "{colors.neutral.950}" },
+      DEFAULT: {
+        value: {
+          _light: "{colors.neutral.800}",
+          _dark: "{colors.neutralDark.800}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.neutral.600}",
+          _dark: "{colors.neutralDark.600}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.neutral.700}",
+          _dark: "{colors.neutralDark.700}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.neutral.950}",
+          _dark: "{colors.neutralDark.950}",
+        },
+      },
     },
     border: {
-      DEFAULT: { value: "{colors.neutral.500}" },
+      DEFAULT: {
+        value: {
+          _light: "{colors.neutral.500}",
+          _dark: "{colors.neutralDark.500}",
+        },
+      },
     },
-    // Primary surface (paper in light mode, dark in dark mode)
+
+    // Primary surface (paper/parchment in light, dark charcoal in dark)
     surface: {
-      base: { value: "{colors.neutral.100}" },
-      subtle: { value: "{colors.neutral.50}" },
-      muted: { value: "{colors.neutral.200}" },
-      emphasized: { value: "{colors.neutral.300}" },
-      border: { value: "{colors.neutral.500}" },
+      base: {
+        value: {
+          _light: "{colors.neutral.100}",
+          _dark: "{colors.neutralDark.100}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.neutral.50}",
+          _dark: "{colors.neutralDark.50}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.neutral.200}",
+          _dark: "{colors.neutralDark.200}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.neutral.300}",
+          _dark: "{colors.neutralDark.300}",
+        },
+      },
+      border: {
+        value: {
+          _light: "{colors.neutral.500}",
+          _dark: "{colors.neutralDark.500}",
+        },
+      },
     },
-    // Primary content (ink in light mode, light text in dark mode)
+
+    // Primary content (ink in light, warm light text in dark)
     content: {
-      base: { value: "{colors.neutral.800}" },
-      muted: { value: "{colors.neutral.600}" },
-      subtle: { value: "{colors.neutral.700}" },
-      emphasized: { value: "{colors.neutral.950}" },
+      base: {
+        value: {
+          _light: "{colors.neutral.800}",
+          _dark: "{colors.neutralDark.800}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.neutral.600}",
+          _dark: "{colors.neutralDark.600}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.neutral.700}",
+          _dark: "{colors.neutralDark.700}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.neutral.950}",
+          _dark: "{colors.neutralDark.950}",
+        },
+      },
     },
-    // Contrast surface (leather in light mode, slightly different in dark)
+
+    // Contrast surface (leather in light, slightly warmer dark in dark mode)
     surfaceContrast: {
-      base: { value: "{colors.accent.500}" },
-      muted: { value: "{colors.accent.600}" },
-      subtle: { value: "{colors.accent.400}" },
-      emphasized: { value: "{colors.accent.300}" },
-      border: { value: "{colors.accent.700}" },
+      base: {
+        value: {
+          _light: "{colors.accent.500}",
+          _dark: "{colors.accentDark.500}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.accent.600}",
+          _dark: "{colors.accentDark.600}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.accent.400}",
+          _dark: "{colors.accentDark.400}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.accent.300}",
+          _dark: "{colors.accentDark.300}",
+        },
+      },
+      border: {
+        value: {
+          _light: "{colors.accent.700}",
+          _dark: "{colors.accentDark.700}",
+        },
+      },
     },
-    // Contrast content (light text on dark surfaces)
+
+    // Contrast content
     contentContrast: {
-      base: { value: "{colors.neutral.100}" },
-      muted: { value: "{colors.neutral.200}" },
-      subtle: { value: "{colors.neutral.300}" },
-      emphasized: { value: "{colors.neutral.50}" },
+      base: {
+        value: {
+          _light: "{colors.neutral.100}",
+          _dark: "{colors.neutralDark.800}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.neutral.200}",
+          _dark: "{colors.neutralDark.700}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.neutral.300}",
+          _dark: "{colors.neutralDark.600}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.neutral.50}",
+          _dark: "{colors.neutralDark.900}",
+        },
+      },
     },
-    // Highlight colors
+
+    // Highlight colors with light/dark variants
     highlight: {
-      gold: { value: "{colors.gold.500}" },
-      emerald: { value: "{colors.emerald.500}" },
-      goldMuted: { value: "{colors.gold.600}" },
-      emeraldMuted: { value: "{colors.emerald.600}" },
+      gold: {
+        value: {
+          _light: "{colors.gold.500}",
+          _dark: "{colors.goldDark.500}",
+        },
+      },
+      emerald: {
+        value: {
+          _light: "{colors.emerald.500}",
+          _dark: "{colors.emeraldDark.500}",
+        },
+      },
+      goldMuted: {
+        value: {
+          _light: "{colors.gold.600}",
+          _dark: "{colors.goldDark.400}",
+        },
+      },
+      emeraldMuted: {
+        value: {
+          _light: "{colors.emerald.600}",
+          _dark: "{colors.emeraldDark.400}",
+        },
+      },
     },
-    // Color palette semantic tokens for components
+
+    // Component color palettes with light/dark support
     neutral: {
-      solid: { value: "{colors.neutral.400}" },
-      contrast: { value: "{colors.neutral.900}" },
-      fg: { value: "{colors.neutral.700}" },
-      muted: { value: "{colors.neutral.500}" },
-      subtle: { value: "{colors.neutral.300}" },
-      emphasized: { value: "{colors.neutral.400}" },
-      focusRing: { value: "{colors.accent.500}" },
+      solid: {
+        value: {
+          _light: "{colors.neutral.400}",
+          _dark: "{colors.neutralDark.600}",
+        },
+      },
+      contrast: {
+        value: {
+          _light: "{colors.neutral.900}",
+          _dark: "{colors.neutralDark.100}",
+        },
+      },
+      fg: {
+        value: {
+          _light: "{colors.neutral.700}",
+          _dark: "{colors.neutralDark.700}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.neutral.500}",
+          _dark: "{colors.neutralDark.500}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.neutral.300}",
+          _dark: "{colors.neutralDark.300}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.neutral.400}",
+          _dark: "{colors.neutralDark.400}",
+        },
+      },
+      focusRing: {
+        value: {
+          _light: "{colors.accent.500}",
+          _dark: "{colors.goldDark.500}",
+        },
+      },
     },
+
     // Primary palette
     primary: {
-      solid: { value: "{colors.accent.500}" },
-      contrast: { value: "{colors.neutral.100}" },
-      fg: { value: "{colors.accent.700}" },
-      muted: { value: "{colors.accent.100}" },
-      subtle: { value: "{colors.accent.100}" },
-      emphasized: { value: "{colors.accent.300}" },
-      focusRing: { value: "{colors.accent.500}" },
+      solid: {
+        value: {
+          _light: "{colors.accent.500}",
+          _dark: "{colors.accentDark.500}",
+        },
+      },
+      contrast: {
+        value: {
+          _light: "{colors.neutral.100}",
+          _dark: "{colors.neutralDark.900}",
+        },
+      },
+      fg: {
+        value: {
+          _light: "{colors.accent.700}",
+          _dark: "{colors.accentDark.300}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.accent.100}",
+          _dark: "{colors.accentDark.700}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.accent.100}",
+          _dark: "{colors.accentDark.600}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.accent.300}",
+          _dark: "{colors.accentDark.400}",
+        },
+      },
+      focusRing: {
+        value: {
+          _light: "{colors.accent.500}",
+          _dark: "{colors.goldDark.500}",
+        },
+      },
     },
+
     // Secondary palette (emerald)
     secondary: {
-      solid: { value: "{colors.emerald.500}" },
-      contrast: { value: "{colors.neutral.100}" },
-      fg: { value: "{colors.emerald.600}" },
-      muted: { value: "{colors.emerald.300}" },
-      subtle: { value: "{colors.emerald.400}" },
-      emphasized: { value: "{colors.emerald.700}" },
-      focusRing: { value: "{colors.emerald.500}" },
+      solid: {
+        value: {
+          _light: "{colors.emerald.500}",
+          _dark: "{colors.emeraldDark.500}",
+        },
+      },
+      contrast: {
+        value: {
+          _light: "{colors.neutral.100}",
+          _dark: "{colors.neutralDark.900}",
+        },
+      },
+      fg: {
+        value: {
+          _light: "{colors.emerald.600}",
+          _dark: "{colors.emeraldDark.400}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.emerald.300}",
+          _dark: "{colors.emeraldDark.700}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.emerald.400}",
+          _dark: "{colors.emeraldDark.600}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.emerald.700}",
+          _dark: "{colors.emeraldDark.300}",
+        },
+      },
+      focusRing: {
+        value: {
+          _light: "{colors.emerald.500}",
+          _dark: "{colors.emeraldDark.500}",
+        },
+      },
     },
+
     // Gold accent palette
     accent: {
-      solid: { value: "{colors.gold.500}" },
-      contrast: { value: "{colors.accent.800}" },
-      fg: { value: "{colors.gold.600}" },
-      muted: { value: "{colors.gold.300}" },
-      subtle: { value: "{colors.gold.400}" },
-      emphasized: { value: "{colors.gold.600}" },
-      focusRing: { value: "{colors.gold.500}" },
-    },
-    // Danger palette
-    danger: {
-      solid: { value: "{colors.red.500}" },
-      contrast: { value: "white" },
-      fg: { value: "{colors.red.600}" },
-      muted: { value: "{colors.red.100}" },
-      subtle: { value: "{colors.red.200}" },
-      emphasized: { value: "{colors.red.300}" },
-      focusRing: { value: "{colors.red.500}" },
-    },
-    // Success palette
-    success: {
-      solid: { value: "{colors.green.500}" },
-      contrast: { value: "white" },
-      fg: { value: "{colors.green.600}" },
-      muted: { value: "{colors.green.100}" },
-      subtle: { value: "{colors.green.200}" },
-      emphasized: { value: "{colors.green.300}" },
-      focusRing: { value: "{colors.green.500}" },
-    },
-    // Info palette
-    info: {
-      solid: { value: "{colors.blue.500}" },
-      contrast: { value: "white" },
-      fg: { value: "{colors.blue.600}" },
-      muted: { value: "{colors.blue.100}" },
-      subtle: { value: "{colors.blue.200}" },
-      emphasized: { value: "{colors.blue.300}" },
-      focusRing: { value: "{colors.blue.500}" },
+      solid: {
+        value: {
+          _light: "{colors.gold.500}",
+          _dark: "{colors.goldDark.500}",
+        },
+      },
+      contrast: {
+        value: {
+          _light: "{colors.accent.800}",
+          _dark: "{colors.neutralDark.900}",
+        },
+      },
+      fg: {
+        value: {
+          _light: "{colors.gold.600}",
+          _dark: "{colors.goldDark.400}",
+        },
+      },
+      muted: {
+        value: {
+          _light: "{colors.gold.300}",
+          _dark: "{colors.goldDark.700}",
+        },
+      },
+      subtle: {
+        value: {
+          _light: "{colors.gold.400}",
+          _dark: "{colors.goldDark.600}",
+        },
+      },
+      emphasized: {
+        value: {
+          _light: "{colors.gold.600}",
+          _dark: "{colors.goldDark.300}",
+        },
+      },
+      focusRing: {
+        value: {
+          _light: "{colors.gold.500}",
+          _dark: "{colors.goldDark.500}",
+        },
+      },
     },
   },
+
   gradients: {
-    // Material texture
     surfaceGradient: {
-      value:
-        "linear-gradient(135deg, {colors.surface} 0%, {colors.surface.muted} 100%)",
+      value: {
+        _light:
+          "linear-gradient(135deg, {colors.surface} 0%, {colors.surface.muted} 100%)",
+        _dark:
+          "linear-gradient(135deg, {colors.surface} 0%, {colors.surface.muted} 100%)",
+      },
     },
     contrastGradient: {
-      value:
-        "linear-gradient(135deg, {colors.surfaceContrast} 0%, {colors.surfaceContrast.subtle} 100%)",
+      value: {
+        _light:
+          "linear-gradient(135deg, {colors.surfaceContrast} 0%, {colors.surfaceContrast.subtle} 100%)",
+        _dark:
+          "linear-gradient(315deg, {colors.surfaceContrast} 0%, {colors.surfaceContrast.subtle} 100%)",
+      },
+    },
+  },
+
+  shadows: {
+    subtle: {
+      value: {
+        _light: "0 2px 8px -2px hsl(25 15% 15% / 0.2)",
+        _dark: "0 2px 8px -2px hsl(0 0% 0% / 0.4)",
+      },
+    },
+    medium: {
+      value: {
+        _light: "0 4px 15px -3px hsl(25 15% 15% / 0.15)",
+        _dark: "0 4px 15px -3px hsl(0 0% 0% / 0.5)",
+      },
+    },
+    strong: {
+      value: {
+        _light: "0 8px 30px -5px hsl(25 15% 15% / 0.3)",
+        _dark: "0 8px 30px -5px hsl(0 0% 0% / 0.6)",
+      },
     },
   },
 });
@@ -270,7 +619,10 @@ export const inputRecipe = {
   variants: {
     variant: {
       outline: {
-        bg: "{colors.white}/60",
+        bg: {
+          _light: "{colors.white}/60",
+          _dark: "{colors.neutralDark.200}/30",
+        },
         color: "{colors.content}",
         _placeholder: {
           color: "{colors.content}/60",
@@ -281,18 +633,27 @@ export const inputRecipe = {
         focusRingColor: "{colors.content.subtle}",
       },
       onContrast: {
-        bg: "{colors.surface}/10",
+        bg: {
+          _light: "{colors.surface}/10",
+          _dark: "{colors.neutralDark.100}/20",
+        },
         color: "{colors.contentContrast}",
         _placeholder: {
           color: "{colors.contentContrast}/60",
         },
         borderWidth: "1px",
-        borderColor: "{colors.surface.border}/20",
+        borderColor: {
+          _light: "{colors.surface.border}/20",
+          _dark: "{colors.neutralDark.500}/30",
+        },
         focusVisibleRing: "outside",
         focusRingOffset: "0px",
         focusRingColor: "{colors.contentContrast}",
         _focusVisible: {
-          boxShadow: "0px 0px 0px 4px {colors.accent.200}",
+          boxShadow: {
+            _light: "0px 0px 0px 4px {colors.accent.200}",
+            _dark: "0px 0px 0px 4px {colors.goldDark.300}/30",
+          },
         },
       },
     },
@@ -345,10 +706,12 @@ const buttonRecipe = {
 };
 
 // Complete theme configuration
-export const storyforgeTheme = defineConfig({
+export const appTheme = defineConfig({
   globalCss: {
+    // Mainly only needed for dialogs as they are outside the app root
     body: {
-      // fontFamily: "var(--chakra-fonts-body)",
+      fontFamily: "var(--chakra-fonts-body)",
+      color: "var(--chakra-colors-content)",
     },
     "h1, h2, h3, h4, h5, h6": {
       fontFamily: "var(--chakra-fonts-heading)",
@@ -401,4 +764,4 @@ export const storyforgeTheme = defineConfig({
   },
 });
 
-export const system = createSystem(defaultConfig, storyforgeTheme);
+export const system = createSystem(defaultConfig, appTheme);
