@@ -489,22 +489,6 @@ function FormExample() {
                   </Button>
                 </HStack>
 
-                {/* Secondary buttons */}
-                <Text fontSize="sm" color="content.muted" mb={2}>
-                  Secondary palette, with variants
-                </Text>
-                <HStack gap={3} mb={4} flexWrap="wrap">
-                  <Button colorPalette="secondary" variant="solid">
-                    Button
-                  </Button>
-                  <Button colorPalette="secondary" variant="outline">
-                    Outline Button
-                  </Button>
-                  <Button colorPalette="secondary" variant="ghost">
-                    Ghost Button
-                  </Button>
-                </HStack>
-
                 {/* Accent buttons */}
                 <Text fontSize="sm" color="content.muted" mb={2}>
                   Accent palette, with variants

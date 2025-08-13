@@ -46,16 +46,6 @@ const tokens = defineTokens({
       600: { value: "hsl(43, 80%, 50%)" },
       700: { value: "hsl(40, 75%, 45%)" },
     },
-    emerald: {
-      200: { value: "hsl(150, 30%, 70%)" },
-      300: { value: "hsl(150, 35%, 40%)" },
-      400: { value: "hsl(150, 38%, 35%)" },
-      500: { value: "hsl(150, 40%, 30%)" }, // Main emerald
-      600: { value: "hsl(150, 42%, 25%)" },
-      700: { value: "hsl(150, 45%, 20%)" },
-      800: { value: "hsl(150, 50%, 15%)" },
-      900: { value: "hsl(150, 55%, 10%)" },
-    },
 
     neutralDark: {
       50: { value: "hsl(30, 5%, 8%)" }, // Darkest charcoal
@@ -91,16 +81,6 @@ const tokens = defineTokens({
       500: { value: "hsl(45, 60%, 45%)" }, // Main gold - dimmer
       600: { value: "hsl(43, 65%, 50%)" },
       700: { value: "hsl(41, 70%, 55%)" },
-    },
-    emeraldDark: {
-      200: { value: "hsl(150, 25%, 20%)" },
-      300: { value: "hsl(150, 30%, 25%)" },
-      400: { value: "hsl(150, 35%, 30%)" },
-      500: { value: "hsl(150, 40%, 35%)" }, // Main emerald - dimmer
-      600: { value: "hsl(150, 45%, 40%)" },
-      700: { value: "hsl(150, 50%, 45%)" },
-      800: { value: "hsl(150, 55%, 50%)" },
-      900: { value: "hsl(150, 60%, 55%)" },
     },
   },
   fonts: {
@@ -311,22 +291,10 @@ const semanticTokens = defineSemanticTokens({
           _dark: "{colors.goldDark.500}",
         },
       },
-      emerald: {
-        value: {
-          _light: "{colors.emerald.500}",
-          _dark: "{colors.emeraldDark.500}",
-        },
-      },
       goldMuted: {
         value: {
           _light: "{colors.gold.600}",
           _dark: "{colors.goldDark.400}",
-        },
-      },
-      emeraldMuted: {
-        value: {
-          _light: "{colors.emerald.600}",
-          _dark: "{colors.emeraldDark.400}",
         },
       },
     },
@@ -419,52 +387,6 @@ const semanticTokens = defineSemanticTokens({
         value: {
           _light: "{colors.accent.500}",
           _dark: "{colors.goldDark.500}",
-        },
-      },
-    },
-
-    // Secondary palette (emerald)
-    secondary: {
-      solid: {
-        value: {
-          _light: "{colors.emerald.500}",
-          _dark: "{colors.emeraldDark.500}",
-        },
-      },
-      contrast: {
-        value: {
-          _light: "{colors.neutral.100}",
-          _dark: "{colors.neutralDark.900}",
-        },
-      },
-      fg: {
-        value: {
-          _light: "{colors.emerald.600}",
-          _dark: "{colors.emeraldDark.400}",
-        },
-      },
-      muted: {
-        value: {
-          _light: "{colors.emerald.300}",
-          _dark: "{colors.emeraldDark.700}",
-        },
-      },
-      subtle: {
-        value: {
-          _light: "{colors.emerald.400}",
-          _dark: "{colors.emeraldDark.600}",
-        },
-      },
-      emphasized: {
-        value: {
-          _light: "{colors.emerald.700}",
-          _dark: "{colors.emeraldDark.300}",
-        },
-      },
-      focusRing: {
-        value: {
-          _light: "{colors.emerald.500}",
-          _dark: "{colors.emeraldDark.500}",
         },
       },
     },
