@@ -15,7 +15,6 @@ const __dirname = path.dirname(__filename);
 type TestDatabase = StoryforgeSqliteDatabase;
 
 export async function createTestDatabase(): Promise<TestDatabase> {
-  // Dynamic import to avoid circular dependencies
   const { Database, drizzle, migrate } = await import("@storyforge/db");
 
   // Create a fresh in-memory database for each test run

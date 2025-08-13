@@ -20,14 +20,14 @@ export function transformCharacter(dbCharacter: DbCharacter): Character {
     customPostHistoryInstructions: dbCharacter.customPostHistoryInstructions,
     tags: dbCharacter.tags || [],
     revision: dbCharacter.revision,
-    originalCardData: dbCharacter.originalCardData
-      ? JSON.parse(JSON.stringify(dbCharacter.originalCardData))
+    tavernCardData: dbCharacter.tavernCardData
+      ? JSON.parse(JSON.stringify(dbCharacter.tavernCardData))
       : null,
-    imagePath: dbCharacter.cardImage
-      ? `/api/characters/${dbCharacter.id}/image`
+    imagePath: dbCharacter.portrait
+      ? `/assets/characters/${dbCharacter.id}/card`
       : null,
-    avatarPath: dbCharacter.cardImage
-      ? `/api/characters/${dbCharacter.id}/avatar`
+    avatarPath: dbCharacter.portrait
+      ? `/assets/characters/${dbCharacter.id}/avatar`
       : null,
     createdAt: dbCharacter.createdAt,
     updatedAt: dbCharacter.updatedAt,

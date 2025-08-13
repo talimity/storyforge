@@ -31,7 +31,7 @@ export class CharacterImportService {
   private async importV2Character(
     card: TavernCardV2,
     imageBuffer: Buffer,
-    focalPoint: NewCharacter["cardFocalPoint"]
+    focalPoint: NewCharacter["portraitFocalPoint"]
   ) {
     const newCharacter = {
       name: card.data.name,
@@ -45,9 +45,9 @@ export class CharacterImportService {
       customPostHistoryInstructions: card.data.post_history_instructions,
       tags: card.data.tags,
       revision: card.data.character_version,
-      originalCardData: JSON.stringify(card),
-      cardImage: imageBuffer,
-      cardFocalPoint: focalPoint,
+      tavernCardData: JSON.stringify(card),
+      portrait: imageBuffer,
+      portraitFocalPoint: focalPoint,
     };
 
     const greetings: NewCharacterGreeting[] = [];
@@ -79,7 +79,7 @@ export class CharacterImportService {
   private async importV1Character(
     card: TavernCardV1,
     imageBuffer: Buffer,
-    focalPoint: NewCharacter["cardFocalPoint"]
+    focalPoint: NewCharacter["portraitFocalPoint"]
   ) {
     const newCharacter = {
       name: card.name,
@@ -93,9 +93,9 @@ export class CharacterImportService {
       customPostHistoryInstructions: null,
       tags: [],
       revision: null,
-      originalCardData: JSON.stringify(card),
-      cardImage: imageBuffer,
-      cardFocalPoint: focalPoint,
+      tavernCardData: JSON.stringify(card),
+      portrait: imageBuffer,
+      portraitFocalPoint: focalPoint,
     };
 
     const greetings: NewCharacterGreeting[] = [];

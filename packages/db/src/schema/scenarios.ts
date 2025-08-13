@@ -1,4 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
+import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const scenarios = sqliteTable("scenarios", {
@@ -14,11 +15,12 @@ export const scenarios = sqliteTable("scenarios", {
   settings: text("settings", { mode: "json" })
     .$type<Record<string, unknown>>()
     .notNull()
-    .default({}),
+    .default(sql`'{}::json'`),
   metadata: text("metadata", { mode: "json" })
     .$type<Record<string, unknown>>()
     .notNull()
-    .default({}),
+    // .default({}), // drizzle does not handle defaults for JSON fields well
+    .default(sql`'{}::json'`),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

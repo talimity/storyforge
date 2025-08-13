@@ -100,10 +100,10 @@ export class ScenarioRepository extends BaseRepository<
     const processedData: Record<string, unknown> = { ...data };
 
     if (data.settings !== undefined) {
-      processedData.settings = JSON.stringify(data.settings);
+      processedData.settings = data.settings;
     }
     if (data.metadata !== undefined) {
-      processedData.metadata = JSON.stringify(data.metadata);
+      processedData.metadata = data.metadata;
     }
 
     return super.update(id, processedData);

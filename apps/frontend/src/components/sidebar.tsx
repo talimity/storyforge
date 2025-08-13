@@ -9,7 +9,6 @@ import {
 import type { ReactNode } from "react";
 import {
   LuBookOpen,
-  LuBrain,
   LuChevronLeft,
   LuChevronRight,
   LuHouse,
@@ -18,6 +17,7 @@ import {
   LuUsersRound,
   LuWorkflow,
 } from "react-icons/lu";
+import { RiQuillPenAiFill } from "react-icons/ri";
 import { ColorModeToggle } from "./color-mode-toggle";
 import { Logo } from "./logo";
 import { SidebarLink } from "./sidebar-link";
@@ -97,7 +97,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
         <SidebarLink
           to="/models"
-          icon={<LuBrain />}
+          icon={<RiQuillPenAiFill />}
           label="Models"
           collapsed={collapsed}
         />

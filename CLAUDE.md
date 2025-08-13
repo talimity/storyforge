@@ -101,11 +101,11 @@ devctl stop       # Stop both dev servers
     - ✅ Vite + React
     - ✅ Chakra UI v3
   - ❌ Library
-    - ❌ Characters
-      - ✅ Character list (very basic)
+    - ✅ Characters
+      - ✅ Character list
       - ✅ Character card with actions
       - ✅ Character import workflow
-      - ❌ Character editor
+      - ✅ Character editor
     - ❌ Scenarios
     - ❌ Prompt templates
   - ❌ Scenario player

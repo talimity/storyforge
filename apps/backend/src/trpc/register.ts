@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { createOpenApiHttpHandler } from "trpc-to-openapi";
 import { createAppContext } from "@/trpc/app-context";
 import { appRouter } from "@/trpc/app-router";
-import { registerAssetServeRoute } from "@/trpc/asset-serve";
+import { registerAssetsRoutes } from "@/trpc/assets";
 import { openApiDocument } from "@/trpc/openapi";
 import { registerSSERoutes } from "@/trpc/sse";
 
@@ -13,7 +13,7 @@ import { registerSSERoutes } from "@/trpc/sse";
  */
 export function registerAPI(fastify: FastifyInstance) {
   // Register non-tRPC routes for images, and SSE
-  registerAssetServeRoute(fastify);
+  registerAssetsRoutes(fastify);
   registerSSERoutes(fastify);
 
   // Register tRPC routers

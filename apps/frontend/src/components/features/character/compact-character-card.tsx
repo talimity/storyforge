@@ -54,7 +54,7 @@ export function CompactCharacterCard({
   } = useCharacterActions(character.id);
 
   const avatarUrl = character.avatarPath
-    ? `http://localhost:3001/api/characters/${character.id}/avatar`
+    ? `http://localhost:3001/assets/characters/${character.id}/avatar`
     : undefined;
 
   return (

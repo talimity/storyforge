@@ -1,22 +1,16 @@
 import {
-  Box,
   Card,
   createListCollection,
   Heading,
   HStack,
-  Icon,
-  Image,
   Input,
   Separator,
   Stack,
-  Text,
   Textarea,
-  VStack,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createCharacterSchema } from "@storyforge/api";
 import { Controller, useForm } from "react-hook-form";
-import { LuUpload, LuX } from "react-icons/lu";
 import type { z } from "zod";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes";
 import {
@@ -30,6 +24,7 @@ import {
 } from "@/components/ui";
 import { useImageField } from "@/lib/hooks/use-image-field";
 import { useUnsavedChangesProtection } from "@/lib/hooks/use-unsaved-changes-protection";
+import { CharacterImageField } from "./character-image-field";
 
 const characterFormSchema = createCharacterSchema
   .pick({ name: true, description: true, cardType: true })
@@ -92,16 +87,6 @@ export function CharacterForm({
     }
   };
 
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault();
-  };
-
-  const handleDrop = async (event: React.DragEvent) => {
-    event.preventDefault();
-    const files = Array.from(event.dataTransfer.files);
-    await imageField.handleFiles(files);
-  };
-
   const handleRemoveImage = () => {
     imageField.handleRemove();
 
@@ -141,95 +126,12 @@ export function CharacterForm({
         <form onSubmit={handleSubmit(onFormSubmit)}>
           <Stack gap={6} p={6}>
             {/* Portrait Image Section */}
-            <Stack gap={4}>
-              <Heading size="md" textStyle="heading">
-                Portrait Image
-              </Heading>
-
-              {!imageField.hasImage && (
-                <Box
-                  border="2px dashed"
-                  borderColor="border.muted"
-                  borderRadius="md"
-                  p={8}
-                  textAlign="center"
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  _hover={{ borderColor: "border.emphasized" }}
-                  cursor="pointer"
-                  onClick={() =>
-                    document.getElementById("image-input")?.click()
-                  }
-                >
-                  <VStack gap={3}>
-                    <Icon fontSize="3xl" color="fg.muted">
-                      <LuUpload />
-                    </Icon>
-                    <VStack gap={1}>
-                      <Text fontWeight="medium">
-                        Drop portrait image here or click to browse
-                      </Text>
-                      <Text fontSize="sm" color="fg.muted">
-                        Supports PNG and JPEG files up to 10MB. A 2:3 aspect
-                        ratio is recommended.
-                      </Text>
-                    </VStack>
-                    <Button size="sm" variant="outline" disabled={isSubmitting}>
-                      Browse Files
-                    </Button>
-                  </VStack>
-
-                  <input
-                    id="image-input"
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg"
-                    style={{ display: "none" }}
-                    onChange={handleFileChange}
-                    disabled={isSubmitting}
-                  />
-                </Box>
-              )}
-
-              {imageField.hasImage && (
-                <HStack
-                  p={4}
-                  layerStyle="surface"
-                  justify="space-between"
-                  align="center"
-                >
-                  <HStack gap={3}>
-                    {imageField.getPreviewUrl() && (
-                      <Image
-                        src={imageField.getPreviewUrl() || undefined}
-                        alt="Portrait preview"
-                        boxSize="120px"
-                        borderRadius="md"
-                        fit="cover"
-                      />
-                    )}
-                    <VStack gap={0} align="start">
-                      <Text fontSize="sm" fontWeight="medium">
-                        {imageField.getDisplayName()}
-                      </Text>
-                      {imageField.getFileSize() && (
-                        <Text fontSize="xs" color="fg.muted">
-                          {imageField.getFileSize()}
-                        </Text>
-                      )}
-                    </VStack>
-                  </HStack>
-                  {!isSubmitting && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleRemoveImage}
-                    >
-                      <LuX />
-                    </Button>
-                  )}
-                </HStack>
-              )}
-            </Stack>
+            <CharacterImageField
+              imageField={imageField}
+              isDisabled={isSubmitting}
+              onFileChange={handleFileChange}
+              onRemove={handleRemoveImage}
+            />
 
             <Separator />
 

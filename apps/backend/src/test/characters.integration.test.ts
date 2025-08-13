@@ -5,7 +5,7 @@ import {
   seedCharacterFixtures,
 } from "../test/fixtures";
 import { createFreshTestCaller, createTestFastifyServer } from "../test/setup";
-import { registerAssetServeRoute } from "../trpc/asset-serve";
+import { registerAssetsRoutes } from "../trpc/assets";
 
 describe("characters router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
@@ -96,32 +96,33 @@ describe("characters router integration", () => {
       expect(result).toHaveProperty("id");
     });
 
-    it("should create character with avatar image", async () => {
+    it("should create character with image", async () => {
       const fixtures = await loadCharacterFixtures();
       expect(fixtures.length).toBeGreaterThan(0);
       const fixture = fixtures[0];
 
       const base64Data = fixture!.imageBuffer.toString("base64");
-      const avatarDataUri = `data:image/png;base64,${base64Data}`;
+      const imageDataUri = `data:image/png;base64,${base64Data}`;
 
       const newCharacter = {
         name: "Character with Avatar",
-        description: "Character with image avatar",
-        avatarDataUri,
+        description: "Character with image",
+        imageDataUri,
       };
 
       const result = await caller.characters.create(newCharacter);
       expect(result.name).toBe(newCharacter.name);
       expect(result.description).toBe(newCharacter.description);
       expect(result).toHaveProperty("id");
+      expect(result).toHaveProperty("imagePath");
 
       // Verify that the character was created with an image by checking if we can fetch it
       const fastify = await createTestFastifyServer(testDb);
-      registerAssetServeRoute(fastify);
+      registerAssetsRoutes(fastify);
 
       const response = await fastify.inject({
         method: "GET",
-        url: `/api/characters/${result.id}/image`,
+        url: result.imagePath!,
       });
 
       expect(response.statusCode).toBe(200);
@@ -217,11 +218,11 @@ describe("characters router integration", () => {
       const firstCharacter = characters.characters[0];
 
       const fastify = await createTestFastifyServer(testDb);
-      registerAssetServeRoute(fastify);
+      registerAssetsRoutes(fastify);
 
       const response = await fastify.inject({
         method: "GET",
-        url: `/api/characters/${firstCharacter!.id}/image`,
+        url: `/assets/characters/${firstCharacter!.id}/card`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -234,13 +235,13 @@ describe("characters router integration", () => {
 
     it("should return 404 for invalid id", async () => {
       const fastify = await createTestFastifyServer(testDb);
-      registerAssetServeRoute(fastify);
+      registerAssetsRoutes(fastify);
 
       await fastify.ready();
 
       const response = await fastify.inject({
         method: "GET",
-        url: "/api/characters/invalid-id/image",
+        url: "/assets/characters/invalid-id/card",
       });
 
       expect(response.statusCode).toBe(404);
@@ -260,11 +261,11 @@ describe("characters router integration", () => {
       });
 
       const fastify = await createTestFastifyServer(testDb);
-      registerAssetServeRoute(fastify);
+      registerAssetsRoutes(fastify);
 
       const response = await fastify.inject({
         method: "GET",
-        url: `/api/characters/${newCharacter.id}/image`,
+        url: `/assets/characters/${newCharacter.id}/card`,
       });
 
       expect(response.statusCode).toBe(404);

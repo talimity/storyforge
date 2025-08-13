@@ -46,7 +46,7 @@ export function CharacterCard({
   } = useCharacterActions(character.id);
 
   const imageUrl = character.imagePath
-    ? `http://localhost:3001/api/characters/${character.id}/image`
+    ? `http://localhost:3001/assets/characters/${character.id}/card`
     : null;
 
   return (
@@ -123,8 +123,8 @@ export function CharacterCard({
         <HStack>
           {isSelected && (
             <Box
-              height="20px"
-              width="20px"
+              height="5"
+              width="5"
               layerStyle="contrast"
               display="flex"
               alignItems="center"

@@ -27,8 +27,7 @@ const imageInputSchema = z.string().refine(
     try {
       z.string().base64().parse(parts[2]);
       return true;
-    } catch (e) {
-      console.error("Base64 validation failed", parts[2].slice(0, 20), e);
+    } catch {
       return false;
     }
   },
@@ -94,7 +93,7 @@ export const characterSchema = z.object({
   customPostHistoryInstructions: z.string().nullable(),
   tags: z.array(z.string()),
   revision: z.string().nullable(),
-  originalCardData: z.any().nullable(),
+  tavernCardData: z.any().nullable(),
   imagePath: z.string().nullable(),
   avatarPath: z.string().nullable(),
   createdAt: z.union([z.string(), z.date()]),

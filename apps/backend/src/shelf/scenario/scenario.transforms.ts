@@ -2,23 +2,19 @@ import type {
   ScenarioCharacterAssignment,
   ScenarioWithCharacters,
 } from "@storyforge/api";
-import type { Character as DbCharacter } from "@storyforge/db";
+import type {
+  ScenarioCharacterAssignment as DbScenarioCharacterAssignment,
+  ScenarioWithCharacters as DbScenarioWithCharacters,
+} from "@storyforge/db";
+
 import { transformCharacter } from "../character/character.transforms";
 
 /**
  * Transforms a repository-level ScenarioCharacterAssignment to API format
  */
-export function transformScenarioCharacterAssignment(repoAssignment: {
-  id: string;
-  scenarioId: string;
-  characterId: string;
-  role: string | null;
-  orderIndex: number;
-  assignedAt: Date;
-  unassignedAt: Date | null;
-  character: DbCharacter;
-  isActive: boolean;
-}): ScenarioCharacterAssignment {
+export function transformScenarioCharacterAssignment(
+  repoAssignment: DbScenarioCharacterAssignment
+): ScenarioCharacterAssignment {
   return {
     id: repoAssignment.id,
     scenarioId: repoAssignment.scenarioId,
@@ -35,27 +31,9 @@ export function transformScenarioCharacterAssignment(repoAssignment: {
 /**
  * Transforms a repository-level ScenarioWithCharacters to API format
  */
-export function transformScenarioWithCharacters(repoScenario: {
-  id: string;
-  name: string;
-  description: string;
-  status: string;
-  settings: Record<string, unknown>;
-  metadata: Record<string, unknown>;
-  createdAt: Date;
-  updatedAt: Date;
-  characters: Array<{
-    id: string;
-    scenarioId: string;
-    characterId: string;
-    role: string | null;
-    orderIndex: number;
-    assignedAt: Date;
-    unassignedAt: Date | null;
-    character: DbCharacter;
-    isActive: boolean;
-  }>;
-}): ScenarioWithCharacters {
+export function transformScenarioWithCharacters(
+  repoScenario: DbScenarioWithCharacters
+): ScenarioWithCharacters {
   return {
     id: repoScenario.id,
     name: repoScenario.name,

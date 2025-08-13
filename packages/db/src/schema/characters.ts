@@ -20,9 +20,9 @@ export const characters = sqliteTable("characters", {
   customPostHistoryInstructions: text("custom_post_history_instructions"),
   tags: text("tags", { mode: "json" }).$type<string[]>().default(sql`'[]'`),
   revision: text("revision"),
-  originalCardData: text("original_card_data", { mode: "json" }),
-  cardImage: blob("card_image", { mode: "buffer" }),
-  cardFocalPoint: text("card_focal_point", { mode: "json" })
+  tavernCardData: text("tavern_card_data", { mode: "json" }),
+  portrait: blob("portrait", { mode: "buffer" }),
+  portraitFocalPoint: text("portrait_focal_point", { mode: "json" })
     .$type<{
       x: number;
       y: number;

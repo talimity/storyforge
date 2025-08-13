@@ -42,13 +42,13 @@ export function getBufferFromDataUri(dataUri: string): Buffer {
 }
 
 export async function maybeProcessCharaImage(
-  avatarDataUri?: string | null
-): Promise<Pick<Character, "cardFocalPoint" | "cardImage"> | undefined> {
-  if (!avatarDataUri) return undefined;
-  const cardImage = getBufferFromDataUri(avatarDataUri);
+  imageUri?: string | null
+): Promise<Pick<Character, "portrait" | "portraitFocalPoint"> | undefined> {
+  if (!imageUri) return undefined;
+  const portrait = getBufferFromDataUri(imageUri);
   return {
-    cardImage,
-    cardFocalPoint: await identifyCharacterFace(cardImage),
+    portrait,
+    portraitFocalPoint: await identifyCharacterFace(portrait),
   };
 }
 
