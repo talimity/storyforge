@@ -57,7 +57,7 @@ export function ScenarioLibraryPage() {
         </Center>
       )}
 
-      {scenariosQuery.data && scenariosQuery.data.scenarios.length === 0 && (
+      {scenariosQuery.data?.scenarios.length === 0 && (
         <EmptyState
           icon={<LuPlay />}
           title="No scenarios yet"
@@ -67,13 +67,13 @@ export function ScenarioLibraryPage() {
         />
       )}
 
-      {scenariosQuery.data && scenariosQuery.data.scenarios.length > 0 && (
+      {scenariosQuery.data?.scenarios.length && (
         <Grid
           templateColumns="repeat(auto-fit, 320px)"
           justifyContent="center"
           gap={4}
         >
-          {scenariosQuery.data.scenarios.map((scenario) => (
+          {scenariosQuery.data?.scenarios.map((scenario) => (
             <ScenarioCard key={scenario.id} scenario={scenario} />
           ))}
         </Grid>

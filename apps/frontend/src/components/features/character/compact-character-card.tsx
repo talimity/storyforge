@@ -13,13 +13,14 @@ import {
 import type { CardType } from "@storyforge/api";
 import {
   LuCheck,
-  LuMenu,
+  LuEllipsisVertical,
   LuPencilLine,
   LuSquareUserRound,
   LuTrash,
 } from "react-icons/lu";
 import { CharacterDeleteDialog } from "@/components/dialogs/character-delete";
 import { useCharacterActions } from "@/components/features/character/use-character-actions";
+import { getApiUrl } from "@/lib/trpc";
 
 interface CompactCharacterCardProps {
   character: {
@@ -53,10 +54,6 @@ export function CompactCharacterCard({
     closeDeleteDialog,
   } = useCharacterActions(character.id);
 
-  const avatarUrl = character.avatarPath
-    ? `http://localhost:3001/assets/characters/${character.id}/avatar`
-    : undefined;
-
   return (
     <>
       <HStack
@@ -72,8 +69,8 @@ export function CompactCharacterCard({
         width="100%"
         minWidth={0}
       >
-        <Avatar.Root size="md" shape="rounded">
-          <Avatar.Image src={avatarUrl} />
+        <Avatar.Root size="md" shape="rounded" layerStyle="surface">
+          <Avatar.Image src={getApiUrl(character.avatarPath)} />
           <Avatar.Fallback>
             <LuSquareUserRound size={20} />
           </Avatar.Fallback>
@@ -126,7 +123,7 @@ export function CompactCharacterCard({
                 _focus={{ opacity: 1 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <LuMenu />
+                <LuEllipsisVertical />
               </IconButton>
             </Menu.Trigger>
           </Box>

@@ -35,7 +35,9 @@ export function createTRPCClient() {
 }
 
 // Utility to convert relative API paths to absolute URLs
-export function getApiUrl(path: string): string {
+export function getApiUrl(path?: string | null): string {
+  if (!path) return "";
+
   if (path.startsWith("http")) {
     return path; // Already absolute
   }

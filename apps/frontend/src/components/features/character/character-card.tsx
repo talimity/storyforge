@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import {
   LuCheck,
-  LuMenu,
+  LuEllipsisVertical,
   LuPencilLine,
   LuSquareUserRound,
   LuTrash,
@@ -100,7 +100,7 @@ export function CharacterCard({
                 _focus={{ opacity: 1 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <LuMenu />
+                <LuEllipsisVertical />
               </IconButton>
             </Menu.Trigger>
             <Portal>

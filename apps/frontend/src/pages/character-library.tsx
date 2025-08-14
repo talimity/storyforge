@@ -6,7 +6,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   LuLayoutGrid,
   LuLayoutList,
@@ -19,6 +19,7 @@ import {
   CharacterCard,
   CharacterCardSkeleton,
 } from "@/components/features/character/character-card";
+import { CharacterPile } from "@/components/features/character/character-pile";
 import {
   CompactCharacterCard,
   CompactCharacterCardSkeleton,
@@ -34,6 +35,11 @@ import {
 
 import { trpc } from "@/lib/trpc";
 
+const viewModeOptions = [
+  { value: "list", label: <LuLayoutList /> },
+  { value: "grid", label: <LuLayoutGrid /> },
+];
+
 export function CharacterLibraryPage() {
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -41,8 +47,8 @@ export function CharacterLibraryPage() {
     const saved = localStorage.getItem("character-library-view-mode");
     return saved !== null ? JSON.parse(saved) : "grid";
   });
-  const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(
-    new Set()
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>(
+    []
   );
   const charactersQuery = trpc.characters.list.useQuery();
   const utils = trpc.useUtils();
@@ -57,27 +63,29 @@ export function CharacterLibraryPage() {
 
   const toggleCharacterSelection = (characterId: string) => {
     setSelectedCharacterIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(characterId)) {
-        newSet.delete(characterId);
+      if (prev.includes(characterId)) {
+        return prev.filter((id) => id !== characterId);
       } else {
-        newSet.add(characterId);
+        return [...prev, characterId];
       }
-      return newSet;
     });
   };
 
   const handleStartScenario = () => {
-    const characterIds = Array.from(selectedCharacterIds);
     const params = new URLSearchParams();
-    params.set("characterIds", characterIds.join(","));
+    params.set("characterIds", selectedCharacterIds.join(","));
     navigate(`/scenarios/create?${params.toString()}`);
   };
 
-  const viewModeOptions = [
-    { value: "list", label: <LuLayoutList /> },
-    { value: "grid", label: <LuLayoutGrid /> },
-  ];
+  const selectedCharacters = useMemo(() => {
+    if (!charactersQuery.data?.characters) return [];
+
+    return selectedCharacterIds
+      .map((id) =>
+        charactersQuery.data.characters.find((char) => char.id === id)
+      )
+      .filter((char): char is NonNullable<typeof char> => char !== undefined);
+  }, [charactersQuery.data?.characters, selectedCharacterIds]);
 
   return (
     <Container>
@@ -178,7 +186,7 @@ export function CharacterLibraryPage() {
               <CharacterCard
                 key={character.id}
                 character={character}
-                isSelected={selectedCharacterIds.has(character.id)}
+                isSelected={selectedCharacterIds.includes(character.id)}
                 onSelectionToggle={() => toggleCharacterSelection(character.id)}
               />
             ))}
@@ -195,7 +203,7 @@ export function CharacterLibraryPage() {
               <CompactCharacterCard
                 key={character.id}
                 character={character}
-                isSelected={selectedCharacterIds.has(character.id)}
+                isSelected={selectedCharacterIds.includes(character.id)}
                 onSelectionToggle={() => toggleCharacterSelection(character.id)}
               />
             ))}
@@ -208,10 +216,19 @@ export function CharacterLibraryPage() {
         onImportSuccess={() => utils.characters.list.invalidate()}
       />
 
-      <ActionBar.Root open={selectedCharacterIds.size > 1} closeOnEscape={true}>
+      <ActionBar.Root
+        open={selectedCharacterIds.length > 1}
+        closeOnEscape={true}
+      >
         <ActionBarContent layerStyle="contrast" colorPalette="contrast">
           <ActionBar.SelectionTrigger>
-            <Text>{selectedCharacterIds.size} selected</Text>
+            <CharacterPile
+              characters={selectedCharacters}
+              maxAvatars={3}
+              size="xs"
+              layerStyle="contrast"
+              shape="rounded"
+            />
           </ActionBar.SelectionTrigger>
           <ActionBar.Separator />
           <Button
@@ -227,7 +244,7 @@ export function CharacterLibraryPage() {
             <CloseButton
               size="sm"
               colorPalette="neutral"
-              onClick={() => setSelectedCharacterIds(new Set())}
+              onClick={() => setSelectedCharacterIds([])}
             />
           </ActionBar.CloseTrigger>
         </ActionBarContent>

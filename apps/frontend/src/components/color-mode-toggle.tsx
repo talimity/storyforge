@@ -1,6 +1,7 @@
 import { useTheme } from "next-themes";
 import { LuMoon, LuSun } from "react-icons/lu";
 import { Button } from "@/components/ui";
+import { Box } from "@chakra-ui/react";
 
 interface ColorModeToggleProps {
   collapsed?: boolean;
@@ -16,22 +17,22 @@ export function ColorModeToggle({ collapsed = false }: ColorModeToggleProps) {
     <Button
       colorPalette="grey"
       variant="ghost"
-      width="full"
-      justifyContent="start"
+      w="full"
+      h="10"
+      justifyContent={collapsed ? "center" : "start"}
       gap="3"
+      verticalAlign="super"
       px={collapsed ? "2" : "4"}
-      color="fg.muted"
+      color={"content.subtle"}
       _hover={{
-        bg: "colorPalette.subtle",
-        color: "colorPalette.fg",
+        bg: "surface.emphasized",
+        color: "content.emphasized",
       }}
       transition="all 0.2s"
+      overflow="hidden"
       onClick={toggleColorMode}
-      aria-label="toggle color mode"
     >
-      <span style={{ fontSize: collapsed ? "20px" : "16px" }}>
-        {theme === "light" ? <LuMoon /> : <LuSun />}
-      </span>
+      {theme === "light" ? <LuMoon /> : <LuSun />}
       {!collapsed && (theme === "light" ? "Dark Mode" : "Light Mode")}
     </Button>
   );

@@ -1,22 +1,28 @@
 import {
-  Avatar,
-  AvatarGroup,
   Badge,
+  Box,
   Card,
   HStack,
+  IconButton,
+  Menu,
+  Portal,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import type { ScenarioWithCharacters } from "@storyforge/api";
 import {
   LuCalendar,
+  LuEllipsisVertical,
   LuHourglass,
   LuPencilLine,
   LuPlay,
+  LuTrash,
   LuUsers,
 } from "react-icons/lu";
+import { ScenarioDeleteDialog } from "@/components/dialogs/scenario-delete";
+import { CharacterPile } from "@/components/features/character/character-pile";
+import { useScenarioActions } from "@/components/features/scenario/use-scenario-actions";
 import { Button } from "@/components/ui";
-import { getApiUrl } from "@/lib/trpc";
 import { formatCount, formatDate } from "@/lib/utils/formatting";
 
 interface ScenarioCardProps {
@@ -25,14 +31,20 @@ interface ScenarioCardProps {
 }
 
 export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
+  const {
+    isDeleteDialogOpen,
+    deleteScenarioMutation,
+    handleDelete,
+    handleEdit,
+    openDeleteDialog,
+    closeDeleteDialog,
+  } = useScenarioActions(scenario.id);
+
   return (
     <Card.Root
       layerStyle="surface"
-      variant="elevated"
-      _hover={
-        !readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined
-      }
       transition="all 0.2s"
+      className={!readOnly ? "group" : undefined}
     >
       <Card.Body p={6}>
         <VStack align="start" gap={4}>
@@ -62,37 +74,24 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
           </VStack>
 
           {/* Characters */}
-          {scenario.characters?.length > 0 && (
-            <VStack align="start" gap={2} width="100%">
-              <HStack gap={2}>
-                <LuUsers size={14} />
-                <Text fontSize="sm" color="content.muted">
-                  {formatCount(scenario.characters.length, "character")}
-                </Text>
-              </HStack>
-              <AvatarGroup spaceX={0} size="lg">
-                {scenario.characters
-                  .filter((assignment) => assignment.isActive)
-                  .map((assignment) => (
-                    <Avatar.Root
-                      key={assignment.character.id}
-                      title={assignment.character.name}
-                      // size="md"
-                      shape="rounded"
-                    >
-                      {assignment.character.avatarPath && (
-                        <Avatar.Image
-                          src={getApiUrl(assignment.character.avatarPath)}
-                        />
-                      )}
-                      <Avatar.Fallback>
-                        {assignment.character.name.slice(0, 2).toUpperCase()}
-                      </Avatar.Fallback>
-                    </Avatar.Root>
-                  ))}
-              </AvatarGroup>
-            </VStack>
-          )}
+          <VStack align="start" gap={2} width="100%">
+            <HStack gap={2}>
+              <LuUsers size={14} />
+              <Text fontSize="sm" color="content.muted">
+                {formatCount(scenario.characters.length, "character")}
+              </Text>
+            </HStack>
+            <CharacterPile
+              characters={scenario.characters
+                .filter((assignment) => assignment.isActive)
+                .map((assignment) => assignment.character)}
+              maxAvatars={5}
+              spaceX={0.5}
+              size="lg"
+              layerStyle="surface"
+              shape="rounded"
+            />
+          </VStack>
 
           {/* Metadata */}
           <HStack justify="space-between" width="100%" pt={2}>
@@ -122,13 +121,52 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
               <LuPlay />
               Play
             </Button>
-            <Button variant="outline" colorPalette="neutral" size="sm" disabled>
-              <LuPencilLine />
-              Edit
-            </Button>
+            {!readOnly && (
+              <Menu.Root positioning={{ placement: "bottom-end" }}>
+                <Menu.Trigger asChild>
+                  <IconButton
+                    aria-label="Scenario options"
+                    variant="outline"
+                    size="sm"
+                    colorPalette="neutral"
+                  >
+                    <LuEllipsisVertical />
+                  </IconButton>
+                </Menu.Trigger>
+                <Portal>
+                  <Menu.Positioner>
+                    <Menu.Content>
+                      <Menu.Item value="edit" onClick={handleEdit}>
+                        <LuPencilLine />
+                        <Box flex="1">Edit</Box>
+                      </Menu.Item>
+                      <Menu.Item
+                        value="delete"
+                        color="fg.error"
+                        _hover={{ bg: "bg.error", color: "fg.error" }}
+                        onClick={openDeleteDialog}
+                        disabled={deleteScenarioMutation.isPending}
+                      >
+                        <LuTrash />
+                        <Box flex="1">Delete</Box>
+                      </Menu.Item>
+                    </Menu.Content>
+                  </Menu.Positioner>
+                </Portal>
+              </Menu.Root>
+            )}
           </HStack>
         </VStack>
       </Card.Body>
+      {!readOnly && (
+        <ScenarioDeleteDialog
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={() => closeDeleteDialog()}
+          scenarioName={scenario.name}
+          onConfirmDelete={handleDelete}
+          isDeleting={deleteScenarioMutation.isPending}
+        />
+      )}
     </Card.Root>
   );
 }

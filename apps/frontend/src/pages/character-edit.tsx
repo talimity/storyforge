@@ -1,8 +1,9 @@
-import { Container, HStack, Spinner, Stack, Text } from "@chakra-ui/react";
+import { Container, Spinner, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { CharacterDeleteDialog } from "@/components/dialogs/character-delete";
 import { CharacterForm } from "@/components/features/character/character-form";
-import { Button, Dialog } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
 import { getApiUrl, trpc } from "@/lib/trpc";
 import {
@@ -187,38 +188,13 @@ export function CharacterEditPage() {
         />
       </Container>
 
-      {/* Delete confirmation dialog */}
-      <Dialog.Root
-        open={showDeleteDialog}
-        onOpenChange={(e) => setShowDeleteDialog(e.open)}
-      >
-        <Dialog.Content>
-          <Dialog.Header>
-            <Dialog.Title>Delete Character</Dialog.Title>
-          </Dialog.Header>
-          <Dialog.Body>
-            <Text>
-              Are you sure you want to delete "{character.name}"? This action
-              cannot be undone.
-            </Text>
-          </Dialog.Body>
-          <Dialog.Footer>
-            <HStack gap={3}>
-              <Dialog.ActionTrigger asChild>
-                <Button variant="outline">Cancel</Button>
-              </Dialog.ActionTrigger>
-              <Button
-                colorPalette="red"
-                onClick={handleConfirmDelete}
-                loading={deleteCharacterMutation.isPending}
-              >
-                Delete
-              </Button>
-            </HStack>
-          </Dialog.Footer>
-          <Dialog.CloseTrigger />
-        </Dialog.Content>
-      </Dialog.Root>
+      <CharacterDeleteDialog
+        isOpen={showDeleteDialog}
+        onOpenChange={(details) => setShowDeleteDialog(details.open)}
+        characterName={character.name}
+        onConfirmDelete={handleConfirmDelete}
+        isDeleting={deleteCharacterMutation.isPending}
+      />
     </>
   );
 }

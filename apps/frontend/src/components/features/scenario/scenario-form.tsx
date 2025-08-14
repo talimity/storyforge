@@ -160,12 +160,6 @@ export function ScenarioForm({
                   ))}
                 </Grid>
               )}
-
-              {!canSubmit && (
-                <Text color="red.500" fontSize="sm">
-                  A scenario requires at least 2 characters.
-                </Text>
-              )}
             </Stack>
 
             {/* Form Actions */}

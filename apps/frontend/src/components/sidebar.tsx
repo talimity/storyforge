@@ -17,7 +17,7 @@ import {
   LuUsersRound,
   LuWorkflow,
 } from "react-icons/lu";
-import { RiQuillPenAiFill } from "react-icons/ri";
+import { RiQuillPenAiLine } from "react-icons/ri";
 import { ColorModeToggle } from "./color-mode-toggle";
 import { Logo } from "./logo";
 import { SidebarLink } from "./sidebar-link";
@@ -97,7 +97,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
         <SidebarLink
           to="/models"
-          icon={<RiQuillPenAiFill />}
+          icon={<RiQuillPenAiLine />}
           label="Models"
           collapsed={collapsed}
         />
