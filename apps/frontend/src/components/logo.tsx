@@ -1,5 +1,5 @@
 import { Center, Flex, Text } from "@chakra-ui/react";
-import { LuScroll } from "react-icons/lu";
+import { RiQuillPenAiFill } from "react-icons/ri";
 
 interface LogoProps {
   collapsed?: boolean;
@@ -17,7 +17,7 @@ export function Logo({ collapsed = false }: LogoProps) {
       data-testid="logo"
     >
       <Center color="content" flexShrink={0} boxSize="10" transition="all 0.2s">
-        <LuScroll size={collapsed ? 20 : 20} />
+        <RiQuillPenAiFill size={collapsed ? 20 : 20} />
       </Center>
       {!collapsed && (
         <Text

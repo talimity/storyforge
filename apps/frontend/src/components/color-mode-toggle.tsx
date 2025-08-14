@@ -1,7 +1,6 @@
 import { useTheme } from "next-themes";
 import { LuMoon, LuSun } from "react-icons/lu";
 import { Button } from "@/components/ui";
-import { Box } from "@chakra-ui/react";
 
 interface ColorModeToggleProps {
   collapsed?: boolean;

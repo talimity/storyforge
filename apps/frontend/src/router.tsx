@@ -4,7 +4,6 @@ import { AgentsPage } from "./pages/agents";
 import { CharacterCreatePage } from "./pages/character-create";
 import { CharacterEditPage } from "./pages/character-edit";
 import { CharacterLibraryPage } from "./pages/character-library";
-import { DashboardPage } from "./pages/dashboard";
 import { ModelsPage } from "./pages/models";
 import { ScenarioCreatePage } from "./pages/scenario-create";
 import { ScenarioEditPage } from "./pages/scenario-edit";
@@ -19,11 +18,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <DashboardPage />,
-      },
-      {
-        path: "dashboard",
-        element: <DashboardPage />,
+        element: <CharacterLibraryPage />,
       },
       {
         path: "characters",

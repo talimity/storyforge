@@ -11,13 +11,13 @@ import {
   LuBookOpen,
   LuChevronLeft,
   LuChevronRight,
-  LuHouse,
+  LuDices,
   LuPaintBucket,
   LuSettings,
   LuUsersRound,
   LuWorkflow,
 } from "react-icons/lu";
-import { RiQuillPenAiLine } from "react-icons/ri";
+import { TbCubeSpark } from "react-icons/tb";
 import { ColorModeToggle } from "./color-mode-toggle";
 import { Logo } from "./logo";
 import { SidebarLink } from "./sidebar-link";
@@ -54,7 +54,6 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         zIndex="12"
         rounded="full"
         boxSize="8"
-        // minW="unset"
         onClick={onToggleCollapse}
         data-testid="sidebar-toggle"
       >
@@ -70,11 +69,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         overflowY="auto"
         data-testid="sidebar-nav"
       >
-        {/* Home */}
+        {/* Play */}
         <SidebarLink
           to="/"
-          icon={<LuHouse />}
-          label="Home"
+          icon={<LuDices />}
+          label="Play"
           collapsed={collapsed}
         />
 
@@ -97,7 +96,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
         <SidebarLink
           to="/models"
-          icon={<RiQuillPenAiLine />}
+          icon={<TbCubeSpark />}
           label="Models"
           collapsed={collapsed}
         />
