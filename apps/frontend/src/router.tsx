@@ -6,6 +6,7 @@ import { CharacterEditPage } from "./pages/character-edit";
 import { CharacterLibraryPage } from "./pages/character-library";
 import { DashboardPage } from "./pages/dashboard";
 import { ModelsPage } from "./pages/models";
+import { ScenarioCreatePage } from "./pages/scenario-create";
 import { ScenarioLibraryPage } from "./pages/scenario-library";
 import { SettingsPage } from "./pages/settings";
 import { ThemeDemoPage } from "./pages/theme-demo";
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
       {
         path: "scenarios",
         element: <ScenarioLibraryPage />,
+      },
+      {
+        path: "scenarios/create",
+        element: <ScenarioCreatePage />,
       },
       {
         path: "models",

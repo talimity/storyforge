@@ -29,12 +29,14 @@ interface CharacterCardProps {
   };
   isSelected?: boolean;
   onSelectionToggle?: () => void;
+  readOnly?: boolean;
 }
 
 export function CharacterCard({
   character,
   isSelected = false,
   onSelectionToggle,
+  readOnly = false,
 }: CharacterCardProps) {
   const {
     isDeleteDialogOpen,
@@ -53,10 +55,13 @@ export function CharacterCard({
     <Card.Root
       width="240px"
       layerStyle="surface"
+      _hover={
+        !readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined
+      }
+      className={readOnly ? undefined : "group"}
+      cursor={!readOnly && onSelectionToggle ? "pointer" : "default"}
+      onClick={readOnly ? undefined : onSelectionToggle}
       overflow="hidden"
-      className="group"
-      cursor={onSelectionToggle ? "pointer" : "default"}
-      onClick={onSelectionToggle}
     >
       <Box position="relative">
         {imageUrl ? (
@@ -79,45 +84,47 @@ export function CharacterCard({
             <LuSquareUserRound size={64} />
           </Box>
         )}
-        <Menu.Root positioning={{ placement: "bottom-end" }}>
-          <Menu.Trigger asChild>
-            <IconButton
-              aria-label="Character options"
-              variant="subtle"
-              size="sm"
-              position="absolute"
-              top={2}
-              right={2}
-              colorPalette="neutral"
-              opacity={0}
-              _groupHover={{ opacity: 1 }}
-              _focus={{ opacity: 1 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <LuMenu />
-            </IconButton>
-          </Menu.Trigger>
-          <Portal>
-            <Menu.Positioner>
-              <Menu.Content>
-                <Menu.Item value="edit" onClick={handleEdit}>
-                  <LuPencilLine />
-                  <Box flex="1">Edit</Box>
-                </Menu.Item>
-                <Menu.Item
-                  value="delete"
-                  color="fg.error"
-                  _hover={{ bg: "bg.error", color: "fg.error" }}
-                  onClick={openDeleteDialog}
-                  disabled={deleteCharacterMutation.isPending}
-                >
-                  <LuTrash />
-                  <Box flex="1">Delete</Box>
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
-          </Portal>
-        </Menu.Root>
+        {!readOnly && (
+          <Menu.Root positioning={{ placement: "bottom-end" }}>
+            <Menu.Trigger asChild>
+              <IconButton
+                aria-label="Character options"
+                variant="subtle"
+                size="sm"
+                position="absolute"
+                top={2}
+                right={2}
+                colorPalette="neutral"
+                opacity={0}
+                _groupHover={{ opacity: 1 }}
+                _focus={{ opacity: 1 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <LuMenu />
+              </IconButton>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content>
+                  <Menu.Item value="edit" onClick={handleEdit}>
+                    <LuPencilLine />
+                    <Box flex="1">Edit</Box>
+                  </Menu.Item>
+                  <Menu.Item
+                    value="delete"
+                    color="fg.error"
+                    _hover={{ bg: "bg.error", color: "fg.error" }}
+                    onClick={openDeleteDialog}
+                    disabled={deleteCharacterMutation.isPending}
+                  >
+                    <LuTrash />
+                    <Box flex="1">Delete</Box>
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
+        )}
       </Box>
       <Card.Body p={3}>
         <HStack>
@@ -139,13 +146,15 @@ export function CharacterCard({
           </Text>
         </HStack>
       </Card.Body>
-      <CharacterDeleteDialog
-        isOpen={isDeleteDialogOpen}
-        onOpenChange={() => closeDeleteDialog()}
-        characterName={character.name}
-        onConfirmDelete={handleDelete}
-        isDeleting={deleteCharacterMutation.isPending}
-      />
+      {!readOnly && (
+        <CharacterDeleteDialog
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={() => closeDeleteDialog()}
+          characterName={character.name}
+          onConfirmDelete={handleDelete}
+          isDeleting={deleteCharacterMutation.isPending}
+        />
+      )}
     </Card.Root>
   );
 }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { characterSchema } from "./character.js";
+import { stubCharacterSchema } from "./character.js";
 
 // Input schemas
 export const scenarioIdSchema = z.object({
@@ -12,7 +12,10 @@ export const createScenarioSchema = z.object({
   status: z.enum(["active", "archived"]).default("active"),
   settings: z.record(z.string(), z.unknown()).default({}),
   metadata: z.record(z.string(), z.unknown()).default({}),
-  characterIds: z.array(z.string()).default([]), // Initial character assignments
+  characterIds: z
+    .array(z.string())
+    .min(2, "A scenario requires at least 2 characters")
+    .default([]), // Initial character assignments
 });
 
 export const updateScenarioSchema = z.object({
@@ -57,7 +60,7 @@ export const scenarioCharacterAssignmentSchema = z.object({
   assignedAt: z.union([z.string(), z.date()]),
   unassignedAt: z.union([z.string(), z.date()]).nullish(),
   isActive: z.boolean(), // Computed: unassignedAt === null
-  character: characterSchema, // Populated character data
+  character: stubCharacterSchema, // Populated character data
 });
 
 export const scenarioSchema = z.object({
@@ -77,6 +80,10 @@ export const scenarioWithCharactersSchema = scenarioSchema.extend({
 
 export const scenariosListResponseSchema = z.object({
   scenarios: z.array(scenarioSchema),
+});
+
+export const scenariosWithCharactersListResponseSchema = z.object({
+  scenarios: z.array(scenarioWithCharactersSchema),
 });
 
 // Export inferred types

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { type StoryforgeSqliteDatabase, schema } from "../client";
 import type { NewScenario, Scenario } from "../schema/scenarios";
 import { BaseRepository } from "./base.repository";
@@ -47,12 +47,80 @@ export class ScenarioRepository extends BaseRepository<
     return { ...scenario, characters: assignments };
   }
 
+  async findAllWithCharacters(
+    includeInactive?: boolean
+  ): Promise<ScenarioWithCharacters[]> {
+    return this.findScenariosWithCharactersQuery(includeInactive);
+  }
+
   async findByStatus(status: "active" | "archived"): Promise<Scenario[]> {
     return await this.db
       .select()
       .from(this.table)
       .where(eq(this.table.status, status))
       .orderBy(this.table.updatedAt);
+  }
+
+  async findByStatusWithCharacters(
+    status: "active" | "archived",
+    includeInactive?: boolean
+  ): Promise<ScenarioWithCharacters[]> {
+    return this.findScenariosWithCharactersQuery(includeInactive, status);
+  }
+
+  private async findScenariosWithCharactersQuery(
+    includeInactive?: boolean,
+    status?: "active" | "archived"
+  ): Promise<ScenarioWithCharacters[]> {
+    const query = this.db
+      .select({
+        scenario: this.table,
+        assignment: schema.scenarioCharacters,
+        character: schema.characters,
+      })
+      .from(this.table)
+      .leftJoin(
+        schema.scenarioCharacters,
+        includeInactive
+          ? eq(this.table.id, schema.scenarioCharacters.scenarioId)
+          : and(
+              eq(this.table.id, schema.scenarioCharacters.scenarioId),
+              isNull(schema.scenarioCharacters.unassignedAt)
+            )
+      )
+      .leftJoin(
+        schema.characters,
+        eq(schema.scenarioCharacters.characterId, schema.characters.id)
+      )
+      .where(status ? eq(this.table.status, status) : undefined)
+      .orderBy(this.table.updatedAt, schema.scenarioCharacters.orderIndex);
+
+    const results = await query;
+
+    // Group results by scenario
+    const scenarioMap = new Map<string, ScenarioWithCharacters>();
+
+    for (const row of results) {
+      if (!scenarioMap.has(row.scenario.id)) {
+        scenarioMap.set(row.scenario.id, {
+          ...row.scenario,
+          characters: [],
+        });
+      }
+
+      if (row.character && row.assignment) {
+        const scenario = scenarioMap.get(row.scenario.id);
+        if (scenario) {
+          scenario.characters.push({
+            ...row.assignment,
+            character: row.character,
+            isActive: !row.assignment.unassignedAt,
+          });
+        }
+      }
+    }
+
+    return Array.from(scenarioMap.values());
   }
 
   override async create(
@@ -68,8 +136,9 @@ export class ScenarioRepository extends BaseRepository<
   ): Promise<ScenarioWithCharacters> {
     const { characterIds = [], ...scenarioData } = data;
 
-    if (!Array.isArray(characterIds) || characterIds.length === 0) {
-      throw new Error("Cannot create scenario with no characters assigned.");
+    // TODO: make this a db constraint and do the operation in a transaction
+    if (characterIds.length < 2) {
+      throw new Error("A scenario must have at least 2 characters.");
     }
 
     // Create the scenario first

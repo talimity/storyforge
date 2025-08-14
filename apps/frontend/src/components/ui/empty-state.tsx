@@ -31,7 +31,7 @@ export function EmptyState({
           </ChakraEmptyState.Description>
         </VStack>
         {actionLabel && onActionClick && (
-          <Button colorPalette="blue" onClick={onActionClick}>
+          <Button colorPalette="accent" onClick={onActionClick}>
             {actionLabel}
           </Button>
         )}

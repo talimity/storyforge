@@ -427,13 +427,13 @@ function FormExample() {
                     >
                       <RadioGroup defaultValue="normal" colorPalette="accent">
                         <HStack gap={4}>
-                          <Radio value="easy" color={"contentContrast"}>
+                          <Radio value="easy" color="contentContrast">
                             Easy
                           </Radio>
-                          <Radio value="normal" color={"contentContrast"}>
+                          <Radio value="normal" color="contentContrast">
                             Normal
                           </Radio>
-                          <Radio value="hard" color={"contentContrast"}>
+                          <Radio value="hard" color="contentContrast">
                             Hard
                           </Radio>
                         </HStack>

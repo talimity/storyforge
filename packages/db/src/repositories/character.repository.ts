@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { type StoryforgeSqliteDatabase, schema } from "../client";
 import type {
   CharacterExample,
@@ -26,6 +26,15 @@ export class CharacterRepository extends BaseRepository<
       .limit(1);
 
     return results[0];
+  }
+
+  async findByIds(ids: string[]): Promise<Character[]> {
+    if (ids.length === 0) return [];
+
+    return await this.db
+      .select()
+      .from(this.table)
+      .where(inArray(this.table.id, ids));
   }
 
   async findByScenarioId(scenarioId: string): Promise<Character[]> {

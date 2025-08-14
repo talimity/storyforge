@@ -1,11 +1,13 @@
 import {
   characterIdSchema,
+  characterIdsSchema,
   characterImportResponseSchema,
   characterImportSchema,
   characterSchema,
   charactersListResponseSchema,
   characterWithRelationsSchema,
   createCharacterSchema,
+  stubCharacterSchema,
   updateCharacterSchema,
 } from "@storyforge/api";
 import { CharacterRepository } from "@storyforge/db";
@@ -64,6 +66,23 @@ export const charactersRouter = router({
         greetings: character.greetings,
         examples: character.examples,
       };
+    }),
+
+  getByIds: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/characters/by-ids",
+        tags: ["characters"],
+        summary: "Get characters by IDs",
+      },
+    })
+    .input(characterIdsSchema)
+    .output(z.object({ characters: z.array(stubCharacterSchema) }))
+    .query(async ({ input, ctx }) => {
+      const characterRepository = new CharacterRepository(ctx.db);
+      const characters = await characterRepository.findByIds(input.ids);
+      return { characters: characters.map(transformCharacter) };
     }),
 
   import: publicProcedure

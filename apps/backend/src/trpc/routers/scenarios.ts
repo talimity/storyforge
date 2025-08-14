@@ -5,7 +5,7 @@ import {
   scenarioCharacterAssignmentSchema,
   scenarioIdSchema,
   scenarioSchema,
-  scenariosListResponseSchema,
+  scenariosWithCharactersListResponseSchema,
   scenarioWithCharactersSchema,
   unassignCharacterSchema,
   updateScenarioSchema,
@@ -29,27 +29,29 @@ export const scenariosRouter = router({
         method: "GET",
         path: "/api/scenarios",
         tags: ["scenarios"],
-        summary: "List scenarios",
+        summary: "List scenarios with characters",
       },
     })
     .input(z.object({ status: z.enum(["active", "archived"]).optional() }))
-    .output(scenariosListResponseSchema)
+    .output(scenariosWithCharactersListResponseSchema)
     .query(async ({ input, ctx }) => {
       const scenarioRepository = new ScenarioRepository(ctx.db);
       let scenarios: Awaited<
         ReturnType<
-          | typeof scenarioRepository.findByStatus
-          | typeof scenarioRepository.findAll
+          | typeof scenarioRepository.findByStatusWithCharacters
+          | typeof scenarioRepository.findAllWithCharacters
         >
       >;
 
       if (input.status) {
-        scenarios = await scenarioRepository.findByStatus(input.status);
+        scenarios = await scenarioRepository.findByStatusWithCharacters(
+          input.status
+        );
       } else {
-        scenarios = await scenarioRepository.findAll();
+        scenarios = await scenarioRepository.findAllWithCharacters();
       }
 
-      return { scenarios };
+      return { scenarios: scenarios.map(transformScenarioWithCharacters) };
     }),
 
   getById: publicProcedure

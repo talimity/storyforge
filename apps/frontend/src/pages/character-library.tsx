@@ -68,10 +68,10 @@ export function CharacterLibraryPage() {
   };
 
   const handleStartScenario = () => {
-    const selectedCount = selectedCharacterIds.size;
-    alert(
-      `Starting scenario with ${selectedCount} character${selectedCount === 1 ? "" : "s"}`
-    );
+    const characterIds = Array.from(selectedCharacterIds);
+    const params = new URLSearchParams();
+    params.set("characterIds", characterIds.join(","));
+    navigate(`/scenarios/create?${params.toString()}`);
   };
 
   const viewModeOptions = [

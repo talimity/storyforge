@@ -39,6 +39,10 @@ export const characterIdSchema = z.object({
   id: z.string().min(1),
 });
 
+export const characterIdsSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1),
+});
+
 export const createCharacterSchema = z.object({
   name: z.string().min(1),
   description: z.string(),

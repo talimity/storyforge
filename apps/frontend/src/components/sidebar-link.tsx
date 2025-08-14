@@ -27,7 +27,7 @@ export function SidebarLink({
       h="10"
       justifyContent={collapsed ? "center" : "start"}
       gap="3"
-      verticalAlign={"super"}
+      verticalAlign="super"
       px={collapsed ? "2" : "4"}
       color={isActive ? "content.emphasized" : "content.subtle"}
       bg={isActive ? "surface.emphasized" : undefined}
