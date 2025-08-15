@@ -44,11 +44,11 @@ export class CharacterRepository extends BaseRepository<
       })
       .from(this.table)
       .innerJoin(
-        schema.scenarioCharacters,
-        eq(this.table.id, schema.scenarioCharacters.characterId)
+        schema.scenarioParticipants,
+        eq(this.table.id, schema.scenarioParticipants.characterId)
       )
-      .where(eq(schema.scenarioCharacters.scenarioId, scenarioId))
-      .orderBy(schema.scenarioCharacters.orderIndex);
+      .where(eq(schema.scenarioParticipants.scenarioId, scenarioId))
+      .orderBy(schema.scenarioParticipants.orderIndex);
 
     return results.map((r) => r.character);
   }

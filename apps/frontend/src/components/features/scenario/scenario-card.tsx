@@ -89,8 +89,8 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
             </HStack>
             <CharacterPile
               characters={scenario.characters
-                .filter((assignment) => assignment.isActive)
-                .map((assignment) => assignment.character)}
+                .filter((participant) => participant.isActive)
+                .map((participant) => participant.character)}
               maxAvatars={5}
               spaceX={0.5}
               size="lg"

@@ -40,7 +40,7 @@ export function createTestAppContext(
   } as unknown as FastifyRequest;
 
   const mockRes = {
-    type: () => mockRes, // Chainable method for setting content type
+    type: () => mockRes,
     send: () => mockRes,
     code: () => mockRes,
   } as unknown as FastifyReply;

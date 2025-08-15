@@ -1,4 +1,4 @@
 export {
-  transformScenarioCharacterAssignment,
+  transformScenarioParticipant,
   transformScenarioWithCharacters,
 } from "./scenario.transforms";

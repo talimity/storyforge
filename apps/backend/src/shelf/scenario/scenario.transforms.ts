@@ -1,30 +1,30 @@
 import type {
-  ScenarioCharacterAssignment,
+  ScenarioParticipant,
   ScenarioWithCharacters,
 } from "@storyforge/api";
 import type {
-  ScenarioCharacterAssignment as DbScenarioCharacterAssignment,
+  JoinedScenarioParticipant as DbScenarioParticipant,
   ScenarioWithCharacters as DbScenarioWithCharacters,
 } from "@storyforge/db";
 
 import { transformCharacter } from "../character/character.transforms";
 
 /**
- * Transforms a repository-level ScenarioCharacterAssignment to API format
+ * Transforms a repository-level ScenarioParticipant to API format
  */
-export function transformScenarioCharacterAssignment(
-  repoAssignment: DbScenarioCharacterAssignment
-): ScenarioCharacterAssignment {
+export function transformScenarioParticipant(
+  dbParticipant: DbScenarioParticipant
+): ScenarioParticipant {
   return {
-    id: repoAssignment.id,
-    scenarioId: repoAssignment.scenarioId,
-    characterId: repoAssignment.characterId,
-    role: repoAssignment.role,
-    orderIndex: repoAssignment.orderIndex,
-    assignedAt: repoAssignment.assignedAt,
-    unassignedAt: repoAssignment.unassignedAt,
-    isActive: repoAssignment.isActive,
-    character: transformCharacter(repoAssignment.character),
+    id: dbParticipant.id,
+    scenarioId: dbParticipant.scenarioId,
+    characterId: dbParticipant.characterId,
+    role: dbParticipant.role,
+    orderIndex: dbParticipant.orderIndex,
+    assignedAt: dbParticipant.assignedAt,
+    unassignedAt: dbParticipant.unassignedAt,
+    isActive: dbParticipant.isActive,
+    character: transformCharacter(dbParticipant.character),
   };
 }
 
@@ -43,8 +43,6 @@ export function transformScenarioWithCharacters(
     metadata: repoScenario.metadata,
     createdAt: repoScenario.createdAt,
     updatedAt: repoScenario.updatedAt,
-    characters: repoScenario.characters.map(
-      transformScenarioCharacterAssignment
-    ),
+    characters: repoScenario.characters.map(transformScenarioParticipant),
   };
 }

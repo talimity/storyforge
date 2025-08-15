@@ -83,7 +83,7 @@ export function ScenarioEditPage() {
       id,
       name: formData.name,
       description: formData.description,
-      // Note: character assignments are handled separately through character management
+      // Note: participants are handled separately through character management
     });
   };
 
@@ -144,7 +144,7 @@ export function ScenarioEditPage() {
     name: scenario.name,
     description: scenario.description,
     characterIds: scenario.characters.map(
-      (assignment) => assignment.character.id
+      (participant) => participant.character.id
     ),
   };
 

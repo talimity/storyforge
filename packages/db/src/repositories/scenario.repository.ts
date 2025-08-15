@@ -3,12 +3,12 @@ import { type StoryforgeSqliteDatabase, schema } from "../client";
 import type { NewScenario, Scenario } from "../schema/scenarios";
 import { BaseRepository } from "./base.repository";
 import {
-  type ScenarioCharacterAssignment,
-  ScenarioCharacterRepository,
-} from "./scenario-character.repository";
+  type JoinedScenarioParticipant,
+  ScenarioParticipantRepository,
+} from "./scenario-participant.repository";
 
 export interface ScenarioWithCharacters extends Scenario {
-  characters: ScenarioCharacterAssignment[];
+  characters: JoinedScenarioParticipant[];
 }
 
 export interface CreateScenarioData
@@ -27,7 +27,9 @@ export class ScenarioRepository extends BaseRepository<
   constructor(
     database: StoryforgeSqliteDatabase,
     // TODO: this is highly questionable, repo should not depend on another; extract to service
-    private scenarioCharacterRepo = new ScenarioCharacterRepository(database)
+    private scenarioParticipantRepo = new ScenarioParticipantRepository(
+      database
+    )
   ) {
     super(database, schema.scenarios, "scenario");
   }
@@ -39,12 +41,13 @@ export class ScenarioRepository extends BaseRepository<
     const scenario = await this.findById(id);
     if (!scenario) return undefined;
 
-    const assignments = await this.scenarioCharacterRepo.getAssignedCharacters(
-      id,
-      includeInactive
-    );
+    const participants =
+      await this.scenarioParticipantRepo.getAssignedCharacters(
+        id,
+        includeInactive
+      );
 
-    return { ...scenario, characters: assignments };
+    return { ...scenario, characters: participants };
   }
 
   async findAllWithCharacters(
@@ -75,25 +78,25 @@ export class ScenarioRepository extends BaseRepository<
     const query = this.db
       .select({
         scenario: this.table,
-        assignment: schema.scenarioCharacters,
+        participant: schema.scenarioParticipants,
         character: schema.characters,
       })
       .from(this.table)
       .leftJoin(
-        schema.scenarioCharacters,
+        schema.scenarioParticipants,
         includeInactive
-          ? eq(this.table.id, schema.scenarioCharacters.scenarioId)
+          ? eq(this.table.id, schema.scenarioParticipants.scenarioId)
           : and(
-              eq(this.table.id, schema.scenarioCharacters.scenarioId),
-              isNull(schema.scenarioCharacters.unassignedAt)
+              eq(this.table.id, schema.scenarioParticipants.scenarioId),
+              isNull(schema.scenarioParticipants.unassignedAt)
             )
       )
       .leftJoin(
         schema.characters,
-        eq(schema.scenarioCharacters.characterId, schema.characters.id)
+        eq(schema.scenarioParticipants.characterId, schema.characters.id)
       )
       .where(status ? eq(this.table.status, status) : undefined)
-      .orderBy(this.table.updatedAt, schema.scenarioCharacters.orderIndex);
+      .orderBy(this.table.updatedAt, schema.scenarioParticipants.orderIndex);
 
     const results = await query;
 
@@ -108,13 +111,13 @@ export class ScenarioRepository extends BaseRepository<
         });
       }
 
-      if (row.character && row.assignment) {
+      if (row.character && row.participant) {
         const scenario = scenarioMap.get(row.scenario.id);
         if (scenario) {
           scenario.characters.push({
-            ...row.assignment,
+            ...row.participant,
             character: row.character,
-            isActive: !row.assignment.unassignedAt,
+            isActive: !row.participant.unassignedAt,
           });
         }
       }
@@ -145,21 +148,21 @@ export class ScenarioRepository extends BaseRepository<
     const scenario = await super.create(scenarioData);
 
     // Assign characters if any are provided
-    const assignments: ScenarioCharacterAssignment[] = [];
+    const participants: JoinedScenarioParticipant[] = [];
     for (let i = 0; i < characterIds.length; i++) {
       const characterId = characterIds[i];
       if (!characterId) {
         throw new Error(`No chara ID provided at index ${i}`);
       }
-      const assignment = await this.scenarioCharacterRepo.assignCharacter(
+      const participant = await this.scenarioParticipantRepo.assignCharacter(
         scenario.id,
         characterId,
         { orderIndex: i }
       );
-      assignments.push(assignment);
+      participants.push(participant);
     }
 
-    return { ...scenario, characters: assignments };
+    return { ...scenario, characters: participants };
   }
 
   override async update(

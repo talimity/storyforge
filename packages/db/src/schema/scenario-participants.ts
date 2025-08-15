@@ -3,8 +3,8 @@ import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { characters } from "./characters";
 import { scenarios } from "./scenarios";
 
-export const scenarioCharacters = sqliteTable(
-  "scenario_characters",
+export const scenarioParticipants = sqliteTable(
+  "scenario_participants",
   {
     id: text("id")
       .primaryKey()
@@ -34,5 +34,5 @@ export const scenarioCharacters = sqliteTable(
   })
 );
 
-export type ScenarioCharacter = typeof scenarioCharacters.$inferSelect;
-export type NewScenarioCharacter = typeof scenarioCharacters.$inferInsert;
+export type ScenarioParticipant = typeof scenarioParticipants.$inferSelect;
+export type NewScenarioParticipant = typeof scenarioParticipants.$inferInsert;

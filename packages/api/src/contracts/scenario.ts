@@ -15,7 +15,7 @@ export const createScenarioSchema = z.object({
   characterIds: z
     .array(z.string())
     .min(2, "A scenario requires at least 2 characters")
-    .default([]), // Initial character assignments
+    .default([]),
 });
 
 export const updateScenarioSchema = z.object({
@@ -27,7 +27,7 @@ export const updateScenarioSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
-// Character assignment schemas
+// Character participant schemas
 export const assignCharacterSchema = z.object({
   scenarioId: z.string().min(1),
   characterId: z.string().min(1),
@@ -51,7 +51,7 @@ export const reorderCharactersSchema = z.object({
 });
 
 // Output schemas
-export const scenarioCharacterAssignmentSchema = z.object({
+export const scenarioParticipantSchema = z.object({
   id: z.string(),
   scenarioId: z.string(),
   characterId: z.string(),
@@ -75,7 +75,7 @@ export const scenarioSchema = z.object({
 });
 
 export const scenarioWithCharactersSchema = scenarioSchema.extend({
-  characters: z.array(scenarioCharacterAssignmentSchema),
+  characters: z.array(scenarioParticipantSchema),
 });
 
 export const scenariosListResponseSchema = z.object({
@@ -91,9 +91,7 @@ export type Scenario = z.infer<typeof scenarioSchema>;
 export type ScenarioWithCharacters = z.infer<
   typeof scenarioWithCharactersSchema
 >;
-export type ScenarioCharacterAssignment = z.infer<
-  typeof scenarioCharacterAssignmentSchema
->;
+export type ScenarioParticipant = z.infer<typeof scenarioParticipantSchema>;
 export type CreateScenarioInput = z.infer<typeof createScenarioSchema>;
 export type UpdateScenarioInput = z.infer<typeof updateScenarioSchema>;
 export type AssignCharacterInput = z.infer<typeof assignCharacterSchema>;

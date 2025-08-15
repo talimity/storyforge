@@ -78,7 +78,7 @@ devctl stop       # Stop both dev servers
     - ❌ Agent events (e.g. workflow start, agent input, agent output, agent error, wokflow complete)
 - ❌ Shelf (user content management)
   - ✅ Characters / SillyTavern character import
-  - ✅ Scenario CRUD / character assignment
+  - ✅ Scenario CRUD / participants
   - ❌ LLM provider configuration
   - ❌ Model registry
   - ❌ Prompt templates
@@ -109,7 +109,7 @@ devctl stop       # Stop both dev servers
     - ❌ Scenarios
     - ❌ Prompt templates
   - ❌ Scenario player
-    - ❌ Editor (setup, character assignment)
+    - ❌ Editor (setup, participants)
     - ❌ Runner (turn display, input, state feedback)
   - ❌ Settings
     - ❌ API key configuration

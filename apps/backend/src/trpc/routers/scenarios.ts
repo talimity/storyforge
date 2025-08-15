@@ -2,8 +2,8 @@ import {
   assignCharacterSchema,
   createScenarioSchema,
   reorderCharactersSchema,
-  scenarioCharacterAssignmentSchema,
   scenarioIdSchema,
+  scenarioParticipantSchema,
   scenarioSchema,
   scenariosWithCharactersListResponseSchema,
   scenarioWithCharactersSchema,
@@ -11,13 +11,13 @@ import {
   updateScenarioSchema,
 } from "@storyforge/api";
 import {
-  ScenarioCharacterRepository,
+  ScenarioParticipantRepository,
   ScenarioRepository,
 } from "@storyforge/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
-  transformScenarioCharacterAssignment,
+  transformScenarioParticipant,
   transformScenarioWithCharacters,
 } from "@/shelf/scenario";
 import { publicProcedure, router } from "@/trpc/index";
@@ -159,19 +159,17 @@ export const scenariosRouter = router({
       },
     })
     .input(assignCharacterSchema)
-    .output(scenarioCharacterAssignmentSchema)
+    .output(scenarioParticipantSchema)
     .mutation(async ({ input, ctx }) => {
-      const scenarioCharacterRepository = new ScenarioCharacterRepository(
-        ctx.db
-      );
+      const participantRepository = new ScenarioParticipantRepository(ctx.db);
       try {
-        const assignment = await scenarioCharacterRepository.assignCharacter(
+        const participant = await participantRepository.assignCharacter(
           input.scenarioId,
           input.characterId,
           { role: input.role, orderIndex: input.orderIndex }
         );
 
-        return transformScenarioCharacterAssignment(assignment);
+        return transformScenarioParticipant(participant);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -204,11 +202,9 @@ export const scenariosRouter = router({
     .input(unassignCharacterSchema)
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
-      const scenarioCharacterRepository = new ScenarioCharacterRepository(
-        ctx.db
-      );
+      const participantRepo = new ScenarioParticipantRepository(ctx.db);
       try {
-        await scenarioCharacterRepository.unassignCharacter(
+        await participantRepo.unassignCharacter(
           input.scenarioId,
           input.characterId
         );
@@ -235,11 +231,9 @@ export const scenariosRouter = router({
     .input(reorderCharactersSchema)
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
-      const scenarioCharacterRepository = new ScenarioCharacterRepository(
-        ctx.db
-      );
+      const participantRepo = new ScenarioParticipantRepository(ctx.db);
       try {
-        await scenarioCharacterRepository.reorderCharacters(
+        await participantRepo.reorderCharacters(
           input.scenarioId,
           input.characterOrders
         );

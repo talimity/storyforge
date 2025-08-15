@@ -19,7 +19,6 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
   function Avatar(props, ref) {
     const { name, src, srcSet, loading, icon, fallback, children, ...rest } =
       props;
-    console.log("Avatar render", { layerStyle: props.layerStyle, rest });
     return (
       <ChakraAvatar.Root ref={ref} {...rest}>
         <ChakraAvatar.Fallback name={name}>

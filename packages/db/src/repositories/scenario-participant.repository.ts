@@ -1,10 +1,10 @@
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { type StoryforgeSqliteDatabase, schema } from "../client";
 import type { Character } from "../schema/characters";
-import type { ScenarioCharacter } from "../schema/scenario-characters";
+import type { ScenarioParticipant as DbScenarioParticipant } from "../schema/scenario-participants";
 import { BaseRepository } from "./base.repository";
 
-export interface ScenarioCharacterAssignment extends ScenarioCharacter {
+export interface JoinedScenarioParticipant extends DbScenarioParticipant {
   character: Character;
   isActive: boolean;
 }
@@ -19,17 +19,17 @@ export interface CharacterOrder {
   orderIndex: number;
 }
 
-export class ScenarioCharacterRepository extends BaseRepository<
-  typeof schema.scenarioCharacters
+export class ScenarioParticipantRepository extends BaseRepository<
+  typeof schema.scenarioParticipants
 > {
   constructor(database: StoryforgeSqliteDatabase) {
-    super(database, schema.scenarioCharacters, "scenario-character");
+    super(database, schema.scenarioParticipants, "scenario-participant");
   }
 
   async findByScenarioId(
     scenarioId: string,
     includeInactive?: boolean
-  ): Promise<ScenarioCharacterAssignment[]> {
+  ): Promise<JoinedScenarioParticipant[]> {
     const whereConditions = [eq(this.table.scenarioId, scenarioId)];
 
     if (!includeInactive) {
@@ -37,7 +37,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
     }
 
     const results = await this.db
-      .select({ assignment: this.table, character: schema.characters })
+      .select({ participant: this.table, character: schema.characters })
       .from(this.table)
       .innerJoin(
         schema.characters,
@@ -47,16 +47,16 @@ export class ScenarioCharacterRepository extends BaseRepository<
       .orderBy(this.table.orderIndex);
 
     return results.map((r) => ({
-      ...r.assignment,
+      ...r.participant,
       character: r.character,
-      isActive: r.assignment.unassignedAt === null,
+      isActive: r.participant.unassignedAt === null,
     }));
   }
 
   async findByCharacterId(
     characterId: string,
     includeInactive?: boolean
-  ): Promise<ScenarioCharacterAssignment[]> {
+  ): Promise<JoinedScenarioParticipant[]> {
     const whereConditions = [eq(this.table.characterId, characterId)];
 
     if (!includeInactive) {
@@ -65,7 +65,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
 
     const results = await this.db
       .select({
-        assignment: this.table,
+        participant: this.table,
         character: schema.characters,
       })
       .from(this.table)
@@ -77,19 +77,19 @@ export class ScenarioCharacterRepository extends BaseRepository<
       .orderBy(this.table.orderIndex);
 
     return results.map((r) => ({
-      ...r.assignment,
+      ...r.participant,
       character: r.character,
-      isActive: r.assignment.unassignedAt === null,
+      isActive: r.participant.unassignedAt === null,
     }));
   }
 
-  async findAssignment(
+  async findByScenarioCharacterIds(
     scenarioId: string,
     characterId: string
-  ): Promise<ScenarioCharacterAssignment | undefined> {
+  ): Promise<JoinedScenarioParticipant | undefined> {
     const results = await this.db
       .select({
-        assignment: this.table,
+        participant: this.table,
         character: schema.characters,
       })
       .from(this.table)
@@ -109,9 +109,9 @@ export class ScenarioCharacterRepository extends BaseRepository<
 
     const result = results[0];
     return {
-      ...result.assignment,
+      ...result.participant,
       character: result.character,
-      isActive: result.assignment.unassignedAt === null,
+      isActive: result.participant.unassignedAt === null,
     };
   }
 
@@ -137,7 +137,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
   async reassign(
     scenarioId: string,
     characterId: string
-  ): Promise<ScenarioCharacterAssignment> {
+  ): Promise<JoinedScenarioParticipant> {
     // Find the existing record (should be inactive)
     const existingRecord = await this.db
       .select()
@@ -152,7 +152,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
       .limit(1);
 
     if (!existingRecord[0]) {
-      throw new Error("No inactive assignment found to reactivate");
+      throw new Error("No inactive participant found to reactivate");
     }
 
     // Clear the unassignedAt timestamp to reactivate
@@ -166,7 +166,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
       .returning();
 
     if (!updated) {
-      throw new Error("Failed to reactivate character assignment");
+      throw new Error("Failed to reactivate participant");
     }
 
     // Get the character data
@@ -187,7 +187,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
     };
   }
 
-  async getActiveAssignmentCount(scenarioId: string): Promise<number> {
+  async getActiveParticipantCount(scenarioId: string): Promise<number> {
     const results = await this.db
       .select({ count: this.table.id })
       .from(this.table)
@@ -201,15 +201,15 @@ export class ScenarioCharacterRepository extends BaseRepository<
     return results.length;
   }
 
-  async getAllAssignments(
+  async getAllParticipantsForScenario(
     scenarioId: string
-  ): Promise<ScenarioCharacterAssignment[]> {
+  ): Promise<JoinedScenarioParticipant[]> {
     return this.findByScenarioId(scenarioId, true);
   }
 
-  async getActiveAssignments(
+  async getActiveParticipantsForScenario(
     scenarioId: string
-  ): Promise<ScenarioCharacterAssignment[]> {
+  ): Promise<JoinedScenarioParticipant[]> {
     return this.findByScenarioId(scenarioId, false);
   }
 
@@ -217,7 +217,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
     scenarioId: string,
     characterId: string,
     options: AssignCharacterOptions = {}
-  ): Promise<ScenarioCharacterAssignment> {
+  ): Promise<JoinedScenarioParticipant> {
     const { role, orderIndex = 0 } = options;
 
     // Check if character is already assigned (active)
@@ -249,7 +249,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
       )
       .limit(1);
 
-    let assignment: ScenarioCharacter;
+    let dbParticipant: DbScenarioParticipant;
 
     if (existingRecord.length > 0 && existingRecord[0]) {
       // Reuse existing record by clearing unassignedAt
@@ -260,9 +260,9 @@ export class ScenarioCharacterRepository extends BaseRepository<
         .returning();
 
       if (!updated) {
-        throw new Error("Failed to reactivate character assignment");
+        throw new Error("Failed to reactivate participant");
       }
-      assignment = updated;
+      dbParticipant = updated;
     } else {
       // Create new record
       const [created] = await this.db
@@ -271,9 +271,9 @@ export class ScenarioCharacterRepository extends BaseRepository<
         .returning();
 
       if (!created) {
-        throw new Error("Failed to create character assignment");
+        throw new Error("Failed to create participant");
       }
-      assignment = created;
+      dbParticipant = created;
     }
 
     // Get the character data
@@ -288,9 +288,9 @@ export class ScenarioCharacterRepository extends BaseRepository<
     }
 
     return {
-      ...assignment,
+      ...dbParticipant,
       character: character[0],
-      isActive: assignment.unassignedAt === null,
+      isActive: dbParticipant.unassignedAt === null,
     };
   }
 
@@ -312,7 +312,7 @@ export class ScenarioCharacterRepository extends BaseRepository<
 
     if (!updated) {
       throw new Error(
-        "Character assignment not found or character not actively assigned"
+        "Participant not found or character not actively assigned"
       );
     }
   }
@@ -357,13 +357,13 @@ export class ScenarioCharacterRepository extends BaseRepository<
   async getAssignedCharacters(
     scenarioId: string,
     includeInactive?: boolean
-  ): Promise<ScenarioCharacterAssignment[]> {
+  ): Promise<JoinedScenarioParticipant[]> {
     return this.findByScenarioId(scenarioId, includeInactive);
   }
 
   async getAssignedScenarios(
     characterId: string
-  ): Promise<ScenarioCharacterAssignment[]> {
+  ): Promise<JoinedScenarioParticipant[]> {
     return this.findByCharacterId(characterId, true);
   }
 

@@ -6,21 +6,27 @@ describe("scenarios router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
   let testDb: Awaited<ReturnType<typeof createFreshTestCaller>>["db"];
 
-  let testChara: Awaited<
+  let testCharas: Awaited<
     ReturnType<CharacterRepository["createWithRelations"]>
-  >;
+  >[];
 
   beforeEach(async () => {
     const testContext = await createFreshTestCaller();
     caller = testContext.caller;
     testDb = testContext.db;
 
-    // Create a character to use in tests
+    // Create test characters
     const characterRepo = new CharacterRepository(testDb);
-    testChara = await characterRepo.createWithRelations({
-      name: "Test Character",
-      description: "A test character for integration testing",
-    });
+    testCharas = [
+      await characterRepo.createWithRelations({
+        name: "Test Character",
+        description: "A test character for integration testing",
+      }),
+      await characterRepo.createWithRelations({
+        name: "Another Test Character",
+        description: "Another test character for integration testing",
+      }),
+    ];
   });
 
   describe("scenarios.list", () => {
@@ -35,14 +41,14 @@ describe("scenarios router integration", () => {
         name: "Active Scenario",
         description: "An active scenario",
         status: "active",
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       });
 
       await caller.scenarios.create({
         name: "Archived Scenario",
         description: "An archived scenario",
         status: "archived",
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       });
 
       // Test filtering by active status
@@ -71,7 +77,7 @@ describe("scenarios router integration", () => {
         name: "Test Scenario",
         description: "A test scenario for integration testing",
         status: "active" as const,
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       };
 
       const result = await caller.scenarios.create(newScenario);
@@ -81,8 +87,8 @@ describe("scenarios router integration", () => {
       expect(result).toHaveProperty("id");
       expect(result).toHaveProperty("characters");
       expect(Array.isArray(result.characters)).toBe(true);
-      expect(result.characters).toHaveLength(1);
-      expect(result.characters[0]!.characterId).toBe(testChara.id);
+      expect(result.characters).toHaveLength(2);
+      expect(result.characters[0]!.characterId).toBe(testCharas[0].id);
     });
 
     it("should not create scenario without characters", async () => {
@@ -93,7 +99,7 @@ describe("scenarios router integration", () => {
       };
 
       await expect(caller.scenarios.create(newScenario)).rejects.toThrow(
-        "Cannot create scenario with no characters assigned."
+        "A scenario must have at least 2 characters."
       );
     });
   });
@@ -104,7 +110,7 @@ describe("scenarios router integration", () => {
         name: "Test Scenario",
         description: "A test scenario",
         status: "active",
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       });
 
       const result = await caller.scenarios.getById({ id: newScenario.id });
@@ -112,8 +118,8 @@ describe("scenarios router integration", () => {
       expect(result.name).toBe(newScenario.name);
       expect(result).toHaveProperty("characters");
       expect(Array.isArray(result.characters)).toBe(true);
-      expect(result.characters).toHaveLength(1);
-      expect(result.characters[0]!.characterId).toBe(testChara.id);
+      expect(result.characters).toHaveLength(2);
+      expect(result.characters[0]!.characterId).toBe(testCharas[0].id);
     });
 
     it("should throw NOT_FOUND for invalid id", async () => {
@@ -129,7 +135,7 @@ describe("scenarios router integration", () => {
         name: "Original Name",
         description: "Original description",
         status: "active",
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       });
 
       const updateData = {
@@ -162,7 +168,7 @@ describe("scenarios router integration", () => {
         name: "To Be Deleted",
         description: "This scenario will be deleted",
         status: "active",
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       });
 
       await caller.scenarios.delete({ id: newScenario.id });
@@ -198,7 +204,7 @@ describe("scenarios router integration", () => {
         name: "Test Scenario",
         description: "A test scenario",
         status: "active",
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       });
 
       const result = await caller.scenarios.assignCharacter({
@@ -216,7 +222,7 @@ describe("scenarios router integration", () => {
       const updatedScenario = await caller.scenarios.getById({
         id: scenario.id,
       });
-      expect(updatedScenario.characters).toHaveLength(2);
+      expect(updatedScenario.characters).toHaveLength(3);
 
       // TODO: flakey assertion, orderIndex conflicts are not resolved and
       // so ordering of returned characters is undefined. repo needs to fixup
@@ -228,7 +234,7 @@ describe("scenarios router integration", () => {
       await expect(
         caller.scenarios.assignCharacter({
           scenarioId: "invalid-scenario-id",
-          characterId: testChara.id,
+          characterId: testCharas[0].id,
           role: "protagonist",
           orderIndex: 0,
         })
@@ -240,7 +246,7 @@ describe("scenarios router integration", () => {
         name: "Test Scenario",
         description: "A test scenario",
         status: "active",
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       });
 
       await expect(
@@ -260,26 +266,26 @@ describe("scenarios router integration", () => {
         name: "Test Scenario",
         description: "A test scenario",
         status: "active",
-        characterIds: [testChara.id],
+        characterIds: testCharas.map((c) => c.id),
       });
 
-      // Verify character is initially assigned
+      // Verify characters initially assigned
       let scenarioWithCharacters = await caller.scenarios.getById({
         id: scenario.id,
       });
-      expect(scenarioWithCharacters.characters).toHaveLength(1);
+      expect(scenarioWithCharacters.characters).toHaveLength(2);
 
       // Unassign character
       await caller.scenarios.unassignCharacter({
         scenarioId: scenario.id,
-        characterId: testChara.id,
+        characterId: testCharas[0].id,
       });
 
       // Verify character is unassigned
       scenarioWithCharacters = await caller.scenarios.getById({
         id: scenario.id,
       });
-      expect(scenarioWithCharacters.characters).toHaveLength(0);
+      expect(scenarioWithCharacters.characters).toHaveLength(1);
     });
 
     it("should throw NOT_FOUND for invalid scenario id", async () => {
