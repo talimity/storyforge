@@ -67,7 +67,7 @@ export function ScenarioLibraryPage() {
         />
       )}
 
-      {scenariosQuery.data?.scenarios.length && (
+      {Number(scenariosQuery.data?.scenarios.length) > 0 && (
         <Grid
           templateColumns="repeat(auto-fit, 320px)"
           justifyContent="center"

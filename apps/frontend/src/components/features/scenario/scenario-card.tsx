@@ -19,6 +19,7 @@ import {
   LuTrash,
   LuUsers,
 } from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
 import { ScenarioDeleteDialog } from "@/components/dialogs/scenario-delete";
 import { CharacterPile } from "@/components/features/character/character-pile";
 import { useScenarioActions } from "@/components/features/scenario/use-scenario-actions";
@@ -31,6 +32,7 @@ interface ScenarioCardProps {
 }
 
 export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
+  const navigate = useNavigate();
   const {
     isDeleteDialogOpen,
     deleteScenarioMutation,
@@ -39,6 +41,10 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
     openDeleteDialog,
     closeDeleteDialog,
   } = useScenarioActions(scenario.id);
+
+  const handlePlay = () => {
+    navigate(`/play/${scenario.id}`);
+  };
 
   return (
     <Card.Root
@@ -116,7 +122,7 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
               colorPalette="primary"
               size="sm"
               flex={1}
-              disabled
+              onClick={handlePlay}
             >
               <LuPlay />
               Play

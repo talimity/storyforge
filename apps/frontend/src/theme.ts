@@ -493,6 +493,18 @@ const layerStyles = defineLayerStyles({
       boxShadow: "subtle",
     },
   },
+  // Primary material, subtle variant
+  surfaceMuted: {
+    value: {
+      bg: "surface.muted",
+      color: "content",
+      backgroundImage: "none",
+      borderColor: "surface.border",
+      borderRadius: "md",
+      borderWidth: "1px",
+      boxShadow: "none",
+    },
+  },
   // Contrast material
   contrast: {
     value: {

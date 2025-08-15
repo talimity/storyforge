@@ -6,7 +6,7 @@ import { Button, Tooltip } from "@/components/ui";
 interface SidebarLinkProps {
   to: string;
   icon: ReactNode;
-  label: string;
+  label: ReactNode;
   collapsed?: boolean;
 }
 

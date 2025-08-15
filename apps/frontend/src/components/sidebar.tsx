@@ -1,6 +1,8 @@
 import {
   Box,
   ClientOnly,
+  Flex,
+  HStack,
   Separator,
   Skeleton,
   Stack,
@@ -18,6 +20,7 @@ import {
   LuWorkflow,
 } from "react-icons/lu";
 import { TbCubeSpark } from "react-icons/tb";
+import { useActiveScenarioWithData } from "@/lib/hooks/use-active-scenario";
 import { ColorModeToggle } from "./color-mode-toggle";
 import { Logo } from "./logo";
 import { SidebarLink } from "./sidebar-link";
@@ -29,6 +32,11 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
+  const { activeScenarioId, scenarioQuery, hasValidActiveScenario } =
+    useActiveScenarioWithData();
+
+  const loading = scenarioQuery.isLoading;
+
   return (
     <Stack
       as="nav"
@@ -69,13 +77,31 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         overflowY="auto"
         data-testid="sidebar-nav"
       >
-        {/* Play */}
-        <SidebarLink
-          to="/"
-          icon={<LuDices />}
-          label="Play"
-          collapsed={collapsed}
-        />
+        {loading && (
+          <HStack pl="4">
+            <Skeleton h="6" w="6" rounded="md" />
+            <Stack gap="2">
+              <Skeleton h="4" w="28" rounded="md" />
+              <Skeleton h="4" w="24" rounded="md" />
+            </Stack>
+          </HStack>
+        )}
+
+        {hasValidActiveScenario && (
+          <SidebarLink
+            to={`/play/${activeScenarioId}`}
+            icon={<LuDices />}
+            label={
+              <Flex direction="column" gap="0" lineHeight="1.25">
+                <Text>Resume Scenario</Text>
+                <Text fontSize="2xs" color="content.muted">
+                  {scenarioQuery.data?.name}
+                </Text>
+              </Flex>
+            }
+            collapsed={collapsed}
+          />
+        )}
 
         {/* Library Section */}
         {collapsed ? <Separator /> : <SectionHeader>Library</SectionHeader>}

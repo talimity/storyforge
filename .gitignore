@@ -84,6 +84,7 @@ dist/
 
 # IDE
 .vscode/
+.zed/
 .idea/
 *.swp
 *.swo

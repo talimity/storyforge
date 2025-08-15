@@ -10,7 +10,7 @@ export function Logo({ collapsed = false }: LogoProps) {
     <Flex
       as="header"
       align="center"
-      gap="3"
+      gap="1"
       px={collapsed ? "3" : "5"}
       py="3"
       borderBottomWidth="1px"
