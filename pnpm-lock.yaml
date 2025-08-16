@@ -19,7 +19,7 @@ catalogs:
       specifier: ^24.1.0
       version: 24.1.0
     drizzle-orm:
-      specifier: ^0.44.3
+      specifier: ^0.44.4
       version: 0.44.3
     sharp:
       specifier: ^0.34.3

@@ -1,3 +1,4 @@
+export * from "./chapters";
 export * from "./character-examples";
 export * from "./character-greetings";
 export * from "./characters";

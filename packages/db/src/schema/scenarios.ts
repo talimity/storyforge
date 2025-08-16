@@ -1,6 +1,12 @@
 import { createId } from "@paralleldrive/cuid2";
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  type AnySQLiteColumn,
+  integer,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
+import { turns } from "./turns";
 
 export const scenarios = sqliteTable("scenarios", {
   id: text("id")
@@ -12,6 +18,10 @@ export const scenarios = sqliteTable("scenarios", {
     .$type<"active" | "archived">()
     .notNull()
     .default("active"), // 'active' | 'archived'
+  current_turn_id: text("current_turn_id").references(
+    (): AnySQLiteColumn => turns.id, // `AnySQLiteColumn` is used to avoid circular type references
+    { onDelete: "set null" }
+  ),
   settings: text("settings", { mode: "json" })
     .$type<Record<string, unknown>>()
     .notNull()
@@ -19,7 +29,6 @@ export const scenarios = sqliteTable("scenarios", {
   metadata: text("metadata", { mode: "json" })
     .$type<Record<string, unknown>>()
     .notNull()
-    // .default({}), // drizzle does not handle defaults for JSON fields well
     .default(sql`'{}::json'`),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
