@@ -10,7 +10,7 @@ import {
   Text,
   VisuallyHidden,
 } from "@chakra-ui/react";
-import type { CardType } from "@storyforge/api";
+import type { CardType } from "@storyforge/schemas";
 import {
   LuCheck,
   LuEllipsisVertical,

@@ -11,9 +11,9 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "scripts/**/*"],
   "references": [
-    { "path": "../../packages/api" },
     { "path": "../../packages/config" },
     { "path": "../../packages/db" },
+    { "path": "../../packages/schemas" },
     { "path": "../../packages/yolo-onnx" }
   ]
 }

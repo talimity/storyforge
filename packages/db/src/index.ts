@@ -4,5 +4,4 @@ export { migrate } from "drizzle-orm/better-sqlite3/migrator";
 export * from "./client";
 export * from "./config";
 export { runMigrations } from "./migrate";
-export * from "./repositories/index";
 export type * from "./schema/index";

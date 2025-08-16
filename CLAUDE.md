@@ -17,7 +17,7 @@ pnpm check # both
 # Run tests (backend, integration-only)
 pnpm test
 
-# Remember to rebuild when changing contracts in packages/api
+# Remember to rebuild when changing contracts in packages/schemas/
 pnpm build # tsc -b against entire project
 pnpm build:frontend # Vite build
 
@@ -49,7 +49,7 @@ devctl stop       # Stop both dev servers
 - ✅ Monorepo with pnpm
 - ✅ Fastify, Drizzle with SQLite, and tRPC setup
 - ✅ OpenAPI schema generation via trpc-to-openapi
-- ✅ Shared packages (config, db, api)
+- ✅ Shared packages (config, db, schemas)
 - ✅ Vite React frontend application
 - ✅ LLM inference architecture
   - ✅ Provider abstraction layer
@@ -57,6 +57,7 @@ devctl stop       # Stop both dev servers
     - ✅ OpenRouter Chat Completion
     - ✅ DeepSeek Chat Completion
     - ❌ OpenAI-compat Chat Completion (OpenAI, llama.cpp, vllm, etc.)
+    - ❌ Anthropic Chat Completion
   - ❌ Model registry (add models and specify which provider to use)
 - ❌ Story engine
   - ❌ Scenario runtime (read input, generate-with-agents, present, loop)
@@ -76,7 +77,7 @@ devctl stop       # Stop both dev servers
   - ❌ Events
     - ❌ Turn events (e.g. turn started, turn completed)
     - ❌ Agent events (e.g. workflow start, agent input, agent output, agent error, wokflow complete)
-- ❌ Shelf (user content management)
+- ❌ Library (user content management)
   - ✅ Characters / SillyTavern character import
   - ✅ Scenario CRUD / participants
   - ❌ LLM provider configuration
@@ -87,10 +88,10 @@ devctl stop       # Stop both dev servers
   - ❌ Agent workflows
   - ❌ Settings (simple KV store, mostly for UI state and prefs)
 - ❌ tRPC API
-  - ✅ Character shelf
-  - ✅ Scenario shelf
+  - ✅ Character library
+  - ✅ Scenario library
   - ❌ Scenario interact
-  - ❌ Prompt templates shelf
+  - ❌ Prompt templates library
   - ❌ LLM providers
   - ❌ Asset upload and management
   - ❌ Regex templates
@@ -106,9 +107,10 @@ devctl stop       # Stop both dev servers
       - ✅ Character card with actions
       - ✅ Character import workflow
       - ✅ Character editor
-    - ❌ Scenarios
+    - ✅ Scenarios
     - ❌ Prompt templates
   - ❌ Scenario player
+    - ✅ Separate shell for scenario player
     - ❌ Editor (setup, participants)
     - ❌ Runner (turn display, input, state feedback)
   - ❌ Settings
@@ -135,38 +137,40 @@ storyforge
 │   │   ├── data               # Fixtures, test characters
 │   │   ├── scripts            # Scripts for development tasks
 │   │   └── src
+│   │       ├── api            # tRPC/OpenAPI layer
+│   │       │   └── routers    # tRPC routers
 │   │       ├── engine         # Story engine
 │   │       │   ├── agents     # Agent workflows
-│   │       │   ├── context    # Context building
+│   │       │   ├── context    # Context building using loaded data from library
 │   │       │   ├── scenario   # Scenario runtime / orchestration
 │   │       │   └── turns      # Turn generation
 │   │       ├── inference      # LLM inference layer
 │   │       │   └── providers  # LLM provider implementations
-│   │       ├── shelf          # User data management (simple CRUD)
+│   │       ├── library        # User content management; Drizzle read models and CRUD services
 │   │       │   ├── character
-│   │       │   └── scenario
-│   │       ├── test           # Integration tests
-│   │       └── trpc           # API handlers
-│   │           └── routers    # tRPC routers
+│   │       │   ├── scenario
+│   │       │   ├── turn
+│   │       │   └── context-loader.ts   # Fetches all data needed to build generation context
+│   │       └── test           # Integration tests
 │   ├── frontend               # Vite React app (:8080)
 │   │   └── src
 │   │       ├── components     # Reusable components, by feature
 │   │       ├── lib            # Client utilities
 │   │       └── pages          # Page components
 └── packages                   # Shared packages
-    ├── api                    # API contracts and types
-    │   └── src
-    │       ├── contracts      # tRPC contracts / Zod schemas  
-    │       └── types
     ├── config                 # Configuration management
     │   └── src
     │       └── index.ts       # Config/environment loader
-    │── db                     # Database layer
+    │── db                     # Data access layer
     │   └── src
-    │       ├── migrations     # Database migrations
-    │       ├── repositories   # Data access layer
-    │       ├── schema         # Database schema definitions
-    │       └── client.ts      # Database client
+    │       ├── migrations
+    │       ├── schema         # Drizzle schema definitions
+    │       ├── client.ts      # SQLite client
+    │       └── relations.ts   # Drizzle relation definitions
+    ├── schemas                # Zod runtime schemas and types
+    │   └── src
+    │       ├── contracts      # tRPC API input/output schemas
+    │       └── types          # Inferred types from schemas
     └── yolo-onnx              # yolov8n-face wrapper
 ```
 
@@ -182,13 +186,12 @@ storyforge
     - Use intermediate variables to make expressions clearer
     - Return early to avoid deep nesting in functions
 - **Classes and Interfaces**:
-    - Prefer functions and objects over classes
-    - Polymorphism: use interfaces for type contracts, not classes
+    - Prefer modules/functions over classes
+    - Polymorphism: use TS interfaces
     - Use classes only when you need to share state/behavior
-    - Rethink architectures that rely on inheritance
     - Never write a class that only contains static members
 - **Imports**:
-  - Run `pnpm lint` to auto-sort imports
+  - Run `pnpm check` to auto-sort imports
   - Use `@/` for absolute imports in frontend
   - Never deep import from other packages
 - **Naming conventions**:

@@ -9,7 +9,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { ScenarioWithCharacters } from "@storyforge/api";
+import type { ScenarioWithCharacters } from "@storyforge/schemas";
 import {
   LuCalendar,
   LuEllipsisVertical,
@@ -88,9 +88,9 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
               </Text>
             </HStack>
             <CharacterPile
-              characters={scenario.characters
-                .filter((participant) => participant.isActive)
-                .map((participant) => participant.character)}
+              characters={scenario.characters.map(
+                (participant) => participant.character
+              )}
               maxAvatars={5}
               spaceX={0.5}
               size="lg"

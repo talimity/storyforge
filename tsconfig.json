@@ -4,7 +4,7 @@
     { "path": "./apps/frontend" },
     { "path": "./apps/backend" },
     { "path": "./packages/db" },
-    { "path": "./packages/api" },
+    { "path": "./packages/schemas" },
     { "path": "./packages/config" }
   ],
   "extends": "./tsconfig.base.json"

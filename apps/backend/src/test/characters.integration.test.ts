@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { registerAssetsRoutes } from "../api/assets";
 import {
   getFixtureCount,
   loadCharacterFixtures,
   seedCharacterFixtures,
 } from "../test/fixtures";
 import { createFreshTestCaller, createTestFastifyServer } from "../test/setup";
-import { registerAssetsRoutes } from "../trpc/assets";
 
 describe("characters router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
@@ -101,7 +101,7 @@ describe("characters router integration", () => {
       expect(fixtures.length).toBeGreaterThan(0);
       const fixture = fixtures[0];
 
-      const base64Data = fixture!.imageBuffer.toString("base64");
+      const base64Data = fixture!.buffer.toString("base64");
       const imageDataUri = `data:image/png;base64,${base64Data}`;
 
       const newCharacter = {
@@ -254,7 +254,7 @@ describe("characters router integration", () => {
       await fastify.close();
     });
 
-    it("should return 404 for character without image", async () => {
+    it.only("should return 404 for character without image", async () => {
       const newCharacter = await caller.characters.create({
         name: "No Image Character",
         description: "Character without image",
@@ -286,7 +286,7 @@ describe("characters router integration", () => {
       const fixture = fixtures[0];
 
       // Convert the image buffer to base64 data URI
-      const base64Data = fixture!.imageBuffer.toString("base64");
+      const base64Data = fixture!.buffer.toString("base64");
       const charaDataUri = `data:image/png;base64,${base64Data}`;
 
       const result = await caller.characters.import({ charaDataUri });

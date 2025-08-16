@@ -18,7 +18,7 @@ export const scenarios = sqliteTable("scenarios", {
     .$type<"active" | "archived">()
     .notNull()
     .default("active"), // 'active' | 'archived'
-  current_turn_id: text("current_turn_id").references(
+  currentTurnId: text("current_turn_id").references(
     (): AnySQLiteColumn => turns.id, // `AnySQLiteColumn` is used to avoid circular type references
     { onDelete: "set null" }
   ),

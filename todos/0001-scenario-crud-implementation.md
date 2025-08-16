@@ -248,27 +248,27 @@ export const scenariosRouter = router({
   - Conventional commit: `feat(db): add scenario and scenario_characters tables`
 
 ### Phase 2: API Contracts
-- [ ] **Task 2.1**: Create scenario contracts (`packages/api/src/contracts/scenario.ts`)
+- [ ] **Task 2.1**: Create scenario contracts (`packages/schemas/src/contracts/scenario.ts`)
   - Define simplified input schemas (remove creator fields, simplify status)
   - Define output schemas (scenario, with-characters, assignments)
   - Remove getCharacterHistory contract
   - Include proper type inference exports
-- [ ] **Task 2.2**: Export scenario contracts (`packages/api/src/index.ts`)
+- [ ] **Task 2.2**: Export scenario contracts (`packages/schemas/src/index.ts`)
   - Add all scenario-related exports
   - Ensure consistent naming conventions
 - [ ] **Task 2.3**: Update API package build
-  - Run `pnpm build` in packages/api to generate types
+  - Run `pnpm build` in packages/schemas to generate types
   - Verify type exports work correctly in consuming applications
 - [ ] **Task 2.4**: Commit Phase 2 changes
   - Conventional commit: `feat(api): add scenario API contracts and types`
 
 ### Phase 3: Repository Layer
-- [ ] **Task 3.1**: Create ScenarioRepository (`apps/backend/src/shelf/scenario/scenario.repository.ts`)
+- [ ] **Task 3.1**: Create ScenarioRepository (`apps/backend/src/library/scenario/scenario.repository.ts`)
   - Extend BaseRepository with scenarios table
   - Implement standard CRUD operations
   - Add custom finder methods (by status, with characters)
   - Ensure getAssignedCharacters defaults to excluding inactive (unassigned_at IS NULL)
-- [ ] **Task 3.2**: Create ScenarioCharacterRepository (`apps/backend/src/shelf/scenario/scenario-character.repository.ts`)
+- [ ] **Task 3.2**: Create ScenarioCharacterRepository (`apps/backend/src/library/scenario/scenario-character.repository.ts`)
   - Extend BaseRepository with scenarioCharacters table
   - Implement record reuse pattern (find existing, clear unassigned_at)
   - Add relationship query methods that default to active characters only
@@ -277,14 +277,14 @@ export const scenariosRouter = router({
   - Implement assignCharacter() with record reuse logic and transaction support
   - Implement unassignCharacter() setting unassigned_at timestamp
   - Implement reorderCharacters() with batch updates
-- [ ] **Task 3.4**: Create repository barrel export (`apps/backend/src/shelf/scenario/index.ts`)
+- [ ] **Task 3.4**: Create repository barrel export (`apps/backend/src/library/scenario/index.ts`)
   - Export singleton repository instances
   - Follow existing conventions from character module
 - [ ] **Task 3.5**: Commit Phase 3 changes
   - Conventional commit: `feat(repo): add scenario repositories with record reuse pattern`
 
 ### Phase 4: Data Transformation Layer
-- [ ] **Task 4.1**: Create scenario transformation utilities (`apps/backend/src/shelf/scenario/scenario.transforms.ts`)
+- [ ] **Task 4.1**: Create scenario transformation utilities (`apps/backend/src/library/scenario/scenario.transforms.ts`)
   - Implement toScenario() function (DB -> API type conversion)
   - Implement toScenarioWithCharacters() function
   - Implement toScenarioCharacterAssignment() function with isActive computed field

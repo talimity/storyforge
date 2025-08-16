@@ -1,0 +1,201 @@
+import {
+  characterIdSchema,
+  characterIdsSchema,
+  characterImportResponseSchema,
+  characterImportSchema,
+  characterSchema,
+  characterSummarySchema,
+  charactersListResponseSchema,
+  characterWithRelationsSchema,
+  createCharacterSchema,
+  updateCharacterSchema,
+} from "@storyforge/schemas";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { publicProcedure, router } from "@/api/index";
+import {
+  getCharacterDetail,
+  getCharacters,
+  listCharacters,
+} from "@/library/character/character.queries";
+import { transformCharacter } from "@/library/character/character.transforms";
+import { CharacterWriterService } from "@/library/character/character-writer.service";
+import { maybeProcessCharaImage } from "@/library/character/utils/face-detection";
+
+export const charactersRouter = router({
+  list: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/characters",
+        tags: ["characters"],
+        summary: "List all characters",
+      },
+    })
+    .input(z.void())
+    .output(charactersListResponseSchema)
+    .query(async ({ ctx }) => {
+      const characters = await listCharacters(ctx.db);
+      return { characters: characters.map(transformCharacter) };
+    }),
+
+  getById: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/characters/{id}",
+        tags: ["characters"],
+        summary: "Get character by ID",
+      },
+    })
+    .input(characterIdSchema)
+    .output(characterWithRelationsSchema)
+    .query(async ({ input, ctx }) => {
+      const character = await getCharacterDetail(ctx.db, input.id);
+
+      if (!character) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+
+      return {
+        ...transformCharacter(character),
+        greetings: character.greetings,
+        examples: character.examples,
+      };
+    }),
+
+  getByIds: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/characters/by-ids",
+        tags: ["characters"],
+        summary: "Get characters by IDs",
+      },
+    })
+    .input(characterIdsSchema)
+    .output(z.object({ characters: z.array(characterSummarySchema) }))
+    .query(async ({ input, ctx }) => {
+      const characters = await getCharacters(ctx.db, input.ids);
+      return { characters: characters.map(transformCharacter) };
+    }),
+
+  import: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/characters/import",
+        tags: ["characters"],
+        summary: "Import a character from a file",
+      },
+    })
+    .input(characterImportSchema)
+    .output(characterImportResponseSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { charaDataUri } = input;
+
+      try {
+        const buffer = Buffer.from(charaDataUri.split(",")[1], "base64");
+        const charaWriter = new CharacterWriterService(ctx.db);
+        const newChara =
+          await charaWriter.importCharacterFromTavernCard(buffer);
+
+        return {
+          success: true,
+          characterId: newChara,
+          character: transformCharacter(newChara),
+        };
+      } catch (error) {
+        ctx.logger.error(error, "Error importing character from TavernCard");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to import character",
+        });
+      }
+    }),
+
+  create: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/characters",
+        tags: ["characters"],
+        summary: "Create a new character",
+      },
+    })
+    .input(createCharacterSchema)
+    .output(characterWithRelationsSchema)
+    .mutation(async ({ input: rawInput, ctx }) => {
+      const { imageDataUri, ...input } = rawInput;
+
+      const charaWriter = new CharacterWriterService(ctx.db);
+      const newCharacter = await charaWriter.createCharacter({
+        characterData: {
+          ...input,
+          ...(await maybeProcessCharaImage(imageDataUri)),
+        },
+      });
+
+      return {
+        ...transformCharacter(newCharacter),
+        greetings: newCharacter.greetings,
+        examples: newCharacter.examples,
+      };
+    }),
+
+  update: publicProcedure
+    .meta({
+      openapi: {
+        method: "PUT",
+        path: "/api/characters/{id}",
+        tags: ["characters"],
+        summary: "Update a character",
+      },
+    })
+    .input(updateCharacterSchema)
+    .output(characterSchema)
+    .mutation(async ({ input, ctx }) => {
+      const charaWriter = new CharacterWriterService(ctx.db);
+      const { id, imageDataUri, ...updates } = input;
+
+      const updatedCharacter = await charaWriter.updateCharacter(id, {
+        ...updates,
+        ...(await maybeProcessCharaImage(imageDataUri)),
+      });
+
+      if (!updatedCharacter) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+
+      return transformCharacter(updatedCharacter);
+    }),
+
+  delete: publicProcedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/api/characters/{id}",
+        tags: ["characters"],
+        summary: "Delete a character",
+      },
+    })
+    .input(characterIdSchema)
+    .output(z.void())
+    .mutation(async ({ input, ctx }) => {
+      const charaWriter = new CharacterWriterService(ctx.db);
+      const deleted = await charaWriter.deleteCharacter(input.id);
+
+      if (!deleted) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+    }),
+});

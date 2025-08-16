@@ -20,8 +20,8 @@ This document outlines a comprehensive refactoring of the scenario CRUD implemen
 
 #### Tasks:
 1. **Remove validator files**
-   - Delete `apps/backend/src/shelf/scenario/scenario.validators.ts`
-   - Update `apps/backend/src/shelf/scenario/index.ts` to remove validator exports
+   - Delete `apps/backend/src/library/scenario/scenario.validators.ts`
+   - Update `apps/backend/src/library/scenario/index.ts` to remove validator exports
 
 2. **Update router to rely on Zod validation**
    - Remove all `ScenarioValidators` imports and usage from `apps/backend/src/trpc/routers/scenarios.ts`

@@ -3,11 +3,11 @@ import { fileURLToPath } from "node:url";
 import multipart from "@fastify/multipart";
 import sensible from "@fastify/sensible";
 import type { StoryforgeSqliteDatabase } from "@storyforge/db";
-import { schema } from "@storyforge/db";
+import { relations } from "@storyforge/db";
 import Fastify from "fastify";
+import { createTestAppContext } from "../api/app-context";
+import { appRouter } from "../api/app-router";
 import { testAppContextPlugin } from "../app-context-plugin";
-import { createTestAppContext } from "../trpc/app-context";
-import { appRouter } from "../trpc/app-router";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,7 +21,7 @@ export async function createTestDatabase(): Promise<TestDatabase> {
   const sqlite = new Database(":memory:");
   sqlite.pragma("foreign_keys = ON");
 
-  const db = drizzle(sqlite, { schema });
+  const db = drizzle(sqlite, { relations });
 
   migrate(db, {
     migrationsFolder: path.join(

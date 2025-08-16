@@ -2,12 +2,11 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { StoryforgeSqliteDatabase } from "@storyforge/db";
-import { CharacterRepository } from "@storyforge/db";
-import { CharacterImportService } from "../shelf/character/character-import.service";
+import { CharacterWriterService } from "../library/character/character-writer.service";
 import {
   type ParsedCharacterCard,
   parseTavernCard,
-} from "../shelf/character/utils/parse-tavern-card";
+} from "../library/character/utils/parse-tavern-card";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,12 +14,12 @@ const __dirname = path.dirname(__filename);
 // Path to fixture data (moved to root data/ directory)
 const dataPath = path.join(__dirname, "../../../../data");
 
-export interface CharacterFixture {
+type CharacterFixture = {
   id: string;
   name: string;
-  cardData: ParsedCharacterCard;
-  imageBuffer: Buffer;
-}
+  card: ParsedCharacterCard;
+  buffer: Buffer<ArrayBuffer>;
+};
 
 let cachedFixtures: CharacterFixture[] | null = null;
 
@@ -39,21 +38,16 @@ export async function loadCharacterFixtures(): Promise<CharacterFixture[]> {
   for (const file of cardFiles) {
     try {
       const filePath = path.join(dataPath, file);
-      const buffer = await readFile(filePath);
-      const cardData = await parseTavernCard(buffer.buffer);
+      const buffer = Buffer.copyBytesFrom(await readFile(filePath));
+      const card = await parseTavernCard(buffer.buffer);
 
       // Extract character name from card for ID generation
-      const name = cardData.isV2
-        ? (cardData.cardData as any).data.name
-        : (cardData.cardData as any).name;
+      const name = card.isV2
+        ? (card.cardData as any).data.name
+        : (card.cardData as any).name;
       const id = name.toLowerCase().replace(/[^a-z0-9]/g, "_");
 
-      fixtures.push({
-        id,
-        name,
-        cardData,
-        imageBuffer: buffer,
-      });
+      fixtures.push({ id, name, card, buffer });
     } catch (error) {
       console.warn(`Failed to load fixture from ${file}:`, error);
     }
@@ -68,14 +62,10 @@ export async function seedCharacterFixtures(
 ): Promise<CharacterFixture[]> {
   const fixtures = await loadCharacterFixtures();
 
-  const repository = new CharacterRepository(db);
-  const importService = new CharacterImportService(repository);
+  const service = new CharacterWriterService(db);
 
   for (const fixture of fixtures) {
-    await importService.importCharacter(
-      fixture.cardData.cardData,
-      fixture.imageBuffer
-    );
+    await service.importCharacterFromTavernCard(fixture.buffer);
   }
 
   return fixtures;

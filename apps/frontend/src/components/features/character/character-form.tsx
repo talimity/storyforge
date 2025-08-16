@@ -9,7 +9,7 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createCharacterSchema } from "@storyforge/api";
+import { createCharacterSchema } from "@storyforge/schemas";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes";

@@ -1,5 +1,5 @@
-import { CharacterRepository } from "@storyforge/db";
 import { beforeEach, describe, expect, it } from "vitest";
+import { CharacterWriterService } from "../library/character/character-writer.service";
 import { createFreshTestCaller } from "./setup";
 
 describe("scenarios router integration", () => {
@@ -7,7 +7,7 @@ describe("scenarios router integration", () => {
   let testDb: Awaited<ReturnType<typeof createFreshTestCaller>>["db"];
 
   let testCharas: Awaited<
-    ReturnType<CharacterRepository["createWithRelations"]>
+    ReturnType<CharacterWriterService["createCharacter"]>
   >[];
 
   beforeEach(async () => {
@@ -16,15 +16,19 @@ describe("scenarios router integration", () => {
     testDb = testContext.db;
 
     // Create test characters
-    const characterRepo = new CharacterRepository(testDb);
+    const charaWriter = new CharacterWriterService(testDb);
     testCharas = [
-      await characterRepo.createWithRelations({
-        name: "Test Character",
-        description: "A test character for integration testing",
+      await charaWriter.createCharacter({
+        characterData: {
+          name: "Test Character",
+          description: "A test character for integration testing",
+        },
       }),
-      await characterRepo.createWithRelations({
-        name: "Another Test Character",
-        description: "Another test character for integration testing",
+      await charaWriter.createCharacter({
+        characterData: {
+          name: "Another Test Character",
+          description: "Another test character for integration testing",
+        },
       }),
     ];
   });
@@ -85,10 +89,13 @@ describe("scenarios router integration", () => {
       expect(result.description).toBe(newScenario.description);
       expect(result.status).toBe(newScenario.status);
       expect(result).toHaveProperty("id");
-      expect(result).toHaveProperty("characters");
-      expect(Array.isArray(result.characters)).toBe(true);
-      expect(result.characters).toHaveLength(2);
-      expect(result.characters[0]!.characterId).toBe(testCharas[0].id);
+
+      const scenario = await caller.scenarios.getById({ id: result.id });
+      console.log(scenario);
+
+      expect(Array.isArray(scenario.characters)).toBe(true);
+      expect(scenario.characters).toHaveLength(2);
+      expect(scenario.characters[0]!.character.id).toBe(testCharas[0].id);
     });
 
     it("should not create scenario without characters", async () => {
@@ -119,7 +126,7 @@ describe("scenarios router integration", () => {
       expect(result).toHaveProperty("characters");
       expect(Array.isArray(result.characters)).toBe(true);
       expect(result.characters).toHaveLength(2);
-      expect(result.characters[0]!.characterId).toBe(testCharas[0].id);
+      expect(result.characters[0]!.character.id).toBe(testCharas[0].id);
     });
 
     it("should throw NOT_FOUND for invalid id", async () => {
@@ -189,193 +196,6 @@ describe("scenarios router integration", () => {
       await expect(
         caller.scenarios.delete({ id: "invalid-id" })
       ).rejects.toThrow("Scenario not found");
-    });
-  });
-
-  describe("scenarios.assignCharacter", () => {
-    it("should assign character to scenario", async () => {
-      const characterRepo = new CharacterRepository(testDb);
-      const extraChara = await characterRepo.createWithRelations({
-        name: "Test Character",
-        description: "A test character",
-      });
-
-      const scenario = await caller.scenarios.create({
-        name: "Test Scenario",
-        description: "A test scenario",
-        status: "active",
-        characterIds: testCharas.map((c) => c.id),
-      });
-
-      const result = await caller.scenarios.assignCharacter({
-        scenarioId: scenario.id,
-        characterId: extraChara.id,
-        role: "protagonist",
-      });
-
-      expect(result.scenarioId).toBe(scenario.id);
-      expect(result.characterId).toBe(extraChara.id);
-      expect(result.role).toBe("protagonist");
-      expect(result.orderIndex).toBe(0);
-
-      // Verify character is assigned by checking scenario
-      const updatedScenario = await caller.scenarios.getById({
-        id: scenario.id,
-      });
-      expect(updatedScenario.characters).toHaveLength(3);
-
-      // TODO: flakey assertion, orderIndex conflicts are not resolved and
-      // so ordering of returned characters is undefined. repo needs to fixup
-      // orderIndex after every assignment.
-      // expect(updatedScenario.characters[0]!.characterId).toBe(extraChara.id);
-    });
-
-    it("should throw NOT_FOUND for invalid scenario id", async () => {
-      await expect(
-        caller.scenarios.assignCharacter({
-          scenarioId: "invalid-scenario-id",
-          characterId: testCharas[0].id,
-          role: "protagonist",
-          orderIndex: 0,
-        })
-      ).rejects.toThrow("FOREIGN KEY constraint failed");
-    });
-
-    it("should throw NOT_FOUND for invalid character id", async () => {
-      const scenario = await caller.scenarios.create({
-        name: "Test Scenario",
-        description: "A test scenario",
-        status: "active",
-        characterIds: testCharas.map((c) => c.id),
-      });
-
-      await expect(
-        caller.scenarios.assignCharacter({
-          scenarioId: scenario.id,
-          characterId: "invalid-character-id",
-          role: "protagonist",
-          orderIndex: 0,
-        })
-      ).rejects.toThrow("FOREIGN KEY constraint failed");
-    });
-  });
-
-  describe("scenarios.unassignCharacter", () => {
-    it("should unassign character from scenario", async () => {
-      const scenario = await caller.scenarios.create({
-        name: "Test Scenario",
-        description: "A test scenario",
-        status: "active",
-        characterIds: testCharas.map((c) => c.id),
-      });
-
-      // Verify characters initially assigned
-      let scenarioWithCharacters = await caller.scenarios.getById({
-        id: scenario.id,
-      });
-      expect(scenarioWithCharacters.characters).toHaveLength(2);
-
-      // Unassign character
-      await caller.scenarios.unassignCharacter({
-        scenarioId: scenario.id,
-        characterId: testCharas[0].id,
-      });
-
-      // Verify character is unassigned
-      scenarioWithCharacters = await caller.scenarios.getById({
-        id: scenario.id,
-      });
-      expect(scenarioWithCharacters.characters).toHaveLength(1);
-    });
-
-    it("should throw NOT_FOUND for invalid scenario id", async () => {
-      // Create character directly in the database
-      const characterRepo = new CharacterRepository(testDb);
-      const newCharacter = await characterRepo.createWithRelations({
-        name: "Test Character",
-        description: "A test character",
-      });
-
-      await expect(
-        caller.scenarios.unassignCharacter({
-          scenarioId: "invalid-scenario-id",
-          characterId: newCharacter.id,
-        })
-      ).rejects.toThrow("not found");
-    });
-  });
-
-  describe("scenarios.reorderCharacters", () => {
-    it("should reorder characters in scenario", async () => {
-      // Create two characters directly in the database
-      const characterRepo = new CharacterRepository(testDb);
-      const firstCharacter = await characterRepo.createWithRelations({
-        name: "First Character",
-        description: "First test character",
-      });
-      const secondCharacter = await characterRepo.createWithRelations({
-        name: "Second Character",
-        description: "Second test character",
-      });
-
-      const scenario = await caller.scenarios.create({
-        name: "Test Scenario",
-        description: "A test scenario",
-        status: "active",
-        characterIds: [firstCharacter.id, secondCharacter.id],
-      });
-
-      // Get initial order
-      let scenarioWithCharacters = await caller.scenarios.getById({
-        id: scenario.id,
-      });
-      expect(scenarioWithCharacters.characters).toHaveLength(2);
-
-      const initialFirstCharId =
-        scenarioWithCharacters.characters[0]?.characterId;
-      const initialSecondCharId =
-        scenarioWithCharacters.characters[1]?.characterId;
-      expect(initialFirstCharId).toBeDefined();
-      expect(initialSecondCharId).toBeDefined();
-
-      // Reorder characters
-      await caller.scenarios.reorderCharacters({
-        scenarioId: scenario.id,
-        characterOrders: [
-          { characterId: initialSecondCharId!, orderIndex: 0 },
-          { characterId: initialFirstCharId!, orderIndex: 1 },
-        ],
-      });
-
-      // Verify new order
-      scenarioWithCharacters = await caller.scenarios.getById({
-        id: scenario.id,
-      });
-      expect(scenarioWithCharacters.characters).toHaveLength(2);
-      expect(scenarioWithCharacters.characters[0]?.characterId).toBe(
-        initialSecondCharId!
-      );
-      expect(scenarioWithCharacters.characters[1]?.characterId).toBe(
-        initialFirstCharId!
-      );
-    });
-
-    it("should handle invalid scenario id gracefully", async () => {
-      // This test expects that reordering characters for invalid scenario doesn't crash
-      // It may succeed silently or throw an error, both are acceptable
-      try {
-        await caller.scenarios.reorderCharacters({
-          scenarioId: "invalid-scenario-id",
-          characterOrders: [
-            { characterId: "char1", orderIndex: 0 },
-            { characterId: "char2", orderIndex: 1 },
-          ],
-        });
-        // If it succeeds, that's fine
-      } catch (error) {
-        // If it throws an error, that's also fine
-        expect(error).toBeDefined();
-      }
     });
   });
 });

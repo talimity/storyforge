@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import type { CompletionInput } from "@storyforge/api";
+import type { CompletionInput } from "@storyforge/schemas";
 
 // Simple command line argument parser
 function parseArgs() {

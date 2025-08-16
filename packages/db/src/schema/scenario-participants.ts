@@ -17,10 +17,6 @@ export const scenarioParticipants = sqliteTable(
       .references(() => characters.id, { onDelete: "cascade" }),
     role: text("role"), // Optional character role in scenario
     orderIndex: integer("order_index").notNull().default(0), // Display/turn order
-    assignedAt: integer("assigned_at", { mode: "timestamp" })
-      .notNull()
-      .$defaultFn(() => new Date()), // When character was first assigned
-    unassignedAt: integer("unassigned_at", { mode: "timestamp" }), // When character was unassigned (NULL if active)
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .$defaultFn(() => new Date()),
