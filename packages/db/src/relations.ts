@@ -2,23 +2,23 @@ import { defineRelations } from "drizzle-orm";
 import * as schema from "./schema";
 
 export const relations = defineRelations(schema, (r) => ({
+  characters: {
+    examples: r.many.characterExamples(),
+    starters: r.many.characterStarters(),
+    scenarios: r.many.scenarios({
+      from: r.characters.id.through(r.scenarioParticipants.characterId),
+      to: r.scenarios.id.through(r.scenarioParticipants.scenarioId),
+    }),
+  },
   characterExamples: {
     character: r.one.characters({
       from: r.characterExamples.characterId,
       to: r.characters.id,
     }),
   },
-  characters: {
-    characterExamples: r.many.characterExamples(),
-    characterGreetings: r.many.characterGreetings(),
-    scenarios: r.many.scenarios({
-      from: r.characters.id.through(r.scenarioParticipants.characterId),
-      to: r.scenarios.id.through(r.scenarioParticipants.scenarioId),
-    }),
-  },
-  characterGreetings: {
+  characterStarters: {
     character: r.one.characters({
-      from: r.characterGreetings.characterId,
+      from: r.characterStarters.characterId,
       to: r.characters.id,
     }),
   },
@@ -48,6 +48,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.turns.scenarioId,
       to: r.scenarios.id,
     }),
+    layers: r.many.turnLayers(),
   },
   scenarioParticipants: {
     turns: r.many.turns(),
@@ -58,6 +59,12 @@ export const relations = defineRelations(schema, (r) => ({
     character: r.one.characters({
       from: r.scenarioParticipants.characterId,
       to: r.characters.id,
+    }),
+  },
+  turnLayers: {
+    turn: r.one.turns({
+      from: r.turnLayers.turnId,
+      to: r.turns.id,
     }),
   },
 }));

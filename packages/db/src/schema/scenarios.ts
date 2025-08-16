@@ -17,9 +17,13 @@ export const scenarios = sqliteTable("scenarios", {
   status: text("status")
     .$type<"active" | "archived">()
     .notNull()
-    .default("active"), // 'active' | 'archived'
-  currentTurnId: text("current_turn_id").references(
-    (): AnySQLiteColumn => turns.id, // `AnySQLiteColumn` is used to avoid circular type references
+    .default("active"),
+  rootTurnId: text("root_turn_id").references(
+    (): AnySQLiteColumn => turns.id, // First turn in the scenario
+    { onDelete: "set null" }
+  ),
+  anchorTurnId: text("anchor_turn_id").references(
+    (): AnySQLiteColumn => turns.id, // Last turn in the active timeline
     { onDelete: "set null" }
   ),
   settings: text("settings", { mode: "json" })

@@ -1,5 +1,7 @@
-import path from "node:path";
 import react from "@vitejs/plugin-react";
+
+import path = require("node:path");
+
 import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/

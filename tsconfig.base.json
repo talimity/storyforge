@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    // Language and module settings
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
@@ -8,7 +7,6 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
 
-    // Strictness and type checking
     "strict": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
@@ -16,21 +14,18 @@
     "noImplicitOverride": true,
     "useUnknownInCatchVariables": false,
 
-    // Project and build options
     "composite": true,
     "declaration": true,
     "declarationMap": true,
     "incremental": true,
     "isolatedModules": true,
 
-    // Miscellaneous
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noErrorTruncation": false,
     "sourceMap": true,
-    "baseUrl": ".",
     "paths": {
-      "@storyforge/*": ["packages/*/src"]
+      "@storyforge/*": ["./packages/*/src"]
     }
   },
   "files": []

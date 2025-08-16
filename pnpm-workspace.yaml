@@ -26,3 +26,4 @@ onlyBuiltDependencies:
   - esbuild
   - onnxruntime-node
   - sharp
+  - trpc-ui

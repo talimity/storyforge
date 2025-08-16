@@ -13,11 +13,11 @@ import {
   getScenarioDetail,
   listScenarios,
 } from "@/library/scenario/scenario.queries";
+import { ScenarioService } from "@/library/scenario/scenario.service";
 import {
   transformScenarioDetail,
   transformScenarioOverview,
 } from "@/library/scenario/scenario.transforms";
-import { ScenarioWriterService } from "@/library/scenario/scenario-writer.service";
 
 export const scenariosRouter = router({
   list: publicProcedure
@@ -75,8 +75,8 @@ export const scenariosRouter = router({
     .input(createScenarioSchema)
     .output(scenarioSchema)
     .mutation(async ({ input, ctx }) => {
-      const scenarioWriter = new ScenarioWriterService(ctx.db);
-      return scenarioWriter.createScenario(input);
+      const scenarioSvc = new ScenarioService(ctx.db);
+      return scenarioSvc.createScenario(input);
     }),
 
   update: publicProcedure
@@ -91,10 +91,10 @@ export const scenariosRouter = router({
     .input(updateScenarioSchema)
     .output(scenarioSchema)
     .mutation(async ({ input, ctx }) => {
-      const scenarioWriter = new ScenarioWriterService(ctx.db);
+      const scenarioSvc = new ScenarioService(ctx.db);
       const { id, ...data } = input;
 
-      const scenario = await scenarioWriter.updateScenario(id, data);
+      const scenario = await scenarioSvc.updateScenario(id, data);
 
       if (!scenario) {
         throw new TRPCError({
@@ -118,8 +118,8 @@ export const scenariosRouter = router({
     .input(scenarioIdSchema)
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
-      const scenarioWriter = new ScenarioWriterService(ctx.db);
-      const success = await scenarioWriter.deleteScenario(input.id);
+      const scenarioSvc = new ScenarioService(ctx.db);
+      const success = await scenarioSvc.deleteScenario(input.id);
 
       if (!success) {
         throw new TRPCError({

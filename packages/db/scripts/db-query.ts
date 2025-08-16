@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { sql } from "drizzle-orm";
-import { closeDatabase, db } from "../src/client";
+import { db } from "../src/index";
 import * as schema from "../src/schema/index";
 
 async function executeQuery() {
@@ -75,42 +75,40 @@ Examples:
   } catch (error) {
     console.error("❌ Query failed:", error);
     process.exit(1);
-  } finally {
-    closeDatabase();
   }
 }
 
 async function executeRawQuery(query: string) {
   console.log(`🔍 Executing: ${query}`);
-  const result = db.all(sql.raw(query));
+  const result = await db.all(sql.raw(query));
   console.log(`📊 Results (${result.length} rows):`);
   console.table(result);
 }
 
 async function selectAll(tableName: string) {
   console.log(`🔍 Selecting all from ${tableName}`);
-  const result = db.all(sql.raw(`SELECT * FROM ${tableName}`));
+  const result = await db.all(sql.raw(`SELECT * FROM ${tableName}`));
   console.log(`📊 Results (${result.length} rows):`);
   console.table(result);
 }
 
 async function countRows(tableName: string) {
   console.log(`🔍 Counting rows in ${tableName}`);
-  const result = db.get(
+  const result = (await db.get(
     sql.raw(`SELECT COUNT(*) as count FROM ${tableName}`)
-  ) as { count: number };
+  )) as { count: number };
   console.log(`📊 Count: ${result.count} rows`);
 }
 
 async function showSchema() {
   console.log("🏗️  Database Schema:");
-  const tables = db.all(
+  const tables = (await db.all(
     sql.raw(`
     SELECT name FROM sqlite_master 
     WHERE type='table' AND name NOT LIKE 'sqlite_%'
     ORDER BY name
   `)
-  ) as { name: string }[];
+  )) as { name: string }[];
 
   for (const table of tables) {
     console.log(`\\n📋 Table: ${table.name}`);
@@ -120,7 +118,7 @@ async function showSchema() {
 }
 
 async function showCharactersWithRelations() {
-  console.log("👥 Characters with their greetings and examples:");
+  console.log("👥 Characters with their starters and examples:");
 
   const characters = await db.select().from(schema.characters);
 
@@ -130,15 +128,15 @@ async function showCharactersWithRelations() {
     console.log(`   Creator: ${character.creator || "Unknown"}`);
     console.log(`   Tags: ${character.tags?.join(", ") || "None"}`);
 
-    // Get greetings
-    const greetings = await db
+    // Get starters
+    const starters = await db
       .select()
-      .from(schema.characterGreetings)
+      .from(schema.characterStarters)
       .where(sql`character_id = ${character.id}`);
 
-    if (greetings.length > 0) {
-      console.log(`   💬 Greetings (${greetings.length}):`);
-      greetings.forEach((g, i) => {
+    if (starters.length > 0) {
+      console.log(`   💬 Starters (${starters.length}):`);
+      starters.forEach((g, i) => {
         const marker = g.isPrimary ? "⭐" : "  ";
         console.log(
           `   ${marker} ${i + 1}. ${g.message.substring(0, 100)}${g.message.length > 100 ? "..." : ""}`

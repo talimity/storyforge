@@ -1,7 +1,6 @@
 # Nix
 .direnv/
 result
-result-*
 
 # pm2 home
 .pm2/

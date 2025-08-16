@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   HStack,
   IconButton,
@@ -20,6 +19,7 @@ import {
 } from "react-icons/lu";
 import { CharacterDeleteDialog } from "@/components/dialogs/character-delete";
 import { useCharacterActions } from "@/components/features/character/use-character-actions";
+import { Avatar } from "@/components/ui/index";
 import { getApiUrl } from "@/lib/trpc";
 
 interface CompactCharacterCardProps {
@@ -69,12 +69,16 @@ export function CompactCharacterCard({
         width="100%"
         minWidth={0}
       >
-        <Avatar.Root size="md" shape="rounded" layerStyle="surface">
-          <Avatar.Image src={getApiUrl(character.avatarPath)} />
-          <Avatar.Fallback>
-            <LuSquareUserRound size={20} />
-          </Avatar.Fallback>
-        </Avatar.Root>
+        <Avatar
+          size="md"
+          shape="rounded"
+          layerStyle="surface"
+          name={character.name}
+          src={
+            character.avatarPath ? getApiUrl(character.avatarPath) : undefined
+          }
+          icon={<LuSquareUserRound size={20} />}
+        />
 
         <Stack gap={0} flex={1} minWidth={0}>
           <HStack minWidth={0} width="100%">

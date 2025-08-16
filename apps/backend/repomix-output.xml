@@ -1,0 +1,1296 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/**/*{play,turn,chapter,scenario,timeline,engine-error}*
+- Files matching these patterns are excluded: src/**/*transforms*, src/test/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+src/
+  api/
+    routers/
+      play.ts
+      scenarios.ts
+    engine-error-to-trpc.ts
+  engine/
+    invariants/
+      turn-progression.ts
+      turn.ts
+    engine-error.ts
+  library/
+    chapter/
+      chapter.ops.ts
+    scenario/
+      scenario.queries.ts
+      scenario.service.ts
+    turn/
+      timeline.service.ts
+      turn.ops.ts
+      turn.queries.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/api/routers/play.ts">
+import {
+  bootstrapInputSchema,
+  bootstrapOutputSchema,
+  createIntentInputSchema,
+  createIntentOutputSchema,
+  intentProgressInputSchema,
+  intentResultInputSchema,
+  intentResultOutputSchema,
+  loadTimelineInputSchema,
+  loadTimelineOutputSchema,
+} from "@storyforge/schemas";
+import { z } from "zod";
+import { getScenarioBootstrap } from "@/library/scenario/scenario.queries";
+import { TimelineService } from "@/library/turn/timeline.service";
+import { publicProcedure, router } from "../index";
+
+export const playRouter = router({
+  /**
+   * Adds a turn with the given text to the scenario, attributed to the
+   * specified participant.
+   */
+  _debugAddNodeToGraph: publicProcedure
+    .input(
+      z.object({
+        scenarioId: z.string(),
+        text: z.string(),
+        authorParticipantId: z.string(),
+        chapterId: z.string(),
+        parentTurnId: z.string().optional(),
+      })
+    )
+    .output(z.object({ newTurnId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const turnGraph = new TimelineService(ctx.db);
+      const turn = await turnGraph.advanceTurn({
+        scenarioId: input.scenarioId,
+        authorParticipantId: input.authorParticipantId,
+        chapterId: input.chapterId,
+        parentTurnId: input.parentTurnId ?? null,
+      });
+      return { newTurnId: turn.id };
+    }),
+
+  bootstrap: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/play/bootstrap",
+        tags: ["play"],
+        summary:
+          "Returns initial data for setting up the scenario player environment",
+      },
+    })
+    .input(bootstrapInputSchema)
+    .output(bootstrapOutputSchema)
+    .query(async ({ input, ctx }) => {
+      const { scenarioId } = input;
+      return getScenarioBootstrap(ctx.db, scenarioId);
+    }),
+  timeline: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/play/timeline",
+        tags: ["play"],
+        summary: "Returns a slice of the timeline for a scenario",
+      },
+    })
+    .input(loadTimelineInputSchema)
+    .output(loadTimelineOutputSchema)
+    .query(async ({ input, ctx }) => {
+      // biome-ignore lint/suspicious/noExplicitAny: todo
+      return {} as any;
+    }),
+  createIntent: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/play/intent",
+        tags: ["play"],
+        summary: "Create a new intent to influence the story",
+      },
+    })
+    .input(createIntentInputSchema)
+    .output(createIntentOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      // biome-ignore lint/suspicious/noExplicitAny: todo
+      return {} as any;
+    }),
+  intentProgress: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/play/intent/{intentId}/subscribe",
+        tags: ["play"],
+        summary: "Subscribe to updates on a pending intent's progress",
+        enabled: false, // tRPC OpenAPI plugin doesn't support subscriptions
+      },
+    })
+    .input(intentProgressInputSchema)
+    .subscription(async function* ({ input, ctx }) {
+      yield;
+      // biome-ignore lint/suspicious/noExplicitAny: todo
+      return {} as any;
+    }),
+  intentResult: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/play/intent/{intentId}",
+        tags: ["play"],
+        summary: "Get the status and results of an intent",
+      },
+    })
+    .input(intentResultInputSchema)
+    .output(intentResultOutputSchema)
+    .query(async ({ input, ctx }) => {
+      // biome-ignore lint/suspicious/noExplicitAny: todo
+      return {} as any;
+    }),
+});
+</file>
+
+<file path="src/api/routers/scenarios.ts">
+import {
+  createScenarioSchema,
+  scenarioIdSchema,
+  scenarioSchema,
+  scenariosWithCharactersListResponseSchema,
+  scenarioWithCharactersSchema,
+  updateScenarioSchema,
+} from "@storyforge/schemas";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { publicProcedure, router } from "@/api/index";
+import {
+  getScenarioDetail,
+  listScenarios,
+} from "@/library/scenario/scenario.queries";
+import { ScenarioService } from "@/library/scenario/scenario.service";
+import {
+  transformScenarioDetail,
+  transformScenarioOverview,
+} from "@/library/scenario/scenario.transforms";
+
+export const scenariosRouter = router({
+  list: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/scenarios",
+        tags: ["scenarios"],
+        summary: "List scenarios, with participants",
+      },
+    })
+    .input(z.object({ status: z.enum(["active", "archived"]).optional() }))
+    .output(scenariosWithCharactersListResponseSchema)
+    .query(async ({ input, ctx }) => {
+      const scenarios = await listScenarios(ctx.db, { status: input.status });
+
+      return {
+        scenarios: scenarios.map(transformScenarioOverview),
+      };
+    }),
+
+  getById: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/scenarios/{id}",
+        tags: ["scenarios"],
+        summary: "Get scenario by ID, with participants",
+      },
+    })
+    .input(scenarioIdSchema)
+    .output(scenarioWithCharactersSchema)
+    .query(async ({ input, ctx }) => {
+      const scenario = await getScenarioDetail(ctx.db, input.id);
+
+      if (!scenario) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scenario not found",
+        });
+      }
+
+      return transformScenarioDetail(scenario);
+    }),
+
+  create: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/scenarios",
+        tags: ["scenarios"],
+        summary: "Create a new scenario",
+      },
+    })
+    .input(createScenarioSchema)
+    .output(scenarioSchema)
+    .mutation(async ({ input, ctx }) => {
+      const scenarioSvc = new ScenarioService(ctx.db);
+      return scenarioSvc.createScenario(input);
+    }),
+
+  update: publicProcedure
+    .meta({
+      openapi: {
+        method: "PUT",
+        path: "/api/scenarios/{id}",
+        tags: ["scenarios"],
+        summary: "Update a scenario",
+      },
+    })
+    .input(updateScenarioSchema)
+    .output(scenarioSchema)
+    .mutation(async ({ input, ctx }) => {
+      const scenarioSvc = new ScenarioService(ctx.db);
+      const { id, ...data } = input;
+
+      const scenario = await scenarioSvc.updateScenario(id, data);
+
+      if (!scenario) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scenario not found",
+        });
+      }
+
+      return scenario;
+    }),
+
+  delete: publicProcedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/api/scenarios/{id}",
+        tags: ["scenarios"],
+        summary: "Delete a scenario",
+      },
+    })
+    .input(scenarioIdSchema)
+    .output(z.void())
+    .mutation(async ({ input, ctx }) => {
+      const scenarioSvc = new ScenarioService(ctx.db);
+      const success = await scenarioSvc.deleteScenario(input.id);
+
+      if (!success) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scenario not found",
+        });
+      }
+    }),
+});
+</file>
+
+<file path="src/api/engine-error-to-trpc.ts">
+import { TRPCError } from "@trpc/server";
+import type { EngineError } from "@/engine/engine-error";
+
+/**
+ * Maps an EngineError to a TRPCError.
+ * This function is used to convert the result of an operation into a TRPCError
+ * if the operation failed.
+ */
+export function engineErrorToTRPC(e: EngineError): never {
+  switch (e.code) {
+    // common
+    case "LoadFailed":
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to load required data.",
+      });
+    // turn invariants
+    case "ParticipantNotFound":
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Turn author participant not found.",
+      });
+    case "ParticipantInactive":
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Turn author is inactive.",
+      });
+    case "CrossScenarioAuthor":
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Turn author belongs to another scenario.",
+      });
+    // turn progression invariants
+    case "ParentTurnNotFound":
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Parent turn not found.",
+      });
+    case "ChapterNotFound":
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Chapter not found.",
+      });
+    case "ChapterScenarioMismatch":
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Chapter does not belong to the scenario.",
+      });
+    case "ParentTurnScenarioMismatch":
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Parent turn does not belong to the scenario.",
+      });
+    case "ChapterAlreadyStarted":
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "Chapter already has a first turn.",
+      });
+    case "ChapterProgressionInvalid":
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Turn cannot be appended to the chapter because it would be out of sequence.",
+      });
+    default: {
+      const unmappedError = e.code satisfies never;
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Unexpected error: ${unmappedError}`,
+      });
+    }
+  }
+}
+</file>
+
+<file path="src/engine/invariants/turn-progression.ts">
+import { err, ok, type Result } from "@storyforge/utils";
+
+export type TurnChapterErr =
+  | "LoadFailed"
+  | "ParentTurnNotFound"
+  | "ChapterNotFound"
+  | "ChapterScenarioMismatch"
+  | "ParentTurnScenarioMismatch"
+  | "ChapterAlreadyStarted"
+  | "ChapterProgressionInvalid";
+
+type ChapterLite = {
+  id: string;
+  scenarioId: string;
+  index: number;
+  firstTurnId: string | null;
+};
+
+type TurnLite = {
+  id: string;
+  chapterId: string;
+  scenarioId: string;
+};
+
+type ChapterLoaders = {
+  loadChapter: (chapterId: string) => Promise<ChapterLite | undefined>;
+  loadTurn: (turnId: string) => Promise<TurnLite | undefined>;
+};
+
+/**
+ * Validate whether a turn can be appended to a chapter in the scenario.
+ * This checks the chapter's existence, scenario association, and whether the
+ * turn can be appended as a root or under an existing parent turn.
+ */
+export async function canAppendTurnToChapter(args: {
+  scenarioId: string;
+  targetChapterId: string;
+  parentTurnId: string | null;
+  loaders: ChapterLoaders;
+}): Promise<Result<void, TurnChapterErr>> {
+  const { scenarioId, targetChapterId, parentTurnId, loaders } = args;
+
+  try {
+    const targetChapter = await loaders.loadChapter(targetChapterId);
+
+    // Target chapter must exist
+    if (!targetChapter) {
+      return err("ChapterNotFound");
+    }
+
+    // Target chapter must belong to the scenario
+    if (targetChapter.scenarioId !== scenarioId) {
+      return err("ChapterScenarioMismatch");
+    }
+
+    // Branch based on whether we have a parent turn
+    if (parentTurnId === null) {
+      // Root insertion case: creating the first turn in a timeline
+      return validateRootInsertion(targetChapter);
+    } else {
+      // Normal append/branch case: adding to existing timeline
+      return await validateNormalAppend({
+        parentTurnId,
+        targetChapter,
+        scenarioId,
+        loaders,
+      });
+    }
+  } catch {
+    return err("LoadFailed");
+  }
+}
+
+/**
+ * Validate rules for inserting a root turn, which is the first turn in the
+ * scenario.
+ */
+function validateRootInsertion(
+  targetChapter: ChapterLite
+): Result<void, TurnChapterErr> {
+  // Root turns can only be created in chapter 0
+  if (targetChapter.index !== 0) {
+    return err("ChapterProgressionInvalid");
+  }
+
+  // Chapter shouldn't already have a first turn
+  if (targetChapter.firstTurnId !== null) {
+    return err("ChapterAlreadyStarted");
+  }
+
+  return ok(undefined);
+}
+
+/**
+ * Validate rules for appending a turn to the scenario under an existing turn.
+ */
+async function validateNormalAppend(args: {
+  parentTurnId: string;
+  targetChapter: ChapterLite;
+  scenarioId: string;
+  loaders: ChapterLoaders;
+}): Promise<Result<void, TurnChapterErr>> {
+  const { parentTurnId, targetChapter, scenarioId, loaders } = args;
+
+  try {
+    const parentTurn = await loaders.loadTurn(parentTurnId);
+
+    // Parent turn must exist when ID was provided
+    if (!parentTurn) {
+      return err("ParentTurnNotFound");
+    }
+
+    // Parent turn must belong to the same scenario
+    if (parentTurn.scenarioId !== scenarioId) {
+      return err("ParentTurnScenarioMismatch");
+    }
+
+    // Now validate chapter progression
+    return await validateChapterProgression({
+      parentTurn,
+      targetChapter,
+      loaders,
+    });
+  } catch {
+    return err("LoadFailed");
+  }
+}
+
+/**
+ * Validate the chapter progression rules based on the parent turn and target
+ * chapter.
+ */
+async function validateChapterProgression(args: {
+  parentTurn: TurnLite;
+  targetChapter: ChapterLite;
+  loaders: ChapterLoaders;
+}): Promise<Result<void, TurnChapterErr>> {
+  const { parentTurn, targetChapter, loaders } = args;
+
+  try {
+    const parentChapter = await loaders.loadChapter(parentTurn.chapterId);
+
+    if (!parentChapter) {
+      return err("ChapterNotFound");
+    }
+
+    const isSameChapter = targetChapter.id === parentChapter.id;
+    const isNextChapter = targetChapter.index === parentChapter.index + 1;
+
+    // Case 1: Continuing in the same chapter - always allowed
+    if (isSameChapter) {
+      return ok(undefined);
+    }
+
+    // Case 2: Moving to the next chapter
+    if (isNextChapter) {
+      // The next chapter must not already have turns
+      // (This ensures clean chapter transitions)
+      if (targetChapter.firstTurnId !== null) {
+        return err("ChapterAlreadyStarted");
+      }
+      return ok(undefined);
+    }
+
+    // Case 3: Any other progression is invalid
+    // (next turn cannot skip chapters or go backwards)
+    return err("ChapterProgressionInvalid");
+  } catch {
+    return err("LoadFailed");
+  }
+}
+
+// old neverthrow version, feels very unergonomic
+//
+// import { err, ok, type Result, ResultAsync } from "neverthrow";
+//
+// export type TurnChapterErr =
+//   | "LoadFailed"
+//   | "ParentTurnNotFound"
+//   | "ChapterNotFound"
+//   | "ChapterScenarioMismatch"
+//   | "ParentTurnScenarioMismatch"
+//   | "ChapterAlreadyStarted"
+//   | "ChapterProgressionInvalid";
+//
+// type ChapterLite = {
+//   id: string;
+//   scenarioId: string;
+//   index: number;
+//   firstTurnId: string | null;
+// };
+//
+// type TurnLite = {
+//   id: string;
+//   chapterId: string;
+//   scenarioId: string;
+// };
+//
+// type ChapterLoaders = {
+//   loadChapter: (chapterId: string) => Promise<ChapterLite | undefined>;
+//   loadTurn: (turnId: string) => Promise<TurnLite | undefined>;
+// };
+//
+// /**
+//  * Validate whether a turn can be appended to a chapter in the scenario.
+//  * This checks the chapter's existence, scenario association, and whether the
+//  * turn can be appended as a root or under an existing parent turn.
+//  */
+// export function canAppendTurnToChapter(args: {
+//   scenarioId: string;
+//   targetChapterId: string;
+//   parentTurnId: string | null;
+//   loaders: ChapterLoaders;
+// }): ResultAsync<void, TurnChapterErr> {
+//   const { scenarioId, targetChapterId, parentTurnId, loaders } = args;
+//
+//   return ResultAsync.fromPromise(
+//     loaders.loadChapter(targetChapterId),
+//     () => "LoadFailed" as const
+//   ).andThen((targetChapter) => {
+//     // Target chapter must exist
+//     if (!targetChapter) {
+//       return err("ChapterNotFound");
+//     }
+//
+//     // Target chapter must belong to the scenario
+//     if (targetChapter.scenarioId !== scenarioId) {
+//       return err("ChapterScenarioMismatch");
+//     }
+//
+//     // Branch based on whether we have a parent turn
+//     if (parentTurnId === null) {
+//       // Root insertion case: creating the first turn in a timeline
+//       return validateRootInsertion(targetChapter);
+//     } else {
+//       // Normal append/branch case: adding to existing timeline
+//       return validateNormalAppend({
+//         parentTurnId,
+//         targetChapter,
+//         scenarioId,
+//         loaders,
+//       });
+//     }
+//   });
+// }
+//
+// /**
+//  * Validate rules for inserting a root turn, which is the first turn in the
+//  * scenario.
+//  */
+// function validateRootInsertion(
+//   targetChapter: ChapterLite
+// ): Result<void, TurnChapterErr> {
+//   // Root turns can only be created in chapter 0
+//   if (targetChapter.index !== 0) {
+//     return err("ChapterProgressionInvalid");
+//   }
+//
+//   // Chapter shouldn't already have a first turn
+//   if (targetChapter.firstTurnId !== null) {
+//     return err("ChapterAlreadyStarted");
+//   }
+//
+//   return ok(undefined);
+// }
+//
+// /**
+//  * Validate rules for appending a turn to the scenario under an existing turn.
+//  */
+// function validateNormalAppend(args: {
+//   parentTurnId: string;
+//   targetChapter: ChapterLite;
+//   scenarioId: string;
+//   loaders: ChapterLoaders;
+// }): ResultAsync<void, TurnChapterErr> {
+//   const { parentTurnId, targetChapter, scenarioId, loaders } = args;
+//
+//   // Load the parent turn
+//   return ResultAsync.fromPromise(
+//     loaders.loadTurn(parentTurnId),
+//     () => "LoadFailed" as const
+//   ).andThen((parentTurn) => {
+//     // Parent turn must exist when ID was provided
+//     if (!parentTurn) {
+//       return err("ParentTurnNotFound");
+//     }
+//
+//     // Parent turn must belong to the same scenario
+//     if (parentTurn.scenarioId !== scenarioId) {
+//       return err("ParentTurnScenarioMismatch");
+//     }
+//
+//     // Now validate chapter progression
+//     return validateChapterProgression({ parentTurn, targetChapter, loaders });
+//   });
+// }
+//
+// /**
+//  * Validate the chapter progression rules based on the parent turn and target
+//  * chapter.
+//  */
+// function validateChapterProgression(args: {
+//   parentTurn: TurnLite;
+//   targetChapter: ChapterLite;
+//   loaders: ChapterLoaders;
+// }): ResultAsync<void, TurnChapterErr> {
+//   const { parentTurn, targetChapter, loaders } = args;
+//
+//   // Load parent's chapter to compare indices
+//   return ResultAsync.fromPromise(
+//     loaders.loadChapter(parentTurn.chapterId),
+//     () => "LoadFailed" as const
+//   ).andThen((parentChapter) => {
+//     if (!parentChapter) {
+//       return err("ChapterNotFound");
+//     }
+//
+//     const isSameChapter = targetChapter.id === parentChapter.id;
+//     const isNextChapter = targetChapter.index === parentChapter.index + 1;
+//
+//     // Case 1: Continuing in the same chapter - always allowed
+//     if (isSameChapter) {
+//       return ok(undefined);
+//     }
+//
+//     // Case 2: Moving to the next chapter
+//     if (isNextChapter) {
+//       // The next chapter must not already have turns
+//       // (This ensures clean chapter transitions)
+//       if (targetChapter.firstTurnId !== null) {
+//         return err("ChapterAlreadyStarted");
+//       }
+//       return ok(undefined);
+//     }
+//
+//     // Case 3: Any other progression is invalid
+//     // (next turn cannot skip chapters or go backwards)
+//     return err("ChapterProgressionInvalid");
+//   });
+// }
+</file>
+
+<file path="src/engine/invariants/turn.ts">
+import { err, ok, type Result } from "@storyforge/utils";
+
+export type TurnErr =
+  | "LoadFailed"
+  | "ParticipantNotFound"
+  | "ParticipantInactive"
+  | "CrossScenarioAuthor";
+
+type AuthorParticipant = { scenarioId: string; isActive: boolean };
+
+type AuthorParticipantLoaders = {
+  loadAuthorParticipant: (
+    participantId: string
+  ) => Promise<AuthorParticipant | undefined>;
+};
+
+/**
+ * Validate that the author participant can create a turn in the given scenario.
+ * This checks if the author is active and belongs to the scenario.
+ */
+export async function canCreateTurn(args: {
+  scenarioId: string;
+  authorParticipantId: string;
+  loaders: AuthorParticipantLoaders;
+}): Promise<Result<void, TurnErr>> {
+  const { scenarioId, authorParticipantId, loaders } = args;
+
+  try {
+    const author = await loaders.loadAuthorParticipant(authorParticipantId);
+
+    // Author must exist
+    if (!author) {
+      return err("ParticipantNotFound");
+    }
+
+    // Author must be active
+    if (!author.isActive) {
+      return err("ParticipantInactive");
+    }
+
+    // Author must belong to the scenario
+    if (author.scenarioId !== scenarioId) {
+      return err("CrossScenarioAuthor");
+    }
+
+    return ok(undefined);
+  } catch {
+    return err("LoadFailed");
+  }
+}
+</file>
+
+<file path="src/engine/engine-error.ts">
+import type { TurnErr } from "@/engine/invariants/turn";
+import type { TurnChapterErr } from "@/engine/invariants/turn-progression";
+
+export class EngineError extends Error {
+  constructor(public readonly code: TurnErr | TurnChapterErr) {
+    super(`Engine validation failed: ${code}`);
+    this.name = "EngineError";
+  }
+}
+</file>
+
+<file path="src/library/chapter/chapter.ops.ts">
+import { type SqliteTransaction, schema } from "@storyforge/db";
+import { eq } from "drizzle-orm";
+
+async function loadChapter(db: SqliteTransaction, chapterId: string) {
+  return db
+    .select()
+    .from(schema.chapters)
+    .where(eq(schema.chapters.id, chapterId))
+    .limit(1)
+    .get();
+}
+
+export const ChapterOps = {
+  loadChapter,
+};
+</file>
+
+<file path="src/library/scenario/scenario.queries.ts">
+import type { SqliteDatabase } from "@storyforge/db";
+import { isDefined } from "@storyforge/utils";
+import { sql } from "drizzle-orm";
+import { getCharaAssetPaths } from "@/library/character/utils/chara-asset-helpers";
+import { scenarioCharaSummaryColumns } from "@/library/selectors";
+
+export type ScenarioOverview = Awaited<ReturnType<typeof listScenarios>>[0];
+
+export async function listScenarios(
+  db: SqliteDatabase,
+  filters: { status?: "active" | "archived" }
+) {
+  const { status } = filters;
+
+  return db.query.scenarios.findMany({
+    columns: {
+      id: true,
+      name: true,
+      description: true,
+      status: true,
+      settings: true,
+      metadata: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    where: { status },
+    with: {
+      participants: {
+        columns: { id: true, role: true, orderIndex: true },
+        with: { character: scenarioCharaSummaryColumns },
+        orderBy: (p) => [p.orderIndex],
+      },
+    },
+  });
+}
+
+export type ScenarioDetail = Awaited<ReturnType<typeof getScenarioDetail>>;
+
+export async function getScenarioDetail(
+  db: SqliteDatabase,
+  scenarioId: string
+) {
+  return db.query.scenarios.findFirst({
+    where: { id: scenarioId },
+    with: {
+      chapters: true,
+      participants: {
+        columns: { id: true, role: true, orderIndex: true },
+        with: { character: scenarioCharaSummaryColumns },
+        orderBy: (p) => [p.orderIndex],
+      },
+    },
+  });
+}
+
+export type ScenarioBootstrap = Awaited<
+  ReturnType<typeof getScenarioBootstrap>
+>;
+
+/**
+ * Fetches all necessary data to bootstrap the Scenario Player environment.
+ */
+export async function getScenarioBootstrap(
+  db: SqliteDatabase,
+  scenarioId: string
+) {
+  const result = await db.query.scenarios.findFirst({
+    where: { id: scenarioId },
+    columns: { id: true, name: true, rootTurnId: true, anchorTurnId: true },
+    with: {
+      participants: {
+        columns: { id: true, type: true, status: true, characterId: true },
+        orderBy: (p) => [p.orderIndex],
+        with: {
+          character: {
+            columns: { id: true, name: true },
+            extras: { hasPortrait: sql<number>`portrait IS NOT NULL` },
+          },
+        },
+      },
+      chapters: {
+        columns: { id: true, index: true, name: true, firstTurnId: true },
+        orderBy: (c) => [c.index],
+      },
+    },
+  });
+
+  if (!result) {
+    throw new Error(`Scenario with id ${scenarioId} not found`);
+  }
+
+  // Transform the data to match the API contract
+  return {
+    scenario: {
+      id: result.id,
+      title: result.name,
+      rootTurnId: result.rootTurnId,
+      anchorTurnId: result.anchorTurnId,
+    },
+    participants: result.participants.map((p) => ({
+      id: p.id,
+      type: p.type,
+      status: p.status,
+      characterId: p.characterId,
+    })),
+    characters: result.participants
+      .map((p) => p.character)
+      .filter(isDefined)
+      .map((c) => ({ id: c.id, name: c.name, ...getCharaAssetPaths(c) })),
+    chapters: result.chapters.map((c) => ({
+      id: c.id,
+      index: c.index,
+      title: c.name,
+      firstTurnId: c.firstTurnId,
+    })),
+    generatingIntent: null, // TODO: Implement when intent system is ready
+  };
+}
+</file>
+
+<file path="src/library/scenario/scenario.service.ts">
+import { type NewScenario, type SqliteDatabase, schema } from "@storyforge/db";
+import { eq } from "drizzle-orm";
+
+interface CreateScenarioData extends NewScenario {
+  characterIds?: string[];
+}
+
+export class ScenarioService {
+  constructor(private db: SqliteDatabase) {}
+
+  async createScenario(data: CreateScenarioData) {
+    const { characterIds = [], ...scenarioData } = data;
+
+    if (characterIds.length < 2) {
+      throw new Error("A scenario must have at least 2 characters.");
+    }
+
+    return this.db.transaction(async (tx) => {
+      const [sc] = await tx
+        .insert(schema.scenarios)
+        .values(scenarioData)
+        .returning()
+        .all();
+
+      if (!sc) {
+        throw new Error("Failed to create scenario");
+      }
+
+      await tx
+        .insert(schema.chapters)
+        .values({ scenarioId: sc.id, name: "Chapter 1", index: 0 })
+        .execute();
+
+      await tx
+        .insert(schema.scenarioParticipants)
+        .values(
+          characterIds.map((characterId, orderIndex) => ({
+            scenarioId: sc.id,
+            characterId,
+            orderIndex,
+          }))
+        )
+        .execute();
+
+      return sc;
+    });
+  }
+
+  async updateScenario(id: string, data: Partial<NewScenario>) {
+    const results = await this.db
+      .update(schema.scenarios)
+      .set(data)
+      .where(eq(schema.scenarios.id, id))
+      .returning();
+
+    return results[0];
+  }
+
+  async deleteScenario(id: string) {
+    const result = await this.db
+      .delete(schema.scenarios)
+      .where(eq(schema.scenarios.id, id))
+      .returning();
+
+    return result.length > 0;
+  }
+}
+</file>
+
+<file path="src/library/turn/timeline.service.ts">
+import type { SqliteDatabase, SqliteTransaction } from "@storyforge/db";
+import { schema } from "@storyforge/db";
+import { combine } from "@storyforge/utils";
+import { eq } from "drizzle-orm";
+import { EngineError } from "@/engine/engine-error";
+import { canCreateTurn } from "@/engine/invariants/turn";
+import { canAppendTurnToChapter } from "@/engine/invariants/turn-progression";
+import { ChapterOps } from "@/library/chapter/chapter.ops";
+import { TurnOps } from "@/library/turn/turn.ops";
+
+const createTxLoaders = (tx: SqliteTransaction) => ({
+  loadChapter: (id: string) => ChapterOps.loadChapter(tx, id),
+  loadTurn: (id: string) => TurnOps.loadTurn(tx, id),
+  loadAuthorParticipant: (id: string) =>
+    TurnOps.loadParticipantMembership(tx, id),
+});
+
+/**
+ * Manages mutations to the turn graph, which is a tree structure
+ * representing the progression of a scenario.
+ */
+export class TimelineService {
+  constructor(private db: SqliteDatabase) {}
+
+  /**
+   * Advance the turn graph by creating a new turn under the specified parent.
+   * This is used for both root creation and advancing existing turns.
+   */
+  async advanceTurn(args: {
+    scenarioId: string;
+    authorParticipantId: string;
+    chapterId: string;
+    parentTurnId: string | null; // null for root creation
+  }) {
+    const { scenarioId, chapterId, authorParticipantId, parentTurnId } = args;
+    return this.db.transaction(async (tx) => {
+      const loaders = createTxLoaders(tx);
+      const validation = combine(
+        await canCreateTurn({ scenarioId, authorParticipantId, loaders }),
+        await canAppendTurnToChapter({
+          targetChapterId: chapterId,
+          parentTurnId,
+          scenarioId,
+          loaders,
+        })
+      );
+      if (!validation.ok) {
+        throw new EngineError(validation.error);
+      }
+
+      const nextOrder = await TurnOps.nextSiblingOrder(tx, parentTurnId);
+      const newTurn = await TurnOps.insertTurn(tx, {
+        scenarioId,
+        chapterId,
+        parentTurnId,
+        siblingOrder: nextOrder,
+        authorParticipantId,
+      });
+
+      // Update the scenario's anchor turn
+      await tx
+        .update(schema.scenarios)
+        .set({ anchorTurnId: newTurn.id })
+        .where(eq(schema.scenarios.id, scenarioId))
+        .get();
+
+      return newTurn;
+    });
+  }
+
+  /**
+   * Create a branch by appending under an arbitrary ancestor, then set it current.
+   */
+  async branchFrom(_args: {
+    scenarioId: string;
+    chapterId: string;
+    authorParticipantId: string;
+    branchParentTurnId: string; // the node to branch from
+  }) {}
+
+  /**
+   * Ensure a root exists for a scenario (idempotent).
+   */
+  // TODO: this should be a composable operation
+  // ensureRootTurn(args: {
+  //   scenarioId: string;
+  //   chapterId: string;
+  //   authorParticipantId: string;
+  // }) {
+  //   return this.db.transaction((tx) => {
+  //     const root = tx
+  //       .select()
+  //       .from(schema.turns)
+  //       .where(
+  //         and(
+  //           eq(schema.turns.scenarioId, args.scenarioId),
+  //           isNull(schema.turns.parentTurnId)
+  //         )
+  //       )
+  //       .limit(1)
+  //       .get();
+  //
+  //     if (root) return root;
+  //
+  //     return this.advanceTurn({
+  //       scenarioId: args.scenarioId,
+  //       chapterId: args.chapterId,
+  //       authorParticipantId: args.authorParticipantId,
+  //       parentTurnId: null,
+  //     });
+  //   });
+  // }
+}
+</file>
+
+<file path="src/library/turn/turn.ops.ts">
+import { type SqliteTransaction, schema } from "@storyforge/db";
+import { eq, sql } from "drizzle-orm";
+
+async function loadTurn(db: SqliteTransaction, turnId: string) {
+  return db
+    .select()
+    .from(schema.turns)
+    .where(eq(schema.turns.id, turnId))
+    .limit(1)
+    .get();
+}
+
+async function loadParticipantMembership(
+  db: SqliteTransaction,
+  participantId: string
+) {
+  const p = await db
+    .select({
+      id: schema.scenarioParticipants.id,
+      scenarioId: schema.scenarioParticipants.scenarioId,
+      isActive: sql<number>`unassigned_at IS NULL`.as("isActive"),
+    })
+    .from(schema.scenarioParticipants)
+    .where(eq(schema.scenarioParticipants.id, participantId))
+    .limit(1)
+    .get();
+  if (!p) return;
+  return { id: p.id, scenarioId: p.scenarioId, isActive: !!p.isActive };
+}
+
+/**
+ * Get the next dense sibling order under the given parent turn.
+ */
+async function nextSiblingOrder(
+  db: SqliteTransaction,
+  parentTurnId: string | null
+) {
+  const [r] = await db.all<{ max_order: number | null }>(sql`
+      SELECT MAX(sibling_order) AS max_order
+      FROM ${schema.turns}
+      WHERE parent_turn_id ${parentTurnId ? sql`= ${parentTurnId}` : sql`IS NULL`}
+    `);
+  return (r?.max_order ?? -1) + 1;
+}
+
+async function insertTurn(
+  db: SqliteTransaction,
+  args: {
+    scenarioId: string;
+    chapterId: string;
+    parentTurnId: string | null;
+    siblingOrder: number;
+    authorParticipantId: string;
+  }
+) {
+  const turn = await db.insert(schema.turns).values(args).returning().get();
+  if (!turn) throw new Error("Failed to insert turn");
+  return turn;
+}
+
+export const TurnOps = {
+  loadTurn,
+  loadParticipantMembership,
+  nextSiblingOrder,
+  insertTurn,
+};
+</file>
+
+<file path="src/library/turn/turn.queries.ts">
+import type { SqliteDatabase } from "@storyforge/db";
+import { schema } from "@storyforge/db";
+import { sql } from "drizzle-orm";
+
+export type TurnTimelineRow = {
+  id: string;
+  parent_turn_id: string | null;
+  sibling_order: number;
+  depth: number; // 0 = leaf, grows toward root
+  prev_sibling_id: string | null;
+  next_sibling_id: string | null;
+};
+
+export type TurnTimelineWindowParams = {
+  leafTurnId: string;
+  windowSize: number; // number of nodes from the leaf upward to include
+};
+
+/**
+ * Returns the path from the leaf turn up to the root, windowed to the last N nodes,
+ * with prev/next siblings for branch navigation.
+ *
+ * Notes:
+ *  - Uses a recursive CTE to walk leaf -> root (depth 0 = leaf).
+ *  - Computes sibling prev/next per parent using window functions.
+ *  - We first compute the full path (so parents exist for top-of-window nodes),
+ *    then slice the last N and reorder for UI (root -> leaf).
+ */
+export async function getTurnTimelineWindow(
+  db: SqliteDatabase,
+  params: TurnTimelineWindowParams
+): Promise<TurnTimelineRow[]> {
+  const { leafTurnId, windowSize } = params;
+
+  return db.all<TurnTimelineRow>(sql`
+      WITH RECURSIVE
+          timeline AS (SELECT id, parent_turn_id, sibling_order, 0 AS depth
+                       FROM ${schema.turns}
+                       WHERE id = ${leafTurnId}
+                       UNION ALL
+                       SELECT t.id, t.parent_turn_id, t.sibling_order, depth + 1
+                       FROM ${schema.turns} t
+                                JOIN timeline p ON p.parent_turn_id = t.id),
+          siblings AS (SELECT id,
+                              LAG(id) OVER (PARTITION BY parent_turn_id ORDER BY sibling_order)  AS prev_sibling_id,
+                              LEAD(id) OVER (PARTITION BY parent_turn_id ORDER BY sibling_order) AS next_sibling_id
+                       FROM ${schema.turns}
+                       WHERE parent_turn_id IN (SELECT id FROM timeline)),
+          enriched AS (SELECT tl.id,
+                              tl.parent_turn_id,
+                              tl.sibling_order,
+                              tl.depth,
+                              s.prev_sibling_id,
+                              s.next_sibling_id
+                       FROM timeline tl
+                                LEFT JOIN siblings s USING (id))
+      SELECT *
+      FROM (SELECT *
+            FROM enriched
+            ORDER BY depth ASC
+            LIMIT ${windowSize})
+      ORDER BY depth DESC; -- root -> leaf for UI
+  `);
+}
+
+export async function getTurnContentLayers(
+  db: SqliteDatabase,
+  turnIds: string[]
+): Promise<{ turnId: string; contentLayers: Record<string, string> }[]> {
+  if (turnIds.length === 0) return [];
+
+  const result = await db.query.turns.findMany({
+    columns: { id: true },
+    where: { id: { in: turnIds } },
+    with: { layers: { columns: { key: true, content: true } } },
+  });
+
+  // Group content by turn ID and key
+  // Results in an object like
+  // {
+  //   turnId1: { presentation: "content1", planning: "content2" },
+  //   turnId2: { presentation: "content3", planning: "content4" },
+  //   ...
+  // }
+  return result.map((turn) => ({
+    turnId: turn.id,
+    contentLayers: Object.fromEntries(
+      turn.layers.map(({ key, content }) => [key, content])
+    ),
+  }));
+}
+</file>
+
+</files>

@@ -8,7 +8,7 @@ type ImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
 export interface AvatarProps extends ChakraAvatar.RootProps {
   name?: string;
-  src?: string;
+  src?: string | null;
   srcSet?: string;
   loading?: ImageProps["loading"];
   icon?: React.ReactElement;
@@ -24,7 +24,9 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         <ChakraAvatar.Fallback name={name}>
           {icon || fallback}
         </ChakraAvatar.Fallback>
-        <ChakraAvatar.Image src={src} srcSet={srcSet} loading={loading} />
+        {src && (
+          <ChakraAvatar.Image src={src} srcSet={srcSet} loading={loading} />
+        )}
         {children}
       </ChakraAvatar.Root>
     );

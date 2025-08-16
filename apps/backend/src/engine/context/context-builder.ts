@@ -8,7 +8,20 @@ export type TurnMessage = {
 };
 
 export type PromptBuildSpec = {
-  tokenBudget: number; // soft budget for message packing
+  /**
+   * The maximum number of tokens to use in the prompt. This is a very rough
+   * estimate; callers should set the budget below the absolute maximum a model
+   * can handle to avoid errors.
+   */
+  tokenBudget: number;
+  /**
+   * The key of the turn content layer to include in the prompt. This allows
+   * constructing a generation prompt that only sees certain layers of the turn
+   * content, e.g. "presentation" or "planning".
+   *
+   * TODO: Support multiple layers in the future.
+   */
+  layer: string;
 };
 
 export type BuiltPrompt = {
@@ -23,33 +36,44 @@ export function buildPrompt(
   loaded: LoadedContext,
   spec: PromptBuildSpec
 ): BuiltPrompt {
-  const { tokenBudget } = spec;
+  const { tokenBudget, layer } = spec;
+  // 0) Validate the loaded context.
+  if (loaded.timeline.length === 0) {
+    throw new Error("Timeline is empty, cannot build prompt");
+  }
+  if (loaded.participants.length === 0) {
+    throw new Error("No participants found, cannot build prompt");
+  }
+  assertHasLayer(loaded, layer);
 
   // 1) System prompt (template + scenario settings). For now, trivial.
   const system =
     loaded.systemTemplate ?? "You are the narrative engine. Keep continuity.";
 
-  // 2) Optional character bios (very short – caller should pre-trim).
-  const bios: TurnMessage[] = loaded.participants.map((p) => ({
+  const charaDescriptions: TurnMessage[] = loaded.participants.map((p) => ({
     role: "system",
     name: p.character.name,
-    content: p.character.description ?? "",
+    content: p.character.description,
   }));
 
-  // 3) Pack timeline into messages, root -> leaf. At this stage we don’t have
-  //    per-turn message content yet, so stub a join key for when it arrives.
-  const timelineMessages: TurnMessage[] = loaded.timeline.map((node) => ({
-    role: "narrator",
-    content: `Turn ${node.id} (depth ${node.depth})`, // TODO: replace with actual turn text
-    turnId: node.id,
-  }));
+  // 3) Pack timeline into messages, root -> leaf using the actual turn content
+  const timelineMessages: TurnMessage[] = loaded.timeline.map((node) => {
+    const turnLayers = loaded.contentByTurnId[node.id];
+    const content = turnLayers[layer];
+
+    return {
+      role: "narrator",
+      content,
+      turnId: node.id,
+    };
+  });
 
   // 4) Very naive token budget handling – caller can inject a real counter later.
   const naiveToken = (s: string) => Math.ceil(s.split(/\s+/).length * 1.3);
   const pack: TurnMessage[] = [];
   let budget = tokenBudget;
 
-  for (const m of [...bios, ...timelineMessages]) {
+  for (const m of [...charaDescriptions, ...timelineMessages]) {
     const cost = naiveToken(m.content);
     if (cost > budget) break;
     pack.push(m);
@@ -61,4 +85,17 @@ export function buildPrompt(
     messages: pack,
     meta: { usedTurns: pack.map((m) => m.turnId).filter(Boolean) as string[] },
   };
+}
+
+// Utility to verify that all turns have the requested content layer.
+// Not gonna work long-term since technically valid past turns might have been
+// generated with a different config which used different layers.
+// Eventually probably need an `onMissingLayer` spec option.
+function assertHasLayer(loaded: LoadedContext, layer: string): void {
+  for (const turnId in loaded.contentByTurnId) {
+    const layers = loaded.contentByTurnId[turnId];
+    if (!(layer in layers)) {
+      throw new Error(`Turn ${turnId} is missing requested layer "${layer}"`);
+    }
+  }
 }

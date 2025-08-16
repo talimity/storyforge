@@ -19,7 +19,7 @@ import {
   listCharacters,
 } from "@/library/character/character.queries";
 import { transformCharacter } from "@/library/character/character.transforms";
-import { CharacterWriterService } from "@/library/character/character-writer.service";
+import { CharacterService } from "@/library/character/character-service";
 import { maybeProcessCharaImage } from "@/library/character/utils/face-detection";
 
 export const charactersRouter = router({
@@ -62,7 +62,7 @@ export const charactersRouter = router({
 
       return {
         ...transformCharacter(character),
-        greetings: character.greetings,
+        starters: character.starters,
         examples: character.examples,
       };
     }),
@@ -99,9 +99,8 @@ export const charactersRouter = router({
 
       try {
         const buffer = Buffer.from(charaDataUri.split(",")[1], "base64");
-        const charaWriter = new CharacterWriterService(ctx.db);
-        const newChara =
-          await charaWriter.importCharacterFromTavernCard(buffer);
+        const charaSvc = new CharacterService(ctx.db);
+        const newChara = await charaSvc.importCharacterFromTavernCard(buffer);
 
         return {
           success: true,
@@ -131,8 +130,8 @@ export const charactersRouter = router({
     .mutation(async ({ input: rawInput, ctx }) => {
       const { imageDataUri, ...input } = rawInput;
 
-      const charaWriter = new CharacterWriterService(ctx.db);
-      const newCharacter = await charaWriter.createCharacter({
+      const charaSvc = new CharacterService(ctx.db);
+      const newCharacter = await charaSvc.createCharacter({
         characterData: {
           ...input,
           ...(await maybeProcessCharaImage(imageDataUri)),
@@ -141,7 +140,7 @@ export const charactersRouter = router({
 
       return {
         ...transformCharacter(newCharacter),
-        greetings: newCharacter.greetings,
+        starters: newCharacter.starters,
         examples: newCharacter.examples,
       };
     }),
@@ -158,10 +157,10 @@ export const charactersRouter = router({
     .input(updateCharacterSchema)
     .output(characterSchema)
     .mutation(async ({ input, ctx }) => {
-      const charaWriter = new CharacterWriterService(ctx.db);
+      const charaSvc = new CharacterService(ctx.db);
       const { id, imageDataUri, ...updates } = input;
 
-      const updatedCharacter = await charaWriter.updateCharacter(id, {
+      const updatedCharacter = await charaSvc.updateCharacter(id, {
         ...updates,
         ...(await maybeProcessCharaImage(imageDataUri)),
       });
@@ -188,8 +187,8 @@ export const charactersRouter = router({
     .input(characterIdSchema)
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
-      const charaWriter = new CharacterWriterService(ctx.db);
-      const deleted = await charaWriter.deleteCharacter(input.id);
+      const charaSvc = new CharacterService(ctx.db);
+      const deleted = await charaSvc.deleteCharacter(input.id);
 
       if (!deleted) {
         throw new TRPCError({

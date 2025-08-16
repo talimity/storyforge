@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": true,
+    "types": ["jest", "node"]
+  },
+  "include": ["src/**/*", "**/*.test.ts", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist", "scripts/**/*"]
+}

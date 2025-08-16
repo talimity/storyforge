@@ -67,7 +67,7 @@ export const updateCharacterSchema = z.object({
 });
 
 // Core entity schemas
-export const characterGreetingSchema = z.object({
+export const characterStarterSchema = z.object({
   id: z.string(),
   characterId: z.string(),
   message: z.string(),
@@ -117,7 +117,7 @@ export const characterSummarySchema = characterSchema.pick({
 });
 
 export const characterWithRelationsSchema = characterSchema.extend({
-  greetings: z.array(characterGreetingSchema),
+  starters: z.array(characterStarterSchema),
   examples: z.array(characterExampleSchema),
 });
 
@@ -141,7 +141,7 @@ export type CharacterWithRelations = z.infer<
   typeof characterWithRelationsSchema
 >;
 export type CharacterSummary = z.infer<typeof characterSummarySchema>;
-export type CharacterGreeting = z.infer<typeof characterGreetingSchema>;
+export type CharacterStarter = z.infer<typeof characterStarterSchema>;
 export type CharacterExample = z.infer<typeof characterExampleSchema>;
 export type CharacterImportInput = z.infer<typeof characterImportSchema>;
 export type CharacterImportResponse = z.infer<

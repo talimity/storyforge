@@ -64,6 +64,41 @@
       "when": 1754630722157,
       "tag": "0008_wise_speed_demon",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1754750589454,
+      "tag": "0009_known_shard",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1754787561793,
+      "tag": "0010_chief_omega_flight",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1754788327600,
+      "tag": "0011_useful_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1754790572856,
+      "tag": "0012_shallow_molecule_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1754792409027,
+      "tag": "0013_bizarre_shen",
+      "breakpoints": true
     }
   ]
 }

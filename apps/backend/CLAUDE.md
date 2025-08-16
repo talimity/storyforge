@@ -1,6 +1,6 @@
 # StoryForge Backend - Package Notes
 
-## Architecture Cheat-Sheet (CRQS-lite)
+## Architecture Cheat-Sheet (CQRS-lite)
 
 ### Structure
 
@@ -39,6 +39,12 @@ src/
   - multi-table write or state transition,
   - needs retries/events/background job,
   - “Rule of 3” call-site reuse.
+
+### Service Coordination
+- **Workflows/pipelines** coordinate multiple write services for complex operations
+    - Example: `TurnGenerationPipeline` might call `TimelineService`, `EventService`, and `NotificationService`
+    - These should still maintain single transaction boundaries where possible
+- **Do not nest transactions.** If a service needs to call another service that also writes, ensure they are coordinated at the top level to share the same transaction context.
 
 ### Context System
 

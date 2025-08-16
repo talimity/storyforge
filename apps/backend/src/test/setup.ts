@@ -1,34 +1,40 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import multipart from "@fastify/multipart";
 import sensible from "@fastify/sensible";
-import type { StoryforgeSqliteDatabase } from "@storyforge/db";
-import { relations } from "@storyforge/db";
+import { relations, type SqliteDatabase, schema } from "@storyforge/db";
 import Fastify from "fastify";
-import { createTestAppContext } from "../api/app-context";
-import { appRouter } from "../api/app-router";
-import { testAppContextPlugin } from "../app-context-plugin";
+import { createTestAppContext } from "@/api/app-context";
+import { appRouter } from "@/api/app-router";
+import { testAppContextPlugin } from "@/app-context-plugin";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-type TestDatabase = StoryforgeSqliteDatabase;
+type TestDatabase = SqliteDatabase;
 
 export async function createTestDatabase(): Promise<TestDatabase> {
-  const { Database, drizzle, migrate } = await import("@storyforge/db");
+  const { createClient, drizzle, runMigrations } = await import(
+    "@storyforge/db"
+  );
 
-  // Create a fresh in-memory database for each test run
-  const sqlite = new Database(":memory:");
-  sqlite.pragma("foreign_keys = ON");
+  // Create a unique temporary database file for this test run
+  const tempDir = mkdtempSync(path.join(tmpdir(), "storyforge-test-"));
+  const dbPath = path.join(tempDir, "test.db");
 
-  const db = drizzle(sqlite, { relations });
-
-  migrate(db, {
-    migrationsFolder: path.join(
-      __dirname,
-      "../../../../packages/db/src/migrations"
-    ),
+  const sqlite = createClient({
+    url: `file:${dbPath}`,
+    concurrency: 1,
   });
+
+  await sqlite.execute(`PRAGMA foreign_keys = ON;`);
+  await sqlite.execute(`PRAGMA busy_timeout = 500;`);
+  await sqlite.execute(`PRAGMA journal_mode = WAL;`); // WAL is better for file-based
+
+  const db = drizzle(sqlite, { schema, relations });
+
+  await runMigrations(db);
+
+  // Store the temp path for cleanup
+  (db as any).__tempPath = tempDir;
 
   return db;
 }
@@ -38,7 +44,7 @@ export async function createTestDatabase(): Promise<TestDatabase> {
  */
 export async function createFreshTestCaller(db?: TestDatabase): Promise<{
   caller: ReturnType<typeof appRouter.createCaller>;
-  db: StoryforgeSqliteDatabase;
+  db: SqliteDatabase;
 }> {
   const testDb = db || (await createTestDatabase());
   const testContext = createTestAppContext(testDb);

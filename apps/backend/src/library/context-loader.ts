@@ -1,7 +1,8 @@
-import type { Character, StoryforgeSqliteDatabase } from "@storyforge/db";
+import type { Character, SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { sql } from "drizzle-orm";
 import {
+  getTurnContentLayers,
   getTurnTimelineWindow,
   type TurnTimelineRow,
 } from "@/library/turn/turn.queries";
@@ -28,14 +29,15 @@ export type LoadedContext = {
   };
   participants: LoadedParticipant[];
   timeline: TurnTimelineRow[];
-  // TODO: include turn contents when that table exists (messages, diffs, tool calls, etc.)
-  // messagesByTurnId: Record<string, TurnMessage[]>;
-  // templates, lorebooks, etc. can be slotted here too
+  contentByTurnId: Record<
+    string, // turnId
+    Record<string, string> // layer's key => layer's content
+  >;
   systemTemplate?: string | null; // optional: fetched from settings or templates table
 };
 
 export async function loadContext(
-  db: StoryforgeSqliteDatabase,
+  db: SqliteDatabase,
   spec: ContextSpec
 ): Promise<LoadedContext> {
   const { scenarioId, leafTurnId, timelineWindow } = spec;
@@ -70,6 +72,16 @@ export async function loadContext(
     windowSize: timelineWindow,
   });
 
+  // Load turn content for all turns in the timeline
+  const turnIds = timeline.map((node) => node.id);
+  const turnsWithContent = await getTurnContentLayers(db, turnIds);
+
+  // Group content by turn ID and key for easy access
+  const contentByTurnId: LoadedContext["contentByTurnId"] = {};
+  for (const turn of turnsWithContent) {
+    contentByTurnId[turn.turnId] = turn.contentLayers;
+  }
+
   // TODO: Load systemTemplate / next-task instruction once that source exists.
   // const systemTemplate = await getSystemTemplateForScenario(db, scenarioId);
 
@@ -88,6 +100,7 @@ export async function loadContext(
     scenario,
     participants: loadedParticipants,
     timeline,
+    contentByTurnId,
     systemTemplate: null,
   };
 }

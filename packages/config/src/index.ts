@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const envPath = findUpSync(".env", { cwd: __dirname });
 if (envPath) {
-  loadEnv({ path: envPath });
+  loadEnv({ path: envPath, quiet: true });
 }
 
 export interface Config {

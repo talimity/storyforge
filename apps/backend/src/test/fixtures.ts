@@ -1,8 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { StoryforgeSqliteDatabase } from "@storyforge/db";
-import { CharacterWriterService } from "../library/character/character-writer.service";
+import type { SqliteDatabase } from "@storyforge/db";
+import { CharacterService } from "../library/character/character-service";
 import {
   type ParsedCharacterCard,
   parseTavernCard,
@@ -58,11 +58,11 @@ export async function loadCharacterFixtures(): Promise<CharacterFixture[]> {
 }
 
 export async function seedCharacterFixtures(
-  db: StoryforgeSqliteDatabase
+  db: SqliteDatabase
 ): Promise<CharacterFixture[]> {
   const fixtures = await loadCharacterFixtures();
 
-  const service = new CharacterWriterService(db);
+  const service = new CharacterService(db);
 
   for (const fixture of fixtures) {
     await service.importCharacterFromTavernCard(fixture.buffer);

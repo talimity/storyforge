@@ -1,10 +1,10 @@
 import type {
   CharacterExample,
-  CharacterGreeting,
+  CharacterStarter,
   NewCharacter,
   NewCharacterExample,
-  NewCharacterGreeting,
-  StoryforgeSqliteDatabase,
+  NewCharacterStarter,
+  SqliteDatabase,
 } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { eq } from "drizzle-orm";
@@ -16,24 +16,23 @@ import {
   type TavernCardV2,
 } from "@/library/character/utils/parse-tavern-card";
 
-export class CharacterWriterService {
-  constructor(private db: StoryforgeSqliteDatabase) {}
+export class CharacterService {
+  constructor(private db: SqliteDatabase) {}
 
   async createCharacter({
     characterData,
-    greetings = [],
+    starters = [],
     examples = [],
   }: {
     characterData: NewCharacter;
-    greetings?: NewCharacterGreeting[];
+    starters?: NewCharacterStarter[];
     examples?: NewCharacterExample[];
   }) {
-    return this.db.transaction((tx) => {
-      const characters = tx
+    return this.db.transaction(async (tx) => {
+      const characters = await tx
         .insert(schema.characters)
         .values(characterData)
-        .returning()
-        .all();
+        .returning();
 
       const character = characters[0];
 
@@ -41,31 +40,29 @@ export class CharacterWriterService {
         throw new Error("Failed to create character");
       }
 
-      const createdGreetings: CharacterGreeting[] = [];
+      const createdStarters: CharacterStarter[] = [];
       const createdExamples: CharacterExample[] = [];
 
-      if (greetings.length > 0) {
-        for (const greeting of greetings) {
-          const created = tx
-            .insert(schema.characterGreetings)
-            .values({ ...greeting, characterId: character.id })
-            .returning()
-            .all()[0];
+      if (starters.length > 0) {
+        for (const starter of starters) {
+          const [created] = await tx
+            .insert(schema.characterStarters)
+            .values({ ...starter, characterId: character.id })
+            .returning();
 
           if (!created) {
-            throw new Error("Failed to create greeting");
+            throw new Error("Failed to create starter");
           }
-          createdGreetings.push(created);
+          createdStarters.push(created);
         }
       }
 
       if (examples.length > 0) {
         for (const example of examples) {
-          const created = tx
+          const [created] = await tx
             .insert(schema.characterExamples)
             .values({ ...example, characterId: character.id })
-            .returning()
-            .all()[0];
+            .returning();
 
           if (!created) {
             throw new Error("Failed to create example");
@@ -76,7 +73,7 @@ export class CharacterWriterService {
 
       return {
         ...character,
-        greetings: createdGreetings,
+        starters: createdStarters,
         examples: createdExamples,
       };
     });
@@ -134,16 +131,16 @@ export class CharacterWriterService {
       portraitFocalPoint: focalPoint,
     };
 
-    const greetings: NewCharacterGreeting[] = [];
+    const starters: NewCharacterStarter[] = [];
     const examples: NewCharacterExample[] = [];
 
     if (card.data.first_mes) {
-      greetings.push({ message: card.data.first_mes, isPrimary: true });
+      starters.push({ message: card.data.first_mes, isPrimary: true });
     }
 
     if (card.data.alternate_greetings?.length > 0) {
       for (const greeting of card.data.alternate_greetings) {
-        greetings.push({ message: greeting, isPrimary: false });
+        starters.push({ message: greeting, isPrimary: false });
       }
     }
 
@@ -153,7 +150,7 @@ export class CharacterWriterService {
       });
     }
 
-    return await this.createCharacter({ characterData, greetings, examples });
+    return await this.createCharacter({ characterData, starters, examples });
   }
 
   private async importV1Character(
@@ -178,18 +175,18 @@ export class CharacterWriterService {
       portraitFocalPoint: focalPoint,
     };
 
-    const greetings: NewCharacterGreeting[] = [];
+    const starters: NewCharacterStarter[] = [];
     const examples: NewCharacterExample[] = [];
 
     if (card.first_mes) {
-      greetings.push({ message: card.first_mes, isPrimary: true });
+      starters.push({ message: card.first_mes, isPrimary: true });
     }
 
     if (card.mes_example) {
       examples.push({ exampleTemplate: card.mes_example });
     }
 
-    return await this.createCharacter({ characterData, greetings, examples });
+    return await this.createCharacter({ characterData, starters, examples });
   }
 }
 

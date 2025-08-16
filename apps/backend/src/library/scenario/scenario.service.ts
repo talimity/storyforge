@@ -1,16 +1,12 @@
-import {
-  type NewScenario,
-  type StoryforgeSqliteDatabase,
-  schema,
-} from "@storyforge/db";
+import { type NewScenario, type SqliteDatabase, schema } from "@storyforge/db";
 import { eq } from "drizzle-orm";
 
 interface CreateScenarioData extends NewScenario {
   characterIds?: string[];
 }
 
-export class ScenarioWriterService {
-  constructor(private db: StoryforgeSqliteDatabase) {}
+export class ScenarioService {
+  constructor(private db: SqliteDatabase) {}
 
   async createScenario(data: CreateScenarioData) {
     const { characterIds = [], ...scenarioData } = data;
@@ -19,8 +15,8 @@ export class ScenarioWriterService {
       throw new Error("A scenario must have at least 2 characters.");
     }
 
-    return this.db.transaction((tx) => {
-      const [sc] = tx
+    return this.db.transaction(async (tx) => {
+      const [sc] = await tx
         .insert(schema.scenarios)
         .values(scenarioData)
         .returning()
@@ -30,15 +26,13 @@ export class ScenarioWriterService {
         throw new Error("Failed to create scenario");
       }
 
-      tx.insert(schema.chapters)
-        .values({
-          scenarioId: sc.id,
-          name: "Chapter 1",
-          index: 0,
-        })
+      await tx
+        .insert(schema.chapters)
+        .values({ scenarioId: sc.id, name: "Chapter 1", index: 0 })
         .execute();
 
-      tx.insert(schema.scenarioParticipants)
+      await tx
+        .insert(schema.scenarioParticipants)
         .values(
           characterIds.map((characterId, orderIndex) => ({
             scenarioId: sc.id,

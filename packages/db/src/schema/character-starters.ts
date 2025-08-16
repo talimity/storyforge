@@ -2,7 +2,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { characters } from "./characters";
 
-export const characterGreetings = sqliteTable("character_greetings", {
+export const characterStarters = sqliteTable("character_starters", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
@@ -21,8 +21,8 @@ export const characterGreetings = sqliteTable("character_greetings", {
     .$onUpdate(() => new Date()),
 });
 
-export type CharacterGreeting = typeof characterGreetings.$inferSelect;
-export type NewCharacterGreeting = Omit<
-  typeof characterGreetings.$inferInsert,
+export type CharacterStarter = typeof characterStarters.$inferSelect;
+export type NewCharacterStarter = Omit<
+  typeof characterStarters.$inferInsert,
   "characterId"
 >;

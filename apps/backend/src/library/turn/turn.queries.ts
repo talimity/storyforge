@@ -1,4 +1,4 @@
-import type { StoryforgeSqliteDatabase } from "@storyforge/db";
+import type { SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { sql } from "drizzle-orm";
 
@@ -27,69 +27,65 @@ export type TurnTimelineWindowParams = {
  *    then slice the last N and reorder for UI (root -> leaf).
  */
 export async function getTurnTimelineWindow(
-  db: StoryforgeSqliteDatabase,
+  db: SqliteDatabase,
   params: TurnTimelineWindowParams
 ): Promise<TurnTimelineRow[]> {
   const { leafTurnId, windowSize } = params;
 
-  const rows = db.all<TurnTimelineRow>(sql`
-    WITH RECURSIVE timeline AS (
-      SELECT id, parent_turn_id, sibling_order, 0 AS depth
-      FROM ${schema.turns}
-      WHERE id = ${leafTurnId}
-      UNION ALL
-      SELECT t.id, t.parent_turn_id, t.sibling_order, depth + 1
-      FROM ${schema.turns} t
-      JOIN timeline p ON p.parent_turn_id = t.id
-    ),
-    siblings AS (
-      SELECT id,
-             LAG(id)  OVER (PARTITION BY parent_turn_id ORDER BY sibling_order) AS prev_sibling_id,
-             LEAD(id) OVER (PARTITION BY parent_turn_id ORDER BY sibling_order) AS next_sibling_id
-      FROM ${schema.turns}
-      WHERE parent_turn_id IN (SELECT id FROM timeline)
-    ),
-    enriched AS (
-      SELECT tl.id,
-             tl.parent_turn_id,
-             tl.sibling_order,
-             tl.depth,
-             s.prev_sibling_id,
-             s.next_sibling_id
-      FROM timeline tl
-      LEFT JOIN siblings s USING(id)
-    )
-    SELECT * FROM (
-      SELECT * FROM enriched
-      ORDER BY depth ASC
-      LIMIT ${windowSize}
-    )
-    ORDER BY depth DESC; -- root -> leaf for UI
+  return db.all<TurnTimelineRow>(sql`
+      WITH RECURSIVE
+          timeline AS (SELECT id, parent_turn_id, sibling_order, 0 AS depth
+                       FROM ${schema.turns}
+                       WHERE id = ${leafTurnId}
+                       UNION ALL
+                       SELECT t.id, t.parent_turn_id, t.sibling_order, depth + 1
+                       FROM ${schema.turns} t
+                                JOIN timeline p ON p.parent_turn_id = t.id),
+          siblings AS (SELECT id,
+                              LAG(id) OVER (PARTITION BY parent_turn_id ORDER BY sibling_order)  AS prev_sibling_id,
+                              LEAD(id) OVER (PARTITION BY parent_turn_id ORDER BY sibling_order) AS next_sibling_id
+                       FROM ${schema.turns}
+                       WHERE parent_turn_id IN (SELECT id FROM timeline)),
+          enriched AS (SELECT tl.id,
+                              tl.parent_turn_id,
+                              tl.sibling_order,
+                              tl.depth,
+                              s.prev_sibling_id,
+                              s.next_sibling_id
+                       FROM timeline tl
+                                LEFT JOIN siblings s USING (id))
+      SELECT *
+      FROM (SELECT *
+            FROM enriched
+            ORDER BY depth ASC
+            LIMIT ${windowSize})
+      ORDER BY depth DESC; -- root -> leaf for UI
   `);
-
-  return rows;
 }
 
-export async function getTurnById(
-  db: StoryforgeSqliteDatabase,
-  turnId: string
-) {
-  const [row] = await db
-    .select()
-    .from(schema.turns)
-    .where(sql`${schema.turns.id} = ${turnId}`)
-    .limit(1);
-  return row;
-}
+export async function getTurnContentLayers(
+  db: SqliteDatabase,
+  turnIds: string[]
+): Promise<{ turnId: string; contentLayers: Record<string, string> }[]> {
+  if (turnIds.length === 0) return [];
 
-export async function getMaxSiblingOrder(
-  db: StoryforgeSqliteDatabase,
-  parentTurnId: string | null
-): Promise<number> {
-  const [row] = db.all<{ max_order: number | null }>(sql`
-    SELECT MAX(sibling_order) AS max_order
-    FROM ${schema.turns}
-    WHERE parent_turn_id ${parentTurnId ? sql`= ${parentTurnId}` : sql`IS NULL`}
-  `);
-  return row?.max_order ?? -1;
+  const result = await db.query.turns.findMany({
+    columns: { id: true },
+    where: { id: { in: turnIds } },
+    with: { layers: { columns: { key: true, content: true } } },
+  });
+
+  // Group content by turn ID and key
+  // Results in an object like
+  // {
+  //   turnId1: { presentation: "content1", planning: "content2" },
+  //   turnId2: { presentation: "content3", planning: "content4" },
+  //   ...
+  // }
+  return result.map((turn) => ({
+    turnId: turn.id,
+    contentLayers: Object.fromEntries(
+      turn.layers.map(({ key, content }) => [key, content])
+    ),
+  }));
 }

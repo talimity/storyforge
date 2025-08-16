@@ -50,9 +50,9 @@ describe("characters router integration", () => {
       });
       expect(result.id).toBe(firstCharacter!.id);
       expect(result.name).toBe(firstCharacter!.name);
-      expect(result).toHaveProperty("greetings");
+      expect(result).toHaveProperty("starters");
       expect(result).toHaveProperty("examples");
-      expect(Array.isArray(result.greetings)).toBe(true);
+      expect(Array.isArray(result.starters)).toBe(true);
       expect(Array.isArray(result.examples)).toBe(true);
     });
 
@@ -78,9 +78,9 @@ describe("characters router integration", () => {
       expect(result.legacyPersonality).toBe(newCharacter.legacyPersonality);
       expect(result.legacyScenario).toBe(newCharacter.legacyScenario);
       expect(result).toHaveProperty("id");
-      expect(result).toHaveProperty("greetings");
+      expect(result).toHaveProperty("starters");
       expect(result).toHaveProperty("examples");
-      expect(Array.isArray(result.greetings)).toBe(true);
+      expect(Array.isArray(result.starters)).toBe(true);
       expect(Array.isArray(result.examples)).toBe(true);
     });
 

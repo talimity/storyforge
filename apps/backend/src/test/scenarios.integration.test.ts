@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { CharacterWriterService } from "../library/character/character-writer.service";
+import { CharacterService } from "../library/character/character-service";
 import { createFreshTestCaller } from "./setup";
 
 describe("scenarios router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
   let testDb: Awaited<ReturnType<typeof createFreshTestCaller>>["db"];
 
-  let testCharas: Awaited<
-    ReturnType<CharacterWriterService["createCharacter"]>
-  >[];
+  let testCharas: Awaited<ReturnType<CharacterService["createCharacter"]>>[];
 
   beforeEach(async () => {
     const testContext = await createFreshTestCaller();
@@ -16,7 +14,7 @@ describe("scenarios router integration", () => {
     testDb = testContext.db;
 
     // Create test characters
-    const charaWriter = new CharacterWriterService(testDb);
+    const charaWriter = new CharacterService(testDb);
     testCharas = [
       await charaWriter.createCharacter({
         characterData: {
@@ -91,7 +89,6 @@ describe("scenarios router integration", () => {
       expect(result).toHaveProperty("id");
 
       const scenario = await caller.scenarios.getById({ id: result.id });
-      console.log(scenario);
 
       expect(Array.isArray(scenario.characters)).toBe(true);
       expect(scenario.characters).toHaveLength(2);

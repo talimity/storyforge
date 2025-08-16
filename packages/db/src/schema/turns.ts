@@ -38,6 +38,10 @@ export const turns = sqliteTable(
   (t) => [
     index("idx_turn_parent").on(t.parentTurnId),
     index("idx_turn_scenario").on(t.scenarioId),
+    uniqueIndex("idx_uniq_turn_parent_order").on(
+      t.parentTurnId,
+      t.siblingOrder
+    ),
     uniqueIndex("idx_one_root_per_scenario")
       .on(t.scenarioId)
       .where(sql`parent_turn_id IS NULL`),

@@ -12,11 +12,19 @@ export const scenarioParticipants = sqliteTable(
     scenarioId: text("scenario_id")
       .notNull()
       .references(() => scenarios.id, { onDelete: "cascade" }),
-    characterId: text("character_id")
+    characterId: text("character_id").references(() => characters.id, {
+      onDelete: "restrict",
+    }), // Nullable for narrator or other non-character participants
+    type: text("type")
+      .$type<"character" | "narrator" | "deleted_character">()
       .notNull()
-      .references(() => characters.id, { onDelete: "cascade" }),
-    role: text("role"), // Optional character role in scenario
-    orderIndex: integer("order_index").notNull().default(0), // Display/turn order
+      .default("character"),
+    status: text("status")
+      .$type<"active" | "inactive">()
+      .notNull()
+      .default("active"),
+    role: text("role"), // Free-form role description (e.g., "Player", "GM", etc.)
+    orderIndex: integer("order_index").notNull().default(0), // Display order
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .$defaultFn(() => new Date()),
@@ -24,10 +32,13 @@ export const scenarioParticipants = sqliteTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => ({
-    // Only one record per scenario-character pair
-    uniqueScenarioCharacter: unique().on(table.scenarioId, table.characterId),
-  })
+  (table) => [
+    // Only one record per scenario-character pair (when characterId is not null)
+    unique("idx_scenario_character_unique").on(
+      table.scenarioId,
+      table.characterId
+    ),
+  ]
 );
 
 export type ScenarioParticipant = typeof scenarioParticipants.$inferSelect;

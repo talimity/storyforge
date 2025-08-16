@@ -1,6 +1,6 @@
-export { default as Database } from "better-sqlite3";
-export { drizzle } from "drizzle-orm/better-sqlite3";
-export { migrate } from "drizzle-orm/better-sqlite3/migrator";
+export { createClient } from "@libsql/client";
+export { drizzle } from "drizzle-orm/libsql";
+export { migrate } from "drizzle-orm/libsql/migrator";
 export * from "./client";
 export * from "./config";
 export { runMigrations } from "./migrate";

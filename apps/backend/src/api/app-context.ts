@@ -1,4 +1,4 @@
-import type { StoryforgeSqliteDatabase } from "@storyforge/db";
+import type { SqliteDatabase } from "@storyforge/db";
 import { db as dbClient } from "@storyforge/db";
 import type { FastifyBaseLogger, FastifyReply, FastifyRequest } from "fastify";
 
@@ -6,7 +6,7 @@ export interface AppContext {
   req: FastifyRequest;
   res: FastifyReply;
   logger: FastifyBaseLogger;
-  db: StoryforgeSqliteDatabase;
+  db: SqliteDatabase;
 }
 
 /**
@@ -20,14 +20,12 @@ export function createAppContext({
 }: {
   req: FastifyRequest;
   res: FastifyReply;
-  db?: StoryforgeSqliteDatabase;
+  db?: SqliteDatabase;
 }): AppContext {
   return { req, res, db, logger: req.log };
 }
 
-export function createTestAppContext(
-  testDb: StoryforgeSqliteDatabase
-): AppContext {
+export function createTestAppContext(testDb: SqliteDatabase): AppContext {
   const mockLogger = {
     info: () => {},
     error: () => {},

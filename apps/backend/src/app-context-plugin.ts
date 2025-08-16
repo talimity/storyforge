@@ -1,10 +1,10 @@
-import { db as dbClient, type StoryforgeSqliteDatabase } from "@storyforge/db";
+import { db as dbClient, type SqliteDatabase } from "@storyforge/db";
 import fp from "fastify-plugin";
 import { createAppContext, createTestAppContext } from "@/api/app-context";
 
 type AppContextPluginOptions = {
   /** Support database client DI for Fastify routes */
-  db?: StoryforgeSqliteDatabase;
+  db?: SqliteDatabase;
 };
 
 export const appContextPlugin = fp<AppContextPluginOptions>(
