@@ -156,7 +156,7 @@ export function CharacterEditPage() {
     cardType: character.cardType,
     // Convert relative API path to absolute URL for image preview
     imageDataUri: character.avatarPath
-      ? getApiUrl(character.avatarPath)
+      ? getApiUrl(character.avatarPath) || undefined
       : undefined,
   };
 

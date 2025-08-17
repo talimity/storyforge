@@ -121,7 +121,7 @@
             export PNPM_HOME="$PWD/.pnpm-bin"
             export BIOME_BINARY=${pkgsUnstable.biome}/bin/biome
             export PATH="$PNPM_HOME:$PATH"
-            echo "NodeJS devshell ready.  You can now run: devctl start|stop|restart|status|logs"
+            echo "NodeJS devshell ready. You can now run: devctl start|stop|restart|status|logs"
           '';
         };
       }

@@ -1,3 +1,4 @@
+import type { ScenarioParticipant } from "@storyforge/db";
 import { err, ok, type Result } from "@storyforge/utils";
 
 export type TurnErr =
@@ -7,7 +8,10 @@ export type TurnErr =
   | "CrossScenarioAuthor"
   | "CannotPromoteMultipleToRoot";
 
-type AuthorParticipant = { scenarioId: string; isActive: boolean };
+type AuthorParticipant = {
+  scenarioId: string;
+  status: ScenarioParticipant["status"];
+};
 
 type AuthorParticipantLoaders = {
   loadAuthorParticipant: (
@@ -35,7 +39,7 @@ export async function canCreateTurn(args: {
     }
 
     // Author must be active
-    if (!author.isActive) {
+    if (author.status !== "active") {
       return err("ParticipantInactive");
     }
 

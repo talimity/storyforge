@@ -53,14 +53,14 @@ export async function getScenarioDetail(
   });
 }
 
-export type ScenarioBootstrap = Awaited<
-  ReturnType<typeof getScenarioBootstrap>
+export type ScenarioEnvironment = Awaited<
+  ReturnType<typeof getScenarioEnvironment>
 >;
 
 /**
  * Fetches all necessary data to bootstrap the Scenario Player environment.
  */
-export async function getScenarioBootstrap(
+export async function getScenarioEnvironment(
   db: SqliteDatabase,
   scenarioId: string
 ) {

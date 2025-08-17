@@ -20,21 +20,21 @@ Describes the data model, API contracts, and read/write services for the timelin
 ### Timeline fundamentals
 
 - **Paging model:** **cursor-by-ancestor**. Each page asks for `leafTurnId`, returns a window up toward the root (root→leaf order), plus `cursors.nextLeafId` (the parent of the top row) or `null` if you hit root.
-- **Window size & overlap:** `windowSize` (e.g., 12) with **overlap=1** so UI can dedupe seamlessly.
+- **Window size:** `windowSize` (e.g., 12) is the number of turns to return, starting from the leaf turn. The server computes the slice from the leaf up to the root.
 - **Turn content:** timeline returns **one layer only** (default `"presentation"`). No fat `contents` map.
 - **Swipes:** include prev/next sibling ids **and** `swipeCount` + `swipeIndex` (0‑based). UI shows existence; no switching yet.
-- **Numbering:** don’t persist numbers. Return `depthFromAnchor` (relative to session’s present leaf) and `anchorTotalDepth` (once per page).
-  UI shows **Turn #** = `anchorTotalDepth - depthFromAnchor`.
-- **Skinny timeline:** keep only ids + metadata. Participants/characters/chapters are loaded once via **bootstrap** and cached client‑side.
+- **Numbering:** turn numbers derived by server by traversing the tree from the leaf up to the root. Each turn has a `turnNo` (1-based relative to root) for UI display.
+- **Skinny timeline:** keep only ids + metadata. Participants/characters/chapters are loaded once via **play.environment** and cached client‑side.
 
 ### Chapters
 
 - A turn belongs to **exactly one chapter**.
 - Keep a single `scenario.current_turn_id` (do **not** split the tree per chapter).
-- Chapters are *labels/boundaries* along the mainline. Store `chapters.first_turn_id` for crisp boundaries.
-- **Chapter numbering** (derived):
-  For each row, return `chapterId` and compute `chapterTurnNumber = depthFromAnchorOfChapterStart - depthFromAnchor + 1`.
-- Summarization is out of scope now, but the boundary (`first_turn_id`) makes it trivial later.
+- Chapters are *labels/boundaries* along the mainline. ~~Store `chapters.first_turn_id` for crisp boundaries.~~
+~~- **Chapter numbering** (derived):~~
+  ~~For each row, return `chapterId` and compute `chapterTurnNumber = depthFromAnchorOfChapterStart - depthFromAnchor + 1`.~~
+  - Droppped firstTurnId, since chapters might have multiple first turns. Tricky...
+- Summarization is out of scope now
 
 ### Intents & effects
 
@@ -45,27 +45,31 @@ Describes the data model, API contracts, and read/write services for the timelin
 
 ### Bootstrapping & UI data strategy
 
-- On entering the player, call **`/api/play/bootstrap`** to fetch scenario, participants (+characters), full chapter list. Store in zustand.
-- Timeline calls only return ids and requested layer; UI maps names/avatars from store.
+- On entering the player, call **`/api/play/environment`** to fetch scenario, participants (+characters), full chapter list.
+- Timeline calls only return ids, turn numbers, and requested content; UI maps names/avatars from store.
 - React Query `useInfiniteQuery` with `pageParam = leafTurnId` and `getNextPageParam = nextLeafId`.
 
 ---
 
 ## API contracts (Zod)
 
-### Bootstrap
+### Environment bootstrap
 
 ```ts
-// GET /api/play/bootstrap
-const bootstrapInputSchema = z.object({ scenarioId: z.string() });
-const bootstrapOutputSchema = z.object({
+// GET /api/play/environment
+export const environmentInputSchema = z.object({
+  scenarioId: z.string(),
+});
+
+export const environmentOutputSchema = z.object({
   scenario: z
     .object({
       id: z.string(),
       title: z.string(),
-      rootTurnId: z.string().describe("First turn in the scenario"),
+      rootTurnId: z.string().nullable().describe("First turn in the scenario"),
       anchorTurnId: z
         .string()
+        .nullable()
         .describe("Identifies the last turn in the scenario's active timeline"),
     })
     .describe("Scenario metadata"),
@@ -73,7 +77,7 @@ const bootstrapOutputSchema = z.object({
     .array(
       z.object({
         id: z.string(),
-        type: z.enum(["character", "narrator"]),
+        type: z.enum(["character", "narrator", "deleted_character"]),
         status: z.enum(["active", "inactive"]),
         characterId: z.string().nullable(),
       })
@@ -94,14 +98,13 @@ const bootstrapOutputSchema = z.object({
       z.object({
         id: z.string(),
         index: z.number(),
-        title: z.string().nullable().optional(),
-        firstTurnId: z.string(),
+        title: z.string().nullable(),
       })
     )
     .describe("Chapters in the scenario, in order"),
-  generatingIntent: intentSchema
+  generatingIntent: z
+    .lazy(() => intentSchema)
     .nullable()
-    .optional()
     .describe("Currently generating intent, if any"),
 });
 ```
@@ -110,17 +113,14 @@ const bootstrapOutputSchema = z.object({
 
 ```ts
 // GET /api/play/timeline
-const loadTimelineInputSchema = z.object({
+
+// Timeline API schemas
+export const loadTimelineInputSchema = z.object({
   scenarioId: z.string(),
-  // TODO: anchor turn is maybe burdensome for clients. server can technically
-  // walk the tree down from any leaf to find that branch's anchor
-  anchorTurnId: z
-    .string()
-    .describe("Final turn in this timeline; identifies a timeline branch"),
-  leafTurnId: z
+  cursor: z
     .string()
     .optional()
-    .describe("Cursor position of this timeline slice (defaults to anchor)"),
+    .describe("ID of leaf turn of this timeline slice (defaults to anchor)"),
   windowSize: z
     .number()
     .min(1)
@@ -133,7 +133,7 @@ const loadTimelineInputSchema = z.object({
     .describe("Content layer to load for each turn"),
 });
 
-const timelineTurnSchema = z.object({
+export const timelineTurnSchema = z.object({
   id: z.string(),
   scenarioId: z.string(),
   chapterId: z.string(),
@@ -144,6 +144,9 @@ const timelineTurnSchema = z.object({
   authorParticipantId: z
     .string()
     .describe("Participant ID of the author of this turn"),
+  turnNo: z
+    .number()
+    .describe("1-based position of this turn from the timeline root"),
   swipes: z
     .object({
       leftTurnId: z
@@ -157,15 +160,11 @@ const timelineTurnSchema = z.object({
       swipeCount: z
         .number()
         .describe("Sibling count for this turn, including itself"),
-      swipeIndex: z.number().describe("Index of this turn among its siblings"),
+      swipeNo: z
+        .number()
+        .describe("1-based position of this swipe among its siblings"),
     })
     .describe("Swipe (alternate branch) information for this turn"),
-  depthFromAnchor: z
-    .number()
-    .describe("Depth of this turn from the anchor (0 for the anchor turn)"),
-  chapterTurnNumber: z
-    .number()
-    .describe("Turn number within the chapter, starting at 1"),
   layer: z.literal("presentation").describe("The content layer being loaded"),
   content: z
     .object({ text: z.string(), createdAt: z.string(), updatedAt: z.string() })
@@ -174,7 +173,7 @@ const timelineTurnSchema = z.object({
   updatedAt: z.string(),
 });
 
-const loadTimelineOutputSchema = z.object({
+export const loadTimelineOutputSchema = z.object({
   timeline: z
     .array(timelineTurnSchema)
     .describe("Array of turns in the loaded timeline slice"),
@@ -194,7 +193,7 @@ const loadTimelineOutputSchema = z.object({
 
 ```ts
 // POST /api/play/intent
-const createIntentInputSchema = z.object({
+export const createIntentInputSchema = z.object({
   scenarioId: z.string(),
   // todo: maybe this should be object union instead of mode with dependent fields
   mode: z
@@ -210,22 +209,22 @@ const createIntentInputSchema = z.object({
       "Player's input or prompt (required for direct_control and quick_action modes"
     ),
   selectedParticipantId: z.string().optional(),
-  // Intent modes are very much not final
-  constraint: z
-    .object({
-      type: z.enum(["plot", "character", "tone", "pace"]),
-      strength: z.number().min(0).max(100).default(50),
-    })
-    .optional(),
-  quickAction: z
-    .object({
-      type: z.enum(["plot_twist", "surprise_me", "jump_ahead", "focus_on"]),
-      targetCharacterId: z.string().optional(),
-    })
-    .optional(),
+  // TODO: still need to think through these modes more
+  // constraint: z
+  //   .object({
+  //     type: z.enum(["plot", "character", "tone", "pace"]),
+  //     strength: z.number().min(0).max(100).default(50),
+  //   })
+  //   .optional(),
+  // quickAction: z
+  //   .object({
+  //     type: z.enum(["plot_twist", "surprise_me", "jump_ahead", "focus_on"]),
+  //     targetCharacterId: z.string().optional(),
+  //   })
+  //   .optional(),
 });
 
-const intentEffectSchema = z
+export const intentEffectSchema = z
   .object({
     turnId: z.string().describe("ID of the turn created by this effect"),
     sequence: z
@@ -234,7 +233,7 @@ const intentEffectSchema = z
   })
   .describe("Representation of an effect of player's intent (ie. new turns)");
 
-const intentSchema = z
+export const intentSchema = z
   .object({
     id: z.string(),
     scenarioId: z.string(),
@@ -249,11 +248,6 @@ const intentSchema = z
       .describe("Timeline anchor turn when this intent was created"),
   })
   .describe("Representation of a player's intent to influence the story");
-
-const createIntentOutputSchema = z.object({ intent: intentSchema });
-
-// GET /api/play/intent/:intentId/result
-// just returns the intent + effects
 ```
 
 ---
@@ -267,7 +261,7 @@ const createIntentOutputSchema = z.object({ intent: intentSchema });
 - `parent_turn_id TEXT FK -> turns.id NULL`
 - `chapter_id TEXT FK -> chapters.id NOT NULL`
 - `author_participant_id TEXT FK`
-- `sibling_order INTEGER NOT NULL` (dense 0..N per parent)
+- `sibling_order TEXT NOT NULL` (lexorank-ish)
 - timestamps
 
 #### `chapters`
@@ -276,7 +270,7 @@ const createIntentOutputSchema = z.object({ intent: intentSchema });
 - `scenario_id TEXT FK`
 - `index INTEGER NOT NULL` (0..N)
 - `title TEXT NULL`
-- `first_turn_id TEXT FK -> turns.id NOT NULL`
+~~- `first_turn_id TEXT FK -> turns.id NOT NULL`~~
 - `summary TEXT NULL`
 - timestamps
 
@@ -292,7 +286,7 @@ const createIntentOutputSchema = z.object({ intent: intentSchema });
 - `constraint_strength INTEGER NULL`
 - `quick_action_type TEXT NULL`
 - `quick_action_target_character_id TEXT NULL`
-- `branch_policy TEXT CHECK in ('mainline','new_branch','replace_leaf') DEFAULT 'mainline'`
+~~- `branch_policy TEXT CHECK in ('mainline','new_branch','replace_leaf') DEFAULT 'mainline'`~~
 - `status TEXT CHECK in ('pending','applied','cancelled','failed') DEFAULT 'pending'`
 - timestamps
 
@@ -309,11 +303,11 @@ const createIntentOutputSchema = z.object({ intent: intentSchema });
 
 ## Read models
 
-1. **`getScenarioBootstrap(scenarioId)`**
+1. **`getScenarioEnvironment(scenarioId)`**
 
 - scenario (id, title, currentTurnId), participants (+characterId), characters (id, name, avatar), all chapters (id, index, title, firstTurnId).
 
-2. **`getTurnTimelineWindowCursor({ anchorLeafId, leafTurnId, windowSize, layer })`**
+2. **`getTimelineWindow({ anchorLeafId, leafTurnId, windowSize, layer })`**
 
 - Recursive CTE: build `anchor` (anchorLeafId→root) to compute `anchorTotalDepth` and per-id `depthFromAnchor`.
 - Build `page` (leafTurnId→root), join siblings (prev/next, count, index).
@@ -358,8 +352,8 @@ const createIntentOutputSchema = z.object({ intent: intentSchema });
 
 ## Routers (tRPC)
 
-- `play.bootstrap` → `getScenarioBootstrap`
-- `play.timeline` → `getTurnTimelineWindowCursor`
+- `play.environment` → `getScenarioEnvironment`
+- `play.timeline` → `getTimelineWindow`
 - `play.createIntent` → `createIntent`
 - `play.intentProgress` → async generator yielding events from turn engine (stubbed for now)
 - `play.intentResult` → load `intent` + `intent_effects`, plus updated `scenario.current_turn_id`
@@ -375,15 +369,6 @@ const createIntentOutputSchema = z.object({ intent: intentSchema });
 
 ## Frontend wiring (minimum)
 
-- **Bootstrap on mount:** put result in zustand (`participantsById`, `charactersById`, `chaptersById`).
+- **Bootstrap on mount:** keep result in React Query, expose via `useScenarioCtx`
 - **Timeline list:** `useInfiniteQuery({ initialPageParam: anchorLeafId, getNextPageParam: nextLeafId })`; flatten and dedupe by `turn.id`.
 - **Input panel:** POST `intent`, then subscribe to `play.intentProgress` for updates; invalidate timeline with new `anchorTurnId`.
-
----
-
-## Test plan (quick hits)
-
-- **Migrations**: create sample scenario with 1 chapter, 3 turns.
-- **Queries**: assert timeline windows (order, overlap, cursors), swipes metadata present, chapterTurnNumber math correct.
-- **Writes**: create intent → apply mock → effects inserted in order, `current_turn_id` advanced, chapter inheritance correct.
-- **Router**: end-to-end `bootstrap → timeline → intent → result → timeline (new leaf)`.

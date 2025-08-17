@@ -10,29 +10,45 @@ import {
   Text,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import {
   LuArrowLeft,
   LuEllipsisVertical,
   LuMenu,
   LuSettings,
 } from "react-icons/lu";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Navigate, Outlet, useNavigate, useParams } from "react-router-dom";
+import { ErrorBoundary } from "@/components/common/error-boundary";
 import { PlayerWidgetSidebar } from "@/components/features/player/player-widget-sidebar";
 import { Button } from "@/components/ui";
-import { trpc } from "@/lib/trpc";
+
+import {
+  ScenarioProvider,
+  useScenarioCtx,
+} from "@/lib/providers/scenario-provider";
 
 export function PlayerShell() {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  if (!id) return <Navigate to="/scenarios" replace />;
+
+  return (
+    <ErrorBoundary fallbackTitle="Scenario Player Error">
+      <Suspense fallback={<PlayerChromeSkeleton />}>
+        <ScenarioProvider scenarioId={id}>
+          <PlayerShellInner />
+        </ScenarioProvider>
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+function PlayerShellInner() {
+  const navigate = useNavigate();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const isMobile = useBreakpointValue({ base: true, lg: false });
 
-  const scenarioQuery = trpc.scenarios.getById.useQuery(
-    { id: id as string },
-    { enabled: !!id }
-  );
+  const { scenario, characters } = useScenarioCtx();
 
   const handleBack = () => {
     navigate("/scenarios");
@@ -79,13 +95,9 @@ export function PlayerShell() {
 
         {/* Center Section - Scenario Title */}
         <Box flex="1" textAlign="center" px={4}>
-          {scenarioQuery.isLoading ? (
-            <Skeleton height="5" width="200px" mx="auto" />
-          ) : scenarioQuery.data ? (
-            <Text fontWeight="medium" fontSize="sm" lineClamp={1}>
-              {scenarioQuery.data.name}
-            </Text>
-          ) : null}
+          <Text fontWeight="medium" fontSize="sm" lineClamp={1}>
+            {scenario.title}
+          </Text>
         </Box>
 
         {/* Right Section - Meta Toolbar */}
@@ -106,6 +118,7 @@ export function PlayerShell() {
           <PlayerWidgetSidebar
             expanded={sidebarExpanded}
             onToggle={toggleSidebar}
+            characters={characters}
           />
         </Show>
 
@@ -125,7 +138,10 @@ export function PlayerShell() {
                   </Drawer.Header>
                   <Drawer.Body p="0">
                     <Box onClick={() => setMobileDrawerOpen(false)}>
-                      <PlayerWidgetSidebar expanded={true} />
+                      <PlayerWidgetSidebar
+                        expanded={true}
+                        characters={characters}
+                      />
                     </Box>
                   </Drawer.Body>
                 </Drawer.Content>
@@ -146,6 +162,35 @@ export function PlayerShell() {
           data-testid="scenario-main-content"
         >
           <Outlet />
+        </Box>
+      </Flex>
+    </Flex>
+  );
+}
+
+function PlayerChromeSkeleton() {
+  return (
+    <Flex direction="column" h="100vh">
+      <Flex as="header" h="12" px={4} align="center" justify="space-between">
+        <HStack gap={3}>
+          <Skeleton height="8" width="80px" />
+        </HStack>
+        <Box flex="1" textAlign="center" px={4}>
+          <Skeleton height="4" width="220px" mx="auto" />
+        </Box>
+        <HStack gap={2}>
+          <Skeleton boxSize="8" />
+          <Skeleton boxSize="8" />
+        </HStack>
+      </Flex>
+      <Flex flex="1" overflow="hidden">
+        <Box w="64" p={3} display={{ base: "none", lg: "block" }}>
+          <Skeleton height="5" mb={3} />
+          <Skeleton height="16" mb={2} />
+          <Skeleton height="16" mb={2} />
+        </Box>
+        <Box as="main" flex="1" p={4}>
+          <Skeleton height="200px" />
         </Box>
       </Flex>
     </Flex>

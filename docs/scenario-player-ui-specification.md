@@ -291,11 +291,11 @@ PlayerShell                      // Layout shell with navigation
 
 #### Data Layer Improvements
 - **Custom Hooks**: Created dedicated hooks for data management
-  - `useScenarioBootstrap`: Centralized bootstrap data fetching with caching
+  - `useScenarioEnvironment`: Centralized bootstrap data fetching with caching
   - `useScenarioTimeline`: Timeline pagination with deduplication support
   - `useScenarioIntent`: Intent/turn mutations with optimistic updates
 - **State Management Strategy**:
-  - React Query for server state (bootstrap, timeline, mutations)
+  - React Query for server state (environment, timeline, mutations)
   - Zustand for ephemeral client state (selected character)
   - Component state for UI-specific concerns
 

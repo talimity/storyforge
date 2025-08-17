@@ -1,11 +1,11 @@
 import z from "zod";
 
-// Bootstrap API schemas
-export const bootstrapInputSchema = z.object({
+// Play Environment API schemas
+export const environmentInputSchema = z.object({
   scenarioId: z.string(),
 });
 
-export const bootstrapOutputSchema = z.object({
+export const environmentOutputSchema = z.object({
   scenario: z
     .object({
       id: z.string(),
@@ -55,15 +55,10 @@ export const bootstrapOutputSchema = z.object({
 // Timeline API schemas
 export const loadTimelineInputSchema = z.object({
   scenarioId: z.string(),
-  // TODO: anchor turn is maybe burdensome for clients. server can technically
-  // walk the tree down from any leaf to find that branch's anchor
-  anchorTurnId: z
-    .string()
-    .describe("Final turn in this timeline; identifies a timeline branch"),
-  leafTurnId: z
+  cursor: z
     .string()
     .optional()
-    .describe("Cursor position of this timeline slice (defaults to anchor)"),
+    .describe("ID of leaf turn of this timeline slice (defaults to anchor)"),
   windowSize: z
     .number()
     .min(1)
@@ -87,6 +82,9 @@ export const timelineTurnSchema = z.object({
   authorParticipantId: z
     .string()
     .describe("Participant ID of the author of this turn"),
+  turnNo: z
+    .number()
+    .describe("1-based position of this turn from the timeline root"),
   swipes: z
     .object({
       leftTurnId: z
@@ -100,15 +98,11 @@ export const timelineTurnSchema = z.object({
       swipeCount: z
         .number()
         .describe("Sibling count for this turn, including itself"),
-      swipeIndex: z.number().describe("Index of this turn among its siblings"),
+      swipeNo: z
+        .number()
+        .describe("1-based position of this swipe among its siblings"),
     })
     .describe("Swipe (alternate branch) information for this turn"),
-  depthFromAnchor: z
-    .number()
-    .describe("Depth of this turn from the anchor (0 for the anchor turn)"),
-  chapterTurnNumber: z
-    .number()
-    .describe("Turn number within the chapter, starting at 1"),
   layer: z.literal("presentation").describe("The content layer being loaded"),
   content: z
     .object({ text: z.string(), createdAt: z.string(), updatedAt: z.string() })
@@ -198,8 +192,8 @@ export const intentResultInputSchema = z.object({ intentId: z.string() });
 export const intentResultOutputSchema = intentSchema;
 
 // Type exports
-export type BootstrapInput = z.infer<typeof bootstrapInputSchema>;
-export type BootstrapOutput = z.infer<typeof bootstrapOutputSchema>;
+export type EnvironmentInput = z.infer<typeof environmentInputSchema>;
+export type EnvironmentOutput = z.infer<typeof environmentOutputSchema>;
 export type LoadTimelineInput = z.infer<typeof loadTimelineInputSchema>;
 export type LoadTimelineOutput = z.infer<typeof loadTimelineOutputSchema>;
 export type TimelineTurn = z.infer<typeof timelineTurnSchema>;

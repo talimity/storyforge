@@ -1,232 +1,128 @@
+import { useEffect, useMemo } from "react";
 import {
-  Box,
-  Card,
-  Heading,
-  HStack,
-  SegmentGroup,
-  Skeleton,
-  Stack,
-  Text,
-  Textarea,
-} from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { RiQuillPenLine } from "react-icons/ri";
-import { Navigate, useParams } from "react-router-dom";
+  type InputMode,
+  IntentPanel,
+} from "@/components/features/player/intent-panel/intent-panel";
 import { PlayerLayout } from "@/components/features/player/player-layout";
-import { Button } from "@/components/ui";
+import { TurnHistory } from "@/components/features/player/turn-history";
+import { toaster } from "@/components/ui";
 import { useActiveScenario } from "@/lib/hooks/use-active-scenario";
-import { trpc } from "@/lib/trpc";
-
-type InputMode = "direct" | "constraints" | "quick";
+import { useScenarioIntent } from "@/lib/hooks/use-scenario-intent";
+import { useScenarioTimeline } from "@/lib/hooks/use-scenario-timeline";
+import { useScenarioCtx } from "@/lib/providers/scenario-provider";
+import { useScenarioPlayerStore } from "@/stores/scenario-store";
 
 export function PlayerPage() {
-  const { id } = useParams<{ id: string }>();
-  const { setActiveScenario, clearActiveScenario } = useActiveScenario();
-  const [inputMode, setInputMode] = useState<InputMode>("direct");
-  const [inputText, setInputText] = useState("");
+  const { scenario, characters, participants, chapters } = useScenarioCtx();
+  const { setActiveScenario } = useActiveScenario();
+  const { selectedCharacterId, setSelectedCharacter, reset } =
+    useScenarioPlayerStore();
 
-  // Fetch scenario data
-  const scenarioQuery = trpc.scenarios.getById.useQuery(
-    { id: id as string },
-    { enabled: !!id }
+  // Reset store when scenario changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: "hook specifies more dependencies than necessary" but we want to trigger reset only on scenarioId change???
+  useEffect(() => {
+    return () => {
+      reset();
+    };
+  }, [scenario.id, reset]);
+
+  const { debugAddTurn, isAddingTurn } = useScenarioIntent();
+
+  const {
+    turns,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    // timelineDepth,
+  } = useScenarioTimeline({ scenarioId: scenario.id });
+
+  // Create participant map for easy lookup
+  const participantMap = useMemo(() => {
+    const map = new Map<string, { name: string; type: string }>();
+    participants.forEach((p) => {
+      if (p.type === "narrator") {
+        map.set(p.id, { name: "Narrator", type: "narrator" });
+      } else if (p.characterId) {
+        const char = characters.find((c) => c.id === p.characterId);
+        if (char) {
+          map.set(p.id, { name: char.name, type: "character" });
+        }
+      }
+    });
+    return map;
+  }, [participants, characters]);
+
+  // Auto-select first character when available
+  const firstCharacterParticipant = useMemo(
+    () => participants.find((p) => p.type === "character" && p.characterId),
+    [participants]
   );
 
-  // Set this scenario as active when the page loads successfully
+  // Auto-select first character when available
   useEffect(() => {
-    if (id && scenarioQuery.data) {
-      setActiveScenario(id);
+    if (!selectedCharacterId && firstCharacterParticipant?.characterId) {
+      setSelectedCharacter(firstCharacterParticipant.characterId);
     }
-  }, [id, scenarioQuery.data, setActiveScenario]);
+  }, [selectedCharacterId, firstCharacterParticipant, setSelectedCharacter]);
 
-  // Clear active scenario if the scenario doesn't exist
+  // Set scenario as active when loaded
   useEffect(() => {
-    if (scenarioQuery.error) {
-      clearActiveScenario();
+    setActiveScenario(scenario.id);
+  }, [scenario.id, setActiveScenario]);
+
+  // Derive selected character and participant
+  const selectedCharacter = selectedCharacterId
+    ? characters.find((char) => char.id === selectedCharacterId)
+    : null;
+
+  const selectedParticipant = selectedCharacterId
+    ? participants.find((p) => p.characterId === selectedCharacterId)
+    : null;
+
+  // Click handlers
+  const handleSubmitIntent = async (_mode: InputMode, text: string) => {
+    if (!selectedParticipant || !scenario || !chapters[0]) return;
+
+    try {
+      await debugAddTurn(
+        scenario.id,
+        text,
+        selectedParticipant.id,
+        chapters[0].id
+      );
+    } catch (error) {
+      console.error("Failed to submit intent:", error);
     }
-  }, [scenarioQuery.error, clearActiveScenario]);
+  };
 
-  if (!id) {
-    return <Navigate to="/scenarios" replace />;
-  }
-
-  if (scenarioQuery.isLoading) {
-    return (
-      <PlayerLayout
-        turnHistory={
-          <Stack gap={4}>
-            <Skeleton height="100px" borderRadius="md" />
-            <Skeleton height="80px" borderRadius="md" />
-            <Skeleton height="120px" borderRadius="md" />
-          </Stack>
-        }
-        intentPanel={<Skeleton height="100px" borderRadius="md" />}
-      />
-    );
-  }
-
-  if (scenarioQuery.error || !scenarioQuery.data) {
-    return <Navigate to="/scenarios" replace />;
-  }
-
-  // const _scenario = scenarioQuery.data;
+  const handleQuickAction = async (action: string) => {
+    // TODO: Implement quick actions when API is ready
+    toaster.info({
+      description: `Quick action "${action}" not yet implemented`,
+    });
+  };
 
   const turnHistory = (
-    <Stack gap={6}>
-      {/* ChapterHeader component */}
-      <Box textAlign="center" py={8}>
-        <Heading size="lg" mb={2}>
-          Chapter One
-        </Heading>
-      </Box>
-
-      {/* Turn component */}
-      <Card.Root layerStyle="surfaceMuted">
-        <Card.Body>
-          <HStack mb={2} justify="space-between">
-            <Text fontSize="xs" fontWeight="semibold">
-              Narrator
-            </Text>
-            <Text fontSize="xs" color="content.muted">
-              Turn 1 • 08:00 PM
-            </Text>
-          </HStack>
-          <Text>
-            The gaslight flickers in the dim corridor beneath the Paris Opera
-            House. Strange melodies echo from the shadows, growing stronger as
-            the evening rehearsal begins above.
-          </Text>
-        </Card.Body>
-      </Card.Root>
-
-      <Card.Root layerStyle="surfaceMuted">
-        <Card.Body>
-          <HStack mb={2} justify="space-between">
-            <Text fontSize="xs" fontWeight="semibold">
-              The Phantom
-            </Text>
-            <Text fontSize="xs" color="content.muted">
-              Turn 2 • 08:05 PM
-            </Text>
-          </HStack>
-          <Text fontStyle="italic">
-            From the darkness, a figure emerges. His presence fills the corridor
-            with an otherworldly chill. "Tonight, the opera shall witness true
-            artistry," he whispers, his voice carrying both promise and threat.
-          </Text>
-        </Card.Body>
-      </Card.Root>
-
-      <Card.Root layerStyle="surfaceMuted">
-        <Card.Body>
-          <HStack mb={2} justify="space-between">
-            <Text fontSize="xs" fontWeight="semibold">
-              Christine
-            </Text>
-            <Text fontSize="xs" color="content.muted">
-              Turn 3 • 08:07 PM
-            </Text>
-          </HStack>
-          <Text>
-            Christine pauses at the top of the stairs, sensing something amiss.
-            Her hand grips the banister as she calls out hesitantly, "Is someone
-            there? The rehearsal is about to begin..."
-          </Text>
-        </Card.Body>
-      </Card.Root>
-    </Stack>
+    <TurnHistory
+      scenarioTitle={scenario.title}
+      chapterTitle={
+        chapters.length > 0 ? chapters[0].title || "Chapter 1" : undefined
+      }
+      turns={turns}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      onLoadMore={fetchNextPage}
+      participants={participantMap}
+    />
   );
 
   const intentPanel = (
-    <Stack gap={2}>
-      {/* Input Mode Selector */}
-      <SegmentGroup.Root
-        value={inputMode}
-        onValueChange={(e) => setInputMode(e.value as InputMode)}
-        size="sm"
-      >
-        <SegmentGroup.Item value="direct">Direct Control</SegmentGroup.Item>
-        <SegmentGroup.Item value="constraints">
-          Story Constraints
-        </SegmentGroup.Item>
-        <SegmentGroup.Item value="quick">Quick Actions</SegmentGroup.Item>
-      </SegmentGroup.Root>
-
-      {/* Player Input Area */}
-      {inputMode === "direct" && (
-        <Stack gap={3}>
-          <HStack>
-            <Text fontSize="xs" color="content.muted">
-              Speaking as:
-            </Text>
-            <Text fontSize="xs" fontWeight="semibold">
-              Christine
-            </Text>
-          </HStack>
-          <HStack gap={2} align="flex-end">
-            <Textarea
-              placeholder="Enter Christine's action or dialogue..."
-              variant="onContrast"
-              autoresize
-              rows={2}
-              maxH={40}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-            />
-            <Button colorPalette="accent" size="md">
-              <RiQuillPenLine />
-              Generate
-            </Button>
-          </HStack>
-        </Stack>
-      )}
-
-      {inputMode === "constraints" && (
-        <Stack gap={3}>
-          <HStack>
-            <Text fontSize="xs" color="content.muted">
-              Constraint type:
-            </Text>
-            <Text fontSize="xs" fontWeight="semibold">
-              Plot Development
-            </Text>
-          </HStack>
-          <HStack gap={2} align="flex-end">
-            <Textarea
-              placeholder="Describe what should happen next..."
-              size="sm"
-              resize="vertical"
-              autoresize
-              rows={2}
-              maxH={32}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              flex="1"
-            />
-            <Button colorScheme="primary" variant="solid" size="sm">
-              <RiQuillPenLine />
-              Generate
-            </Button>
-          </HStack>
-        </Stack>
-      )}
-
-      {inputMode === "quick" && (
-        <HStack gap={2} wrap="wrap">
-          <Button variant="outline" size="sm">
-            Plot Twist
-          </Button>
-          <Button variant="outline" size="sm">
-            Surprise Me
-          </Button>
-          <Button variant="outline" size="sm">
-            Jump Ahead
-          </Button>
-          <Button variant="outline" size="sm">
-            Continue
-          </Button>
-        </HStack>
-      )}
-    </Stack>
+    <IntentPanel
+      selectedCharacterName={selectedCharacter?.name || null}
+      onSubmitIntent={handleSubmitIntent}
+      onQuickAction={handleQuickAction}
+      isGenerating={isAddingTurn}
+    />
   );
 
   return <PlayerLayout turnHistory={turnHistory} intentPanel={intentPanel} />;

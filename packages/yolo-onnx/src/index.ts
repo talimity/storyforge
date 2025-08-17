@@ -332,7 +332,7 @@ export interface CropResultOptions {
 /**
  * Crops an image around a previously-detected focal point (typically a face),
  * applies optional padding and size constraints, and returns a `Buffer` with
- * the processed image.  By default the crop is square, padded by 1.5× the
+ * the processed image. By default the crop is square, padded by 1.5× the
  * detected face box, and will be resized to satisfy any `minSize`, `maxSize`,
  * or `outputSize` options.
  *

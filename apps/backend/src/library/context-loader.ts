@@ -9,8 +9,7 @@ import {
 
 export type ContextSpec = {
   scenarioId: string;
-  leafTurnId: string; // usually scenario.current_turn_id, unless paging up
-  timelineWindow: number; // how many nodes from the leaf upward
+  timelineWindow: number;
 };
 
 export type LoadedParticipant = {
@@ -40,7 +39,7 @@ export async function loadContext(
   db: SqliteDatabase,
   spec: ContextSpec
 ): Promise<LoadedContext> {
-  const { scenarioId, leafTurnId, timelineWindow } = spec;
+  const { scenarioId, timelineWindow } = spec;
 
   // Scenario + active participants with character summaries.
   const [scenario] = await db
@@ -49,6 +48,7 @@ export async function loadContext(
       name: schema.scenarios.name,
       description: schema.scenarios.description,
       settings: schema.scenarios.settings,
+      anchorTurnId: schema.scenarios.anchorTurnId,
     })
     .from(schema.scenarios)
     .where(sql`${schema.scenarios.id} = ${scenarioId}`)
@@ -68,7 +68,8 @@ export async function loadContext(
   });
 
   const timeline = await getTimelineWindow(db, {
-    leafTurnId,
+    scenarioId,
+    leafTurnId: scenario.anchorTurnId,
     windowSize: timelineWindow,
   });
 

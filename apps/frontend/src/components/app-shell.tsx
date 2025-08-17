@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { LuMenu } from "react-icons/lu";
 import { Outlet } from "react-router-dom";
 import { ColorModeToggle } from "@/components/color-mode-toggle";
+import { ErrorBoundary } from "@/components/common/error-boundary";
 import { Logo } from "@/components/logo";
 import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui";
@@ -79,7 +80,9 @@ export function AppShell() {
             </Drawer.Positioner>
           </Portal>
           <Box as="main" p={4} data-testid="mobile-main-content">
-            <Outlet />
+            <ErrorBoundary fallbackTitle="Application Error">
+              <Outlet />
+            </ErrorBoundary>
           </Box>
         </Drawer.Root>
       </Show>
@@ -109,7 +112,9 @@ export function AppShell() {
               maxW="container.xl"
               data-testid="main-container"
             >
-              <Outlet />
+              <ErrorBoundary fallbackTitle="Application Error">
+                <Outlet />
+              </ErrorBoundary>
             </Container>
             {/* </Box> */}
           </Flex>

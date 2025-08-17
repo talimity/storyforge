@@ -138,6 +138,12 @@ export async function executeDeletionPlan(
   }
 
   if (plan.anchorPlan.kind === "set") {
+    // TODO: **bad wrong this is not sufficient** -- if we delete current anchor
+    // turn and plan to set a new anchor, we need to ensure that new anchor is
+    // actually a valid anchor (has no children). it is possible to delete
+    // a turn that happens to be a leaf but has a sibling with children, we
+    // cannot naively set that sibling as the anchor, we must traverse the graph
+    // down from any requested anchor to find the leaf along its path.
     await tx
       .update(schema.scenarios)
       .set({ anchorTurnId: plan.anchorPlan.turnId })

@@ -1,11 +1,24 @@
 import {
   defaultShouldDehydrateQuery,
+  MutationCache,
   QueryClient,
 } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
+import { toaster } from "@/components/ui/index";
 
 export function makeQueryClient() {
   return new QueryClient({
+    mutationCache: new MutationCache({
+      onError: (error) => {
+        if (error instanceof TRPCClientError) {
+          // Handle TRPC client errors globally
+          toaster.error({
+            description: error.message,
+            title: "Request failed",
+          });
+        }
+      },
+    }),
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000, // 1 minute

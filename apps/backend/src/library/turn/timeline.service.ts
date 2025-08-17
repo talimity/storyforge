@@ -75,7 +75,7 @@ export class TimelineService {
       let parentTurnId: string | null;
 
       // Determine the target chapter and parent turn based on the scenario's
-      // current progression.  Caller can specify a chapterId if they intend to
+      // current progression. Caller can specify a chapterId if they intend to
       // create a the first turn of a new chapter.
       if (anchorTurnId) {
         const [anchorTurn] = await tx
@@ -294,11 +294,11 @@ async function loadParticipantMembership(
     .select({
       id: tScenarioParticipants.id,
       scenarioId: tScenarioParticipants.scenarioId,
-      isActive: sql<number>`unassigned_at IS NULL`.as("isActive"),
+      status: tScenarioParticipants.status,
     })
     .from(tScenarioParticipants)
     .where(eq(tScenarioParticipants.id, participantId))
     .limit(1);
   if (!p) return;
-  return { id: p.id, scenarioId: p.scenarioId, isActive: !!p.isActive };
+  return { id: p.id, scenarioId: p.scenarioId, status: p.status };
 }
