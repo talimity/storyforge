@@ -36,7 +36,7 @@ export const playRouter = router({
         scenarioId: input.scenarioId,
         authorParticipantId: input.authorParticipantId,
         chapterId: input.chapterId,
-        parentTurnId: input.parentTurnId ?? null,
+        layers: [{ key: "presentation", content: input.text }],
       });
       return { newTurnId: turn.id };
     }),

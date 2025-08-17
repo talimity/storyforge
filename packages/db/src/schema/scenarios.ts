@@ -29,11 +29,11 @@ export const scenarios = sqliteTable("scenarios", {
   settings: text("settings", { mode: "json" })
     .$type<Record<string, unknown>>()
     .notNull()
-    .default(sql`'{}::json'`),
+    .default(sql`'{}'`),
   metadata: text("metadata", { mode: "json" })
     .$type<Record<string, unknown>>()
     .notNull()
-    .default(sql`'{}::json'`),
+    .default(sql`'{}'`),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

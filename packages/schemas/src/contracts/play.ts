@@ -43,10 +43,6 @@ export const bootstrapOutputSchema = z.object({
         id: z.string(),
         index: z.number(),
         title: z.string().nullable(),
-        firstTurnId: z
-          .string()
-          .nullable()
-          .describe("First turn in the chapter"),
       })
     )
     .describe("Chapters in the scenario, in order"),

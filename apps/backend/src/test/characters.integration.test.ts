@@ -1,11 +1,31 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { registerAssetsRoutes } from "../api/assets";
 import {
   getFixtureCount,
   loadCharacterFixtures,
   seedCharacterFixtures,
-} from "../test/fixtures";
-import { createFreshTestCaller, createTestFastifyServer } from "../test/setup";
+} from "./fixtures";
+import {
+  cleanupTestDatabase,
+  createFreshTestCaller,
+  createTestFastifyServer,
+} from "./setup";
+
+vi.mock("@storyforge/yolo-onnx");
+vi.mock(
+  "../library/character/utils/face-detection",
+  async (importOriginal) => ({
+    ...((await importOriginal()) as any),
+    identifyCharacterFace: vi.fn().mockImplementation(() => ({
+      x: 0.5,
+      y: 0.3,
+      w: 0.5,
+      h: 0.5,
+      c: 0,
+    })),
+  })
+);
 
 describe("characters router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
@@ -15,6 +35,10 @@ describe("characters router integration", () => {
     const testContext = await createFreshTestCaller();
     caller = testContext.caller;
     testDb = testContext.db;
+  });
+
+  afterEach(async () => {
+    cleanupTestDatabase(testDb);
   });
 
   describe("characters.list", () => {
@@ -254,7 +278,7 @@ describe("characters router integration", () => {
       await fastify.close();
     });
 
-    it.only("should return 404 for character without image", async () => {
+    it("should return 404 for character without image", async () => {
       const newCharacter = await caller.characters.create({
         name: "No Image Character",
         description: "Character without image",

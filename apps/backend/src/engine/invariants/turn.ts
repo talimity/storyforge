@@ -4,7 +4,8 @@ export type TurnErr =
   | "LoadFailed"
   | "ParticipantNotFound"
   | "ParticipantInactive"
-  | "CrossScenarioAuthor";
+  | "CrossScenarioAuthor"
+  | "CannotPromoteMultipleToRoot";
 
 type AuthorParticipant = { scenarioId: string; isActive: boolean };
 
@@ -47,4 +48,18 @@ export async function canCreateTurn(args: {
   } catch {
     return err("LoadFailed");
   }
+}
+
+/**
+ * Check if a turn's children can be promoted into its place. If the turn is
+ * the root turn, it cannot have multiple children promoted to root.
+ */
+export function canPromoteChildren(args: {
+  turn: { parentTurnId: string | null };
+  childCount: number;
+}): Result<void, TurnErr> {
+  if (args.turn.parentTurnId === null && args.childCount > 1) {
+    return err("CannotPromoteMultipleToRoot");
+  }
+  return ok(undefined);
 }

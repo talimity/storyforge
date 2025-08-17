@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LoadedContext } from "@/library/context-loader";
+import type { LoadedContext } from "../../library/context-loader";
 import { buildPrompt, type PromptBuildSpec } from "./context-builder";
 
 // Test data factory functions
@@ -41,7 +41,7 @@ function createMockLoadedContext(
       {
         id: "turn-1",
         parent_turn_id: null,
-        sibling_order: 0,
+        sibling_order: "m",
         depth: 1,
         prev_sibling_id: null,
         next_sibling_id: null,
@@ -49,7 +49,7 @@ function createMockLoadedContext(
       {
         id: "turn-2",
         parent_turn_id: "turn-1",
-        sibling_order: 0,
+        sibling_order: "n",
         depth: 0,
         prev_sibling_id: null,
         next_sibling_id: null,
@@ -233,7 +233,7 @@ describe("buildPrompt", () => {
           {
             id: "turn-1",
             parent_turn_id: null,
-            sibling_order: 0,
+            sibling_order: "m",
             depth: 0,
             prev_sibling_id: null,
             next_sibling_id: null,
@@ -353,7 +353,7 @@ describe("buildPrompt", () => {
           {
             id: "turn-1",
             parent_turn_id: null,
-            sibling_order: 0,
+            sibling_order: "m",
             depth: 1,
             prev_sibling_id: null,
             next_sibling_id: null,
@@ -361,7 +361,7 @@ describe("buildPrompt", () => {
           {
             id: "turn-2",
             parent_turn_id: "turn-1",
-            sibling_order: 0,
+            sibling_order: "n",
             depth: 0,
             prev_sibling_id: null,
             next_sibling_id: null,
@@ -390,7 +390,7 @@ describe("buildPrompt", () => {
           {
             id: "turn-1",
             parent_turn_id: null,
-            sibling_order: 0,
+            sibling_order: "m",
             depth: 0,
             prev_sibling_id: null,
             next_sibling_id: null,

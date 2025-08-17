@@ -2,7 +2,7 @@ import type { SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { sql } from "drizzle-orm";
 
-export type TurnTimelineRow = {
+export type TimelineRow = {
   id: string;
   parent_turn_id: string | null;
   sibling_order: number;
@@ -26,13 +26,13 @@ export type TurnTimelineWindowParams = {
  *  - We first compute the full path (so parents exist for top-of-window nodes),
  *    then slice the last N and reorder for UI (root -> leaf).
  */
-export async function getTurnTimelineWindow(
+export async function getTimelineWindow(
   db: SqliteDatabase,
   params: TurnTimelineWindowParams
-): Promise<TurnTimelineRow[]> {
+): Promise<TimelineRow[]> {
   const { leafTurnId, windowSize } = params;
 
-  return db.all<TurnTimelineRow>(sql`
+  return db.all<TimelineRow>(sql`
       WITH RECURSIVE
           timeline AS (SELECT id, parent_turn_id, sibling_order, 0 AS depth
                        FROM ${schema.turns}
@@ -57,7 +57,7 @@ export async function getTurnTimelineWindow(
       SELECT *
       FROM (SELECT *
             FROM enriched
-            ORDER BY depth ASC
+            ORDER BY depth -- leaf -> root for paging
             LIMIT ${windowSize})
       ORDER BY depth DESC; -- root -> leaf for UI
   `);

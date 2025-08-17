@@ -79,7 +79,7 @@ export async function getScenarioBootstrap(
         },
       },
       chapters: {
-        columns: { id: true, index: true, name: true, firstTurnId: true },
+        columns: { id: true, index: true, name: true },
         orderBy: (c) => [c.index],
       },
     },
@@ -111,7 +111,6 @@ export async function getScenarioBootstrap(
       id: c.id,
       index: c.index,
       title: c.name,
-      firstTurnId: c.firstTurnId,
     })),
     generatingIntent: null, // TODO: Implement when intent system is ready
   };

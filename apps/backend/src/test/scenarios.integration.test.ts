@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CharacterService } from "../library/character/character-service";
-import { createFreshTestCaller } from "./setup";
+import { cleanupTestDatabase, createFreshTestCaller } from "./setup";
 
 describe("scenarios router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
@@ -29,6 +29,10 @@ describe("scenarios router integration", () => {
         },
       }),
     ];
+  });
+
+  afterEach(() => {
+    cleanupTestDatabase(testDb);
   });
 
   describe("scenarios.list", () => {

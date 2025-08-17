@@ -1,5 +1,5 @@
 import type { SqliteDatabase } from "@storyforge/db";
-import { db as dbClient } from "@storyforge/db";
+import { getDbClient } from "@storyforge/db";
 import type { FastifyBaseLogger, FastifyReply, FastifyRequest } from "fastify";
 
 export interface AppContext {
@@ -13,19 +13,21 @@ export interface AppContext {
  * Shared context factory used by both tRPC procedures and Fastify routes.
  * This ensures consistent context DI across the entire application.
  */
-export function createAppContext({
+export async function createAppContext({
   req,
   res,
-  db = dbClient,
+  db = getDbClient(),
 }: {
   req: FastifyRequest;
   res: FastifyReply;
-  db?: SqliteDatabase;
-}): AppContext {
-  return { req, res, db, logger: req.log };
+  db?: SqliteDatabase | Promise<SqliteDatabase>;
+}): Promise<AppContext> {
+  return { req, res, db: await db, logger: req.log };
 }
 
-export function createTestAppContext(testDb: SqliteDatabase): AppContext {
+export async function createTestAppContext(
+  testDb: SqliteDatabase
+): Promise<AppContext> {
   const mockLogger = {
     info: () => {},
     error: () => {},

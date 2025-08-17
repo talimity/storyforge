@@ -24,7 +24,7 @@ export const turns = sqliteTable(
       .notNull()
       .references(() => chapters.id, { onDelete: "cascade" }),
     parentTurnId: text("parent_turn_id"),
-    siblingOrder: integer("sibling_order").notNull().default(0),
+    siblingOrder: text("sibling_order").notNull().default("m"), // lexographic order
     authorParticipantId: text("author_participant_id")
       .notNull()
       .references(() => scenarioParticipants.id, { onDelete: "restrict" }),

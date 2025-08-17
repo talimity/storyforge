@@ -7,8 +7,8 @@ CREATE TABLE `__new_scenarios` (
 	`name` text NOT NULL,
 	`description` text NOT NULL,
 	`status` text DEFAULT 'active' NOT NULL,
-	`settings` text DEFAULT '{}::json' NOT NULL,
-	`metadata` text DEFAULT '{}::json' NOT NULL,
+	`settings` text DEFAULT '{}' NOT NULL,
+	`metadata` text DEFAULT '{}' NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL
 );

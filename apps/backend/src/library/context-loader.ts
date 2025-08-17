@@ -2,9 +2,9 @@ import type { Character, SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { sql } from "drizzle-orm";
 import {
+  getTimelineWindow,
   getTurnContentLayers,
-  getTurnTimelineWindow,
-  type TurnTimelineRow,
+  type TimelineRow,
 } from "@/library/turn/turn.queries";
 
 export type ContextSpec = {
@@ -28,7 +28,7 @@ export type LoadedContext = {
     settings: unknown | null;
   };
   participants: LoadedParticipant[];
-  timeline: TurnTimelineRow[];
+  timeline: TimelineRow[];
   contentByTurnId: Record<
     string, // turnId
     Record<string, string> // layer's key => layer's content
@@ -67,7 +67,7 @@ export async function loadContext(
     orderBy: (p) => [p.orderIndex],
   });
 
-  const timeline = await getTurnTimelineWindow(db, {
+  const timeline = await getTimelineWindow(db, {
     leafTurnId,
     windowSize: timelineWindow,
   });

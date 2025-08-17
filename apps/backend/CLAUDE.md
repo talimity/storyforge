@@ -1,77 +1,114 @@
 # StoryForge Backend - Package Notes
 
-## Architecture Cheat-Sheet (CQRS-lite)
+## Architecture Cheat-Sheet
 
 ### Structure
 
 ```
 src/
-  api/routers/*                         # tRPC glue only
-  engine/*                              # PURE domain helpers (no I/O)
-  inference/*                           # LLM providers, prompt-to-API-payload rendering
-  library/<feature>/*.queries.ts        # read models
-  library/<feature>/*.write.service.ts  # transactional writes
+  api/routers/*                # tRPC glue only (I/O validation, call queries/services)
+  engine/**                    # PURE domain logic + invariants (no DB, no network)
+  inference/**                 # LLM providers, prompt rendering, tools (ports)
+  library/<feature>/
+    *.queries.ts               # read models (UI/workflow-shaped, read-only)
+    *.service.ts               # transactional use-cases (units of work, writes, orchestration)
+  context/
+    context.loader.ts          # impure data gathering (DB, files, etc.)
+    context.builder.ts         # pure assembly to GenerationContext
 ```
 
-### Workflow (add a feature)
+### Workflow (adding a feature)
 
-1. **DB** – Add tables/migrations in `packages/db/src/schema/*` and relations.
-2. **Contracts** – Define Zod contracts in `packages/schemas/src/contracts/*`.
-3. **Reads** – Add `*.queries.ts` functions that return UI/workflow-shaped data.
-4. **Writes** – Add `*.write.service.ts` functions (one per use case) that wrap a transaction + invariants.
-5. **Engine** – Keep logic pure; inject data via query helpers.
-6. **API** – Thin tRPC procedures that validate I/O and call queries/services.
+1. **DB** — Add schema + indexes in `packages/db`.
+2. **Contracts** — Define Zod I/O in `packages/schemas`.
+3. **Reads** — Implement `<feature>.queries.ts` returning exactly the shapes screens/pipelines need.
+4. **Writes** — Implement `<feature>.service.ts` (one function per use-case) that opens **one** transaction and enforces invariants.
+5. **Engine** — Put business rules/invariants here; they’re pure and injected with data via loaders.
+6. **API** — Keep procedures thin; map `EngineError` → TRPC once, globally.
 
 ### Reads (Queries)
 
-- **Goal:** Return exactly the shape a screen or pipeline step needs.
-- Prefer `db.query.*` relation DSL; **drop to raw SQL** if it’s clearer (e.g., recursive CTE for timelines).
-- **No `includeFoo` flags.** New shape → new query fn.
-- **Batch-first:** accept arrays and use `IN (…)` to avoid N+1.
-- **Tiny selectors:** factor common column/extras fragments to kill duplication.
-- When a shape stabilizes (counts/aggregates), consider a **view** to encode the join once.
+- Return **screen/pipeline-shaped** objects; no “includeFoo” flags. New shape → new function.
+- Prefer Drizzle relation DSL for queries, but drop to **SQL/CTE** for complex cases instead of fighting the ORM.
+  - New Drizzle relational query builder uses object literals ( `{ where: { col: val } }` ) instead of `eq()`, etc.
+- **Batch-first**: accept arrays, use `IN (…)` to avoid N+1.
+- For relational query builder, factor out repeated column/extras **selectors** for reuse.
+- When a shape stabilizes (counts/aggregates), consider a **DB view**.
 
-### Writes (Services)
+### Writes (Services / UoW)
 
-- **One function per use case** (e.g., `advanceTurn`, `archiveChapter`).
-- **Exactly one transaction** per call; enforce invariants inside.
-- Create a service when:
-  - multi-table write or state transition,
-  - needs retries/events/background job,
-  - “Rule of 3” call-site reuse.
+* **One function per use-case** (e.g., `advanceTurn`, `applyIntent`, `archiveChapter`).
+* **Exactly one transaction** per call.
+* Call **engine invariants** (pure) to validate; on failure, **throw `EngineError(code)`**.
+* Keep tx **short**: never call LLMs or remote APIs inside; produce outputs first, then persist.
+* Make writes **idempotent** (unique keys like `(intent_id, sequence)`).
+* Emit events/notifications **after commit** (outbox later if needed).
 
-### Service Coordination
-- **Workflows/pipelines** coordinate multiple write services for complex operations
-    - Example: `TurnGenerationPipeline` might call `TimelineService`, `EventService`, and `NotificationService`
-    - These should still maintain single transaction boundaries where possible
-- **Do not nest transactions.** If a service needs to call another service that also writes, ensure they are coordinated at the top level to share the same transaction context.
+#### Composing Services
+
+- If your unit of work is large, you can compose smaller services together.
+- Higher-level orchestrators (e.g., `IntentService.applyIntent`) open **one outer tx** and pass it down to smaller services.
+- **Do not nest transactions.**
+
+```ts
+export class TimelineService {
+  constructor(private db) {}
+  async advanceTurn(args, outerTx?: Transaction) {
+    const work = async (tx: Transaction) => {
+      // Validate invariants
+      const validation = canAppendTurnToChapter(args.chapterId, args.turnId);
+      if (!validation.ok) {
+        throw new EngineError(validation.error);
+      }
+      // Perform operations
+      const turn = await createTurn(tx, args);
+      await appendTurnToChapter(tx, args.chapterId, turn.id);
+      await updateLastTurn(tx, args.scenarioId, turn.id);
+      return turn;
+    };
+    return outerTx ? work(outerTx) : this.db.transaction(work);
+  }
+}
+
+export class IntentService {
+  constructor(private db) {}
+
+  async applyIntent(args) {
+    return this.db.transaction(async (tx) => {
+      const intent = await getPendingIntents(tx, args.scenarioId);
+      await LoreService.updateLore(intent.loreUpdates, tx);
+      await ParticipantService.updateCharacterStates(intent.characterUpdates, tx);
+      await TimelineService.advanceTurn({ args }, tx);
+      await completeIntent(tx, intent.id);
+    });
+  }
+}
+```
+
+### Engine
+
+- Keep **all** domain rules in `engine/invariants` (e.g., `canCreateTurn`, `canAppendTurnToChapter`).
+- Return `Result`, **services** convert failures to `EngineError(code)`.
+
+### EngineError handling
+
+- `engine-error-to-trpc.ts` maps domain errors to TRPC errors with appropriate HTTP status codes.
+  - `instanceof EngineError` → map `code` to HTTP/TRPC status.
+  -Unknown → 500.
+- Routers don’t catch—just return service/query results.
 
 ### Context System
 
-- **Loader (impure):** (in library) gathers scenario, participants, timeline window, templates, lorebooks.
-- **Builder (pure):** (in engine) constructs a `GenerationContext` from the loader data according to a PromptSpec.
-- Loader owns fetching strategy (window sizes, batching); Builder is purely deterministic.
+- **Loader (impure):** gather scenario, participants, last X turns, summaries, templates, lorebooks.
+- **Builder (pure):** assemble `GenerationContext` from loader data + PromptSpec.
+- Loader decides window sizes/batching; Builder is deterministic/pure.
 
 ### Guardrails
 
-- **No repositories.** Reads = queries; writes = services.
+- **No repositories.** Reads = queries; Writes = services; 
 - **Reads never open transactions.**
-- **Engine code is pure.** Absolutely no `db.*` or network inside agents/builders.
-- **Ports at boundaries:** LLM providers, filesystem/assets, timers, job runners.
-  - LLM code goes in `inference/`
-- **Naming reflects behavior:** `*.queries.ts`, `*.write.service.ts`, `context.loader.ts`, `context.builder.ts`.
-
-### tRPC Procedures
-
-- Validate inputs/outputs via schemas.
-- Orchestrate calls only; **no business logic**.
-
-### When in doubt
-
-- If it **crosses a process/vendor boundary, wrap it.**
-- If you’re about to add a boolean to a query, **make a new query.**
-- If you feel like sharing write choreography, **make a service.**
-- If the function can be pure, **keep it pure.**
+- **Engine code is pure** (no DB, no network).
+- **Invariants are pure** and injected with data from loaders
 
 ## Web API
 

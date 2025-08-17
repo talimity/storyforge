@@ -30,6 +30,11 @@ export function engineErrorToTRPC(e: EngineError): never {
         code: "FORBIDDEN",
         message: "Turn author belongs to another scenario.",
       });
+    case "CannotPromoteMultipleToRoot":
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "Cannot promote multiple turns to root.",
+      });
     // turn progression invariants
     case "ParentTurnNotFound":
       throw new TRPCError({
@@ -51,16 +56,22 @@ export function engineErrorToTRPC(e: EngineError): never {
         code: "FORBIDDEN",
         message: "Parent turn does not belong to the scenario.",
       });
-    case "ChapterAlreadyStarted":
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "Chapter already has a first turn.",
-      });
     case "ChapterProgressionInvalid":
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "Turn cannot be appended to the chapter because it would be out of sequence.",
+      });
+    // turn content invariants
+    case "MissingPresentationLayer":
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Turn content must include a presentation layer.",
+      });
+    case "DuplicateLayerKey":
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Turn content cannot have duplicate layer keys.",
       });
     default: {
       const unmappedError = e.code satisfies never;

@@ -242,7 +242,7 @@ Focus is trapped inside the sheet until it is dismissed.
 
 ## Technical Considerations
 
-### Component Hierarchy
+### Example Component Hierarchy
 ```
 ScenarioPlayerLayout
 ├── TopBar
@@ -269,6 +269,55 @@ Sheets are loaded using a new `useSheet` hook which can simply load the existing
 ### Frontend Performance Considerations
 - **Lazy Loading**: Turn history loads incrementally, bottom-up
 - **State Optimization**: Minimal re-renders during typing and interaction
+
+## Implementation Status
+
+### Completed Architecture Improvements (2025-08-12)
+
+#### Component Architecture
+The scenario player has been refactored to follow a clean, modular architecture:
+
+**Component Hierarchy**:
+```
+PlayerShell                      // Layout shell with navigation
+├── PlayerPage                   // Main player orchestrator
+│   ├── TurnHistory             // Timeline display with pagination
+│   └── IntentPanel             // Input management
+│       ├── DirectControlPanel  // Direct character control
+│       ├── StoryConstraintsPanel // Story guidance
+│       └── QuickActionsPanel  // Quick action buttons
+└── PlayerWidgetSidebar         // Character/tool selector
+```
+
+#### Data Layer Improvements
+- **Custom Hooks**: Created dedicated hooks for data management
+  - `useScenarioBootstrap`: Centralized bootstrap data fetching with caching
+  - `useScenarioTimeline`: Timeline pagination with deduplication support
+  - `useScenarioIntent`: Intent/turn mutations with optimistic updates
+- **State Management Strategy**:
+  - React Query for server state (bootstrap, timeline, mutations)
+  - Zustand for ephemeral client state (selected character)
+  - Component state for UI-specific concerns
+
+#### Key Improvements Delivered
+1. **Reduced complexity**: From 5 useEffects to minimal conditional logic
+2. **Eliminated duplication**: Single bootstrap query shared across components
+3. **Clean separation**: Business logic moved to hooks, UI stays pure
+4. **Pagination ready**: Timeline supports infinite scroll with cursor-based pagination
+5. **Modular intent panels**: Each input mode as a separate component
+
+#### Timeline Data Management
+- Prepared for paginated timeline fetching with overlap deduplication
+- Auto-loading on scroll near top of history
+- Maintains full timeline in memory for smooth scrolling
+- Turn numbering computed from `depthFromAnchor`
+
+### Pending Implementation
+- Backend timeline query implementation (currently stubbed)
+- Real intent processing pipeline
+- Swipe navigation between timeline branches
+- Chapter navigation UI
+- Modal sheet workflow for editors
 
 ## Future Enhancements
 
