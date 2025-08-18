@@ -7,14 +7,12 @@ import { StoryConstraintsPanel } from "./story-constraints-panel";
 export type InputMode = "direct" | "constraints" | "quick";
 
 interface IntentPanelProps {
-  selectedCharacterName: string | null;
   onSubmitIntent: (mode: InputMode, text: string) => Promise<void>;
   onQuickAction: (action: string) => Promise<void>;
   isGenerating: boolean;
 }
 
 export function IntentPanel({
-  selectedCharacterName,
   onSubmitIntent,
   onQuickAction,
   isGenerating,
@@ -50,7 +48,6 @@ export function IntentPanel({
       {/* Mode-specific panels */}
       {inputMode === "direct" && (
         <DirectControlPanel
-          selectedCharacterName={selectedCharacterName}
           inputText={inputText}
           onInputChange={setInputText}
           onGenerate={handleGenerate}

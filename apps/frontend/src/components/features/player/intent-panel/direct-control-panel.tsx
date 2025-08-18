@@ -1,9 +1,11 @@
 import { HStack, Stack, Text, Textarea } from "@chakra-ui/react";
 import { RiQuillPenLine } from "react-icons/ri";
-import { Button } from "@/components/ui";
+import { Avatar, Button } from "@/components/ui";
+import { useScenarioCtx } from "@/lib/providers/scenario-provider";
+import { getApiUrl } from "@/lib/trpc";
+import { useScenarioPlayerStore } from "@/stores/scenario-store";
 
 interface DirectControlPanelProps {
-  selectedCharacterName: string | null;
   inputText: string;
   onInputChange: (text: string) => void;
   onGenerate: () => void;
@@ -11,21 +13,37 @@ interface DirectControlPanelProps {
 }
 
 export function DirectControlPanel({
-  selectedCharacterName,
   inputText,
   onInputChange,
   onGenerate,
   isGenerating,
 }: DirectControlPanelProps) {
-  const isDisabled =
-    !selectedCharacterName || !inputText.trim() || isGenerating;
+  const { charactersById } = useScenarioCtx();
+  const { selectedCharacterId } = useScenarioPlayerStore();
+  if (!selectedCharacterId) {
+    console.warn("Invariant violation: No character selected");
+    return null;
+  }
+
+  const selectedCharacter = charactersById[selectedCharacterId];
+  const selectedCharacterName = selectedCharacter.name || "";
+  const avatarSrc = getApiUrl(selectedCharacter.avatarPath);
+
+  const isDisabled = !inputText.trim() || isGenerating;
 
   return (
     <Stack gap={3}>
-      <HStack>
+      <HStack gap={1}>
         <Text fontSize="xs" color="content.muted">
           Speaking as:
         </Text>
+        <Avatar
+          shape="rounded"
+          layerStyle="surface"
+          name={selectedCharacterName}
+          src={avatarSrc}
+          size="2xs"
+        />
         <Text fontSize="xs" fontWeight="semibold">
           {selectedCharacterName || "No character selected"}
         </Text>

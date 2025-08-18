@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, IconButton, Stack, Text } from "@chakra-ui/react";
+import { Flex, IconButton, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import {
   LuChevronLeft,
@@ -8,9 +8,8 @@ import {
   LuSettings2,
   LuUsers,
 } from "react-icons/lu";
-import { CompactCharacterCard } from "@/components/features/character/compact-character-card";
 import { Button } from "@/components/ui";
-import { useScenarioPlayerStore } from "@/stores/scenario-store";
+import { WidgetPanels } from "./widgets";
 
 interface Character {
   id: string;
@@ -71,10 +70,6 @@ export function PlayerWidgetSidebar({
   onToggle,
   characters,
 }: PlayerWidgetSidebarProps) {
-  // Get client state only from the store
-  const { selectedCharacterId, setSelectedCharacter } =
-    useScenarioPlayerStore();
-
   // Track which widgets are active
   const [activeWidgets, setActiveWidgets] = useState<Set<string>>(
     new Set(["characters"])
@@ -166,80 +161,8 @@ export function PlayerWidgetSidebar({
       </Stack>
 
       {/* Widget Panels (only shown when expanded) */}
-      {expanded && activeWidgets.size > 0 && (
-        <Box
-          flex="1"
-          overflow="auto"
-          borderTopWidth="1px"
-          borderColor="border.subtle"
-        >
-          <Stack p={3} gap={4}>
-            {activeWidgets.has("characters") && (
-              <Box>
-                <Heading size="xs" color="content.muted" mb={3}>
-                  Characters ({characters.length})
-                </Heading>
-                {characters.length > 0 ? (
-                  <Stack gap={2}>
-                    {characters.map((character) => (
-                      <CompactCharacterCard
-                        key={character.id}
-                        character={{
-                          id: character.id,
-                          name: character.name,
-                          cardType: "character" as const,
-                          avatarPath: character.avatarPath,
-                        }}
-                        isSelected={selectedCharacterId === character.id}
-                        onSelectionToggle={() => {
-                          setSelectedCharacter(
-                            selectedCharacterId === character.id
-                              ? null
-                              : character.id
-                          );
-                        }}
-                      />
-                    ))}
-                  </Stack>
-                ) : (
-                  <Text fontSize="xs" color="content.muted">
-                    No characters in this scenario
-                  </Text>
-                )}
-              </Box>
-            )}
-            {activeWidgets.has("scene") && (
-              <Box>
-                <Text fontSize="xs" fontWeight="semibold" mb={2}>
-                  SCENE
-                </Text>
-                <Text fontSize="xs" color="content.muted">
-                  Scene controls will appear here
-                </Text>
-              </Box>
-            )}
-            {activeWidgets.has("director") && (
-              <Box>
-                <Text fontSize="xs" fontWeight="semibold" mb={2}>
-                  DIRECTOR
-                </Text>
-                <Text fontSize="xs" color="content.muted">
-                  Generation settings will appear here
-                </Text>
-              </Box>
-            )}
-            {activeWidgets.has("settings") && (
-              <Box>
-                <Text fontSize="xs" fontWeight="semibold" mb={2}>
-                  TOOLS
-                </Text>
-                <Text fontSize="xs" color="content.muted">
-                  Chapter management will appear here
-                </Text>
-              </Box>
-            )}
-          </Stack>
-        </Box>
+      {expanded && (
+        <WidgetPanels activeWidgets={activeWidgets} characters={characters} />
       )}
     </Flex>
   );

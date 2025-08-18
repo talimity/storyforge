@@ -13,7 +13,7 @@ import { useScenarioCtx } from "@/lib/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/stores/scenario-store";
 
 export function PlayerPage() {
-  const { scenario, characters, participants, chapters } = useScenarioCtx();
+  const { scenario, participants, chapters } = useScenarioCtx();
   const { setActiveScenario } = useActiveScenario();
   const { selectedCharacterId, setSelectedCharacter, reset } =
     useScenarioPlayerStore();
@@ -22,6 +22,7 @@ export function PlayerPage() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: "hook specifies more dependencies than necessary" but we want to trigger reset only on scenarioId change???
   useEffect(() => {
     return () => {
+      console.debug("Resetting scenario player store");
       reset();
     };
   }, [scenario.id, reset]);
@@ -35,22 +36,6 @@ export function PlayerPage() {
     fetchNextPage,
     // timelineDepth,
   } = useScenarioTimeline({ scenarioId: scenario.id });
-
-  // Create participant map for easy lookup
-  const participantMap = useMemo(() => {
-    const map = new Map<string, { name: string; type: string }>();
-    participants.forEach((p) => {
-      if (p.type === "narrator") {
-        map.set(p.id, { name: "Narrator", type: "narrator" });
-      } else if (p.characterId) {
-        const char = characters.find((c) => c.id === p.characterId);
-        if (char) {
-          map.set(p.id, { name: char.name, type: "character" });
-        }
-      }
-    });
-    return map;
-  }, [participants, characters]);
 
   // Auto-select first character when available
   const firstCharacterParticipant = useMemo(
@@ -69,11 +54,6 @@ export function PlayerPage() {
   useEffect(() => {
     setActiveScenario(scenario.id);
   }, [scenario.id, setActiveScenario]);
-
-  // Derive selected character and participant
-  const selectedCharacter = selectedCharacterId
-    ? characters.find((char) => char.id === selectedCharacterId)
-    : null;
 
   const selectedParticipant = selectedCharacterId
     ? participants.find((p) => p.characterId === selectedCharacterId)
@@ -112,13 +92,11 @@ export function PlayerPage() {
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
       onLoadMore={fetchNextPage}
-      participants={participantMap}
     />
   );
 
   const intentPanel = (
     <IntentPanel
-      selectedCharacterName={selectedCharacter?.name || null}
       onSubmitIntent={handleSubmitIntent}
       onQuickAction={handleQuickAction}
       isGenerating={isAddingTurn}
