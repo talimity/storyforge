@@ -127,6 +127,33 @@ describe("TimelineService.deleteTurn", () => {
       expect(scenario!.anchorTurnId).toBe(a.id);
     });
 
+    it("finds leaf when setting new anchor that has children", async () => {
+      // When deleting an anchor and the new proposed anchor has children,
+      // we must traverse down to find the actual leaf
+      //       A
+      //      / \
+      //     B   C    <- current anchor
+      //   / | \
+      //  D  E  F      <- D should become the new anchor (first child path leaf)
+      const a = await createTurn(db, { parent: null });
+      const b = await createTurn(db, { parent: a.id, siblingOrder: RANKS[0] });
+      const c = await createTurn(db, { parent: a.id, siblingOrder: RANKS[1] });
+      const d = await createTurn(db, { parent: b.id, siblingOrder: RANKS[0] });
+      /* e */ await createTurn(db, { parent: b.id, siblingOrder: RANKS[1] });
+      /* f */ await createTurn(db, { parent: b.id, siblingOrder: RANKS[2] });
+      await setAnchor(db, TEST_SCENARIO_ID, c.id);
+
+      // Delete C (the anchor). B would be set as new anchor, but it has children
+      // So the actual anchor should be D (first child in the path)
+      await service.deleteTurn(c.id, true);
+
+      const scenario = await db.query.scenarios.findFirst({
+        where: { id: TEST_SCENARIO_ID },
+      });
+      // Should find D as the leaf (following first child path from B)
+      expect(scenario!.anchorTurnId).toBe(d.id);
+    });
+
     it("preserves order of remaining siblings", async () => {
       //       A
       //    / | | \

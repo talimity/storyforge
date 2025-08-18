@@ -13,6 +13,7 @@ import { z } from "zod";
 import { getScenarioEnvironment } from "@/library/scenario/scenario.queries";
 import { TimelineService } from "@/library/turn/timeline.service";
 import { getTimelineWindow } from "@/library/turn/turn.queries";
+import { TurnContentService } from "@/library/turn/turn-content.service";
 import { publicProcedure, router } from "../index";
 
 export const playRouter = router({
@@ -187,5 +188,57 @@ export const playRouter = router({
     .query(async ({ input, ctx }) => {
       // biome-ignore lint/suspicious/noExplicitAny: todo
       return {} as any;
+    }),
+
+  deleteTurn: publicProcedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/api/play/turn/{turnId}",
+        tags: ["play"],
+        summary: "Delete a turn from the scenario",
+      },
+    })
+    .input(
+      z.object({
+        turnId: z.string(),
+        cascade: z
+          .boolean()
+          .default(false)
+          .describe("Whether to delete all descendant turns"),
+      })
+    )
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      const timelineService = new TimelineService(ctx.db);
+      await timelineService.deleteTurn(input.turnId, input.cascade);
+      return { success: true };
+    }),
+
+  updateTurnContent: publicProcedure
+    .meta({
+      openapi: {
+        method: "PATCH",
+        path: "/api/play/turn/{turnId}/content",
+        tags: ["play"],
+        summary: "Update the content of a turn",
+      },
+    })
+    .input(
+      z.object({
+        turnId: z.string(),
+        layer: z.string().default("presentation"),
+        content: z.string(),
+      })
+    )
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      const contentService = new TurnContentService(ctx.db);
+      await contentService.updateTurnContent({
+        turnId: input.turnId,
+        layer: input.layer,
+        content: input.content,
+      });
+      return { success: true };
     }),
 });

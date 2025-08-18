@@ -34,6 +34,7 @@ export function PlayerPage() {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
+    refetch,
     // timelineDepth,
   } = useScenarioTimeline({ scenarioId: scenario.id });
 
@@ -92,6 +93,7 @@ export function PlayerPage() {
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
       onLoadMore={fetchNextPage}
+      onTurnDeleted={refetch}
     />
   );
 
