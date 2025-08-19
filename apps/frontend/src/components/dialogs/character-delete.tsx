@@ -1,4 +1,5 @@
 import { Text } from "@chakra-ui/react";
+import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui";
 
 interface CharacterDeleteDialogProps {
@@ -16,12 +17,15 @@ export function CharacterDeleteDialog({
   onConfirmDelete,
   isDeleting = false,
 }: CharacterDeleteDialogProps) {
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
   return (
     <Dialog.Root
       role="alertdialog"
       open={isOpen}
       onOpenChange={onOpenChange}
       placement="center"
+      initialFocusEl={() => cancelButtonRef.current}
     >
       <Dialog.Content>
         <Dialog.Header>
@@ -36,6 +40,7 @@ export function CharacterDeleteDialog({
         <Dialog.Footer>
           <Dialog.ActionTrigger asChild>
             <Button
+              ref={cancelButtonRef}
               variant="outline"
               onClick={() => onOpenChange({ open: false })}
               disabled={isDeleting}

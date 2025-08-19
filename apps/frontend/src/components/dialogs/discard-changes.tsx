@@ -1,4 +1,5 @@
 import { Text } from "@chakra-ui/react";
+import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui";
 
 interface DiscardChangesDialogProps {
@@ -12,12 +13,15 @@ export function DiscardChangesDialog({
   onOpenChange,
   onConfirm,
 }: DiscardChangesDialogProps) {
+  const keepEditingButtonRef = useRef<HTMLButtonElement>(null);
+
   return (
     <Dialog.Root
       role="alertdialog"
       open={isOpen}
       onOpenChange={onOpenChange}
       placement="center"
+      initialFocusEl={() => keepEditingButtonRef.current}
     >
       <Dialog.Content>
         <Dialog.Header>
@@ -31,6 +35,7 @@ export function DiscardChangesDialog({
         <Dialog.Footer>
           <Dialog.ActionTrigger asChild>
             <Button
+              ref={keepEditingButtonRef}
               variant="outline"
               onClick={() => onOpenChange({ open: false })}
             >

@@ -7,7 +7,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, toaster } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
@@ -24,6 +24,7 @@ export function CharacterImportDialog({
   onImportSuccess,
 }: CharacterImportDialog) {
   const [isUploading, setIsUploading] = useState(false);
+  const browseButtonRef = useRef<HTMLButtonElement>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>(
@@ -194,6 +195,7 @@ export function CharacterImportDialog({
       onOpenChange={({ open }) => !open && handleClose()}
       size="lg"
       placement="center"
+      initialFocusEl={() => browseButtonRef.current}
     >
       <Dialog.Content>
         <Dialog.Header>
@@ -231,7 +233,7 @@ export function CharacterImportDialog({
                     Supports TavernCard PNG files up to 10MB each
                   </Text>
                 </VStack>
-                <Button size="sm" variant="outline" disabled={isUploading}>
+                <Button ref={browseButtonRef} size="sm" variant="outline" disabled={isUploading}>
                   Browse Files
                 </Button>
               </VStack>

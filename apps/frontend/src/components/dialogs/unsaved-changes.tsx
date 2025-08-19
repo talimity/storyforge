@@ -1,4 +1,5 @@
 import { HStack, Text } from "@chakra-ui/react";
+import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui";
 
 interface UnsavedChangesDialogProps {
@@ -16,6 +17,8 @@ export function UnsavedChangesDialog({
   title = "Unsaved Changes",
   message = "You have unsaved changes. Are you sure you want to leave?",
 }: UnsavedChangesDialogProps) {
+  const stayButtonRef = useRef<HTMLButtonElement>(null);
+
   return (
     <Dialog.Root
       open={isOpen}
@@ -23,6 +26,7 @@ export function UnsavedChangesDialog({
       placement="center"
       data-testid="unsaved-changes-dialog"
       size="md"
+      initialFocusEl={() => stayButtonRef.current}
     >
       <Dialog.Content>
         <Dialog.Header>
@@ -33,7 +37,7 @@ export function UnsavedChangesDialog({
         </Dialog.Body>
         <Dialog.Footer>
           <HStack gap={3}>
-            <Button variant="outline" onClick={onCancel}>
+            <Button ref={stayButtonRef} variant="outline" onClick={onCancel}>
               Stay
             </Button>
             <Button colorPalette="red" onClick={onConfirm}>

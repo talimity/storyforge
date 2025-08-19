@@ -73,6 +73,7 @@ An agent can invoke the `chakra-ui` Model Context Protocol tool to quickly look 
 - Example usage
 - Theming options
 - Theme customization, given design tokens
+- v2 to v3 migration guides (note: it's unlikely you'll need this as we started with v3)
 
 Use this tool often whenever you need to reference Chakra UI documentation or examples, especially if you are not sure absolutely sure how to achieve a specific design.
 
