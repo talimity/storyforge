@@ -11,17 +11,11 @@ interface TurnItemProps {
   turn: TimelineTurn;
   onDelete?: (turnId: string) => void;
   onEdit?: (turnId: string, content: string) => void;
-  isDeleting?: boolean;
+
   isUpdating?: boolean;
 }
 
-function TurnItemImpl({
-  turn,
-  onDelete,
-  onEdit,
-  isDeleting,
-  isUpdating,
-}: TurnItemProps) {
+function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(turn.content.text);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
@@ -96,7 +90,6 @@ function TurnItemImpl({
                       variant="ghost"
                       onClick={handleEditClick}
                       aria-label="Edit turn"
-                      disabled={isDeleting || isUpdating}
                     >
                       <LuPencil />
                     </Button>
@@ -108,8 +101,6 @@ function TurnItemImpl({
                       colorPalette="red"
                       onClick={handleDelete}
                       aria-label="Delete turn"
-                      disabled={isDeleting || isUpdating}
-                      loading={isDeleting}
                     >
                       <LuTrash2 />
                     </Button>

@@ -7,7 +7,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, toaster } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
@@ -233,7 +233,12 @@ export function CharacterImportDialog({
                     Supports TavernCard PNG files up to 10MB each
                   </Text>
                 </VStack>
-                <Button ref={browseButtonRef} size="sm" variant="outline" disabled={isUploading}>
+                <Button
+                  ref={browseButtonRef}
+                  size="sm"
+                  variant="outline"
+                  disabled={isUploading}
+                >
                   Browse Files
                 </Button>
               </VStack>

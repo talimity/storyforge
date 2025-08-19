@@ -1,5 +1,6 @@
 import {
   createScenarioSchema,
+  scenarioCharacterStartersResponseSchema,
   scenarioIdSchema,
   scenarioSchema,
   scenariosWithCharactersListResponseSchema,
@@ -10,6 +11,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, router } from "@/api/index";
 import {
+  getScenarioCharacterStarters,
   getScenarioDetail,
   listScenarios,
 } from "@/library/scenario/scenario.queries";
@@ -61,6 +63,39 @@ export const scenariosRouter = router({
       }
 
       return transformScenarioDetail(scenario);
+    }),
+
+  getCharacterStarters: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/scenarios/{id}/character-starters",
+        tags: ["scenarios"],
+        summary: "Get character starters for all characters in a scenario",
+      },
+    })
+    .input(scenarioIdSchema)
+    .output(scenarioCharacterStartersResponseSchema)
+    .query(async ({ input, ctx }) => {
+      try {
+        const charactersWithStarters = await getScenarioCharacterStarters(
+          ctx.db,
+          input.id
+        );
+
+        return {
+          charactersWithStarters,
+        };
+      } catch (error) {
+        ctx.logger.error(
+          error,
+          `Error fetching character starters for scenario ${input.id}`
+        );
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scenario not found",
+        });
+      }
     }),
 
   create: publicProcedure

@@ -19,10 +19,8 @@ export function PlayerLayout({ turnHistory, intentPanel }: PlayerLayoutProps) {
         overflow="auto"
         px={{ base: 4, md: 8, lg: 12 }}
         py={{ base: 4, md: 6 }}
-        // make sure last item does not get overlapped by the input panel
-        pb={{ base: 32, md: 40 }}
       >
-        <Box maxW="3xl" mx="auto">
+        <Box maxW="full" mx="auto">
           {turnHistory}
         </Box>
       </Box>

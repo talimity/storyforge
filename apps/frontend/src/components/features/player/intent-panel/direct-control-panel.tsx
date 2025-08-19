@@ -39,7 +39,7 @@ export function DirectControlPanel({
         </Text>
         <Avatar
           shape="rounded"
-          layerStyle="surface"
+          layerStyle="contrast"
           name={selectedCharacterName}
           src={avatarSrc}
           size="2xs"

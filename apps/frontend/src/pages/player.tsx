@@ -83,8 +83,18 @@ export function PlayerPage() {
     });
   };
 
+  const handleStarterSelect = async (
+    characterId: string,
+    starterId: string
+  ) => {
+    // TODO: Implement starter selection logic
+    console.log("Selected starter:", { characterId, starterId });
+    // This would typically create a first turn using the starter message
+  };
+
   const turnHistory = (
     <TurnHistory
+      scenarioId={scenario.id}
       scenarioTitle={scenario.title}
       chapterTitle={
         chapters.length > 0 ? chapters[0].title || "Chapter 1" : undefined
@@ -94,6 +104,7 @@ export function PlayerPage() {
       isFetchingNextPage={isFetchingNextPage}
       onLoadMore={fetchNextPage}
       onTurnDeleted={refetch}
+      onStarterSelect={handleStarterSelect}
     />
   );
 

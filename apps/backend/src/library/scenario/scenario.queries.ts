@@ -115,3 +115,72 @@ export async function getScenarioEnvironment(
     generatingIntent: null, // TODO: Implement when intent system is ready
   };
 }
+
+export type ScenarioCharacterStarters = Awaited<
+  ReturnType<typeof getScenarioCharacterStarters>
+>;
+
+/**
+ * Fetches character starters for all characters in a scenario.
+ */
+export async function getScenarioCharacterStarters(
+  db: SqliteDatabase,
+  scenarioId: string
+) {
+  const result = await db.query.scenarios.findFirst({
+    where: { id: scenarioId },
+    columns: { id: true },
+    with: {
+      participants: {
+        columns: { id: true, characterId: true },
+        with: {
+          character: {
+            ...scenarioCharaSummaryColumns,
+            with: {
+              starters: {
+                columns: {
+                  id: true,
+                  characterId: true,
+                  message: true,
+                  isPrimary: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+                orderBy: (s, { desc }) => [
+                  desc(s.isPrimary),
+                  desc(s.createdAt),
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!result) {
+    throw new Error(`Scenario with id ${scenarioId} not found`);
+  }
+
+  return result.participants
+    .map((p) => p.character)
+    .filter(isDefined)
+    .map((character) => ({
+      character: {
+        id: character.id,
+        name: character.name,
+        cardType: character.cardType,
+        creatorNotes: character.creatorNotes,
+        tags: character.tags || [],
+        imagePath: character.hasPortrait
+          ? `/assets/characters/${character.id}/card`
+          : null,
+        avatarPath: character.hasPortrait
+          ? `/assets/characters/${character.id}/avatar`
+          : null,
+        createdAt: character.createdAt,
+        updatedAt: character.updatedAt,
+      },
+      starters: character.starters,
+    }));
+}

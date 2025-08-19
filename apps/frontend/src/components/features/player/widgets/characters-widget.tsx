@@ -1,6 +1,7 @@
 import { Box, Heading, Stack, Text } from "@chakra-ui/react";
 import { memo } from "react";
-import { CompactCharacterCard } from "@/components/features/character/compact-character-card";
+import { LuCheck } from "react-icons/lu";
+import { CharacterListItem } from "@/components/features/character/character-list-item";
 import { useScenarioPlayerStore } from "@/stores/scenario-store";
 
 interface Character {
@@ -25,24 +26,41 @@ export const CharactersWidget = memo(function CharactersWidget({
         Characters ({characters.length})
       </Heading>
       {characters.length > 0 ? (
-        <Stack gap={2}>
-          {characters.map((character) => (
-            <CompactCharacterCard
-              key={character.id}
-              character={{
-                id: character.id,
-                name: character.name,
-                cardType: "character" as const,
-                avatarPath: character.avatarPath,
-              }}
-              isSelected={selectedCharacterId === character.id}
-              onSelectionToggle={() => {
-                setSelectedCharacter(
-                  selectedCharacterId === character.id ? null : character.id
-                );
-              }}
-            />
-          ))}
+        <Stack gap={1}>
+          {characters.map((character) => {
+            const isSelected = selectedCharacterId === character.id;
+            return (
+              <Box
+                key={character.id}
+                p={2}
+                borderRadius="md"
+                cursor="pointer"
+                _hover={{ bg: "surface.muted" }}
+                bg={isSelected ? "surface.emphasized" : "transparent"}
+                onClick={() => {
+                  setSelectedCharacter(
+                    selectedCharacterId === character.id ? null : character.id
+                  );
+                }}
+              >
+                <CharacterListItem character={character}>
+                  {isSelected && (
+                    <Box
+                      height="16px"
+                      width="16px"
+                      layerStyle="contrast"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      borderRadius="sm"
+                    >
+                      <LuCheck size={12} color="white" />
+                    </Box>
+                  )}
+                </CharacterListItem>
+              </Box>
+            );
+          })}
         </Stack>
       ) : (
         <Text fontSize="xs" color="content.muted">

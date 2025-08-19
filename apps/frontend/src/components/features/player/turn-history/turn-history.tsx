@@ -1,11 +1,16 @@
 import { Box, Heading, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/schemas";
 import { TurnDeleteDialog } from "@/components/dialogs/turn-delete";
+import {
+  CharacterStarterSelector,
+  TurnItem,
+} from "@/components/features/player/turn-history";
 import { useAutoLoadMore } from "@/lib/hooks/use-auto-load-more";
 import { useTurnActions } from "@/lib/hooks/use-turn-actions";
-import { TurnItem } from "./turn-item";
+import { trpc } from "@/lib/trpc";
 
 interface TurnHistoryProps {
+  scenarioId: string;
   scenarioTitle: string;
   chapterTitle?: string;
   turns: TimelineTurn[];
@@ -13,9 +18,11 @@ interface TurnHistoryProps {
   isFetchingNextPage?: boolean;
   onLoadMore?: () => void;
   onTurnDeleted?: () => void;
+  onStarterSelect?: (characterId: string, starterId: string) => void;
 }
 
 export function TurnHistory({
+  scenarioId,
   scenarioTitle,
   chapterTitle,
   turns,
@@ -23,9 +30,9 @@ export function TurnHistory({
   isFetchingNextPage,
   onLoadMore,
   onTurnDeleted,
+  onStarterSelect,
 }: TurnHistoryProps) {
   const {
-    turnToDelete,
     showDeleteDialog,
     isDeleting,
     editingTurnId,
@@ -45,6 +52,16 @@ export function TurnHistory({
     isFetching: !!isFetchingNextPage,
     rootMargin: "200px 0px 0px 0px",
   });
+
+  // Fetch character starters only when there are no turns
+  const { data: startersData } = trpc.scenarios.getCharacterStarters.useQuery(
+    { id: scenarioId },
+    { enabled: turns.length === 0 }
+  );
+
+  const handleStarterSelect = (characterId: string, starterId: string) => {
+    onStarterSelect?.(characterId, starterId);
+  };
 
   return (
     <>
@@ -70,10 +87,17 @@ export function TurnHistory({
 
         {/* Turn list */}
         {turns.length === 0 ? (
-          <Box textAlign="center" py={8} color="content.muted">
-            <Text>Nothing here yet.</Text>
-            {/*  TODO: Add CharacterStarterSelector when no turns */}
-          </Box>
+          startersData?.charactersWithStarters &&
+          startersData.charactersWithStarters.length > 0 ? (
+            <CharacterStarterSelector
+              charactersWithStarters={startersData.charactersWithStarters}
+              onStarterSelect={handleStarterSelect}
+            />
+          ) : (
+            <Box textAlign="center" color="content.muted">
+              <Text>Nothing here yet.</Text>
+            </Box>
+          )
         ) : (
           <Stack gap={4} px={4} pb={4}>
             {turns.map((turn) => (
@@ -82,7 +106,6 @@ export function TurnHistory({
                 turn={turn}
                 onDelete={handleDeleteTurn}
                 onEdit={handleEditTurn}
-                isDeleting={turnToDelete === turn.id && isDeleting}
                 isUpdating={editingTurnId === turn.id && isUpdating}
               />
             ))}

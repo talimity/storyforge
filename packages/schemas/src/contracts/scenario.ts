@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { characterSummarySchema } from "./character.js";
+import { characterStarterSchema, characterSummarySchema } from "./character.js";
 
 // Input schemas
 export const scenarioIdSchema = z.object({
@@ -81,6 +81,15 @@ export const scenariosWithCharactersListResponseSchema = z.object({
   scenarios: z.array(scenarioWithCharactersSchema),
 });
 
+export const characterWithStartersSchema = z.object({
+  character: characterSummarySchema,
+  starters: z.array(characterStarterSchema),
+});
+
+export const scenarioCharacterStartersResponseSchema = z.object({
+  charactersWithStarters: z.array(characterWithStartersSchema),
+});
+
 // Export inferred types
 export type Scenario = z.infer<typeof scenarioSchema>;
 export type ScenarioWithCharacters = z.infer<
@@ -93,3 +102,7 @@ export type AssignCharacterInput = z.infer<typeof assignCharacterSchema>;
 export type UnassignCharacterInput = z.infer<typeof unassignCharacterSchema>;
 export type ReorderCharactersInput = z.infer<typeof reorderCharactersSchema>;
 export type ScenariosListResponse = z.infer<typeof scenariosListResponseSchema>;
+export type CharacterWithStarters = z.infer<typeof characterWithStartersSchema>;
+export type ScenarioCharacterStartersResponse = z.infer<
+  typeof scenarioCharacterStartersResponseSchema
+>;

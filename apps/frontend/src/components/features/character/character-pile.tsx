@@ -1,4 +1,5 @@
 import { type AvatarRoot, Menu, Portal } from "@chakra-ui/react";
+import { CharacterListItem } from "@/components/features/character/character-list-item";
 import { Avatar, AvatarGroup } from "@/components/ui";
 import { getApiUrl } from "@/lib/trpc";
 
@@ -81,16 +82,7 @@ export function CharacterPile({
                         : undefined
                     }
                   >
-                    <Avatar
-                      name={character.name}
-                      layerStyle={layerStyle}
-                      src={
-                        character.avatarPath
-                          ? getApiUrl(character.avatarPath)
-                          : undefined
-                      }
-                    />
-                    {character.name}
+                    <CharacterListItem character={character} />
                   </Menu.Item>
                 ))}
               </Menu.Content>

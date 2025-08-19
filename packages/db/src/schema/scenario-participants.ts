@@ -23,6 +23,7 @@ export const scenarioParticipants = sqliteTable(
       .$type<"active" | "inactive">()
       .notNull()
       .default("active"),
+    // goal: text("goal"), // Character's goal in the scenario, if applicable; only shown to the agent controlling that character
     role: text("role"), // Free-form role description (e.g., "Player", "GM", etc.)
     orderIndex: integer("order_index").notNull().default(0), // Display order
     createdAt: integer("created_at", { mode: "timestamp" })

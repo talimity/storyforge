@@ -6,35 +6,46 @@ Describes the data model, API contracts, and read/write services for the timelin
 - **Scenario:** a story world with participants, characters, chapters, and turns.
 - **Participant:** an entity in the scenario; can be the narrator or a character from user's Library.
 - **Character:** a persona with name, avatar, and SillyTavern v2 data; linked to a participant.
-- **Turn:** a diegetic narrative unit authored by a participant. Each turn might have multiple layers.
+- **Turn:** a diegetic narrative unit authored by a participant. Each turn might have multiple content layers.
 - **Layer:** a specific view of a turn's content, e.g., "presentation" for prose shown to player, "planning" for LLM agents' reasoning, etc.
   - **`presentation` layer:** default layer for player-facing content. Always present; other layers depend on agent configuration.
 - **Chapter:** a narrative boundary within the scenario, grouping turns together. Functions as both player-facing label and a boundary for LLM summarization to reduce context size.
-- **Timeline:** a path of turns from the scenario start down to the current leaf ('anchor').
-- **Swipes:** named after Character.ai swipe feature which allows players to swipe away turns they don't like. In this context, it refers to branches in the timeline. Switching branches is done by changing the scenario's anchor leaf turn.
+- **Swipes:** named after Character.ai swipe feature which allows players to swipe away turns they don't like. In this context, it refers to branches in the timeline.
+  - Siblings/swipes are always alternate takes on the same situation (the parent turn). 
+- **Turn Graph:** a rooted tree structure of turns, where each turn can have multiple children (swipes) and a single parent.
+- **Timeline:** a path from scenario root `r` to some leaf turn `l`, representing a continuous narrative flow.
+    - **Root turn:** the first turn in the scenario, from which all timelines start.
+    - **Leaf turn:** a turn with no children, representing the end of one narrative branch.
+    - **Anchor turn:** the leaf turn for the branch currently being played by the user. It represents the current state of the scenario.
+    - **Active timeline:** the path from `r` to anchor turn `a`; the timeline that is displayed in the main UI and used to build prompts for LLM agents.
 - **Intent:** a non-diegetic record of player input, which leads to one or more turns being generated. It can be a direct control action, a story constraint, or a quick action.
 - **Intent effect:** the mapping of an intent to the turns it caused, with a sequence number indicating the order of effects.
 
 ## Decisions
 
-### Timeline fundamentals
+### Timeline API
 
 - **Paging model:** **cursor-by-ancestor**. Each page asks for `leafTurnId`, returns a window up toward the root (root→leaf order), plus `cursors.nextLeafId` (the parent of the top row) or `null` if you hit root.
 - **Window size:** `windowSize` (e.g., 12) is the number of turns to return, starting from the leaf turn. The server computes the slice from the leaf up to the root.
-- **Turn content:** timeline returns **one layer only** (default `"presentation"`). No fat `contents` map.
-- **Swipes:** include prev/next sibling ids **and** `swipeCount` + `swipeIndex` (0‑based). UI shows existence; no switching yet.
+- **Turn content:** timeline returns **one layer only** (default `"presentation"`).
+- **Swipes:** include prev/next sibling ids `swipeCount` + `swipeNo` (1-based) for each turn. Allows UI to hint at alternate branches without loading all branches.
 - **Numbering:** turn numbers derived by server by traversing the tree from the leaf up to the root. Each turn has a `turnNo` (1-based relative to root) for UI display.
-- **Skinny timeline:** keep only ids + metadata. Participants/characters/chapters are loaded once via **play.environment** and cached client‑side.
+- **Skinny timeline:** timeline API returns only ids + metadata. Participants/characters/chapters are loaded once via **play.environment** and cached client‑side.
 
 ### Chapters
 
 - A turn belongs to **exactly one chapter**.
-- Keep a single `scenario.current_turn_id` (do **not** split the tree per chapter).
+- Keep a single `scenario.anchor_turn_id` (do **not** split the tree per chapter).
 - Chapters are *labels/boundaries* along the mainline. ~~Store `chapters.first_turn_id` for crisp boundaries.~~
 ~~- **Chapter numbering** (derived):~~
   ~~For each row, return `chapterId` and compute `chapterTurnNumber = depthFromAnchorOfChapterStart - depthFromAnchor + 1`.~~
   - Droppped firstTurnId, since chapters might have multiple first turns. Tricky...
-- Summarization is out of scope now
+- Chapters are not a separate tree, they are just labels on turns.
+  - Therefore, chapter boundaries are derived from the turn graph, not stored explicitly.
+- Because start and end points for chapters are not fixed and depend on the selected timeline, there can't be just one summary for a chapter.
+  - Summaries will be stored on the turn that acts as the end of a chapter for a given timeline.
+  - Switching branches may change the shape of a chapter, and so a summary will need to be generated for the new path through the chapter.
+  - This suggests the need for some sort of hash to identify when a summary is valid for a given chapter path, or to invalidate it when the path changes.
 
 ### Intents & effects
 

@@ -7,6 +7,7 @@ export * from "./dialog";
 export * from "./empty-state";
 export * from "./field";
 export * from "./page-header";
+export * from "./prose";
 export * from "./radio";
 export * from "./select";
 export * from "./split-button";
