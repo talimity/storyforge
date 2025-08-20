@@ -1,4 +1,6 @@
 import {
+  characterAutocompleteInputSchema,
+  characterAutocompleteResponseSchema,
   characterIdSchema,
   characterIdsSchema,
   characterImportResponseSchema,
@@ -17,6 +19,7 @@ import {
   getCharacterDetail,
   getCharacters,
   listCharacters,
+  searchCharacters,
 } from "@/library/character/character.queries";
 import { transformCharacter } from "@/library/character/character.transforms";
 import { CharacterService } from "@/library/character/character-service";
@@ -37,6 +40,25 @@ export const charactersRouter = router({
     .query(async ({ ctx }) => {
       const characters = await listCharacters(ctx.db);
       return { characters: characters.map(transformCharacter) };
+    }),
+
+  search: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/characters/search",
+        tags: ["characters"],
+        summary: "Search characters for autocomplete",
+      },
+    })
+    .input(characterAutocompleteInputSchema)
+    .output(characterAutocompleteResponseSchema)
+    .query(async ({ input, ctx }) => {
+      const characters = await searchCharacters(ctx.db, {
+        name: input.name || "",
+        scenarioId: input.scenarioId,
+      });
+      return { characters };
     }),
 
   getById: publicProcedure

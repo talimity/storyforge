@@ -3,9 +3,16 @@ import type {
   Character as ApiCharacter,
   CharacterSummary as ApiCharacterSummary,
 } from "@storyforge/schemas";
+import { getCharaAssetPaths } from "./utils/chara-asset-helpers";
+
+// TODO: don't use this file. queries should select exactly what they need to
+// satisfy whatever procedure they're used in and return that directly. no more
+// transformations should be added here.
 
 /**
  * Transforms a database character record to API format
+ *
+ * @deprecated
  */
 export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
   return {
@@ -24,17 +31,15 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
     tavernCardData: dbCharacter.tavernCardData
       ? JSON.parse(JSON.stringify(dbCharacter.tavernCardData))
       : null,
-    imagePath: dbCharacter.portrait
-      ? `/assets/characters/${dbCharacter.id}/card`
-      : null,
-    avatarPath: dbCharacter.portrait
-      ? `/assets/characters/${dbCharacter.id}/avatar`
-      : null,
+    ...getCharaAssetPaths(dbCharacter),
     createdAt: dbCharacter.createdAt,
     updatedAt: dbCharacter.updatedAt,
   };
 }
 
+/**
+ * @deprecated
+ */
 export function transformCharacterSummary(
   charaSummary: Pick<
     DbCharacter,
@@ -55,11 +60,6 @@ export function transformCharacterSummary(
     cardType: charaSummary.cardType,
     tags: charaSummary.tags || [],
     creatorNotes: charaSummary.creatorNotes,
-    imagePath: charaSummary.hasPortrait
-      ? `/assets/characters/${charaSummary.id}/card`
-      : null,
-    avatarPath: charaSummary.hasPortrait
-      ? `/assets/characters/${charaSummary.id}/avatar`
-      : null,
+    ...getCharaAssetPaths(charaSummary),
   };
 }

@@ -12,7 +12,7 @@ export function getCharaAssetPaths(
     return { imagePath: null, avatarPath: null };
   }
   return {
-    imagePath: `/assets/characters/${character.id}/image`,
+    imagePath: `/assets/characters/${character.id}/card`,
     avatarPath: `/assets/characters/${character.id}/avatar`,
   };
 }

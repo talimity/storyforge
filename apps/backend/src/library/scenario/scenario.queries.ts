@@ -172,12 +172,7 @@ export async function getScenarioCharacterStarters(
         cardType: character.cardType,
         creatorNotes: character.creatorNotes,
         tags: character.tags || [],
-        imagePath: character.hasPortrait
-          ? `/assets/characters/${character.id}/card`
-          : null,
-        avatarPath: character.hasPortrait
-          ? `/assets/characters/${character.id}/avatar`
-          : null,
+        ...getCharaAssetPaths(character),
         createdAt: character.createdAt,
         updatedAt: character.updatedAt,
       },

@@ -16,6 +16,7 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
+import { useState } from "react";
 import {
   LuBook,
   LuLayoutGrid,
@@ -23,6 +24,10 @@ import {
   LuPlus,
   LuUsersRound,
 } from "react-icons/lu";
+import {
+  CharacterMultiSelect,
+  CharacterSingleSelect,
+} from "@/components/features/character/character-selector";
 import {
   Button,
   Checkbox,
@@ -48,6 +53,7 @@ export function ThemeDemoPage() {
       <MaterialExample />
       <TypographyExample />
       <CustomHeadingExample />
+      <CharacterSelectorExample />
       <PageHeaderExamples />
       <InlineFormExample />
       <FormExample />
@@ -160,6 +166,68 @@ function CustomHeadingExample() {
       <StoryHeading size="lg">Section Title</StoryHeading>
       <StoryHeading size="md">Subsection</StoryHeading>
     </>
+  );
+}
+
+// Example: Character Selector Component
+function CharacterSelectorExample() {
+  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
+    "sqboqbooj5ngqjlm6covotra"
+  );
+  const [selectedMany, setSelectedMany] = useState<string[]>([]);
+
+  return (
+    <Box p={8}>
+      <Heading size="xl" mb={4}>
+        Character Selector Component
+      </Heading>
+      <Text color="content.muted" mb={6}>
+        Autocomplete dropdown for selecting characters from the library
+      </Text>
+
+      <Stack gap={6}>
+        <Card.Root layerStyle="surface">
+          <Card.Body>
+            <Heading size="md" mb={4}>
+              Basic Character Selector
+            </Heading>
+
+            <CharacterSingleSelect
+              value={selectedCharacter}
+              onChange={setSelectedCharacter}
+            />
+            {selectedCharacter && (
+              <Text mt={2} fontSize="sm" color="content.muted">
+                Selected character ID: {selectedCharacter}
+              </Text>
+            )}
+            <Box h={8} />
+
+            <Heading size="md" mb={4}>
+              Multi Character Selector
+            </Heading>
+            <CharacterMultiSelect
+              value={selectedMany}
+              onChange={setSelectedMany}
+            />
+            <HStack mt={2} wrap="wrap" gap={2}>
+              {selectedMany.map((id) => (
+                <Text
+                  key={id}
+                  fontSize="xs"
+                  layerStyle="surface"
+                  px={2}
+                  py={1}
+                  borderRadius="xl"
+                >
+                  {id}
+                </Text>
+              ))}
+            </HStack>
+          </Card.Body>
+        </Card.Root>
+      </Stack>
+    </Box>
   );
 }
 

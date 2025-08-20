@@ -135,6 +135,23 @@ export const charactersListResponseSchema = z.object({
   characters: z.array(characterSummarySchema),
 });
 
+export const characterAutocompleteInputSchema = z.object({
+  name: z.string().default(""),
+  scenarioId: z.string().optional(),
+});
+
+export const characterAutocompleteItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  imagePath: z.string().nullable(),
+  avatarPath: z.string().nullable(),
+  cardType: cardTypeSchema,
+});
+
+export const characterAutocompleteResponseSchema = z.object({
+  characters: z.array(characterAutocompleteItemSchema),
+});
+
 // Export inferred types
 export type Character = z.infer<typeof characterSchema>;
 export type CharacterWithRelations = z.infer<
@@ -151,4 +168,13 @@ export type CreateCharacterInput = z.infer<typeof createCharacterSchema>;
 export type UpdateCharacterInput = z.infer<typeof updateCharacterSchema>;
 export type CharactersListResponse = z.infer<
   typeof charactersListResponseSchema
+>;
+export type CharacterAutocompleteInput = z.infer<
+  typeof characterAutocompleteInputSchema
+>;
+export type CharacterAutocompleteItem = z.infer<
+  typeof characterAutocompleteItemSchema
+>;
+export type CharacterAutocompleteResponse = z.infer<
+  typeof characterAutocompleteResponseSchema
 >;

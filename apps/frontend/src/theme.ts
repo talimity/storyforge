@@ -651,6 +651,16 @@ export const appTheme = defineConfig({
       fontFamily: "var(--chakra-fonts-heading)",
       color: "var(--chakra-colors-content-emphasized)",
     },
+    "::selection": {
+      backgroundColor: {
+        _light: "var(--chakra-colors-gold-500)/30", // Semi-transparent gold for light mode
+        _dark: "var(--chakra-colors-gold-dark-500)/40", // Brighter semi-transparent gold for dark mode
+      },
+      color: {
+        _light: "var(--chakra-colors-neutral-900)", // Dark text on light selection
+        _dark: "var(--chakra-colors-neutral-dark-950)", // Bright text on dark selection
+      },
+    },
   },
   theme: {
     tokens,

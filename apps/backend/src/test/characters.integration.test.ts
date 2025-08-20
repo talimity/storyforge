@@ -87,6 +87,192 @@ describe("characters router integration", () => {
     });
   });
 
+  describe("characters.search", () => {
+    it("should return empty list when no characters match", async () => {
+      const result = await caller.characters.search({
+        name: "NonExistentCharacter",
+      });
+      expect(result.characters).toHaveLength(0);
+    });
+
+    it("should return all characters when name is empty", async () => {
+      await seedCharacterFixtures(testDb);
+
+      const result = await caller.characters.search({
+        name: "",
+      });
+      expect(result.characters.length).toBeLessThanOrEqual(10);
+      expect(result.characters[0]).toHaveProperty("id");
+      expect(result.characters[0]).toHaveProperty("name");
+      expect(result.characters[0]).toHaveProperty("imagePath");
+      expect(result.characters[0]).toHaveProperty("avatarPath");
+      expect(result.characters[0]).toHaveProperty("cardType");
+    });
+
+    it("should perform case-insensitive prefix search", async () => {
+      await caller.characters.create({
+        name: "Alice",
+        description: "Test character Alice",
+      });
+      await caller.characters.create({
+        name: "Alicia",
+        description: "Test character Alicia",
+      });
+      await caller.characters.create({
+        name: "Bob",
+        description: "Test character Bob",
+      });
+
+      const result = await caller.characters.search({
+        name: "ali",
+      });
+      expect(result.characters).toHaveLength(2);
+      expect(result.characters.map((c) => c.name)).toContain("Alice");
+      expect(result.characters.map((c) => c.name)).toContain("Alicia");
+
+      const result2 = await caller.characters.search({
+        name: "ALIC",
+      });
+      expect(result2.characters).toHaveLength(2);
+
+      const result3 = await caller.characters.search({
+        name: "bob",
+      });
+      expect(result3.characters).toHaveLength(1);
+      expect(result3.characters[0]!.name).toBe("Bob");
+    });
+
+    it("should return at most 10 characters", async () => {
+      for (let i = 1; i <= 12; i++) {
+        await caller.characters.create({
+          name: `Character ${i.toString().padStart(2, "0")}`,
+          description: `Test character ${i}`,
+        });
+      }
+
+      const result = await caller.characters.search({
+        name: "",
+      });
+      expect(result.characters).toHaveLength(10);
+    });
+
+    it("should sort results by name", async () => {
+      await caller.characters.create({
+        name: "Zebra",
+        description: "Test character",
+      });
+      await caller.characters.create({
+        name: "Alpha",
+        description: "Test character",
+      });
+      await caller.characters.create({
+        name: "Beta",
+        description: "Test character",
+      });
+
+      const result = await caller.characters.search({
+        name: "",
+      });
+
+      const names = result.characters.map((c) => c.name);
+      const sortedNames = [...names].sort();
+      expect(names).toEqual(sortedNames);
+    });
+
+    it("should include correct asset paths for characters with portraits", async () => {
+      const fixtures = await loadCharacterFixtures();
+      expect(fixtures.length).toBeGreaterThan(0);
+      const fixture = fixtures[0];
+
+      const base64Data = fixture!.buffer.toString("base64");
+      const imageDataUri = `data:image/png;base64,${base64Data}`;
+
+      const charWithImage = await caller.characters.create({
+        name: "CharacterWithImage",
+        description: "Has an image",
+        imageDataUri,
+      });
+
+      const charWithoutImage = await caller.characters.create({
+        name: "CharacterWithoutImage",
+        description: "No image",
+      });
+
+      const result = await caller.characters.search({
+        name: "Character",
+      });
+
+      const withImage = result.characters.find(
+        (c) => c.id === charWithImage.id
+      );
+      const withoutImage = result.characters.find(
+        (c) => c.id === charWithoutImage.id
+      );
+
+      expect(withImage).toBeDefined();
+      expect(withImage!.imagePath).toBe(
+        `/assets/characters/${charWithImage.id}/card`
+      );
+      expect(withImage!.avatarPath).toBe(
+        `/assets/characters/${charWithImage.id}/avatar`
+      );
+
+      expect(withoutImage).toBeDefined();
+      expect(withoutImage!.imagePath).toBeNull();
+      expect(withoutImage!.avatarPath).toBeNull();
+    });
+
+    it("should filter by scenarioId when provided", async () => {
+      const char1 = await caller.characters.create({
+        name: "Character1",
+        description: "First character",
+      });
+      const char2 = await caller.characters.create({
+        name: "Character2",
+        description: "Second character",
+      });
+      const char3 = await caller.characters.create({
+        name: "Character3",
+        description: "Third character",
+      });
+
+      const scenario = await caller.scenarios.create({
+        name: "Test Scenario",
+        description: "Test scenario for filtering",
+        status: "active",
+        characterIds: [char1.id, char2.id],
+      });
+
+      const allResults = await caller.characters.search({
+        name: "Character",
+      });
+      expect(allResults.characters).toHaveLength(3);
+
+      const scenarioResults = await caller.characters.search({
+        name: "Character",
+        scenarioId: scenario.id,
+      });
+      expect(scenarioResults.characters).toHaveLength(2);
+      const scenarioCharIds = scenarioResults.characters.map((c) => c.id);
+      expect(scenarioCharIds).toContain(char1.id);
+      expect(scenarioCharIds).toContain(char2.id);
+      expect(scenarioCharIds).not.toContain(char3.id);
+
+      const specificResult = await caller.characters.search({
+        name: "Character1",
+        scenarioId: scenario.id,
+      });
+      expect(specificResult.characters).toHaveLength(1);
+      expect(specificResult.characters[0]!.id).toBe(char1.id);
+
+      const emptyResult = await caller.characters.search({
+        name: "Character3",
+        scenarioId: scenario.id,
+      });
+      expect(emptyResult.characters).toHaveLength(0);
+    });
+  });
+
   describe("characters.create", () => {
     it("should create new character", async () => {
       const newCharacter = {

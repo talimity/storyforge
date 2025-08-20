@@ -99,7 +99,7 @@ export function TurnHistory({
             </Box>
           )
         ) : (
-          <Stack gap={4} px={4} pb={4}>
+          <Stack px={2} pb={2}>
             {turns.map((turn) => (
               <TurnItem
                 key={turn.id}
