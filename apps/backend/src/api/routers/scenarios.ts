@@ -14,12 +14,12 @@ import {
   getScenarioCharacterStarters,
   getScenarioDetail,
   listScenarios,
-} from "@/library/scenario/scenario.queries";
-import { ScenarioService } from "@/library/scenario/scenario.service";
+} from "@/services/scenario/scenario.queries";
+import { ScenarioService } from "@/services/scenario/scenario.service";
 import {
   transformScenarioDetail,
   transformScenarioOverview,
-} from "@/library/scenario/scenario.transforms";
+} from "@/services/scenario/scenario.transforms";
 
 export const scenariosRouter = router({
   list: publicProcedure

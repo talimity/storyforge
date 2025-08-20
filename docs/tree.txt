@@ -3,7 +3,6 @@
 │ ├── backend
 │ │ ├── package.json
 │ │ ├── scripts
-│ │ │ ├── test-card-import.ts
 │ │ │ └── test-completion.ts
 │ │ ├── src
 │ │ │ ├── api
@@ -16,9 +15,11 @@
 │ │ │ │ ├── register.ts
 │ │ │ │ ├── routers
 │ │ │ │ │ ├── characters.ts
+│ │ │ │ │ ├── chat-import.ts
 │ │ │ │ │ ├── debug.ts
 │ │ │ │ │ ├── play.ts
 │ │ │ │ │ └── scenarios.ts
+│ │ │ │ ├── service-error-to-trpc.ts
 │ │ │ │ ├── sse.ts
 │ │ │ │ └── trpc-ui.ts
 │ │ │ ├── app-context-plugin.ts
@@ -37,20 +38,25 @@
 │ │ │ │ ├── generation-context-adapter.ts
 │ │ │ │ ├── provider-manager.ts
 │ │ │ │ └── providers
-│ │ │ │     ├── base-provider.ts
-│ │ │ │     ├── deepseek.ts
-│ │ │ │     ├── mock.ts
-│ │ │ │     └── openrouter.ts
-│ │ │ ├── library
+│ │ │ │ ├── base-provider.ts
+│ │ │ │ ├── deepseek.ts
+│ │ │ │ ├── mock.ts
+│ │ │ │ └── openrouter.ts
+│ │ │ ├── logging.ts
+│ │ │ ├── main.ts
+│ │ │ ├── service-error.ts
+│ │ │ ├── services
 │ │ │ │ ├── chapter
 │ │ │ │ ├── character
 │ │ │ │ │ ├── character.queries.ts
 │ │ │ │ │ ├── character-service.ts
 │ │ │ │ │ ├── character.transforms.ts
 │ │ │ │ │ └── utils
-│ │ │ │ │     ├── chara-asset-helpers.ts
-│ │ │ │ │     ├── face-detection.ts
-│ │ │ │ │     └── parse-tavern-card.ts
+│ │ │ │ │ ├── chara-asset-helpers.ts
+│ │ │ │ │ ├── face-detection.ts
+│ │ │ │ │ └── parse-tavern-card.ts
+│ │ │ │ ├── chat-import
+│ │ │ │ │ └── chat-import.service.ts
 │ │ │ │ ├── context-loader.ts
 │ │ │ │ ├── intent.service.ts
 │ │ │ │ ├── scenario
@@ -59,14 +65,12 @@
 │ │ │ │ │ └── scenario.transforms.ts
 │ │ │ │ ├── selectors.ts
 │ │ │ │ └── turn
-│ │ │ │     ├── timeline.service.test.ts
-│ │ │ │     ├── timeline.service.ts
-│ │ │ │     ├── turn.queries.ts
-│ │ │ │     └── utils
-│ │ │ │         └── mutation-planner.ts
-│ │ │ ├── logging.ts
-│ │ │ ├── main.ts
-│ │ │ ├── service-error.ts
+│ │ │ │ ├── timeline.service.test.ts
+│ │ │ │ ├── timeline.service.ts
+│ │ │ │ ├── turn-content.service.ts
+│ │ │ │ ├── turn.queries.ts
+│ │ │ │ └── utils
+│ │ │ │  └── mutation-planner.ts
 │ │ │ ├── test
 │ │ │ │ ├── characters.integration.test.ts
 │ │ │ │ ├── fixtures.ts
@@ -79,109 +83,130 @@
 │ │ ├── tsconfig.test.json
 │ │ └── vitest.config.ts
 │ └── frontend
-│     ├── biome.json
-│     ├── index.html
-│     ├── package.json
-│     ├── public
-│     │ └── static
-│     │     └── logo.svg
-│     ├── src
-│     │ ├── components
-│     │ │ ├── app-shell.tsx
-│     │ │ ├── color-mode-toggle.tsx
-│     │ │ ├── common
-│     │ │ │ └── error-boundary.tsx
-│     │ │ ├── dialogs
-│     │ │ │ ├── character-delete.tsx
-│     │ │ │ ├── character-import.tsx
-│     │ │ │ ├── scenario-delete.tsx
-│     │ │ │ └── unsaved-changes.tsx
-│     │ │ ├── features
-│     │ │ │ ├── character
-│     │ │ │ │ ├── character-card.tsx
-│     │ │ │ │ ├── character-form.tsx
-│     │ │ │ │ ├── character-image-field.tsx
-│     │ │ │ │ ├── character-pile.tsx
-│     │ │ │ │ ├── compact-character-card.tsx
-│     │ │ │ │ └── use-character-actions.ts
-│     │ │ │ ├── player
-│     │ │ │ │ ├── intent-panel
-│     │ │ │ │ │ ├── direct-control-panel.tsx
-│     │ │ │ │ │ ├── intent-panel.tsx
-│     │ │ │ │ │ ├── quick-actions-panel.tsx
-│     │ │ │ │ │ └── story-constraints-panel.tsx
-│     │ │ │ │ ├── player-layout.tsx
-│     │ │ │ │ ├── player-shell.tsx
-│     │ │ │ │ ├── player-widget-sidebar.tsx
-│     │ │ │ │ ├── turn-history
-│     │ │ │ │ │ ├── index.ts
-│     │ │ │ │ │ ├── turn-history.tsx
-│     │ │ │ │ │ └── turn-item.tsx
-│     │ │ │ │ └── widgets
-│     │ │ │ └── scenario
-│     │ │ │     ├── scenario-card.tsx
-│     │ │ │     ├── scenario-form.tsx
-│     │ │ │     └── use-scenario-actions.ts
-│     │ │ ├── logo.tsx
-│     │ │ ├── sidebar-link.tsx
-│     │ │ ├── sidebar.tsx
-│     │ │ └── ui
-│     │ │     ├── action-bar.tsx
-│     │ │     ├── avatar.tsx
-│     │ │     ├── button.tsx
-│     │ │     ├── checkbox.tsx
-│     │ │     ├── close-button.tsx
-│     │ │     ├── dialog.tsx
-│     │ │     ├── empty-state.tsx
-│     │ │     ├── field.tsx
-│     │ │     ├── index.ts
-│     │ │     ├── page-header.tsx
-│     │ │     ├── radio.tsx
-│     │ │     ├── select.tsx
-│     │ │     ├── split-button.tsx
-│     │ │     ├── switch.tsx
-│     │ │     ├── toaster.tsx
-│     │ │     ├── toggle-tip.tsx
-│     │ │     └── tooltip.tsx
-│     │ ├── lib
-│     │ │ ├── hooks
-│     │ │ │ ├── use-active-scenario.ts
-│     │ │ │ ├── use-auto-load-more.tsx
-│     │ │ │ ├── use-image-field.ts
-│     │ │ │ ├── use-scenario-environment.ts
-│     │ │ │ ├── use-scenario-intent.ts
-│     │ │ │ ├── use-scenario-timeline.ts
-│     │ │ │ └── use-unsaved-changes-protection.ts
-│     │ │ ├── providers
-│     │ │ │ └── scenario-provider.tsx
-│     │ │ ├── providers.tsx
-│     │ │ ├── query-client.ts
-│     │ │ ├── stores
-│     │ │ ├── trpc.ts
-│     │ │ └── utils
-│     │ │     ├── error-handling.ts
-│     │ │     └── formatting.ts
-│     │ ├── main.tsx
-│     │ ├── pages
-│     │ │ ├── agents.tsx
-│     │ │ ├── character-create.tsx
-│     │ │ ├── character-edit.tsx
-│     │ │ ├── character-library.tsx
-│     │ │ ├── models.tsx
-│     │ │ ├── player.tsx
-│     │ │ ├── scenario-create.tsx
-│     │ │ ├── scenario-edit.tsx
-│     │ │ ├── scenario-library.tsx
-│     │ │ ├── settings.tsx
-│     │ │ └── theme-demo.tsx
-│     │ ├── router.tsx
-│     │ ├── stores
-│     │ │ └── scenario-store.ts
-│     │ ├── theme.ts
-│     │ └── vite-env.d.ts
-│     ├── tsconfig.json
-│     ├── tsconfig.node.json
-│     └── vite.config.ts
+│ ├── biome.json
+│ ├── index.html
+│ ├── package.json
+│ ├── public
+│ │ └── static
+│ │ └── logo.svg
+│ ├── src
+│ │ ├── components
+│ │ │ ├── app-shell.tsx
+│ │ │ ├── color-mode-toggle.tsx
+│ │ │ ├── common
+│ │ │ │ └── error-boundary.tsx
+│ │ │ ├── dialogs
+│ │ │ │ ├── character-delete.tsx
+│ │ │ │ ├── character-import.tsx
+│ │ │ │ ├── chat-import
+│ │ │ │ │ ├── character-mapping-step.tsx
+│ │ │ │ │ ├── chat-import-dialog.tsx
+│ │ │ │ │ ├── chat-upload-step.tsx
+│ │ │ │ │ ├── file-validation.ts
+│ │ │ │ │ ├── index.ts
+│ │ │ │ │ └── use-chat-import.ts
+│ │ │ │ ├── discard-changes.tsx
+│ │ │ │ ├── scenario-delete.tsx
+│ │ │ │ ├── turn-delete.tsx
+│ │ │ │ └── unsaved-changes.tsx
+│ │ │ ├── features
+│ │ │ │ ├── character
+│ │ │ │ │ ├── character-card.tsx
+│ │ │ │ │ ├── character-form.tsx
+│ │ │ │ │ ├── character-image-field.tsx
+│ │ │ │ │ ├── character-list-item.tsx
+│ │ │ │ │ ├── character-pile.tsx
+│ │ │ │ │ ├── character-selector.tsx
+│ │ │ │ │ ├── compact-character-card.tsx
+│ │ │ │ │ └── use-character-actions.ts
+│ │ │ │ ├── player
+│ │ │ │ │ ├── intent-panel
+│ │ │ │ │ │ ├── direct-control-panel.tsx
+│ │ │ │ │ │ ├── intent-panel.tsx
+│ │ │ │ │ │ ├── quick-actions-panel.tsx
+│ │ │ │ │ │ └── story-constraints-panel.tsx
+│ │ │ │ │ ├── player-layout.tsx
+│ │ │ │ │ ├── player-shell.tsx
+│ │ │ │ │ ├── player-widget-sidebar.tsx
+│ │ │ │ │ ├── turn-history
+│ │ │ │ │ │ ├── character-starter-selector.tsx
+│ │ │ │ │ │ ├── index.ts
+│ │ │ │ │ │ ├── turn-history.tsx
+│ │ │ │ │ │ └── turn-item.tsx
+│ │ │ │ │ └── widgets
+│ │ │ │ │ ├── characters-widget.tsx
+│ │ │ │ │ ├── director-widget.tsx
+│ │ │ │ │ ├── index.ts
+│ │ │ │ │ ├── scene-widget.tsx
+│ │ │ │ │ ├── tools-widget.tsx
+│ │ │ │ │ └── widget-panels.tsx
+│ │ │ │ └── scenario
+│ │ │ │ ├── scenario-card.tsx
+│ │ │ │ ├── scenario-form.tsx
+│ │ │ │ └── use-scenario-actions.ts
+│ │ │ ├── logo.tsx
+│ │ │ ├── sidebar-link.tsx
+│ │ │ ├── sidebar.tsx
+│ │ │ └── ui
+│ │ │ ├── action-bar.tsx
+│ │ │ ├── avatar.tsx
+│ │ │ ├── button.tsx
+│ │ │ ├── checkbox.tsx
+│ │ │ ├── close-button.tsx
+│ │ │ ├── dialog.tsx
+│ │ │ ├── empty-state.tsx
+│ │ │ ├── field.tsx
+│ │ │ ├── index.ts
+│ │ │ ├── page-header.tsx
+│ │ │ ├── prose.tsx
+│ │ │ ├── radio.tsx
+│ │ │ ├── select.tsx
+│ │ │ ├── split-button.tsx
+│ │ │ ├── switch.tsx
+│ │ │ ├── toaster.tsx
+│ │ │ ├── toggle-tip.tsx
+│ │ │ └── tooltip.tsx
+│ │ ├── lib
+│ │ │ ├── hooks
+│ │ │ │ ├── use-active-scenario.ts
+│ │ │ │ ├── use-auto-load-more.tsx
+│ │ │ │ ├── use-character-search.ts
+│ │ │ │ ├── use-image-field.ts
+│ │ │ │ ├── use-scenario-environment.ts
+│ │ │ │ ├── use-scenario-intent.ts
+│ │ │ │ ├── use-scenario-timeline.ts
+│ │ │ │ ├── use-turn-actions.tsx
+│ │ │ │ └── use-unsaved-changes-protection.ts
+│ │ │ ├── providers
+│ │ │ │ └── scenario-provider.tsx
+│ │ │ ├── providers.tsx
+│ │ │ ├── query-client.ts
+│ │ │ ├── stores
+│ │ │ ├── trpc.ts
+│ │ │ └── utils
+│ │ │ ├── error-handling.ts
+│ │ │ └── formatting.ts
+│ │ ├── main.tsx
+│ │ ├── pages
+│ │ │ ├── agents.tsx
+│ │ │ ├── character-create.tsx
+│ │ │ ├── character-edit.tsx
+│ │ │ ├── character-library.tsx
+│ │ │ ├── models.tsx
+│ │ │ ├── player.tsx
+│ │ │ ├── scenario-create.tsx
+│ │ │ ├── scenario-edit.tsx
+│ │ │ ├── scenario-library.tsx
+│ │ │ ├── settings.tsx
+│ │ │ └── theme-demo.tsx
+│ │ ├── router.tsx
+│ │ ├── stores
+│ │ │ └── scenario-store.ts
+│ │ ├── theme.ts
+│ │ └── vite-env.d.ts
+│ ├── tsconfig.json
+│ ├── tsconfig.node.json
+│ └── vite.config.ts
 ├── biome.json
 ├── biome-rules
 │ ├── no-async-sqlite-tx.grit
@@ -210,25 +235,28 @@
 │ │ │ ├── migrations
 │ │ │ ├── relations.ts
 │ │ │ └── schema
-│ │ │     ├── chapters.ts
-│ │ │     ├── character-examples.ts
-│ │ │     ├── character-starters.ts
-│ │ │     ├── characters.ts
-│ │ │     ├── index.ts
-│ │ │     ├── scenario-participants.ts
-│ │ │     ├── scenarios.ts
-│ │ │     ├── turn-layers.ts
-│ │ │     └── turns.ts
+│ │ │ ├── chapters.ts
+│ │ │ ├── character-examples.ts
+│ │ │ ├── character-starters.ts
+│ │ │ ├── characters.ts
+│ │ │ ├── index.ts
+│ │ │ ├── scenario-participants.ts
+│ │ │ ├── scenarios.ts
+│ │ │ ├── turn-layers.ts
+│ │ │ └── turns.ts
 │ │ └── tsconfig.json
 │ ├── schemas
 │ │ ├── package.json
 │ │ ├── src
 │ │ │ ├── contracts
 │ │ │ │ ├── character.ts
+│ │ │ │ ├── chat-import.ts
 │ │ │ │ ├── debug.ts
 │ │ │ │ ├── play.ts
 │ │ │ │ └── scenario.ts
-│ │ │ └── index.ts
+│ │ │ ├── index.ts
+│ │ │ └── utils
+│ │ │ └── data-uri-validation.ts
 │ │ └── tsconfig.json
 │ ├── utils
 │ │ ├── package.json
@@ -241,14 +269,14 @@
 │ │ │ └── result.ts
 │ │ └── tsconfig.json
 │ └── yolo-onnx
-│     ├── models
-│     │ ├── nms-yolov8.onnx
-│     │ └── yolov8n-face.onnx
-│     ├── package.json
-│     ├── src
-│     │ └── index.ts
-│     ├── test-face-detection.ts
-│     └── tsconfig.json
+│ ├── models
+│ │ ├── nms-yolov8.onnx
+│ │ └── yolov8n-face.onnx
+│ ├── package.json
+│ ├── src
+│ │ └── index.ts
+│ ├── test-face-detection.ts
+│ └── tsconfig.json
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
 ├── todos
@@ -256,4 +284,4 @@
 ├── tsconfig.base.json
 └── tsconfig.json
 
-63 directories, 194 files
+66 directories, 219 files

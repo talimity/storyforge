@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
-import { getCharacterPortrait } from "@/library/character/character.queries";
-import { getCharaAvatarCrop } from "@/library/character/utils/face-detection";
+import { getCharacterPortrait } from "@/services/character/character.queries";
+import { getCharaAvatarCrop } from "@/services/character/utils/face-detection";
 
 export function registerAssetsRoutes(fastify: FastifyInstance) {
   fastify.get("/assets/characters/:id/card", async (request, reply) => {

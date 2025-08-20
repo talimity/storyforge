@@ -20,10 +20,10 @@ import {
   getCharacters,
   listCharacters,
   searchCharacters,
-} from "@/library/character/character.queries";
-import { transformCharacter } from "@/library/character/character.transforms";
-import { CharacterService } from "@/library/character/character-service";
-import { maybeProcessCharaImage } from "@/library/character/utils/face-detection";
+} from "@/services/character/character.queries";
+import { transformCharacter } from "@/services/character/character.transforms";
+import { CharacterService } from "@/services/character/character-service";
+import { maybeProcessCharaImage } from "@/services/character/utils/face-detection";
 
 // Note: this router is old, don't use it as a reference
 

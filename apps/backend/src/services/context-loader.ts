@@ -5,7 +5,7 @@ import {
   getTimelineWindow,
   getTurnContentLayers,
   type TimelineRow,
-} from "@/library/turn/turn.queries";
+} from "@/services/turn/turn.queries";
 
 export type ContextSpec = {
   scenarioId: string;

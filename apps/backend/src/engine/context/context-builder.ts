@@ -1,4 +1,4 @@
-import type { LoadedContext } from "@/library/context-loader";
+import type { LoadedContext } from "@/services/context-loader";
 
 export type TurnMessage = {
   role: "system" | "narrator" | "character" | "tool";

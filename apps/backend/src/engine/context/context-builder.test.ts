@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LoadedContext } from "../../library/context-loader";
+import type { LoadedContext } from "../../services/context-loader";
 import { buildPrompt, type PromptBuildSpec } from "./context-builder";
 
 // Test data factory functions

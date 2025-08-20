@@ -1,8 +1,8 @@
 import type { SqliteDatabase } from "@storyforge/db";
 import { isDefined } from "@storyforge/utils";
 import { sql } from "drizzle-orm";
-import { getCharaAssetPaths } from "@/library/character/utils/chara-asset-helpers";
-import { scenarioCharaSummaryColumns } from "@/library/selectors";
+import { getCharaAssetPaths } from "@/services/character/utils/chara-asset-helpers";
+import { scenarioCharaSummaryColumns } from "@/services/selectors";
 
 export type ScenarioOverview = Awaited<ReturnType<typeof listScenarios>>[0];
 

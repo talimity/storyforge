@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { CharacterService } from "../library/character/character-service";
+import { CharacterService } from "../services/character/character-service";
 import { cleanupTestDatabase, createFreshTestCaller } from "./setup";
 
 describe("scenarios router integration", () => {

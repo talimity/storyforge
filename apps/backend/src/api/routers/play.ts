@@ -10,11 +10,11 @@ import {
   loadTimelineOutputSchema,
 } from "@storyforge/schemas";
 import { z } from "zod";
-import { getScenarioEnvironment } from "@/library/scenario/scenario.queries";
-import { TimelineService } from "@/library/turn/timeline.service";
-import { getTimelineWindow } from "@/library/turn/turn.queries";
-import { TurnContentService } from "@/library/turn/turn-content.service";
 import { ServiceError } from "@/service-error";
+import { getScenarioEnvironment } from "@/services/scenario/scenario.queries";
+import { TimelineService } from "@/services/turn/timeline.service";
+import { getTimelineWindow } from "@/services/turn/turn.queries";
+import { TurnContentService } from "@/services/turn/turn-content.service";
 import { publicProcedure, router } from "../index";
 
 export const playRouter = router({

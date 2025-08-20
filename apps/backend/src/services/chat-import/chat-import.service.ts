@@ -7,10 +7,10 @@ import {
 } from "@storyforge/schemas";
 import { assertDefined } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
-import type { ScenarioService } from "@/library/scenario/scenario.service";
-import type { TimelineService } from "@/library/turn/timeline.service";
 import { logger } from "@/logging";
 import { ServiceError } from "@/service-error";
+import type { ScenarioService } from "@/services/scenario/scenario.service";
+import type { TimelineService } from "@/services/turn/timeline.service";
 
 const { characters: tCharacters, scenarioParticipants: tParticipants } = schema;
 

@@ -53,6 +53,7 @@ devctl stop       # Stop both dev servers
 - ✅ Vite React frontend application
 - ✅ LLM inference architecture
   - ✅ Provider abstraction layer
+    - ❌ Add tool calling support
   - ✅ LLM provider implementation
     - ✅ OpenRouter Chat Completion
     - ✅ DeepSeek Chat Completion
@@ -60,20 +61,25 @@ devctl stop       # Stop both dev servers
     - ❌ Anthropic Chat Completion
   - ❌ Model registry (add models and specify which provider to use)
 - ❌ Story engine
-  - ❌ Scenario runtime (read input, generate-with-agents, present, loop)
   - ❌ Context construction (build context from turn history, chara data, prompt templates, and agent config)
+  - ❌ Player intent/intent effect system
+    - ❌ Direct Control intent
+    - ❌ Story Constraint intent
+    - ❌ Scene Control intent
+    - ❌ Quick Action intent
   - ❌ Turn generation (agent workflow executor)
-    - ❌ Dummy workflow (no behavior, agent just sends input to LLM verbatim)
+    - ❌ Simple workflow (no behavior, agent just sends input to LLM verbatim)
+    - ❌ Tabletop workflow
     - ❌ Dreamer -> Critic -> Writer workflow
     - ❌ Planner -> Screenplay -> Prose workflow
-    - ❌ Convert hardcoded workflows to custom node graph
-  - ❌ Scenario runtime manager (scenario lifecycle/input orchestration)
-  - ❌ Persistence
-    - ❌ Chapter repo (groups turns into chapters, which can be summarized and pruned from context)
-    - ❌ Turn repo (stores turns with metadata, can be queried by scenario runtime)
+    - ❌ Customizable workflows
+  - ✅ Persistence
+    - ✅ Turn history
+    - ✅ Timeline graph operations
+    - ❌ Chapter management (create, edit, delete chapters)
   - ❌ LLM input/output transforms
     - ❌ Regex (trim unwanted content from LLM output)
-    - ❌ Structured output (parse LLM YAML/JSON output to structured, typed data for another agent)
+    - ❌ Structured output (JSON/YAML)
   - ❌ Events
     - ❌ Turn events (e.g. turn started, turn completed)
     - ❌ Agent events (e.g. workflow start, agent input, agent output, agent error, wokflow complete)
@@ -90,7 +96,7 @@ devctl stop       # Stop both dev servers
 - ❌ tRPC API
   - ✅ Character library
   - ✅ Scenario library
-  - ❌ Scenario interact
+  - ✅ Scenario interact
   - ❌ Prompt templates library
   - ❌ LLM providers
   - ❌ Asset upload and management
@@ -112,7 +118,7 @@ devctl stop       # Stop both dev servers
   - ❌ Scenario player
     - ✅ Separate shell for scenario player
     - ❌ Editor (setup, participants)
-    - ❌ Runner (turn display, input, state feedback)
+    - ✅ Runner (turn display, input, state feedback)
   - ❌ Settings
     - ❌ API key configuration
     - ❌ Model configuration
@@ -139,24 +145,25 @@ storyforge
 │   │   └── src
 │   │       ├── api            # tRPC/OpenAPI layer
 │   │       │   └── routers    # tRPC routers
-│   │       ├── engine         # Story engine
+│   │       ├── engine         # Story engine/domain logic
 │   │       │   ├── agents     # Agent workflows
 │   │       │   ├── context    # Context building using loaded data from library
-│   │       │   ├── scenario   # Scenario runtime / orchestration
+│   │       │   ├── invariants # Functions that ensure correctness of engine/state transitions
 │   │       │   └── turns      # Turn generation
-│   │       ├── inference      # LLM inference layer
+│   │       ├── inference      # LLM inference layer, ports / adapters
 │   │       │   └── providers  # LLM provider implementations
-│   │       ├── library        # User content management; Drizzle read models and CRUD services
+│   │       ├── services       # Service layer, orchestration of engine and inference
 │   │       │   ├── character
 │   │       │   ├── scenario
 │   │       │   ├── turn
 │   │       │   └── context-loader.ts   # Fetches all data needed to build generation context
 │   │       └── test           # Integration tests
-│   ├── frontend               # Vite React app (:8080)
-│   │   └── src
-│   │       ├── components     # Reusable components, by feature
-│   │       ├── lib            # Client utilities
-│   │       └── pages          # Page components
+│   └── frontend               # Vite React app (:8080)
+│       └── src
+│           ├── components     # React components
+│           ├── lib            # Client utilities
+│           ├── pages          # Page components
+│           └── stores         # Zustand stores
 └── packages                   # Shared packages
     ├── config                 # Configuration management
     │   └── src

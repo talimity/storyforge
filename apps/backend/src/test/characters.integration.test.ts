@@ -14,7 +14,7 @@ import {
 
 vi.mock("@storyforge/yolo-onnx");
 vi.mock(
-  "../library/character/utils/face-detection",
+  "../services/character/utils/face-detection",
   async (importOriginal) => ({
     ...((await importOriginal()) as any),
     identifyCharacterFace: vi.fn().mockImplementation(() => ({

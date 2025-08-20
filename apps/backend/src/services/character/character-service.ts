@@ -8,13 +8,13 @@ import type {
 } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { eq } from "drizzle-orm";
-import { identifyCharacterFace } from "@/library/character/utils/face-detection";
+import { identifyCharacterFace } from "@/services/character/utils/face-detection";
 import {
   parseTavernCard,
   type TavernCard,
   type TavernCardV1,
   type TavernCardV2,
-} from "@/library/character/utils/parse-tavern-card";
+} from "@/services/character/utils/parse-tavern-card";
 
 export class CharacterService {
   constructor(private db: SqliteDatabase) {}

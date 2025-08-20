@@ -2,11 +2,11 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { SqliteDatabase } from "@storyforge/db";
-import { CharacterService } from "../library/character/character-service";
+import { CharacterService } from "@/services/character/character-service";
 import {
   type ParsedCharacterCard,
   parseTavernCard,
-} from "../library/character/utils/parse-tavern-card";
+} from "@/services/character/utils/parse-tavern-card";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

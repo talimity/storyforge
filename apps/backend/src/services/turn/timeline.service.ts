@@ -9,13 +9,13 @@ import { EngineError } from "@/engine/engine-error";
 import { canCreateTurn, canPromoteChildren } from "@/engine/invariants/turn";
 import { validateTurnLayers } from "@/engine/invariants/turn-content";
 import { canAppendTurnToChapter } from "@/engine/invariants/turn-progression";
+import { ServiceError } from "@/service-error";
 import {
   type DeletionSnapshot,
   executeDeletionPlan,
   planDeletion,
   type TurnGraphDeleteMode,
-} from "@/library/turn/utils/mutation-planner";
-import { ServiceError } from "@/service-error";
+} from "@/services/turn/utils/mutation-planner";
 
 const {
   chapters: tChapters,
