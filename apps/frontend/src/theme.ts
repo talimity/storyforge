@@ -661,6 +661,13 @@ export const appTheme = defineConfig({
         _dark: "var(--chakra-colors-neutral-dark-950)", // Bright text on dark selection
       },
     },
+    em: {
+      fontStyle: "italic",
+      color: {
+        _light: "var(--chakra-colors-content-emphasized)",
+        _dark: "var(--chakra-colors-content-emphasized)",
+      },
+    },
   },
   theme: {
     tokens,

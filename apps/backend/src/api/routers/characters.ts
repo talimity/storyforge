@@ -25,6 +25,8 @@ import { transformCharacter } from "@/library/character/character.transforms";
 import { CharacterService } from "@/library/character/character-service";
 import { maybeProcessCharaImage } from "@/library/character/utils/face-detection";
 
+// Note: this router is old, don't use it as a reference
+
 export const charactersRouter = router({
   list: publicProcedure
     .meta({
@@ -32,7 +34,7 @@ export const charactersRouter = router({
         method: "GET",
         path: "/api/characters",
         tags: ["characters"],
-        summary: "List all characters",
+        summary: "Returns all characters",
       },
     })
     .input(z.void())
@@ -48,7 +50,7 @@ export const charactersRouter = router({
         method: "GET",
         path: "/api/characters/search",
         tags: ["characters"],
-        summary: "Search characters for autocomplete",
+        summary: "Searches characters for autocomplete",
       },
     })
     .input(characterAutocompleteInputSchema)
@@ -67,7 +69,7 @@ export const charactersRouter = router({
         method: "GET",
         path: "/api/characters/{id}",
         tags: ["characters"],
-        summary: "Get character by ID",
+        summary: "Gets character by ID",
       },
     })
     .input(characterIdSchema)
@@ -95,7 +97,7 @@ export const charactersRouter = router({
         method: "POST",
         path: "/api/characters/by-ids",
         tags: ["characters"],
-        summary: "Get characters by IDs",
+        summary: "Gets characters by IDs",
       },
     })
     .input(characterIdsSchema)
@@ -111,7 +113,7 @@ export const charactersRouter = router({
         method: "POST",
         path: "/api/characters/import",
         tags: ["characters"],
-        summary: "Import a character from a file",
+        summary: "Imports a character from a file",
       },
     })
     .input(characterImportSchema)
@@ -144,7 +146,7 @@ export const charactersRouter = router({
         method: "POST",
         path: "/api/characters",
         tags: ["characters"],
-        summary: "Create a new character",
+        summary: "Creates a new character",
       },
     })
     .input(createCharacterSchema)
@@ -173,7 +175,7 @@ export const charactersRouter = router({
         method: "PUT",
         path: "/api/characters/{id}",
         tags: ["characters"],
-        summary: "Update a character",
+        summary: "Updates a character",
       },
     })
     .input(updateCharacterSchema)
@@ -203,7 +205,7 @@ export const charactersRouter = router({
         method: "DELETE",
         path: "/api/characters/{id}",
         tags: ["characters"],
-        summary: "Delete a character",
+        summary: "Deletes a character",
       },
     })
     .input(characterIdSchema)

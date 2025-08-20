@@ -67,7 +67,9 @@ export class TimelineService {
         .where(eq(tScenarios.id, scenarioId))
         .limit(1);
       if (!scenario) {
-        throw new ServiceError("NotFound", { scenarioId: args.scenarioId });
+        throw new ServiceError("NotFound", {
+          message: `Scenario with ID ${scenarioId} not found.`,
+        });
       }
 
       const { anchorTurnId } = scenario;
@@ -84,7 +86,9 @@ export class TimelineService {
           .where(eq(tTurns.id, anchorTurnId))
           .limit(1);
         if (!anchorTurn) {
-          throw new ServiceError("NotFound", { turnId: anchorTurnId });
+          throw new ServiceError("NotFound", {
+            message: `Anchor turn with ID ${anchorTurnId} not found in scenario ${scenarioId}.`,
+          });
         }
 
         targetChapterId = args.chapterId ?? anchorTurn.chapterId;
@@ -100,8 +104,7 @@ export class TimelineService {
           .limit(1);
         if (!firstChapter) {
           throw new ServiceError("NotFound", {
-            scenarioId: args.scenarioId,
-            message: "No chapters found in scenario",
+            message: `No chapters found for scenario ${scenarioId}.`,
           });
         }
         targetChapterId = firstChapter.id;
@@ -183,14 +186,22 @@ export class TimelineService {
       .from(tTurns)
       .where(eq(tTurns.id, turnId))
       .limit(1);
-    if (!target) throw new ServiceError("TurnNotFound");
+    if (!target) {
+      throw new ServiceError("NotFound", {
+        message: `Turn with ID ${turnId} not found.`,
+      });
+    }
 
     const [scenario] = await tx
       .select()
       .from(tScenarios)
       .where(eq(tScenarios.id, target.scenarioId))
       .limit(1);
-    if (!scenario) throw new ServiceError("ScenarioNotFound");
+    if (!scenario) {
+      throw new ServiceError("NotFound", {
+        message: `Scenario with ID ${target.scenarioId} not found.`,
+      });
+    }
 
     const children = await tx
       .select()

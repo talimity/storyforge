@@ -28,6 +28,7 @@ export async function listScenarios(
       participants: {
         columns: { id: true, role: true, orderIndex: true },
         with: { character: scenarioCharaSummaryColumns },
+        where: { type: "character" },
         orderBy: (p) => [p.orderIndex],
       },
     },
@@ -47,6 +48,7 @@ export async function getScenarioDetail(
       participants: {
         columns: { id: true, role: true, orderIndex: true },
         with: { character: scenarioCharaSummaryColumns },
+        where: { type: "character" },
         orderBy: (p) => [p.orderIndex],
       },
     },
@@ -133,6 +135,7 @@ export async function getScenarioCharacterStarters(
     with: {
       participants: {
         columns: { id: true, characterId: true },
+        where: { type: "character" },
         with: {
           character: {
             ...scenarioCharaSummaryColumns,

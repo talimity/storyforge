@@ -21,7 +21,7 @@ export const Prose = chakra("div", {
     fontSize: "sm",
     lineHeight: "1.7em",
     [inWhere("& p")]: {
-      marginTop: "1em",
+      // marginTop: "1em",
       marginBottom: "1em",
     },
     [inWhere("& blockquote")]: {

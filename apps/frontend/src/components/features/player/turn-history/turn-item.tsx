@@ -2,8 +2,9 @@ import { Box, HStack, Stack, Text, Textarea } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/schemas";
 import { memo, useCallback, useState } from "react";
 import { LuCheck, LuPencil, LuTrash2, LuX } from "react-icons/lu";
+import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes";
-import { Avatar, Button } from "@/components/ui/index";
+import { Avatar, Button, Prose } from "@/components/ui/index";
 import { useScenarioCtx } from "@/lib/providers/scenario-provider";
 import { getApiUrl } from "@/lib/trpc";
 
@@ -63,14 +64,14 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
       <Box layerStyle="surface" p={4} borderRadius="md">
         <Stack gap={2}>
           <HStack justify="space-between" mb={1}>
-            <HStack alignItems="center" mx={-1}>
+            <HStack alignItems="center">
               {avatarSrc && (
                 <Avatar
                   shape="rounded"
                   layerStyle="surface"
                   name={authorName}
                   src={avatarSrc}
-                  size="2xs"
+                  size="xs"
                 />
               )}
               <Text fontSize="md" fontWeight="bold" color="content.emphasized">
@@ -139,9 +140,13 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
               onChange={(e) => setEditedContent(e.target.value)}
               minH="100px"
               autoFocus
+              autoresize
             />
           ) : (
-            <Text whiteSpace="pre-wrap">{turn.content.text}</Text>
+            // TODO: Make maxW configurable
+            <Prose size="lg" maxW="66ch">
+              <Markdown>{turn.content.text}</Markdown>
+            </Prose>
           )}
           {turn.swipes && turn.swipes.swipeCount > 1 && (
             <Text fontSize="xs" color="content.muted">

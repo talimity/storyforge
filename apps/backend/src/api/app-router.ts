@@ -1,11 +1,13 @@
 import { router } from "@/api/index";
 import { charactersRouter } from "@/api/routers/characters";
+import { chatImportRouter } from "@/api/routers/chat-import";
 import { debugRouter } from "@/api/routers/debug";
 import { playRouter } from "@/api/routers/play";
 import { scenariosRouter } from "@/api/routers/scenarios";
 
 export const allRouters = {
   characters: charactersRouter,
+  chatImport: chatImportRouter,
   debug: debugRouter,
   scenarios: scenariosRouter,
   play: playRouter,

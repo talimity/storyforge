@@ -56,7 +56,13 @@
         "noExplicitAny": "error"
       },
       "style": {
-        "noNonNullAssertion": "error"
+        "noNonNullAssertion": "error",
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "filenameCases": ["kebab-case"]
+          }
+        }
       },
       "complexity": {
         "noStaticOnlyClass": "error"

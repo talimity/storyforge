@@ -39,7 +39,9 @@ export class TurnContentService {
         .limit(1);
 
       if (!turn) {
-        throw new ServiceError("NotFound", { turnId });
+        throw new ServiceError("NotFound", {
+          message: `Turn with ID ${turnId} not found.`,
+        });
       }
 
       const [existingLayer] = await tx
@@ -98,10 +100,9 @@ export class TurnContentService {
    * Retrieves all layers for a turn.
    */
   async getTurnLayers(turnId: string) {
-    return await this.db
+    return this.db
       .select()
       .from(tTurnLayers)
-      .where(eq(tTurnLayers.turnId, turnId))
-      .all();
+      .where(eq(tTurnLayers.turnId, turnId));
   }
 }

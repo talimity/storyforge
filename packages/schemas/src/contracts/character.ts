@@ -1,6 +1,5 @@
 import { z } from "zod";
-
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+import { imageDataUriSchema } from "../utils/data-uri-validation";
 
 export const cardTypeSchema = z.enum([
   "character",
@@ -9,30 +8,6 @@ export const cardTypeSchema = z.enum([
   "scenario",
 ]);
 export type CardType = z.infer<typeof cardTypeSchema>;
-
-const imageInputSchema = z.string().refine(
-  (val) => {
-    const parts = val.match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
-    if (!parts) return false;
-
-    // Validate size (base64 string length)
-    const estSize = (parts[2].length * 3) / 4;
-    if (estSize > MAX_IMAGE_SIZE) {
-      console.error(
-        `Size validation failed: ${estSize} bytes exceeds ${MAX_IMAGE_SIZE} bytes`
-      );
-      return false;
-    }
-
-    try {
-      z.string().base64().parse(parts[2]);
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  { message: "Provided image must be a valid PNG/JPEG under 10MB" }
-);
 
 // Input schemas
 export const characterIdSchema = z.object({
@@ -47,7 +22,7 @@ export const createCharacterSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   cardType: cardTypeSchema.default("character"),
-  imageDataUri: imageInputSchema.nullish(),
+  imageDataUri: imageDataUriSchema.nullish(),
   legacyPersonality: z.string().nullish(),
   legacyScenario: z.string().nullish(),
   creator: z.string().nullish(),
@@ -63,7 +38,7 @@ export const updateCharacterSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
   cardType: cardTypeSchema.optional(),
-  imageDataUri: imageInputSchema.nullish(),
+  imageDataUri: imageDataUriSchema.nullish(),
 });
 
 // Core entity schemas
@@ -122,7 +97,7 @@ export const characterWithRelationsSchema = characterSchema.extend({
 });
 
 export const characterImportSchema = z.object({
-  charaDataUri: imageInputSchema,
+  charaDataUri: imageDataUriSchema,
 });
 
 // Response schemas

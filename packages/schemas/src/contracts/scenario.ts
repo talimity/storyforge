@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { characterStarterSchema, characterSummarySchema } from "./character.js";
+import { characterStarterSchema, characterSummarySchema } from "./character";
 
 // Input schemas
 export const scenarioIdSchema = z.object({

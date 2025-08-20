@@ -20,7 +20,7 @@ export function PlayerLayout({ turnHistory, intentPanel }: PlayerLayoutProps) {
         px={{ base: 4, md: 8, lg: 12 }}
         py={{ base: 4, md: 6 }}
       >
-        <Box maxW="full" mx="auto">
+        <Box maxW="3xl" mx="auto">
           {turnHistory}
         </Box>
       </Box>

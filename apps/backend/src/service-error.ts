@@ -3,15 +3,14 @@ type ServiceErrorCode =
   | "InvalidInput"
   | "Forbidden"
   | "Conflict"
-  | "InternalError"
-  | string;
+  | "InternalError";
 
 export class ServiceError extends Error {
   constructor(
     public readonly code: ServiceErrorCode,
-    detail?: unknown
+    ctx?: { message?: string } & Record<string, unknown>
   ) {
-    super(`Service error: ${code}${detail ? ` - ${detail}` : ""}`);
+    super(`Service error: ${code}${ctx ? ` - ${ctx.message || ""}` : ""}`);
     this.name = "ServiceError";
   }
 }

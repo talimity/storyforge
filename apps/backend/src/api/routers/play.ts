@@ -14,6 +14,7 @@ import { getScenarioEnvironment } from "@/library/scenario/scenario.queries";
 import { TimelineService } from "@/library/turn/timeline.service";
 import { getTimelineWindow } from "@/library/turn/turn.queries";
 import { TurnContentService } from "@/library/turn/turn-content.service";
+import { ServiceError } from "@/service-error";
 import { publicProcedure, router } from "../index";
 
 export const playRouter = router({
@@ -79,7 +80,12 @@ export const playRouter = router({
         where: { id: scenarioId },
         columns: { anchorTurnId: true },
       });
-      if (!scenario) throw new Error(`Scenario ${scenarioId} not found`);
+
+      if (!scenario) {
+        throw new ServiceError("NotFound", {
+          message: `Scenario with ID ${scenarioId} not found.`,
+        });
+      }
 
       const targetLeafId = cursor ?? scenario.anchorTurnId;
       if (!targetLeafId) {
@@ -104,7 +110,6 @@ export const playRouter = router({
         };
       }
 
-      // Build API rows directly from SQL result
       const timeline = rows.map((r) => ({
         id: r.id,
         turnNo: r.turn_no,
@@ -149,7 +154,7 @@ export const playRouter = router({
         method: "POST",
         path: "/api/play/intent",
         tags: ["play"],
-        summary: "Create a new intent to influence the story",
+        summary: "Creates a new intent to influence the story",
       },
     })
     .input(createIntentInputSchema)
@@ -164,7 +169,7 @@ export const playRouter = router({
         method: "GET",
         path: "/api/play/intent/{intentId}/subscribe",
         tags: ["play"],
-        summary: "Subscribe to updates on a pending intent's progress",
+        summary: "Subscribes to updates on a pending intent's progress",
         enabled: false, // tRPC OpenAPI plugin doesn't support subscriptions
       },
     })
@@ -180,7 +185,7 @@ export const playRouter = router({
         method: "GET",
         path: "/api/play/intent/{intentId}",
         tags: ["play"],
-        summary: "Get the status and results of an intent",
+        summary: "Gets the status and results of an intent",
       },
     })
     .input(intentResultInputSchema)
@@ -196,7 +201,7 @@ export const playRouter = router({
         method: "DELETE",
         path: "/api/play/turn/{turnId}",
         tags: ["play"],
-        summary: "Delete a turn from the scenario",
+        summary: "Deletes a turn from the scenario",
       },
     })
     .input(
