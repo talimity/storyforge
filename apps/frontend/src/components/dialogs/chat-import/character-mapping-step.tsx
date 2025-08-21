@@ -124,6 +124,7 @@ function CharacterMappingItem({
           {mapping.targetType === "character" && (
             <Box flex={1}>
               <CharacterSingleSelect
+                inDialog
                 value={mapping.characterId || null}
                 onChange={(id) =>
                   onUpdate({

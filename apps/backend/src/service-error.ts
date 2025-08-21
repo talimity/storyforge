@@ -10,7 +10,7 @@ export class ServiceError extends Error {
     public readonly code: ServiceErrorCode,
     ctx?: { message?: string } & Record<string, unknown>
   ) {
-    super(`Service error: ${code}${ctx ? ` - ${ctx.message || ""}` : ""}`);
+    super(`Service error (${code})${ctx?.message ? `: ${ctx.message}` : ""}`);
     this.name = "ServiceError";
   }
 }

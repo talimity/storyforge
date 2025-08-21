@@ -5,21 +5,39 @@ import {
   type SqliteTransaction,
   schema,
 } from "@storyforge/db";
-import { eq } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { ServiceError } from "@/service-error";
 
 interface CreateScenarioData extends NewScenario {
   characterIds?: string[];
+  userProxyCharacterId?: string;
+}
+
+interface UpdateScenarioData extends Partial<NewScenario> {
+  participants?: Array<{
+    characterId: string;
+    role?: string;
+    isUserProxy?: boolean;
+  }>;
 }
 
 export class ScenarioService {
   constructor(private db: SqliteDatabase) {}
 
   async createScenario(data: CreateScenarioData, outerTx?: SqliteTransaction) {
-    const { characterIds = [], ...scenarioData } = data;
+    const { characterIds = [], userProxyCharacterId, ...scenarioData } = data;
 
     if (characterIds.length < 2) {
-      throw new Error("A scenario must have at least 2 characters.");
+      throw new ServiceError("InvalidInput", {
+        message: "A scenario must have at least 2 characters.",
+      });
+    }
+
+    if (userProxyCharacterId && !characterIds.includes(userProxyCharacterId)) {
+      throw new ServiceError("InvalidInput", {
+        message:
+          "User proxy character must be one of the scenario participants.",
+      });
     }
 
     const operation = async (tx: SqliteTransaction) => {
@@ -52,6 +70,7 @@ export class ScenarioService {
             scenarioId: sc.id,
             characterId,
             orderIndex,
+            isUserProxy: characterId === userProxyCharacterId,
           }))
         )
         .execute();
@@ -62,14 +81,185 @@ export class ScenarioService {
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
   }
 
-  async updateScenario(id: string, data: Partial<NewScenario>) {
-    const results = await this.db
-      .update(schema.scenarios)
-      .set(data)
-      .where(eq(schema.scenarios.id, id))
-      .returning();
+  async updateScenario(
+    id: string,
+    data: UpdateScenarioData,
+    outerTx?: SqliteTransaction
+  ) {
+    const { participants, ...scenarioData } = data;
 
-    return results[0];
+    const operation = async (tx: SqliteTransaction) => {
+      let updatedScenario: typeof schema.scenarios.$inferSelect | undefined;
+
+      // Only update scenario fields if there are any to update
+      if (Object.keys(scenarioData).length > 0) {
+        const result = await tx
+          .update(schema.scenarios)
+          .set(scenarioData)
+          .where(eq(schema.scenarios.id, id))
+          .returning();
+        updatedScenario = result[0];
+      } else {
+        // If only updating participants, fetch the existing scenario
+        updatedScenario = await tx
+          .select()
+          .from(schema.scenarios)
+          .where(eq(schema.scenarios.id, id))
+          .get();
+      }
+
+      if (!updatedScenario) {
+        return null;
+      }
+
+      // Handle participant updates if provided
+      if (participants) {
+        await this.reconcileParticipants(tx, id, participants);
+      }
+
+      return updatedScenario;
+    };
+
+    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+  }
+
+  private async reconcileParticipants(
+    tx: SqliteTransaction,
+    scenarioId: string,
+    inputParticipants: UpdateScenarioData["participants"]
+  ) {
+    if (!inputParticipants) return;
+
+    // Validate minimum participants
+    if (inputParticipants.length < 2) {
+      throw new ServiceError("InvalidInput", {
+        message: "A scenario must have at least 2 characters.",
+      });
+    }
+
+    // Ensure only one user proxy
+    const userProxyCount = inputParticipants.filter(
+      (p) => p.isUserProxy
+    ).length;
+    if (userProxyCount > 1) {
+      throw new ServiceError("InvalidInput", {
+        message: "Only one participant can be designated as the user proxy.",
+      });
+    }
+
+    // Load existing character participants (exclude narrator)
+    const existing = await tx
+      .select()
+      .from(schema.scenarioParticipants)
+      .where(eq(schema.scenarioParticipants.scenarioId, scenarioId))
+      .all()
+      .then((ps) => ps.filter((p) => p.type === "character" && p.characterId));
+
+    // Build maps for comparison (we already filtered to ensure characterId exists)
+    const existingById = new Map(
+      existing.map((p) => [p.characterId as string, p])
+    );
+    const inputById = new Map(inputParticipants.map((p) => [p.characterId, p]));
+
+    // Compute operations
+    const toAdd = inputParticipants.filter(
+      (p) => !existingById.has(p.characterId)
+    );
+    const toRemove = existing.filter((p) => {
+      // We know characterId exists because we filtered earlier
+      const charId = p.characterId as string;
+      return !inputById.has(charId);
+    });
+    const toUpdate = existing.filter((p) => {
+      // We know characterId exists because we filtered earlier
+      const charId = p.characterId as string;
+      const input = inputById.get(charId);
+      if (!input) return false;
+      return p.role !== input.role || p.isUserProxy !== input.isUserProxy;
+    });
+
+    // Execute removals (hard delete if no turns exist)
+    if (toRemove.length > 0) {
+      // Check if any participants to remove have turns
+      const participantsWithTurns = await tx
+        .select({ participantId: schema.turns.authorParticipantId })
+        .from(schema.turns)
+        .where(
+          inArray(
+            schema.turns.authorParticipantId,
+            toRemove.map((p) => p.id)
+          )
+        )
+        .groupBy(schema.turns.authorParticipantId)
+        .all();
+
+      const participantIdsWithTurns = new Set(
+        participantsWithTurns.map((p) => p.participantId)
+      );
+
+      // Check if any participant has turns
+      const participantsToRemoveWithTurns = toRemove.filter((p) =>
+        participantIdsWithTurns.has(p.id)
+      );
+
+      if (participantsToRemoveWithTurns.length > 0) {
+        const names = participantsToRemoveWithTurns
+          .map((p) => `Character ID: ${p.characterId}`)
+          .join(", ");
+        throw new ServiceError("Conflict", {
+          message: `Cannot remove participants with existing turns: ${names}. Please delete their turns first.`,
+        });
+      }
+
+      // Hard delete participants without turns
+      await tx.delete(schema.scenarioParticipants).where(
+        inArray(
+          schema.scenarioParticipants.id,
+          toRemove.map((p) => p.id)
+        )
+      );
+    }
+
+    // Execute additions
+    if (toAdd.length > 0) {
+      // Get max order index for new participants
+      const maxOrderResult = await tx
+        .select({
+          maxOrder: sql<number>`MAX(${schema.scenarioParticipants.orderIndex})`,
+        })
+        .from(schema.scenarioParticipants)
+        .where(eq(schema.scenarioParticipants.scenarioId, scenarioId))
+        .get();
+
+      let nextOrder = (maxOrderResult?.maxOrder ?? -1) + 1;
+
+      await tx.insert(schema.scenarioParticipants).values(
+        toAdd.map((p) => ({
+          scenarioId,
+          characterId: p.characterId,
+          role: p.role,
+          isUserProxy: p.isUserProxy ?? false,
+          orderIndex: nextOrder++,
+          type: "character" as const,
+        }))
+      );
+    }
+
+    // Execute updates
+    for (const existing of toUpdate) {
+      // We know characterId exists and input exists from toUpdate filter
+      const charId = existing.characterId as string;
+      const input = inputById.get(charId);
+      if (!input) continue; // This shouldn't happen but handle it gracefully
+
+      await tx
+        .update(schema.scenarioParticipants)
+        .set({
+          role: input.role,
+          isUserProxy: input.isUserProxy ?? false,
+        })
+        .where(eq(schema.scenarioParticipants.id, existing.id));
+    }
   }
 
   async deleteScenario(id: string) {

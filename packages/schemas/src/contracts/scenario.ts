@@ -16,6 +16,7 @@ export const createScenarioSchema = z.object({
     .array(z.string())
     .min(2, "A scenario requires at least 2 characters")
     .default([]),
+  userProxyCharacterId: z.string().optional(),
 });
 
 export const updateScenarioSchema = z.object({
@@ -25,6 +26,15 @@ export const updateScenarioSchema = z.object({
   status: z.enum(["active", "archived"]).optional(),
   settings: z.record(z.string(), z.unknown()).default({}),
   metadata: z.record(z.string(), z.unknown()).default({}),
+  participants: z
+    .array(
+      z.object({
+        characterId: z.string(),
+        role: z.string().optional(),
+        isUserProxy: z.boolean().default(false),
+      })
+    )
+    .optional(),
 });
 
 // Character participant schemas
@@ -55,6 +65,7 @@ export const scenarioParticipantSchema = z.object({
   id: z.string(),
   role: z.string().nullish(),
   orderIndex: z.number(),
+  isUserProxy: z.boolean(),
   character: characterSummarySchema, // Populated character data
 });
 

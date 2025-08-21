@@ -58,6 +58,7 @@ export const charactersRouter = router({
     .query(async ({ input, ctx }) => {
       const characters = await searchCharacters(ctx.db, {
         name: input.name || "",
+        filterMode: input.filterMode || "all",
         scenarioId: input.scenarioId,
       });
       return { characters };

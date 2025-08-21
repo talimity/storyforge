@@ -14,14 +14,12 @@ export function ScenarioEditPage() {
   const utils = trpc.useUtils();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Fetch scenario data
   const {
     data: scenario,
     isPending: isLoadingScenario,
     error: loadError,
   } = trpc.scenarios.getById.useQuery({ id: id ?? "" }, { enabled: !!id });
 
-  // Update mutation
   const updateScenarioMutation = trpc.scenarios.update.useMutation({
     onSuccess: (updatedScenario) => {
       showSuccessToast({
@@ -29,13 +27,11 @@ export function ScenarioEditPage() {
         description: `Your changes to ${updatedScenario.name} have been saved.`,
       });
 
-      // Invalidate the scenario list and detail cache to refresh the data
       utils.scenarios.list.invalidate();
       if (id) {
         utils.scenarios.getById.invalidate({ id });
       }
 
-      // Navigate back to scenario library
       navigate("/scenarios");
     },
     onError: (error) => {
@@ -48,7 +44,6 @@ export function ScenarioEditPage() {
     },
   });
 
-  // Delete mutation
   const deleteScenarioMutation = trpc.scenarios.delete.useMutation({
     onSuccess: () => {
       showSuccessToast({
@@ -56,10 +51,8 @@ export function ScenarioEditPage() {
         description: "The scenario has been deleted successfully.",
       });
 
-      // Invalidate the scenario list cache to refresh the data
       utils.scenarios.list.invalidate();
 
-      // Navigate back to scenario library
       navigate("/scenarios");
     },
     onError: (error) => {
@@ -71,11 +64,14 @@ export function ScenarioEditPage() {
     },
   });
 
-  // Handle form submission
   const handleSubmit = (formData: {
     name: string;
     description: string;
-    characterIds: string[];
+    participants: Array<{
+      characterId: string;
+      role?: string;
+      isUserProxy?: boolean;
+    }>;
   }) => {
     if (!id) return;
 
@@ -83,16 +79,14 @@ export function ScenarioEditPage() {
       id,
       name: formData.name,
       description: formData.description,
-      // Note: participants are handled separately through character management
+      participants: formData.participants,
     });
   };
 
-  // Handle cancel
   const handleCancel = () => {
     navigate("/scenarios");
   };
 
-  // Handle delete with confirmation
   const handleDelete = () => {
     setShowDeleteDialog(true);
   };
@@ -103,7 +97,6 @@ export function ScenarioEditPage() {
     setShowDeleteDialog(false);
   };
 
-  // Loading state
   if (isLoadingScenario) {
     return (
       <Container>
@@ -118,7 +111,6 @@ export function ScenarioEditPage() {
     );
   }
 
-  // Error state (scenario not found)
   if (loadError || !scenario) {
     return (
       <Container>
@@ -139,13 +131,14 @@ export function ScenarioEditPage() {
     );
   }
 
-  // Transform scenario data for form
   const initialFormData = {
     name: scenario.name,
     description: scenario.description,
-    characterIds: scenario.characters.map(
-      (participant) => participant.character.id
-    ),
+    participants: scenario.characters.map((participant) => ({
+      characterId: participant.character.id,
+      role: participant.role || undefined,
+      isUserProxy: participant.isUserProxy || false,
+    })),
   };
 
   return (
@@ -169,6 +162,7 @@ export function ScenarioEditPage() {
         />
         <ScenarioForm
           initialData={initialFormData}
+          scenarioId={id}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isSubmitting={updateScenarioMutation.isPending}

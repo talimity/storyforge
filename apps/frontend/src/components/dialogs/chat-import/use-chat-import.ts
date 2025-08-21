@@ -85,16 +85,6 @@ export function useChatImport({
     try {
       const result = await analyzeMutation.mutateAsync({ fileDataUri });
 
-      if (!result.success) {
-        toaster.create({
-          title: "Analysis failed",
-          description: result.error || "Failed to analyze the chat file.",
-          type: "error",
-          duration: 5000,
-        });
-        return;
-      }
-
       setAnalyzeResult(result);
 
       const mappings: CharacterMapping[] = result.detectedCharacters.map(
@@ -123,13 +113,6 @@ export function useChatImport({
       setScenarioName(fileName);
 
       setStep("mapping");
-    } catch (_error) {
-      toaster.create({
-        title: "Analysis error",
-        description: "Failed to analyze the chat file. Please try again.",
-        type: "error",
-        duration: 5000,
-      });
     } finally {
       setIsProcessing(false);
     }
@@ -160,13 +143,6 @@ export function useChatImport({
         onImportSuccess(result.scenarioId);
       }
       onClose();
-    } catch (_error) {
-      toaster.create({
-        title: "Import error",
-        description: "Failed to import the chat. Please try again.",
-        type: "error",
-        duration: 5000,
-      });
     } finally {
       setIsProcessing(false);
     }

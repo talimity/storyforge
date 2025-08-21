@@ -250,6 +250,7 @@ describe("characters router integration", () => {
 
       const scenarioResults = await caller.characters.search({
         name: "Character",
+        filterMode: "inScenario",
         scenarioId: scenario.id,
       });
       expect(scenarioResults.characters).toHaveLength(2);
@@ -260,6 +261,7 @@ describe("characters router integration", () => {
 
       const specificResult = await caller.characters.search({
         name: "Character1",
+        filterMode: "inScenario",
         scenarioId: scenario.id,
       });
       expect(specificResult.characters).toHaveLength(1);
@@ -267,9 +269,91 @@ describe("characters router integration", () => {
 
       const emptyResult = await caller.characters.search({
         name: "Character3",
+        filterMode: "inScenario",
         scenarioId: scenario.id,
       });
       expect(emptyResult.characters).toHaveLength(0);
+    });
+
+    it("should filter correctly with filterMode='notInScenario'", async () => {
+      // Create test characters
+      const char1 = await caller.characters.create({
+        name: "Alpha",
+        description: "First character",
+      });
+      const char2 = await caller.characters.create({
+        name: "Beta",
+        description: "Second character",
+      });
+      const char3 = await caller.characters.create({
+        name: "Gamma",
+        description: "Third character",
+      });
+      const char4 = await caller.characters.create({
+        name: "Delta",
+        description: "Fourth character",
+      });
+
+      // Create scenario with char1 and char2
+      const scenario = await caller.scenarios.create({
+        name: "Test Scenario",
+        description: "Test scenario for notInScenario filter",
+        status: "active",
+        characterIds: [char1.id, char2.id],
+      });
+
+      // Test filterMode='all' - should return all matching characters
+      const allResults = await caller.characters.search({
+        name: "",
+        filterMode: "all",
+      });
+      const allIds = allResults.characters.map((c) => c.id);
+      expect(allIds).toContain(char1.id);
+      expect(allIds).toContain(char2.id);
+      expect(allIds).toContain(char3.id);
+      expect(allIds).toContain(char4.id);
+
+      // Test filterMode='inScenario' - should return only characters in scenario
+      const inScenarioResults = await caller.characters.search({
+        name: "",
+        filterMode: "inScenario",
+        scenarioId: scenario.id,
+      });
+      const inScenarioIds = inScenarioResults.characters.map((c) => c.id);
+      expect(inScenarioIds).toHaveLength(2);
+      expect(inScenarioIds).toContain(char1.id);
+      expect(inScenarioIds).toContain(char2.id);
+      expect(inScenarioIds).not.toContain(char3.id);
+      expect(inScenarioIds).not.toContain(char4.id);
+
+      // Test filterMode='notInScenario' - should return only characters NOT in scenario
+      const notInScenarioResults = await caller.characters.search({
+        name: "",
+        filterMode: "notInScenario",
+        scenarioId: scenario.id,
+      });
+      const notInScenarioIds = notInScenarioResults.characters.map((c) => c.id);
+      expect(notInScenarioIds).not.toContain(char1.id);
+      expect(notInScenarioIds).not.toContain(char2.id);
+      expect(notInScenarioIds).toContain(char3.id);
+      expect(notInScenarioIds).toContain(char4.id);
+
+      // Test filterMode='notInScenario' with name filter
+      const filteredNotInScenario = await caller.characters.search({
+        name: "Ga",
+        filterMode: "notInScenario",
+        scenarioId: scenario.id,
+      });
+      expect(filteredNotInScenario.characters).toHaveLength(1);
+      expect(filteredNotInScenario.characters[0]!.id).toBe(char3.id);
+
+      // Test that characters in the scenario are correctly excluded with name filter
+      const excludedInScenario = await caller.characters.search({
+        name: "Al",
+        filterMode: "notInScenario",
+        scenarioId: scenario.id,
+      });
+      expect(excludedInScenario.characters).toHaveLength(0); // Alpha is in scenario
     });
   });
 

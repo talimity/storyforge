@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 
 export const toaster: CreateToasterReturn = createToaster({
-  placement: "bottom-end",
+  placement: "top-end",
   pauseOnPageIdle: true,
 });
 

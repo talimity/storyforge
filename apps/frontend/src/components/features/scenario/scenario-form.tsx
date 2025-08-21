@@ -1,19 +1,17 @@
 import {
   Card,
-  Grid,
   Heading,
   HStack,
   Input,
   Separator,
   Stack,
-  Text,
   Textarea,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes";
-import { CharacterCard } from "@/components/features/character/character-card";
+import { ParticipantManager } from "@/components/features/scenario/participant-manager";
 import { Button, Field } from "@/components/ui";
 import { useUnsavedChangesProtection } from "@/lib/hooks/use-unsaved-changes-protection";
 import { trpc } from "@/lib/trpc";
@@ -21,8 +19,14 @@ import { trpc } from "@/lib/trpc";
 const scenarioFormSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().max(2000),
-  characterIds: z
-    .array(z.string())
+  participants: z
+    .array(
+      z.object({
+        characterId: z.string(),
+        role: z.string().optional(),
+        isUserProxy: z.boolean().optional(),
+      })
+    )
     .min(2, "A scenario requires at least 2 characters"),
 });
 
@@ -31,6 +35,7 @@ type ScenarioFormData = z.infer<typeof scenarioFormSchema>;
 interface ScenarioFormProps {
   initialData?: Partial<ScenarioFormData>;
   initialCharacterIds?: string[];
+  scenarioId?: string;
   onSubmit: (data: ScenarioFormData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -40,6 +45,7 @@ interface ScenarioFormProps {
 export function ScenarioForm({
   initialData,
   initialCharacterIds = [],
+  scenarioId,
   onSubmit,
   onCancel,
   isSubmitting = false,
@@ -50,24 +56,40 @@ export function ScenarioForm({
     handleSubmit,
     formState: { errors, isDirty },
     watch,
+    setValue,
   } = useForm<ScenarioFormData>({
     resolver: zodResolver(scenarioFormSchema),
     mode: "onBlur",
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
-      characterIds: initialData?.characterIds || initialCharacterIds,
+      participants:
+        initialData?.participants ||
+        initialCharacterIds.map((id) => ({
+          characterId: id,
+          role: undefined,
+          isUserProxy: false,
+        })),
     },
   });
 
-  const characterIds = watch("characterIds");
+  const participants = watch("participants");
 
   const charactersQuery = trpc.characters.getByIds.useQuery(
-    { ids: characterIds },
-    { enabled: characterIds.length > 0 }
+    { ids: participants.map((p) => p.characterId) },
+    { enabled: participants.length > 0 }
   );
 
-  const selectedCharacters = charactersQuery.data?.characters || [];
+  const participantsWithDetails = participants.map((p) => ({
+    ...p,
+    character: charactersQuery.data?.characters.find(
+      (c) => c.id === p.characterId
+    ) || {
+      id: p.characterId,
+      name: "Loading...",
+      avatarPath: null,
+    },
+  }));
 
   const onFormSubmit = (data: ScenarioFormData) => {
     onSubmit(data);
@@ -86,7 +108,7 @@ export function ScenarioForm({
       "You have unsaved changes to this scenario. Are you sure you want to leave?",
   });
 
-  const canSubmit = characterIds.length >= 2;
+  const canSubmit = participants.length >= 2;
 
   return (
     <>
@@ -134,32 +156,22 @@ export function ScenarioForm({
 
             <Separator />
 
-            {/* Characters Section */}
+            {/* Participants Section */}
             <Stack gap={4}>
               <Heading size="md" textStyle="heading">
-                {`Characters (${selectedCharacters.length})`}
+                Participants
               </Heading>
 
-              {selectedCharacters.length === 0 ? (
-                <Text color="content.muted">
-                  No characters selected. A scenario requires at least 2
-                  characters.
-                </Text>
-              ) : (
-                <Grid
-                  templateColumns="repeat(auto-fit, 240px)"
-                  justifyContent="center"
-                  gap={4}
-                >
-                  {selectedCharacters.map((character) => (
-                    <CharacterCard
-                      key={character.id}
-                      character={character}
-                      readOnly
-                    />
-                  ))}
-                </Grid>
-              )}
+              <ParticipantManager
+                participants={participantsWithDetails}
+                onChange={(newParticipants) =>
+                  setValue("participants", newParticipants, {
+                    shouldDirty: true,
+                  })
+                }
+                scenarioId={scenarioId}
+                isDisabled={isSubmitting}
+              />
             </Stack>
 
             {/* Form Actions */}

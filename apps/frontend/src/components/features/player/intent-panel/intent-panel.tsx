@@ -21,6 +21,9 @@ export function IntentPanel({
   const [inputText, setInputText] = useState("");
 
   const handleGenerate = async () => {
+    // TODO: This should only empty input if the intent was successfully
+    // submitted, and should restore last input if the intent fails during
+    // generation.
     if (!inputText.trim()) return;
     await onSubmitIntent(inputMode, inputText.trim());
     setInputText("");

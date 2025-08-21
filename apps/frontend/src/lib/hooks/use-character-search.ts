@@ -3,17 +3,19 @@ import { useCallback, useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 interface UseCharacterSearchOptions {
+  filterMode?: "all" | "inScenario" | "notInScenario";
   scenarioId?: string;
   enabled?: boolean;
 }
 
 export function useCharacterSearch(options: UseCharacterSearchOptions = {}) {
-  const { scenarioId, enabled = true } = options;
+  const { filterMode = "all", scenarioId, enabled = true } = options;
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data, isLoading, error } = trpc.characters.search.useQuery(
     {
       name: searchQuery,
+      filterMode,
       scenarioId,
     },
     {

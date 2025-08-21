@@ -20,10 +20,8 @@ export function CharacterCreatePage() {
         description: `${character.name} has been created successfully.`,
       });
 
-      // Invalidate the character list cache to refresh the data
       utils.characters.list.invalidate();
 
-      // Navigate back to character library
       navigate("/characters");
     },
     onError: (error) => {

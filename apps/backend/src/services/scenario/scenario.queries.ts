@@ -1,6 +1,7 @@
 import type { SqliteDatabase } from "@storyforge/db";
 import { isDefined } from "@storyforge/utils";
 import { sql } from "drizzle-orm";
+import { ServiceError } from "@/service-error";
 import { getCharaAssetPaths } from "@/services/character/utils/chara-asset-helpers";
 import { scenarioCharaSummaryColumns } from "@/services/selectors";
 
@@ -26,7 +27,7 @@ export async function listScenarios(
     where: { status },
     with: {
       participants: {
-        columns: { id: true, role: true, orderIndex: true },
+        columns: { id: true, role: true, orderIndex: true, isUserProxy: true },
         with: { character: scenarioCharaSummaryColumns },
         where: { type: "character" },
         orderBy: (p) => [p.orderIndex],
@@ -46,7 +47,7 @@ export async function getScenarioDetail(
     with: {
       chapters: true,
       participants: {
-        columns: { id: true, role: true, orderIndex: true },
+        columns: { id: true, role: true, orderIndex: true, isUserProxy: true },
         with: { character: scenarioCharaSummaryColumns },
         where: { type: "character" },
         orderBy: (p) => [p.orderIndex],
@@ -71,7 +72,13 @@ export async function getScenarioEnvironment(
     columns: { id: true, name: true, rootTurnId: true, anchorTurnId: true },
     with: {
       participants: {
-        columns: { id: true, type: true, status: true, characterId: true },
+        columns: {
+          id: true,
+          type: true,
+          status: true,
+          characterId: true,
+          isUserProxy: true,
+        },
         orderBy: (p) => [p.orderIndex],
         with: {
           character: {
@@ -88,7 +95,9 @@ export async function getScenarioEnvironment(
   });
 
   if (!result) {
-    throw new Error(`Scenario with id ${scenarioId} not found`);
+    throw new ServiceError("NotFound", {
+      message: `Scenario with id ${scenarioId} not found`,
+    });
   }
 
   // Transform the data to match the API contract
@@ -162,7 +171,9 @@ export async function getScenarioCharacterStarters(
   });
 
   if (!result) {
-    throw new Error(`Scenario with id ${scenarioId} not found`);
+    throw new ServiceError("NotFound", {
+      message: `Scenario with id ${scenarioId} not found`,
+    });
   }
 
   return result.participants

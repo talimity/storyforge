@@ -27,16 +27,10 @@ export function PlayerPage() {
     };
   }, [scenario.id, reset]);
 
-  const { debugAddTurn, isAddingTurn } = useScenarioIntent();
+  const { addTurn, isAddingTurn } = useScenarioIntent();
 
-  const {
-    turns,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-    refetch,
-    // timelineDepth,
-  } = useScenarioTimeline({ scenarioId: scenario.id });
+  const { turns, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } =
+    useScenarioTimeline({ scenarioId: scenario.id });
 
   // Auto-select first character when available
   const firstCharacterParticipant = useMemo(
@@ -65,12 +59,7 @@ export function PlayerPage() {
     if (!selectedParticipant || !scenario || !chapters[0]) return;
 
     try {
-      await debugAddTurn(
-        scenario.id,
-        text,
-        selectedParticipant.id,
-        chapters[0].id
-      );
+      await addTurn(scenario.id, text, selectedParticipant.id, chapters[0].id);
     } catch (error) {
       console.error("Failed to submit intent:", error);
     }
@@ -87,9 +76,8 @@ export function PlayerPage() {
     characterId: string,
     starterId: string
   ) => {
-    // TODO: Implement starter selection logic
+    // TODO: Implement starter selection behavior
     console.log("Selected starter:", { characterId, starterId });
-    // This would typically create a first turn using the starter message
   };
 
   const turnHistory = (

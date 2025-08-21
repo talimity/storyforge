@@ -1,4 +1,5 @@
 import type { LoadedContext } from "@/services/context-loader";
+import { replaceMacros } from "./macro-replacement";
 
 export type TurnMessage = {
   role: "system" | "narrator" | "character" | "tool";
@@ -50,11 +51,24 @@ export function buildPrompt(
   const system =
     loaded.systemTemplate ?? "You are the narrative engine. Keep continuity.";
 
-  const charaDescriptions: TurnMessage[] = loaded.participants.map((p) => ({
-    role: "system",
-    name: p.character.name,
-    content: p.character.description,
-  }));
+  // Find the user proxy participant
+  const userProxyParticipant = loaded.participants.find((p) => p.isUserProxy);
+  const userProxyName = userProxyParticipant?.character.name;
+
+  // 2) Character descriptions with macro replacement
+  const charaDescriptions: TurnMessage[] = loaded.participants.map((p) => {
+    // Apply macro replacement to character descriptions
+    const processedDescription = replaceMacros(p.character.description, {
+      userProxyName,
+      currentCharacterName: p.character.name,
+    });
+
+    return {
+      role: "system",
+      name: p.character.name,
+      content: processedDescription,
+    };
+  });
 
   // 3) Pack timeline into messages, root -> leaf using the actual turn content
   const timelineMessages: TurnMessage[] = loaded.timeline.map((node) => {

@@ -19,10 +19,10 @@ import { publicProcedure, router } from "../index";
 
 export const playRouter = router({
   /**
-   * Adds a turn with the given text to the scenario, attributed to the
-   * specified participant.
+   * Creates a new turn in the scenario's timeline without triggering any
+   * intent effects.
    */
-  _debugAddNodeToGraph: publicProcedure
+  addTurn: publicProcedure
     .input(
       z.object({
         scenarioId: z.string(),

@@ -9,7 +9,7 @@ import {
   useListCollection,
 } from "@chakra-ui/react";
 import type React from "react";
-import { useEffect, useMemo, useRef } from "react";
+import { Fragment, useEffect, useMemo, useRef } from "react";
 import { Avatar } from "@/components/ui";
 import { useCharacterSearch } from "@/lib/hooks/use-character-search";
 import { getApiUrl } from "@/lib/trpc";
@@ -23,9 +23,13 @@ type CharacterSearchCharacter = ReturnType<
  * Shared hook that wires Chakra v3 Combobox collection to TRPC search.
  * Uses `useListCollection` so we can push async results efficiently as they arrive.
  */
-function useCharacterCollection(enabled: boolean, scenarioId?: string) {
+function useCharacterCollection(
+  enabled: boolean,
+  filterMode?: "all" | "inScenario" | "notInScenario",
+  scenarioId?: string
+) {
   const { characters, isLoading, updateSearch, searchQuery } =
-    useCharacterSearch({ enabled, scenarioId });
+    useCharacterSearch({ enabled, filterMode, scenarioId });
 
   const { collection, set } = useListCollection<CharacterSearchCharacter>({
     initialItems: [],
@@ -49,32 +53,43 @@ function useCharacterCollection(enabled: boolean, scenarioId?: string) {
 export function CharacterMultiSelect({
   value,
   onChange,
+  filterMode = "all",
   scenarioId,
   placeholder = "Search characters…",
   disabled = false,
   size = "md",
   layerStyle = "surface",
+  inDialog = false,
+  hideClearTrigger = false,
   ...props
 }: {
   value: string[];
   onChange: (ids: string[]) => void;
+  filterMode?: "all" | "inScenario" | "notInScenario";
   scenarioId?: string;
   placeholder?: string;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
   layerStyle?: string;
+  /** If true, omits Portal so the dropdown appears within the dialog */
+  inDialog?: boolean;
+  /** Hides the clear trigger button in case the parent handles clearing */
+  hideClearTrigger?: boolean;
 } & Omit<
   Combobox.RootProps,
   "value" | "onValueChange" | "collection" | "onChange"
 >) {
   const { collection, isLoading, updateSearch } = useCharacterCollection(
     !disabled,
+    filterMode,
     scenarioId
   );
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
     onChange(details.value);
   };
+
+  const PortalComponent = inDialog ? Fragment : Portal;
 
   return (
     <Combobox.Root
@@ -96,12 +111,13 @@ export function CharacterMultiSelect({
         </InputGroup>
         <Combobox.IndicatorGroup>
           {isLoading && <Spinner size="xs" />}
-          <Combobox.ClearTrigger />
+          {/* Clear resets to empty array for the parent */}
+          {!hideClearTrigger && <Combobox.ClearTrigger />}
           <Combobox.Trigger />
         </Combobox.IndicatorGroup>
       </Combobox.Control>
 
-      <Portal>
+      <PortalComponent>
         <Combobox.Positioner>
           <Combobox.Content>
             <Combobox.Empty>
@@ -121,7 +137,7 @@ export function CharacterMultiSelect({
             ))}
           </Combobox.Content>
         </Combobox.Positioner>
-      </Portal>
+      </PortalComponent>
     </Combobox.Root>
   );
 }
@@ -134,19 +150,24 @@ export function CharacterMultiSelect({
 export function CharacterSingleSelect({
   value,
   onChange,
+  filterMode = "all",
   scenarioId,
   placeholder = "Search characters…",
   disabled = false,
   size = "md",
+  inDialog = false,
   layerStyle = "surface",
   ...props
 }: {
   value: string | null;
   onChange: (id: string | null) => void;
+  filterMode?: "all" | "inScenario" | "notInScenario";
   scenarioId?: string;
   placeholder?: string;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
+  /** If true, omits Portal so the dropdown appears within the dialog */
+  inDialog?: boolean;
   layerStyle?: string;
 } & Omit<
   Combobox.RootProviderProps,
@@ -154,6 +175,7 @@ export function CharacterSingleSelect({
 >) {
   const { collection, isLoading, updateSearch } = useCharacterCollection(
     !disabled,
+    filterMode,
     scenarioId
   );
 
@@ -201,6 +223,8 @@ export function CharacterSingleSelect({
     }
   };
 
+  const PortalComponent = inDialog ? Fragment : Portal;
+
   return (
     <Combobox.RootProvider value={combobox} width="full" size={size} {...props}>
       <Combobox.Control>
@@ -234,7 +258,7 @@ export function CharacterSingleSelect({
         </Combobox.IndicatorGroup>
       </Combobox.Control>
 
-      <Portal>
+      <PortalComponent>
         <Combobox.Positioner>
           <Combobox.Content>
             <Combobox.Empty>
@@ -254,7 +278,7 @@ export function CharacterSingleSelect({
             ))}
           </Combobox.Content>
         </Combobox.Positioner>
-      </Portal>
+      </PortalComponent>
     </Combobox.RootProvider>
   );
 }

@@ -21,6 +21,10 @@ pnpm test
 pnpm build # tsc -b against entire project
 pnpm build:frontend # Vite build
 
+# Remember to generate migrations when changing database schema in packages/db
+pnpm db:generate # Drizzle migration generation
+pnpm db:migrate --name=descriptive-name # Run migrations against the database
+
 # Dev servers
 # ⚠️ IMPORTANT: If you use `pnpm dev` it will block your terminal.
 # If you need to start the servers in the background, you MUST use the `devctl` helper:

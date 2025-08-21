@@ -14,7 +14,7 @@ export function useScenarioIntent() {
     },
   });
 
-  const debugAddTurnMutation = trpc.play._debugAddNodeToGraph.useMutation({
+  const addTurnMutation = trpc.play.addTurn.useMutation({
     onSuccess: () => {
       utils.play.timeline.invalidate();
       utils.play.environment.invalidate();
@@ -25,13 +25,13 @@ export function useScenarioIntent() {
     return createIntentMutation.mutateAsync(input);
   };
 
-  const debugAddTurn = async (
+  const addTurn = async (
     scenarioId: string,
     text: string,
     authorParticipantId: string,
     chapterId: string
   ) => {
-    return debugAddTurnMutation.mutateAsync({
+    return addTurnMutation.mutateAsync({
       scenarioId,
       text,
       authorParticipantId,
@@ -41,8 +41,8 @@ export function useScenarioIntent() {
 
   return {
     createIntent,
-    debugAddTurn,
+    addTurn,
     isCreatingIntent: createIntentMutation.isPending,
-    isAddingTurn: debugAddTurnMutation.isPending,
+    isAddingTurn: addTurnMutation.isPending,
   };
 }

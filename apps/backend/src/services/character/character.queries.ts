@@ -1,5 +1,6 @@
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
+import { ServiceError } from "@/service-error";
 import { getCharaAssetPaths } from "./utils/chara-asset-helpers";
 
 const {
@@ -62,10 +63,18 @@ export async function searchCharacters(
   db: SqliteDatabase,
   filters: {
     name: string;
+    filterMode?: "all" | "inScenario" | "notInScenario";
     scenarioId?: string;
   }
 ) {
-  const { name, scenarioId } = filters;
+  const { name, filterMode = "all", scenarioId } = filters;
+
+  // Validate scenarioId is provided when needed
+  if (filterMode !== "all" && !scenarioId) {
+    throw new ServiceError("InvalidInput", {
+      message: "scenarioId is required when filterMode is not 'all'",
+    });
+  }
 
   const query = db
     .select({
@@ -77,8 +86,20 @@ export async function searchCharacters(
     .from(tCharacters)
     .$dynamic();
 
-  if (scenarioId) {
+  // Apply scenario filtering based on filterMode
+  if (filterMode === "inScenario" && scenarioId) {
+    // Inner join to get only characters in the scenario
     query.innerJoin(
+      tScenarioParticipants,
+      and(
+        eq(tScenarioParticipants.characterId, tCharacters.id),
+        eq(tScenarioParticipants.scenarioId, scenarioId),
+        eq(tScenarioParticipants.status, "active")
+      )
+    );
+  } else if (filterMode === "notInScenario" && scenarioId) {
+    // Left join to get characters NOT in the scenario
+    query.leftJoin(
       tScenarioParticipants,
       and(
         eq(tScenarioParticipants.characterId, tCharacters.id),
@@ -88,9 +109,25 @@ export async function searchCharacters(
     );
   }
 
+  // Build where conditions
+  const whereConditions = [];
+
+  // Add the notInScenario filter condition
+  if (filterMode === "notInScenario" && scenarioId) {
+    whereConditions.push(sql`${tScenarioParticipants.id} IS NULL`);
+  }
+
+  // Add name filter if provided
   if (name) {
     const q = name.replaceAll("%", "\\%").replaceAll("_", "\\_");
-    query.where(sql`lower(${tCharacters.name}) LIKE lower(${`${q}%`})`);
+    whereConditions.push(
+      sql`lower(${tCharacters.name}) LIKE lower(${`${q}%`})`
+    );
+  }
+
+  // Apply combined where conditions
+  if (whereConditions.length > 0) {
+    query.where(and(...whereConditions));
   }
 
   const results = await query.orderBy(tCharacters.name).limit(10);

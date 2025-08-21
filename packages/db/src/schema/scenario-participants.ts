@@ -25,6 +25,9 @@ export const scenarioParticipants = sqliteTable(
       .default("active"),
     // goal: text("goal"), // Character's goal in the scenario, if applicable; only shown to the agent controlling that character
     role: text("role"), // Free-form role description (e.g., "Player", "GM", etc.)
+    isUserProxy: integer("is_user_proxy", { mode: "boolean" })
+      .notNull()
+      .default(false), // Indicates if this participant replaces {{user}} macros
     orderIndex: integer("order_index").notNull().default(0), // Display order
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()

@@ -18,14 +18,12 @@ export function CharacterEditPage() {
   const utils = trpc.useUtils();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Fetch character data
   const {
     data: character,
     isPending: isLoadingCharacter,
     error: loadError,
   } = trpc.characters.getById.useQuery({ id: id ?? "" }, { enabled: !!id });
 
-  // Update mutation
   const updateCharacterMutation = trpc.characters.update.useMutation({
     onSuccess: (updatedCharacter) => {
       showSuccessToast({
@@ -33,13 +31,11 @@ export function CharacterEditPage() {
         description: `Your changes to ${updatedCharacter.name} have been saved.`,
       });
 
-      // Invalidate the character list and detail cache to refresh the data
       utils.characters.list.invalidate();
       if (id) {
         utils.characters.getById.invalidate({ id });
       }
 
-      // Navigate back to character library
       navigate("/characters");
     },
     onError: (error) => {
@@ -52,7 +48,6 @@ export function CharacterEditPage() {
     },
   });
 
-  // Delete mutation
   const deleteCharacterMutation = trpc.characters.delete.useMutation({
     onSuccess: () => {
       showSuccessToast({
@@ -60,10 +55,8 @@ export function CharacterEditPage() {
         description: "The character has been deleted successfully.",
       });
 
-      // Invalidate the character list cache to refresh the data
       utils.characters.list.invalidate();
 
-      // Navigate back to character library
       navigate("/characters");
     },
     onError: (error) => {
@@ -75,7 +68,6 @@ export function CharacterEditPage() {
     },
   });
 
-  // Handle form submission
   const handleSubmit = (formData: {
     name: string;
     description: string;
@@ -84,10 +76,6 @@ export function CharacterEditPage() {
   }) => {
     if (!id) return;
 
-    // The useImageField hook now handles image logic properly:
-    // - undefined: keep existing image unchanged
-    // - string (dataURI): new image was uploaded
-    // - null: image was explicitly removed
     updateCharacterMutation.mutate({
       id,
       name: formData.name,
@@ -97,12 +85,10 @@ export function CharacterEditPage() {
     });
   };
 
-  // Handle cancel
   const handleCancel = () => {
     navigate("/characters");
   };
 
-  // Handle delete with confirmation
   const handleDelete = () => {
     setShowDeleteDialog(true);
   };
@@ -113,7 +99,6 @@ export function CharacterEditPage() {
     setShowDeleteDialog(false);
   };
 
-  // Loading state
   if (isLoadingCharacter) {
     return (
       <Container>
@@ -128,7 +113,6 @@ export function CharacterEditPage() {
     );
   }
 
-  // Error state (character not found)
   if (loadError || !character) {
     return (
       <Container>
@@ -149,12 +133,10 @@ export function CharacterEditPage() {
     );
   }
 
-  // Transform character data for form (avatarPath is an API URL, not base64)
   const initialFormData = {
     name: character.name,
     description: character.description,
     cardType: character.cardType,
-    // Convert relative API path to absolute URL for image preview
     imageDataUri: character.avatarPath
       ? getApiUrl(character.avatarPath) || undefined
       : undefined,

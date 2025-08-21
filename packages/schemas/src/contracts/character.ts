@@ -112,6 +112,7 @@ export const charactersListResponseSchema = z.object({
 
 export const characterAutocompleteInputSchema = z.object({
   name: z.string().default(""),
+  filterMode: z.enum(["all", "inScenario", "notInScenario"]).default("all"),
   scenarioId: z.string().optional(),
 });
 

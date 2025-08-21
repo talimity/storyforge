@@ -1,9 +1,78 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "4eea3bdc-ae08-4c49-a64c-622edc65abd5",
+  "id": "c7d61853-012f-422b-9846-b194ba4624c5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "chapters": {
+      "name": "chapters",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scenario_id": {
+          "name": "scenario_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "index": {
+          "name": "index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "chapters_scenario_id_index_unique": {
+          "name": "chapters_scenario_id_index_unique",
+          "columns": ["scenario_id", "index"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "chapters_scenario_id_scenarios_id_fk": {
+          "name": "chapters_scenario_id_scenarios_id_fk",
+          "tableFrom": "chapters",
+          "tableTo": "scenarios",
+          "columnsFrom": ["scenario_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "character_examples": {
       "name": "character_examples",
       "columns": {
@@ -59,8 +128,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "character_greetings": {
-      "name": "character_greetings",
+    "character_starters": {
+      "name": "character_starters",
       "columns": {
         "id": {
           "name": "id",
@@ -108,9 +177,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "character_greetings_character_id_characters_id_fk": {
-          "name": "character_greetings_character_id_characters_id_fk",
-          "tableFrom": "character_greetings",
+        "character_starters_character_id_characters_id_fk": {
+          "name": "character_starters_character_id_characters_id_fk",
+          "tableFrom": "character_starters",
           "tableTo": "characters",
           "columnsFrom": ["character_id"],
           "columnsTo": ["id"],
@@ -145,6 +214,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "card_type": {
+          "name": "card_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'character'"
         },
         "legacy_personality": {
           "name": "legacy_personality",
@@ -203,19 +280,27 @@
           "notNull": false,
           "autoincrement": false
         },
-        "original_card_data": {
-          "name": "original_card_data",
+        "tavern_card_data": {
+          "name": "tavern_card_data",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "card_image": {
-          "name": "card_image",
+        "portrait": {
+          "name": "portrait",
           "type": "blob",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "portrait_focal_point": {
+          "name": "portrait_focal_point",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{\"x\":0.5,\"y\":0.3,\"w\":0.5,\"h\":0.5,\"c\":0}'"
         },
         "created_at": {
           "name": "created_at",
@@ -238,8 +323,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "scenario_characters": {
-      "name": "scenario_characters",
+    "scenario_participants": {
+      "name": "scenario_participants",
       "columns": {
         "id": {
           "name": "id",
@@ -259,8 +344,39 @@
           "name": "character_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'character'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_user_proxy": {
+          "name": "is_user_proxy",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "order_index": {
           "name": "order_index",
@@ -269,26 +385,46 @@
           "notNull": true,
           "autoincrement": false,
           "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_scenario_character_unique": {
+          "name": "idx_scenario_character_unique",
+          "columns": ["scenario_id", "character_id"],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
-        "scenario_characters_scenario_id_scenarios_id_fk": {
-          "name": "scenario_characters_scenario_id_scenarios_id_fk",
-          "tableFrom": "scenario_characters",
+        "scenario_participants_scenario_id_scenarios_id_fk": {
+          "name": "scenario_participants_scenario_id_scenarios_id_fk",
+          "tableFrom": "scenario_participants",
           "tableTo": "scenarios",
           "columnsFrom": ["scenario_id"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "scenario_characters_character_id_characters_id_fk": {
-          "name": "scenario_characters_character_id_characters_id_fk",
-          "tableFrom": "scenario_characters",
+        "scenario_participants_character_id_characters_id_fk": {
+          "name": "scenario_participants_character_id_characters_id_fk",
+          "tableFrom": "scenario_participants",
           "tableTo": "characters",
           "columnsFrom": ["character_id"],
           "columnsTo": ["id"],
-          "onDelete": "cascade",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
@@ -320,6 +456,44 @@
           "notNull": true,
           "autoincrement": false
         },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "root_turn_id": {
+          "name": "root_turn_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "anchor_turn_id": {
+          "name": "anchor_turn_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "settings": {
+          "name": "settings",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{}'"
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{}'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -336,7 +510,104 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "scenarios_root_turn_id_turns_id_fk": {
+          "name": "scenarios_root_turn_id_turns_id_fk",
+          "tableFrom": "scenarios",
+          "tableTo": "turns",
+          "columnsFrom": ["root_turn_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "scenarios_anchor_turn_id_turns_id_fk": {
+          "name": "scenarios_anchor_turn_id_turns_id_fk",
+          "tableFrom": "scenarios",
+          "tableTo": "turns",
+          "columnsFrom": ["anchor_turn_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "turn_layers": {
+      "name": "turn_layers",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "turn_id": {
+          "name": "turn_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_turn_layer_turn": {
+          "name": "idx_turn_layer_turn",
+          "columns": ["turn_id"],
+          "isUnique": false
+        },
+        "idx_turn_layer_key": {
+          "name": "idx_turn_layer_key",
+          "columns": ["key"],
+          "isUnique": false
+        },
+        "idx_one_layer_per_turn_key": {
+          "name": "idx_one_layer_per_turn_key",
+          "columns": ["turn_id", "key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "turn_layers_turn_id_turns_id_fk": {
+          "name": "turn_layers_turn_id_turns_id_fk",
+          "tableFrom": "turn_layers",
+          "tableTo": "turns",
+          "columnsFrom": ["turn_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
@@ -358,39 +629,33 @@
           "notNull": true,
           "autoincrement": false
         },
-        "character_id": {
-          "name": "character_id",
+        "chapter_id": {
+          "name": "chapter_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "parent_turn_id": {
+          "name": "parent_turn_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "content": {
-          "name": "content",
+        "sibling_order": {
+          "name": "sibling_order",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": "'m'"
         },
-        "timestamp": {
-          "name": "timestamp",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "order_index": {
-          "name": "order_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "agent_data": {
-          "name": "agent_data",
+        "author_participant_id": {
+          "name": "author_participant_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "created_at": {
@@ -408,7 +673,29 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_turn_parent": {
+          "name": "idx_turn_parent",
+          "columns": ["parent_turn_id"],
+          "isUnique": false
+        },
+        "idx_turn_scenario": {
+          "name": "idx_turn_scenario",
+          "columns": ["scenario_id"],
+          "isUnique": false
+        },
+        "idx_uniq_turn_parent_order": {
+          "name": "idx_uniq_turn_parent_order",
+          "columns": ["parent_turn_id", "sibling_order"],
+          "isUnique": true
+        },
+        "idx_one_root_per_scenario": {
+          "name": "idx_one_root_per_scenario",
+          "columns": ["scenario_id"],
+          "isUnique": true,
+          "where": "parent_turn_id IS NULL"
+        }
+      },
       "foreignKeys": {
         "turns_scenario_id_scenarios_id_fk": {
           "name": "turns_scenario_id_scenarios_id_fk",
@@ -419,13 +706,22 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "turns_character_id_characters_id_fk": {
-          "name": "turns_character_id_characters_id_fk",
+        "turns_chapter_id_chapters_id_fk": {
+          "name": "turns_chapter_id_chapters_id_fk",
           "tableFrom": "turns",
-          "tableTo": "characters",
-          "columnsFrom": ["character_id"],
+          "tableTo": "chapters",
+          "columnsFrom": ["chapter_id"],
           "columnsTo": ["id"],
-          "onDelete": "set null",
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "turns_author_participant_id_scenario_participants_id_fk": {
+          "name": "turns_author_participant_id_scenario_participants_id_fk",
+          "tableFrom": "turns",
+          "tableTo": "scenario_participants",
+          "columnsFrom": ["author_participant_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },

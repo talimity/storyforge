@@ -16,6 +16,7 @@ export type LoadedParticipant = {
   id: string;
   role: string | null;
   orderIndex: number;
+  isUserProxy: boolean;
   character: Pick<Character, "id" | "name" | "description" | "cardType">;
 };
 
@@ -57,7 +58,7 @@ export async function loadContext(
   if (!scenario) throw new Error("Scenario not found");
 
   const participants = await db.query.scenarioParticipants.findMany({
-    columns: { id: true, role: true, orderIndex: true },
+    columns: { id: true, role: true, orderIndex: true, isUserProxy: true },
     where: { scenarioId },
     with: {
       character: {
@@ -93,6 +94,7 @@ export async function loadContext(
       id: p.id,
       role: p.role,
       orderIndex: p.orderIndex,
+      isUserProxy: p.isUserProxy,
       character: p.character,
     } satisfies LoadedParticipant;
   });

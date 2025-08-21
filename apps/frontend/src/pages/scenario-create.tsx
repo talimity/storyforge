@@ -10,7 +10,6 @@ export function ScenarioCreatePage() {
   const [searchParams] = useSearchParams();
   const utils = trpc.useUtils();
 
-  // Get pre-selected character IDs from URL params
   const selectedCharacterIds =
     searchParams.get("characterIds")?.split(",") || [];
 
@@ -21,10 +20,8 @@ export function ScenarioCreatePage() {
         description: `${scenario.name} has been created successfully.`,
       });
 
-      // Invalidate the scenario list cache to refresh the data
       utils.scenarios.list.invalidate();
 
-      // Navigate back to scenario library
       navigate("/scenarios");
     },
     onError: (error) => {
@@ -40,12 +37,22 @@ export function ScenarioCreatePage() {
   const handleSubmit = (formData: {
     name: string;
     description: string;
-    characterIds: string[];
+    participants: Array<{
+      characterId: string;
+      role?: string;
+      isUserProxy?: boolean;
+    }>;
   }) => {
+    const characterIds = formData.participants.map((p) => p.characterId);
+    const userProxyCharacterId = formData.participants.find(
+      (p) => p.isUserProxy
+    )?.characterId;
+
     createScenarioMutation.mutate({
       name: formData.name,
       description: formData.description,
-      characterIds: formData.characterIds,
+      characterIds,
+      userProxyCharacterId,
     });
   };
 
