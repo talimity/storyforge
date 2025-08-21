@@ -33,6 +33,7 @@ export function TurnHistory({
   onStarterSelect,
 }: TurnHistoryProps) {
   const {
+    turnToDelete,
     showDeleteDialog,
     isDeleting,
     editingTurnId,
@@ -118,6 +119,7 @@ export function TurnHistory({
         onOpenChange={(details) => setShowDeleteDialog(details.open)}
         onConfirmDelete={handleConfirmDelete}
         isDeleting={isDeleting}
+        cascade={turnToDelete?.cascade}
       />
     </>
   );

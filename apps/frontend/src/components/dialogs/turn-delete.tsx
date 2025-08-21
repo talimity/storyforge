@@ -7,6 +7,7 @@ interface TurnDeleteDialogProps {
   onOpenChange: (details: { open: boolean }) => void;
   onConfirmDelete: () => void;
   isDeleting?: boolean;
+  cascade?: boolean;
 }
 
 export function TurnDeleteDialog({
@@ -14,6 +15,7 @@ export function TurnDeleteDialog({
   onOpenChange,
   onConfirmDelete,
   isDeleting = false,
+  cascade = false,
 }: TurnDeleteDialogProps) {
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -27,12 +29,15 @@ export function TurnDeleteDialog({
     >
       <Dialog.Content>
         <Dialog.Header>
-          <Dialog.Title>Delete Turn</Dialog.Title>
+          <Dialog.Title>
+            {cascade ? "Delete Entire Branch" : "Delete Turn"}
+          </Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
           <Text>
-            Are you sure you want to delete this turn? This action cannot be
-            undone.
+            {cascade
+              ? "Are you sure you want to delete this turn and all following turns? This action cannot be undone."
+              : "Are you sure you want to delete this turn? This action cannot be undone."}
           </Text>
         </Dialog.Body>
         <Dialog.Footer>

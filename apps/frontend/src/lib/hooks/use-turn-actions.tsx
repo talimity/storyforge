@@ -10,7 +10,10 @@ export interface UseTurnActionsOptions {
 export function useTurnActions(options: UseTurnActionsOptions = {}) {
   const { onTurnDeleted, onTurnUpdated } = options;
 
-  const [turnToDelete, setTurnToDelete] = useState<string | null>(null);
+  const [turnToDelete, setTurnToDelete] = useState<{
+    id: string;
+    cascade: boolean;
+  } | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingTurnId, setEditingTurnId] = useState<string | null>(null);
 
@@ -31,14 +34,17 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
     },
   });
 
-  const handleDeleteTurn = useCallback((turnId: string) => {
-    setTurnToDelete(turnId);
+  const handleDeleteTurn = useCallback((turnId: string, cascade: boolean) => {
+    setTurnToDelete({ id: turnId, cascade });
     setShowDeleteDialog(true);
   }, []);
 
   const handleConfirmDelete = useCallback(() => {
     if (turnToDelete) {
-      deleteTurnMutation.mutate({ turnId: turnToDelete, cascade: false });
+      deleteTurnMutation.mutate({
+        turnId: turnToDelete.id,
+        cascade: turnToDelete.cascade,
+      });
     }
   }, [turnToDelete, deleteTurnMutation]);
 

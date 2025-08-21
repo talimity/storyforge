@@ -1,7 +1,27 @@
-import { Box, HStack, Stack, Text, Textarea } from "@chakra-ui/react";
+import {
+  Box,
+  Group,
+  HStack,
+  Menu,
+  Portal,
+  Stack,
+  Text,
+  Textarea,
+} from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/schemas";
 import { memo, useCallback, useState } from "react";
-import { LuCheck, LuPencil, LuTrash2, LuX } from "react-icons/lu";
+import {
+  LuBetweenHorizontalEnd,
+  LuCheck,
+  LuChevronRight,
+  LuEllipsisVertical,
+  LuMoveDown,
+  LuMoveUp,
+  LuPencil,
+  LuRefreshCw,
+  LuTrash,
+  LuX,
+} from "react-icons/lu";
 import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes";
 import { Avatar, Button, Prose } from "@/components/ui/index";
@@ -10,7 +30,7 @@ import { getApiUrl } from "@/lib/trpc";
 
 interface TurnItemProps {
   turn: TimelineTurn;
-  onDelete?: (turnId: string) => void;
+  onDelete?: (turnId: string, cascade: boolean) => void;
   onEdit?: (turnId: string, content: string) => void;
 
   isUpdating?: boolean;
@@ -25,11 +45,10 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
   const authorName = authorChar?.name ?? "Narrator";
   const avatarSrc = getApiUrl(authorChar?.avatarPath ?? undefined);
 
-  // Track if content has been modified
   const isDirty = editedContent !== turn.content.text;
 
   const handleDelete = useCallback(
-    () => onDelete?.(turn.id),
+    (cascade: boolean) => onDelete?.(turn.id, cascade),
     [onDelete, turn.id]
   );
 
@@ -59,6 +78,8 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
     setShowDiscardDialog(false);
   }, [turn.content.text]);
 
+  const doNothing = useCallback(() => {}, []);
+
   return (
     <>
       <Box layerStyle="surface" p={4} borderRadius="md">
@@ -83,32 +104,7 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
               <Text fontSize="xs" color="content.muted">
                 #{turn.turnNo}
               </Text>
-              {!isEditing && (
-                <HStack gap={1}>
-                  {onEdit && (
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      onClick={handleEditClick}
-                      aria-label="Edit turn"
-                    >
-                      <LuPencil />
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      colorPalette="red"
-                      onClick={handleDelete}
-                      aria-label="Delete turn"
-                    >
-                      <LuTrash2 />
-                    </Button>
-                  )}
-                </HStack>
-              )}
-              {isEditing && (
+              {isEditing ? (
                 <HStack gap={1}>
                   <Button
                     size="xs"
@@ -131,6 +127,112 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
                     <LuX />
                   </Button>
                 </HStack>
+              ) : (
+                <Menu.Root>
+                  <Menu.Trigger asChild>
+                    <Button size="xs" variant="ghost" aria-label="Turn actions">
+                      <LuEllipsisVertical />
+                    </Button>
+                  </Menu.Trigger>
+                  <Portal>
+                    <Menu.Positioner>
+                      <Menu.Content>
+                        {/* Edit | Regenerate */}
+                        <Group grow gap="0">
+                          <Menu.Item
+                            value="edit"
+                            width="16"
+                            gap="1"
+                            flexDirection="column"
+                            justifyContent="center"
+                            onClick={handleEditClick}
+                          >
+                            <LuPencil />
+                            Edit
+                          </Menu.Item>
+                          <Menu.Item
+                            value="regenerate"
+                            width="16"
+                            gap="1"
+                            flexDirection="column"
+                            justifyContent="center"
+                            onClick={doNothing}
+                          >
+                            <LuRefreshCw />
+                            Regen
+                          </Menu.Item>
+                        </Group>
+
+                        {/* Move Up */}
+                        <Menu.Item value="move-up" onClick={doNothing}>
+                          <LuMoveUp />
+                          <Box flex="1">Move Up</Box>
+                        </Menu.Item>
+
+                        {/* Move Down */}
+                        <Menu.Item value="move-down" onClick={doNothing}>
+                          <LuMoveDown />
+                          <Box flex="1">Move Down</Box>
+                        </Menu.Item>
+
+                        {/* Insert submenu */}
+                        <Menu.Root>
+                          <Menu.TriggerItem>
+                            <LuBetweenHorizontalEnd />
+                            <Box flex="1">Insert</Box>
+                            <LuChevronRight />
+                          </Menu.TriggerItem>
+                          <Portal>
+                            <Menu.Positioner>
+                              <Menu.Content>
+                                <Menu.Item
+                                  onClick={doNothing}
+                                  value="chapter-break"
+                                >
+                                  Chapter Break...
+                                </Menu.Item>
+                              </Menu.Content>
+                            </Menu.Positioner>
+                          </Portal>
+                        </Menu.Root>
+
+                        {/* Delete submenu */}
+                        <Menu.Root>
+                          <Menu.TriggerItem
+                            color="fg.error"
+                            _hover={{ bg: "bg.error", color: "fg.error" }}
+                          >
+                            <LuTrash />
+                            <Box flex="1">Delete</Box>
+                            <LuChevronRight />
+                          </Menu.TriggerItem>
+                          <Portal>
+                            <Menu.Positioner>
+                              <Menu.Content>
+                                <Menu.Item
+                                  value="delete-single"
+                                  color="fg.error"
+                                  _hover={{ bg: "bg.error", color: "fg.error" }}
+                                  onClick={() => handleDelete(false)}
+                                >
+                                  This turn only
+                                </Menu.Item>
+                                <Menu.Item
+                                  value="delete-cascade"
+                                  color="fg.error"
+                                  _hover={{ bg: "bg.error", color: "fg.error" }}
+                                  onClick={() => handleDelete(true)}
+                                >
+                                  This and all below
+                                </Menu.Item>
+                              </Menu.Content>
+                            </Menu.Positioner>
+                          </Portal>
+                        </Menu.Root>
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Portal>
+                </Menu.Root>
               )}
             </HStack>
           </HStack>
@@ -144,7 +246,7 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
             />
           ) : (
             // TODO: Make maxW configurable
-            <Prose size="lg" maxW="66ch">
+            <Prose size="lg" maxW="70ch">
               <Markdown>{turn.content.text}</Markdown>
             </Prose>
           )}
