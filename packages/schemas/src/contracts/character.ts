@@ -47,16 +47,16 @@ export const characterStarterSchema = z.object({
   characterId: z.string(),
   message: z.string(),
   isPrimary: z.boolean(),
-  createdAt: z.union([z.string(), z.date()]),
-  updatedAt: z.union([z.string(), z.date()]),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const characterExampleSchema = z.object({
   id: z.string(),
   characterId: z.string(),
   exampleTemplate: z.string(),
-  createdAt: z.union([z.string(), z.date()]),
-  updatedAt: z.union([z.string(), z.date()]),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const characterSchema = z.object({
@@ -75,8 +75,8 @@ export const characterSchema = z.object({
   tavernCardData: z.any().nullable(),
   imagePath: z.string().nullable(),
   avatarPath: z.string().nullable(),
-  createdAt: z.union([z.string(), z.date()]),
-  updatedAt: z.union([z.string(), z.date()]),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const characterSummarySchema = characterSchema.pick({

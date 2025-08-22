@@ -53,6 +53,7 @@
     "png-chunks-encode": "^1.0.0",
     "png-chunks-extract": "^1.0.0",
     "sharp": "catalog:",
+    "superjson": "catalog:",
     "trpc-to-openapi": "catalog:",
     "zod": "catalog:",
     "zod-openapi": "catalog:"

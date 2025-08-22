@@ -105,10 +105,10 @@ export const timelineTurnSchema = z.object({
     .describe("Swipe (alternate branch) information for this turn"),
   layer: z.literal("presentation").describe("The content layer being loaded"),
   content: z
-    .object({ text: z.string(), createdAt: z.string(), updatedAt: z.string() })
+    .object({ text: z.string(), createdAt: z.date(), updatedAt: z.date() })
     .describe("Content for this turn in the specified layer"),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const loadTimelineOutputSchema = z.object({

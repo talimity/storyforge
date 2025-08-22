@@ -1,5 +1,6 @@
 import type { AppRouter } from "@storyforge/backend";
 import { createTRPCReact, httpBatchLink, loggerLink } from "@trpc/react-query";
+import superjson from "superjson";
 
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -17,7 +18,6 @@ const getBaseUrl = () => {
 export function createTRPCClient() {
   return trpc.createClient({
     links: [
-      // Add logging in development
       ...(import.meta.env.DEV
         ? [
             loggerLink({
@@ -28,6 +28,7 @@ export function createTRPCClient() {
           ]
         : []),
       httpBatchLink({
+        transformer: superjson,
         url: `${getBaseUrl()}/trpc`,
       }),
     ],

@@ -1,3 +1,4 @@
+import { sqliteTimestampToDate } from "@storyforge/db";
 import {
   createIntentInputSchema,
   createIntentOutputSchema,
@@ -126,12 +127,12 @@ export const playRouter = router({
         layer: "presentation" as const,
         content: {
           text: r.content ?? "",
-          createdAt: new Date(r.layer_created_at * 1000).toISOString(),
-          updatedAt: new Date(r.layer_updated_at * 1000).toISOString(),
+          createdAt: sqliteTimestampToDate(r.layer_created_at),
+          updatedAt: sqliteTimestampToDate(r.layer_updated_at),
         },
 
-        createdAt: new Date(r.created_at * 1000).toISOString(),
-        updatedAt: new Date(r.updated_at * 1000).toISOString(),
+        createdAt: sqliteTimestampToDate(r.created_at),
+        updatedAt: sqliteTimestampToDate(r.updated_at),
       }));
 
       // Cursor-by-ancestor: take TOP row's parent (root-most in this page)

@@ -76,8 +76,8 @@ export const scenarioSchema = z.object({
   status: z.enum(["active", "archived"]),
   settings: z.record(z.string(), z.unknown()).default({}),
   metadata: z.record(z.string(), z.unknown()).default({}),
-  createdAt: z.union([z.string(), z.date()]),
-  updatedAt: z.union([z.string(), z.date()]),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const scenarioWithCharactersSchema = scenarioSchema.extend({

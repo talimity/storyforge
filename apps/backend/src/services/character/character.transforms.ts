@@ -1,4 +1,7 @@
-import type { Character as DbCharacter } from "@storyforge/db";
+import {
+  type Character as DbCharacter,
+  sqliteTimestampToDate,
+} from "@storyforge/db";
 import type {
   Character as ApiCharacter,
   CharacterSummary as ApiCharacterSummary,
@@ -32,8 +35,8 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
       ? JSON.parse(JSON.stringify(dbCharacter.tavernCardData))
       : null,
     ...getCharaAssetPaths(dbCharacter),
-    createdAt: dbCharacter.createdAt,
-    updatedAt: dbCharacter.updatedAt,
+    createdAt: sqliteTimestampToDate(dbCharacter.createdAt),
+    updatedAt: sqliteTimestampToDate(dbCharacter.updatedAt),
   };
 }
 

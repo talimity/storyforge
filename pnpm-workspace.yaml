@@ -10,6 +10,7 @@ catalog:
   drizzle-kit: beta
   drizzle-orm: 1.0.0-beta.1-40d80bd
   sharp: ^0.34.3
+  superjson: ^2.2.2
   trpc-to-openapi: ^3.0.0
   tsx: ^4.20.3
   typescript: ^5.9.2

@@ -5,3 +5,4 @@ export * from "./client";
 export * from "./config";
 export { runMigrations } from "./migrate";
 export * from "./schema/index";
+export * from "./utils";

@@ -21,6 +21,7 @@
 * Support for image or TTS models outside of chat completions, as a completely separate type of inference request
 * Lorebook/world info handling; just leave space for it and abstract away the lore matching implementation
 * Tools; we know we probably want it eventually but have no idea what it will look like or how characters should use them
+  * `rollDice`, `searchLore`, `completeTodo`, `updateTodos`
 
 ---
 
@@ -32,17 +33,17 @@
 * **Entity**: `ProviderConfig`
 
     * `id`
-    * `providerKind` ∈ {`deepseek`, `openrouter`, `openai_compatible`, etc}
+    * `providerKind` ∈ {`deepseek`, `openrouter`, `openai-compatible`, etc}
     * `displayName` (user‑chosen label like “OpenAI (work)”, “Local vLLM:5000”)
     * `auth`: { optional `apiKey`, optional `extraHeaders`: Record<string,string> }
-    * `baseUrl` (required for `openai_compatible`, optional for others)
-    * `capabilities` optional, json, Partial<TextInferenceCapabilities> (only used for openai_compatible since its adapter is generic; non-generic providers capabilities are hard-coded in the adapter's actual implementation)
+    * `baseUrl` (required for `openai-compatible`, optional for others)
+    * `capabilities` optional, json, Partial<TextInferenceCapabilities> (only used for openai-compatible since its adapter is generic; non-generic providers capabilities are hard-coded in the adapter's actual implementation)
 
 **Notes**
 
 * Built‑in providers can have prefilled defaults for `baseUrl`.
 * Multiple instances are allowed for all providers for consistency.
-* Eventually, `openai_compatible` will probably also require storing 'quirks' lists and generation parameter mapping overrides (`topP` -> `top_p`) for additional flexibility. Not worth speccing this out right now since OpenRouter is enough to get the core stuff working.
+* Eventually, `openai-compatible` will probably also require storing 'quirks' lists and generation parameter mapping overrides (`topP` -> `top_p`) for additional flexibility. Not worth speccing this out right now since OpenRouter is enough to get the core stuff working.
 
 ### 2.2 Model Profile
 
@@ -175,7 +176,7 @@ export interface ProviderAdapter {
 
 * `completeStream` implementations should accumulate chunks internally as they yield them, so that they can construct a `ChatCompletionsResponse` and return that.
 * Each provider implements its own quirks as a 'post-processing' step. That means merging duplicated consecutive roles (user->user->assistant), stripping `system` role messages and adding a `systemPrompt` if the API requires a top-level system prompt, etc.
-* We might eventually add a way to let generic `openai_compatible` provider dynamically apply certain quirks transformations, based on enabled quirks. This is a specific behavior of the generic openai_compatible adapater, not the built-in adapters for specific providers.
+* We might eventually add a way to let generic `openai-compatible` provider dynamically apply certain quirks transformations, based on enabled quirks. This is a specific behavior of the generic openai-compatible adapater, not the built-in adapters for specific providers.
 
 ## 3) Persistence Model
 
@@ -184,13 +185,13 @@ export interface ProviderAdapter {
 * `provider_configs`
 
     * `id TEXT PRIMARY KEY`
-    * `provider_kind TEXT NOT NULL`         // ∈ {`openrouter`, `deepseek`, `openai_compatible`}
+    * `provider_kind TEXT NOT NULL`         // ∈ {`openrouter`, `deepseek`, `openai-compatible`}
     * `display_name TEXT NOT NULL`
     * `auth TEXT NOT NULL`             // {apiKey, orgId?, extraHeaders?}
     * `base_url TEXT`
-    * `capabilities TEXT`              // Capabilities (openai_compatible)
-    * `params TEXT`                    // GenParamsMap (openai_compatible)
-    * `quirks TEXT`                    // Quirks (openai_compatible)
+    * `capabilities TEXT`              // Capabilities (openai-compatible)
+    * `params TEXT`                    // GenParamsMap (openai-compatible)
+    * `quirks TEXT`                    // Quirks (openai-compatible)
     * timestamps
 
 * `model_profiles`
@@ -232,7 +233,7 @@ export interface ProviderAdapter {
 
 **Notes**
 
-* ProviderConfig capabilities/params/quirks are nullable in the database because they only apply to "openai_compatible"-type providers. Use a check if SQLite has them to enforce that.
+* ProviderConfig capabilities/params/quirks are nullable in the database because they only apply to "openai-compatible"-type providers. Use a check if SQLite has them to enforce that.
 * Might be best to type all of the JSON fields as `Record<string, unknown>` at the drizzle level and force consumers to `safeParse` with zod before using, maybe combined with a `version` column for workflows.
 
 ---
