@@ -1,0 +1,152 @@
+import {
+  Badge,
+  Card,
+  HStack,
+  IconButton,
+  MenuContent,
+  MenuItem,
+  MenuRoot,
+  MenuTrigger,
+  Stack,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import type { ModelProfile } from "@storyforge/schemas";
+import { useState } from "react";
+import {
+  FaBrain,
+  FaEllipsisVertical,
+  FaGear,
+  FaPenToSquare,
+  FaTrash,
+} from "react-icons/fa6";
+import { trpc } from "@/lib/trpc";
+import { DeleteModelProfileDialog } from "./delete-model-profile-dialog";
+import { EditModelProfileDialog } from "./edit-model-profile-dialog";
+
+interface ModelProfileCardProps {
+  modelProfile: ModelProfile;
+}
+
+function getCapabilityBadges(
+  capabilities?: Partial<{
+    streaming: boolean;
+    assistantPrefill: boolean;
+    logprobs: boolean;
+    tools: boolean;
+    fim: boolean;
+  }>
+) {
+  if (!capabilities) return [];
+
+  const badges = [];
+  if (capabilities.streaming)
+    badges.push({ label: "Streaming", color: "blue" });
+  if (capabilities.assistantPrefill)
+    badges.push({ label: "Prefill", color: "green" });
+  if (capabilities.logprobs)
+    badges.push({ label: "Logprobs", color: "purple" });
+  if (capabilities.tools) badges.push({ label: "Tools", color: "orange" });
+  if (capabilities.fim) badges.push({ label: "FIM", color: "teal" });
+
+  return badges;
+}
+
+export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Get the provider info for display
+  const providerQuery = trpc.providers.getProvider.useQuery(
+    { id: modelProfile.providerId },
+    { enabled: !!modelProfile.providerId }
+  );
+
+  const provider = providerQuery.data;
+  const capabilities = modelProfile.capabilityOverrides;
+  const capabilityBadges = getCapabilityBadges(capabilities);
+
+  return (
+    <>
+      <Card.Root layerStyle="surface">
+        <Card.Body p={4}>
+          <VStack align="stretch" gap={3}>
+            <HStack justify="space-between">
+              <HStack gap={2}>
+                <FaBrain />
+                <Text fontWeight="medium" truncate>
+                  {modelProfile.displayName}
+                </Text>
+              </HStack>
+              <MenuRoot>
+                <MenuTrigger asChild>
+                  <IconButton variant="ghost" size="sm">
+                    <FaEllipsisVertical />
+                  </IconButton>
+                </MenuTrigger>
+                <MenuContent>
+                  <MenuItem
+                    value="edit"
+                    onClick={() => setIsEditDialogOpen(true)}
+                  >
+                    <FaPenToSquare />
+                    Edit
+                  </MenuItem>
+                  <MenuItem
+                    value="delete"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    color="red.500"
+                  >
+                    <FaTrash />
+                    Delete
+                  </MenuItem>
+                </MenuContent>
+              </MenuRoot>
+            </HStack>
+
+            <VStack align="stretch" gap={2}>
+              <Text fontSize="sm" color="content.muted" truncate>
+                Model: {modelProfile.modelId}
+              </Text>
+
+              {provider && (
+                <HStack gap={2} align="center">
+                  <FaGear size={12} />
+                  <Text fontSize="xs" color="content.muted" truncate>
+                    {provider.name}
+                  </Text>
+                </HStack>
+              )}
+
+              {capabilityBadges.length > 0 && (
+                <Stack direction="row" gap={1} wrap="wrap">
+                  {capabilityBadges.map((badge) => (
+                    <Badge
+                      key={badge.label}
+                      colorPalette={badge.color}
+                      size="xs"
+                    >
+                      {badge.label}
+                    </Badge>
+                  ))}
+                </Stack>
+              )}
+            </VStack>
+          </VStack>
+        </Card.Body>
+      </Card.Root>
+
+      <EditModelProfileDialog
+        modelProfile={modelProfile}
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+      />
+
+      <DeleteModelProfileDialog
+        modelProfile={modelProfile}
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      />
+    </>
+  );
+}
