@@ -5,7 +5,6 @@ import { createAppContext } from "@/api/app-context";
 import { appRouter } from "@/api/app-router";
 import { registerAssetsRoutes } from "@/api/assets";
 import { openApiDocument } from "@/api/openapi";
-import { registerSSERoutes } from "@/api/sse";
 
 /**
  * Register all tRPC and REST (via trpc-to-openapi) routes given a Fastify
@@ -14,7 +13,6 @@ import { registerSSERoutes } from "@/api/sse";
 export function registerAPI(fastify: FastifyInstance) {
   // Register non-tRPC routes for images, and SSE
   registerAssetsRoutes(fastify);
-  registerSSERoutes(fastify);
 
   // Register tRPC routers
   fastify.register(fastifyTRPCPlugin, {

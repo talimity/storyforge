@@ -5,6 +5,8 @@
     { "path": "./apps/backend" },
     { "path": "./packages/db" },
     { "path": "./packages/schemas" },
+    { "path": "./packages/inference" },
+    { "path": "./packages/utils" },
     { "path": "./packages/config" }
   ],
   "extends": "./tsconfig.base.json"

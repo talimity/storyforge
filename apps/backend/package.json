@@ -39,6 +39,7 @@
     "@paralleldrive/cuid2": "^2.2.2",
     "@storyforge/config": "workspace:*",
     "@storyforge/db": "workspace:*",
+    "@storyforge/inference": "workspace:*",
     "@storyforge/schemas": "workspace:*",
     "@storyforge/utils": "workspace:*",
     "@storyforge/yolo-onnx": "workspace:*",

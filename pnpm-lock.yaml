@@ -95,6 +95,9 @@ importers:
       '@storyforge/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@storyforge/inference':
+        specifier: workspace:*
+        version: link:../../packages/inference
       '@storyforge/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
@@ -297,6 +300,12 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 1.0.0-beta.1-84d9a79
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.2
+
+  packages/inference:
+    devDependencies:
       typescript:
         specifier: 'catalog:'
         version: 5.9.2
