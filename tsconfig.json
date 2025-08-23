@@ -1,13 +1,14 @@
 {
   "files": [],
   "references": [
-    { "path": "./apps/frontend" },
     { "path": "./apps/backend" },
+    { "path": "./apps/frontend" },
+    { "path": "./packages/config" },
     { "path": "./packages/db" },
-    { "path": "./packages/schemas" },
     { "path": "./packages/inference" },
-    { "path": "./packages/utils" },
-    { "path": "./packages/config" }
+    { "path": "./packages/prompt-renderer" },
+    { "path": "./packages/schemas" },
+    { "path": "./packages/utils" }
   ],
   "extends": "./tsconfig.base.json"
 }

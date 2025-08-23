@@ -1,0 +1,26 @@
+{
+  "name": "@storyforge/prompt-renderer",
+  "description": "Rendering engine for Storyforge prompt templates",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "check": "run-p --continue-on-error lint typecheck",
+    "clean": "rm -rf dist",
+    "fmt": "biome format --write .",
+    "lint": "biome check --diagnostic-level error --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

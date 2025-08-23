@@ -1,9 +1,6 @@
-# Prompt Template & Rendering Specification (v0.2)
+# Prompt Template & Rendering Specification
 
-**Scope:** This document defines the template DSL and the rendering algorithm that turns heterogeneous task inputs into a `ChatCompletionsMessage[]` request.
-**Changes in v0.2:** Templates are **task-bound** (polymorphic render contexts), and data access happens via a **per-task Source Registry**. All prior references to a monolithic `RenderContext` are replaced accordingly. No other scope changes.
-
----
+**Scope:** This document defines the template DSL and the rendering algorithm that turns heterogeneous task inputs into a `ChatCompletionMessage[]` request.
 
 ## 1) Overview
 
@@ -15,7 +12,7 @@
 * Rendering is **two-phase**:
 
     * **Phase A – Fill:** Consume a global token budget by filling slots in **priority** order (lowest numeric value first). Each slot has a plan that can iterate arrays, apply conditions, and emit messages.
-    * **Phase B – Assemble:** Emit the final `ChatCompletionsMessage[]` by walking the **layout** and inserting filled slot contents (with optional headers/footers).
+    * **Phase B – Assemble:** Emit the final `ChatCompletionMessage[]` by walking the **layout** and inserting filled slot contents (with optional headers/footers).
 
 * Templates may declare **response transforms** (e.g., regex extract/replace) to post-process the assistant’s text before capture.
 
@@ -27,7 +24,7 @@
 
 * **TaskKind:** The application’s task types, e.g., `'turn_generation' | 'chapter_summarization' | 'writing_assistant'`. A template is **authored for exactly one TaskKind**.
 
-* **Task Context (per TaskKind):** Small, normalized DTOs required by that task. Examples (non-exhaustive):
+* **Task Render Context (per TaskKind):** Small, normalized DTOs required by that task. Examples (non-exhaustive):
 
   ```ts
   export type TurnGenCtx = {
@@ -64,9 +61,9 @@
 
 ---
 
-## 3) Type Definitions (authoritative)
+## 3) Type Definitions
 
-> The following TypeScript types are **normative** for this module’s public API.
+(Note: check the latest TypeScript definitions in the prompt-renderer package for any updates as the implementation evolves.)
 
 ```ts
 /** ---------- Task binding ---------- */
@@ -97,12 +94,12 @@ export type PromptTemplate = {
 };
 
 export type LayoutNode =
-  | { kind: 'message'; role: Role; content?: string; from?: DataRef; prefix?: boolean }
+  | { kind: 'message'; role: ChatCompletonMessageRole; content?: string; from?: DataRef; prefix?: boolean }
   | { kind: 'slot'; name: string; header?: MessageBlock | MessageBlock[]; footer?: MessageBlock | MessageBlock[]; omitIfEmpty?: boolean }
   | { kind: 'separator'; text?: string };
 
-export type MessageBlock = { role: Role; content?: string; from?: DataRef; prefix?: boolean };
-export type Role = 'system' | 'user' | 'assistant';
+export type MessageBlock = { role: ChatCompletonMessageRole; content?: string; from?: DataRef; prefix?: boolean };
+export type ChatCompletonMessageRole = 'system' | 'user' | 'assistant';
 
 /** ---------- DataRef via Source Registry ---------- */
 
@@ -129,10 +126,10 @@ export type Budget = {
 };
 
 export type PlanNode =
-  | { kind: 'message'; role: Role; content?: string; from?: DataRef; prefix?: boolean; budget?: Budget }
+  | { kind: 'message'; role: ChatCompletonMessageRole; content?: string; from?: DataRef; prefix?: boolean; budget?: Budget }
   | { kind: 'forEach';
       source: DataRef;                   // must resolve to an array
-      order?: 'asc'|'desc'|'topDown'|'bottomUp'; // asc=topDown, desc=bottomUp
+      order?: 'asc'|'desc';
       limit?: number;
       map: PlanNode[];                   // evaluated with {item} in scope
       interleave?: { kind: 'separator'; text?: string };
@@ -155,8 +152,8 @@ export type ResponseTransform =
 
 /** ---------- Render Inputs & Outputs ---------- */
 
-export type ChatCompletionsMessage = {
-  role: Role;
+export type ChatCompletionMessage = {
+  role: ChatCompletonMessageRole;
   content: string;
   /** If true and role==='assistant', this is a required prefix; capability must be enforced upstream. */
   prefix?: boolean;
@@ -189,7 +186,7 @@ export function render<K extends TaskKind>(
   ctx: TaskCtx<K>,
   budget: BudgetManager,
   registry: SourceRegistry<K>
-): ChatCompletionsMessage[];
+): ChatCompletionMessage[];
 ```
 
 **Notes**
@@ -202,7 +199,7 @@ export function render<K extends TaskKind>(
 ## 4) Rendering Algorithm (normative)
 
 **Inputs:** `template: TaskBoundTemplate<K>`, `ctx: TaskCtx<K>`, `budget: BudgetManager`, `registry: SourceRegistry<K>`.
-**Output:** `ChatCompletionsMessage[]`.
+**Output:** `ChatCompletionMessage[]`.
 
 **Phase A – Fill (by priority):**
 
@@ -223,7 +220,7 @@ export function render<K extends TaskKind>(
 
 **Phase B – Assemble (by layout order):**
 
-1. Initialize `out: ChatCompletionsMessage[] = []`.
+1. Initialize `out: ChatCompletionMessage[] = []`.
 2. For each node in `layout`:
 
     * `message`: resolve `from` (if present) via `registry`, otherwise use `content`. Emit subject to global budget checks as in Phase A.
@@ -239,7 +236,7 @@ export function render<K extends TaskKind>(
 
 **Post-conditions & validation:**
 
-* The returned `ChatCompletionsMessage[]` is the final prompt. If any message sets `role:'assistant'` and `prefix:true`, this is a **hard requirement** signaled to the caller; enforcement happens outside the renderer.
+* The returned `ChatCompletionMessage[]` is the final prompt. If any message sets `role:'assistant'` and `prefix:true`, this is a **hard requirement** signaled to the caller; enforcement happens outside the renderer.
 * If the layout references a **nonexistent slot name**, this is a **template authoring error** (the renderer SHOULD throw).
 
 **Determinism:**
@@ -511,7 +508,7 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
 Treat the renderer as a **pure function**:
 
 ```
-(template, ctx, budget, registry) -> ChatCompletionsMessage[]
+(template, ctx, budget, registry) -> ChatCompletionMessage[]
 ```
 
 Use snapshot tests for:
