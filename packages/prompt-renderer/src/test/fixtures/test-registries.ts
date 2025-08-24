@@ -8,6 +8,7 @@ export function makeTurnGenTestRegistry(): SourceRegistry<"turn_generation"> {
   return makeRegistry<"turn_generation">({
     // Array sources
     turns: (_ref, ctx) => ctx.turns,
+    recentTurns: (_ref, ctx) => ctx.turns, // Alias for turns for testing
     characters: (_ref, ctx) => ctx.characters,
     chapterSummaries: (_ref, ctx) => ctx.chapterSummaries,
 

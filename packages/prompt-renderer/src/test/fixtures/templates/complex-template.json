@@ -1,0 +1,99 @@
+{
+  "id": "complex",
+  "task": "turn_generation",
+  "name": "Complex Test Template",
+  "version": 1,
+  "layout": [
+    {
+      "kind": "message",
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "kind": "slot",
+      "name": "characters",
+      "header": {
+        "role": "system",
+        "content": "Characters:"
+      },
+      "omitIfEmpty": true
+    },
+    {
+      "kind": "separator",
+      "text": "---"
+    },
+    {
+      "kind": "slot",
+      "name": "turns"
+    },
+    {
+      "kind": "message",
+      "role": "user",
+      "content": "Continue the story."
+    }
+  ],
+  "slots": {
+    "characters": {
+      "priority": 1,
+      "when": {
+        "type": "nonEmpty",
+        "ref": {
+          "source": "characters"
+        }
+      },
+      "plan": [
+        {
+          "kind": "forEach",
+          "source": {
+            "source": "characters"
+          },
+          "limit": 3,
+          "map": [
+            {
+              "kind": "message",
+              "role": "system",
+              "content": "{{item.name}}: {{item.description}}"
+            }
+          ]
+        }
+      ]
+    },
+    "turns": {
+      "priority": 2,
+      "plan": [
+        {
+          "kind": "if",
+          "when": {
+            "type": "nonEmpty",
+            "ref": {
+              "source": "recentTurns"
+            }
+          },
+          "then": [
+            {
+              "kind": "forEach",
+              "source": {
+                "source": "recentTurns"
+              },
+              "limit": 2,
+              "map": [
+                {
+                  "kind": "message",
+                  "role": "user",
+                  "content": "Turn: {{item.content}}"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "kind": "message",
+              "role": "system",
+              "content": "No previous turns."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

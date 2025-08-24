@@ -1,0 +1,19 @@
+{
+  "id": "minimal",
+  "task": "turn_generation",
+  "name": "Minimal Test Template",
+  "version": 1,
+  "layout": [
+    {
+      "kind": "message",
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "kind": "message",
+      "role": "user",
+      "content": "Hello!"
+    }
+  ],
+  "slots": {}
+}

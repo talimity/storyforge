@@ -198,15 +198,6 @@ export interface SourceRegistry<K extends TaskKind> {
   list?(): string[];
 }
 
-/** ---------- Render signature ---------- */
-
-export declare function render<K extends TaskKind>(
-  template: TaskBoundTemplate<K>,
-  ctx: TaskCtx<K>,
-  budget: BudgetManager,
-  registry: SourceRegistry<K>
-): ChatCompletionMessage[];
-
 /** ---------- Compiled Template Types ---------- */
 
 export type CompiledLeafFunction = (scope: unknown) => string;

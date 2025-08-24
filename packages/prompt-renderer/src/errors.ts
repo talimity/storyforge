@@ -32,8 +32,8 @@ export class AuthoringValidationError extends Error {
 export class RenderError extends Error {
   override readonly name = "RenderError";
 
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, options?: { cause?: Error }) {
+    super(message, options);
     Object.setPrototypeOf(this, RenderError.prototype);
   }
 }

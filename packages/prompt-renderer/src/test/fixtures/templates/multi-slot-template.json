@@ -1,0 +1,53 @@
+{
+  "id": "multi-slot",
+  "task": "turn_generation",
+  "name": "Multi-Slot Test Template",
+  "version": 1,
+  "layout": [
+    {
+      "kind": "message",
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "kind": "slot",
+      "name": "context",
+      "header": {
+        "role": "system",
+        "content": "Context:"
+      }
+    },
+    {
+      "kind": "slot",
+      "name": "examples",
+      "omitIfEmpty": true
+    },
+    {
+      "kind": "message",
+      "role": "user",
+      "content": "Please help me."
+    }
+  ],
+  "slots": {
+    "context": {
+      "priority": 1,
+      "plan": [
+        {
+          "kind": "message",
+          "role": "system",
+          "content": "Current context information."
+        }
+      ]
+    },
+    "examples": {
+      "priority": 2,
+      "plan": [
+        {
+          "kind": "message",
+          "role": "system",
+          "content": "Example interaction."
+        }
+      ]
+    }
+  }
+}

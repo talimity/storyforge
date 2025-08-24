@@ -15,16 +15,14 @@ export {
   resolveAsString,
   resolveDataRef,
 } from "./data-ref-resolver";
-// Error types
 export {
   AuthoringValidationError,
   RenderError,
   TemplateStructureError,
 } from "./errors";
+export { assembleLayout } from "./layout-assembler";
 export { compileLeaf } from "./leaf-compiler";
-// Export execution result types
 export type { ExecutionScope, PlanExecutionResult } from "./plan-executor";
-// Plan execution (Task E)
 export {
   createScope,
   executeForEachNode,
@@ -33,6 +31,8 @@ export {
   executePlanNode,
   executePlanNodes,
 } from "./plan-executor";
+export { render } from "./renderer";
+export { applyTransforms } from "./response-transformer";
 export {
   budgetSchema,
   conditionRefSchema,
@@ -51,6 +51,7 @@ export type { SlotExecutionResult } from "./slot-executor";
 export { executeSlots } from "./slot-executor";
 export { extractAllSourceNames, lintSourceNames } from "./source-linter";
 export { makeRegistry } from "./source-registry";
+
 // Type exports
 export type {
   Budget,
@@ -83,7 +84,5 @@ export type {
   TurnGenCtx,
   WritingAssistantCtx,
 } from "./types";
-// Validation and compilation
-export { validateTemplateStructure } from "./validator";
 
-// Future: export { render } from "./renderer";
+export { validateTemplateStructure } from "./validator";
