@@ -1,7 +1,20 @@
 // Schemas and parsing
 
+export { DefaultBudgetManager } from "./budget-manager";
 export { compileTemplate } from "./compiler";
-
+export { evaluateCondition } from "./condition-evaluator";
+export {
+  exists,
+  isArray,
+  isNonEmpty,
+  isNonEmptyArray,
+  isString,
+  isValidNumber,
+  resolveAsArray,
+  resolveAsNumber,
+  resolveAsString,
+  resolveDataRef,
+} from "./data-ref-resolver";
 // Error types
 export {
   AuthoringValidationError,
@@ -24,6 +37,7 @@ export {
   taskKindSchema,
 } from "./schemas";
 export { extractAllSourceNames, lintSourceNames } from "./source-linter";
+export { makeRegistry } from "./source-registry";
 // Type exports
 export type {
   Budget,
