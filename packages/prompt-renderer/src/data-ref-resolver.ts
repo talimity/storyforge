@@ -63,8 +63,11 @@ export function resolveDataRef<K extends TaskKind>(
 ): unknown {
   try {
     return registry.resolve(ref, ctx);
-  } catch {
+  } catch (error) {
     // If resolution throws, return undefined rather than propagating
+    console.warn(
+      `Unresolvable DataRef ${JSON.stringify(ref)} in context with ${Object.keys(ctx).join(", ")} (${error instanceof Error ? error.message : String(error)})`
+    );
     return undefined;
   }
 }

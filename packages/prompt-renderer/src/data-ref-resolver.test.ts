@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   exists,
   isArray,
@@ -192,7 +192,12 @@ describe("DataRef Resolution", () => {
       const goodRef: DataRef = { source: "goodSource" };
 
       // Should return undefined for error case, not throw
+      const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
       expect(resolveDataRef(errorRef, mockCtx, registry)).toBeUndefined();
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining("Unresolvable DataRef")
+      );
+      spy.mockRestore();
 
       // Other sources should still work
       expect(resolveDataRef(goodRef, mockCtx, registry)).toBe(mockCtx.turns);

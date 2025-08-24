@@ -22,6 +22,17 @@ export {
   TemplateStructureError,
 } from "./errors";
 export { compileLeaf } from "./leaf-compiler";
+// Export execution result types
+export type { ExecutionScope, PlanExecutionResult } from "./plan-executor";
+// Plan execution (Task E)
+export {
+  createScope,
+  executeForEachNode,
+  executeIfNode,
+  executeMessageNode,
+  executePlanNode,
+  executePlanNodes,
+} from "./plan-executor";
 export {
   budgetSchema,
   conditionRefSchema,
@@ -36,6 +47,8 @@ export {
   slotSpecSchema,
   taskKindSchema,
 } from "./schemas";
+export type { SlotExecutionResult } from "./slot-executor";
+export { executeSlots } from "./slot-executor";
 export { extractAllSourceNames, lintSourceNames } from "./source-linter";
 export { makeRegistry } from "./source-registry";
 // Type exports

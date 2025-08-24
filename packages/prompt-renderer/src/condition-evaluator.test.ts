@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { evaluateCondition } from "./condition-evaluator";
 import { makeRegistry } from "./source-registry";
 import type { ConditionRef, TurnGenCtx } from "./types";
@@ -418,7 +418,12 @@ describe("evaluateCondition", () => {
       };
 
       // Should not throw, should return false (exists check on undefined)
+      const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
       expect(evaluateCondition(condition, mockCtx, errorRegistry)).toBe(false);
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining("Unresolvable DataRef")
+      );
+      spy.mockRestore();
     });
 
     it("should handle circular object references in eq/neq", () => {
