@@ -10,9 +10,8 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 
 ```bash
 # Code quality
-pnpm check # tsc + biome auto-fix
+pnpm check # typecheck + biome auto-fix
 pnpm lint
-pnpm typecheck
 
 # Run tests (backend, integration-only)
 pnpm test
