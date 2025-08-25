@@ -1,4 +1,4 @@
-# Prompt Template & Rendering Specification
+# Prompt Template Engine Specification - v1
 
 **Scope:** This document defines the template DSL and the rendering algorithm that turns heterogeneous task inputs into a `ChatCompletionMessage[]` request.
 
@@ -94,7 +94,7 @@ export type PromptTemplate = {
 };
 
 export type LayoutNode =
-  | { kind: 'message'; role: ChatCompletonMessageRole; content?: string; from?: DataRef; prefix?: boolean }
+  | { kind: 'message'; name?: string; role: ChatCompletonMessageRole; content?: string; from?: DataRef; prefix?: boolean }
   | { kind: 'slot'; name: string; header?: MessageBlock | MessageBlock[]; footer?: MessageBlock | MessageBlock[]; omitIfEmpty?: boolean }
   | { kind: 'separator'; text?: string };
 
@@ -288,9 +288,11 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
 
 ---
 
-## 9) Examples (updated for Source Registry)
+## 9) Examples
 
-### 9.1 Turn Writer (decoupled order vs fill)
+Note: examples are illustrative. Source names may not match the final implementation.
+
+### 9.1 Turn Writer
 
 * Fill **turns first** (priority 0), then **summaries** (priority 1), then **examples** only if there is no current-chapter history (priority 2).
 * Display **summaries before turns** in the final layout.
@@ -299,8 +301,8 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
 {
   "id": "tpl_turn_writer_v2",
   "task": "turn_generation",
-  "name": "Turn Writer (decoupled)",
-  "version": 2,
+  "name": "Turn Writer",
+  "version": 1,
   "layout": [
     { "kind": "message", "role": "system", "content": "You write vivid, concise third-person prose." },
     { "kind": "message", "role": "user", "content": "Respect this player intent: {{currentIntent.description}}" },
@@ -331,7 +333,7 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
           "source": { "source": "turns", "args": { "order": "desc", "limit": 8 } },
           "map": [
             { "kind": "message", "role": "user",
-              "content": "[{{item.index}}] {{item.speaker}}: {{item.summary}}" }
+              "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}" }
           ],
           "budget": { "maxTokens": 900 },
           "stopWhenOutOfBudget": true
@@ -346,7 +348,7 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
           "source": { "source": "chapterSummaries", "args": { "order": "desc", "limit": 5 } },
           "map": [
             { "kind": "message", "role": "user",
-              "content": "Ch {{item.chapter}}: {{item.brief}}" }
+              "content": "Ch {{item.chapterNo}}: {{item.summary}}" }
           ],
           "budget": { "maxTokens": 700 },
           "stopWhenOutOfBudget": true
@@ -364,7 +366,7 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
           "source": { "source": "characters", "args": { "order": "asc", "limit": 4 } },
           "map": [
             { "kind": "message", "role": "user",
-              "content": "{{item.name}} — Example: {{item.example}}" }
+              "content": "{{item.name}} — Example: {{item.description}}" }
           ],
           "budget": { "maxTokens": 500 },
           "stopWhenOutOfBudget": true
@@ -377,6 +379,8 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
 ```
 
 ### 9.2 Planner → Writer (step chaining via registry)
+
+Demonstrates a two-step workflow. The renderer does not handle step chaining directly; the application must capture the first step’s output and pass it to the second via the `stepOutput` registry.
 
 **Planner** template (outputs JSON plan; requires assistant prefix):
 
@@ -405,7 +409,7 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
           "source": { "source": "turns", "args": { "order": "desc", "limit": 8 } },
           "map": [
             { "kind": "message", "role": "user",
-              "content": "[{{item.index}}] {{item.speaker}}: {{item.summary}}" }
+              "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}" }
           ],
           "budget": { "maxTokens": 900 }
         }
@@ -419,7 +423,7 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
           "source": { "source": "characters", "args": { "order": "asc", "limit": 6 } },
           "map": [
             { "kind": "message", "role": "user",
-              "content": "{{item.name}} — {{item.shortBio}}" }
+              "content": "{{item.name}} — {{item.description}}" }
           ],
           "budget": { "maxTokens": 600 }
         }
@@ -465,7 +469,7 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
           "source": { "source": "turns", "args": { "order": "desc", "limit": 6 } },
           "map": [
             { "kind": "message", "role": "user",
-              "content": "[{{item.index}}] {{item.speaker}}: {{item.summary}}" }
+              "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}" }
           ],
           "budget": { "maxTokens": 600 }
         }
@@ -499,23 +503,146 @@ Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged
 ## 11) Versioning
 
 * Each template has a monotonically increasing `version` (integer).
-* This DSL document is **v0.2**. Backwards-incompatible DSL changes MUST bump this version.
+* This DSL document is **v1**. Backwards-incompatible DSL changes MUST bump this version.
 
 ---
 
-## 12) Testing Guidance
+## 12) Authoring UI
 
-Treat the renderer as a **pure function**:
+### Core Concept: Use Slot "Recipes" as First-Class Citizens
 
+Rather than exposing the full DSL complexity, the system would treat common slot patterns as pre-defined recipes that users can configure through simple forms. Each recipe would be a React component that knows how to render its configuration UI and generate the corresponding DSL JSON.
+
+Start with a small set of battle-tested recipes for `turn_generation`:
+
+```typescript
+const TURN_GEN_RECIPES = {
+  timeline: {
+    id: 'timeline_basic',
+    name: 'Timeline',
+    parameters: [
+      { key: 'maxTurns', label: 'Max Turns', type: 'number', defaultValue: 8, min: 1, max: 20 },
+      { key: 'order', label: 'Order', type: 'select', defaultValue: 'desc', 
+        options: [{label: 'Newest First', value: 'desc'}, {label: 'Oldest First', value: 'asc'}] },
+      { key: 'turnTemplate', label: 'Turn Format', type: 'template_string', 
+        defaultValue: '[{{item.turnNo}}] {{item.authorName}}: {{item.content}}' },
+      { key: 'budget', label: 'Token Budget', type: 'number', defaultValue: 900 },
+    ],
+    generateSlot: (params) => ({
+      priority: 0,
+      budget: { maxTokens: params.budget },
+      plan: [{
+        kind: 'forEach',
+        source: { source: 'turns', args: { order: params.order, limit: params.maxTurns }},
+        map: [
+            { kind: 'message', role: 'user', content: params.turnTemplate }
+          ],
+        stopWhenOutOfBudget: true
+      }]
+    })
+  },
+  
+  characters: {
+    id: 'characters_basic',
+    name: 'Character Descriptions',
+    parameters: [
+      { key: 'includeExamples', label: 'Include Examples', type: 'toggle', defaultValue: false },
+      { key: 'maxChars', label: 'Max Characters', type: 'number', defaultValue: 6 },
+      { key: 'format', label: 'Format', type: 'select', defaultValue: 'prose',
+        options: [{label: 'Prose', value: 'prose'}, {label: 'Markdown', value: 'markdown'}] }
+    ],
+    // ... generateSlot implementation
+  }
+  
+  // ... more recipes
+};
 ```
-(template, ctx, budget, registry) -> ChatCompletionMessage[]
+
+### Simplified Template Builder UI
+
+```tsx
+function TemplateBuilder() {
+  return (
+    <Stack spacing={4}>
+      {/* Template Metadata */}
+      <TemplateMetadataSection />
+      
+      {/* Layout Builder - simple drag & drop list */}
+      <LayoutSection>
+        {layoutNodes.map((node, index) => (
+          <LayoutNodeCard 
+            key={node.id}
+            node={node}
+            onEdit={(updates) => updateNode(index, updates)}
+            onDelete={() => removeNode(index)}
+          />
+        ))}
+        
+        <AddNodeButton onClick={() => openNodePicker()} />
+      </LayoutSection>
+      
+      {/* Slot Configuration */}
+      <SlotsSection>
+        {Object.entries(slots).map(([name, recipe]) => (
+          <SlotCard
+            key={name}
+            name={name}
+            recipe={recipe}
+            onConfigure={(params) => updateSlotParams(name, params)}
+            onDelete={() => removeSlot(name)}
+          />
+        ))}
+      </SlotsSection>
+    </Stack>
+  );
+}
 ```
 
-Use snapshot tests for:
+### Recipe Configuration UI
 
-* Slot priority and order,
-* Budget cut-offs inside `forEach`,
-* Conditional slot omission,
-* Assistant prefix emission,
-* Response transform chains,
-* Registry resolution (e.g., `turns` with ordering/limits, `stepOutput` chaining).
+Each recipe gets a simple form based on its parameters:
+
+```tsx
+function RecipeConfigurator({ recipe, values, onChange }) {
+  return (
+    <Stack spacing={3}>
+      {recipe.parameters.map(param => (
+        <Field key={param.key} label={param.label} help={param.help}>
+          {param.type === 'number' && (
+            <NumberInput 
+              value={values[param.key] ?? param.defaultValue}
+              onChange={(val) => onChange(param.key, val)}
+              min={param.min}
+              max={param.max}
+            />
+          )}
+          {param.type === 'select' && (
+            <Select
+              value={values[param.key] ?? param.defaultValue}
+              onChange={(val) => onChange(param.key, val)}
+            >
+              {param.options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </Select>
+          )}
+          {param.type === 'template_string' && (
+            <TemplateStringEditor
+              value={values[param.key] ?? param.defaultValue}
+              onChange={(val) => onChange(param.key, val)}
+              availableVariables={getVariablesForRecipe(recipe)} // uses registry
+            />
+          )}
+          {/* ... other param types */}
+        </Field>
+      ))}
+    </Stack>
+  );
+}
+```
+
+### Escape Hatches
+
+Provide two levels of escape hatches:
+1. **"Custom Slot" Recipe**: A special recipe that just exposes a JSON editor for the slot plan
+2. **"Eject from Recipe"**: Converts one of the premade recipes to a custom slot (one-way)

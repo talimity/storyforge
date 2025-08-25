@@ -1,0 +1,93 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Assistant Prefix Emission > should handle prefix with minimal context > assistant-prefix-minimal-context 1`] = `
+[
+  {
+    "content": "You are the narrative planner for this scene. Think step-by-step but output only the plan.",
+    "role": "system",
+  },
+  {
+    "content": "Constraint: ",
+    "role": "user",
+  },
+  {
+    "content": "Now produce a plan (bullets). Return JSON with keys: goals, beats, risks.",
+    "role": "user",
+  },
+  {
+    "content": "{"goals":",
+    "prefix": true,
+    "role": "assistant",
+  },
+]
+`;
+
+exports[`Assistant Prefix Emission > should work with response format and transforms > assistant-prefix-with-formats 1`] = `
+[
+  {
+    "content": "You are the narrative planner for this scene. Think step-by-step but output only the plan.",
+    "role": "system",
+  },
+  {
+    "content": "Constraint: ",
+    "role": "user",
+  },
+  {
+    "content": "Alice — A determined young mage with auburn hair and emerald eyes. Known for her analytical mind and unwavering moral compass. She specializes in protective magic and has a natural talent for seeing through illusions.",
+    "role": "user",
+  },
+  {
+    "content": "Bob — A scholarly wizard who carries himself with quiet confidence. His expertise lies in ancient languages and historical magic. Bob often serves as the voice of caution and wisdom in the group.",
+    "role": "user",
+  },
+  {
+    "content": "Charlie — An enigmatic figure whose past remains largely mysterious. Charlie appears to have connections to powerful magical forces and often knows more than they reveal. Their motives are unclear but seem aligned with the greater good.",
+    "role": "user",
+  },
+  {
+    "content": "Diana — A fierce warrior-mage who joined the group in the third chapter. Diana's combat prowess is matched only by her loyalty to her friends. She wields both sword and spell with equal skill.",
+    "role": "user",
+  },
+  {
+    "content": "Elena — A healer and herbalist who provides both medical and emotional support to the group. Elena's gentle nature hides a strong will and deep understanding of natural magic.",
+    "role": "user",
+  },
+  {
+    "content": "Felix — A young apprentice who looks up to the older members of the group. Felix's enthusiasm sometimes gets him into trouble, but his fresh perspective often provides unexpected solutions.",
+    "role": "user",
+  },
+  {
+    "content": "[6] Bob: Bob closed his book carefully and stood up, brushing dust from his robes.",
+    "role": "user",
+  },
+  {
+    "content": "[5] Alice: "I wasn't expecting to find anyone else here," Alice said, her voice echoing softly in the courtyard.",
+    "role": "user",
+  },
+  {
+    "content": "[4] Charlie: Charlie emerged from behind the pillar, a mysterious smile playing on their lips.",
+    "role": "user",
+  },
+  {
+    "content": "[3] Narrator: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
+    "role": "user",
+  },
+  {
+    "content": "[2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
+    "role": "user",
+  },
+  {
+    "content": "[1] Alice: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.",
+    "role": "user",
+  },
+  {
+    "content": "Now produce a plan (bullets). Return JSON with keys: goals, beats, risks.",
+    "role": "user",
+  },
+  {
+    "content": "{"goals":",
+    "prefix": true,
+    "role": "assistant",
+  },
+]
+`;

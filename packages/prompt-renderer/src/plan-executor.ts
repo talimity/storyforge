@@ -268,20 +268,7 @@ export function executeIfNode<K extends TaskKind>(
   }
 
   // Execute all nodes in the chosen branch
-  const results: ChatCompletionMessage[] = [];
-
-  for (const childNode of branchNodes) {
-    const childResults = executePlanNode(
-      childNode,
-      ctx,
-      budget,
-      registry,
-      itemScope
-    );
-    results.push(...childResults);
-  }
-
-  return results;
+  return executePlanNodes(branchNodes, ctx, budget, registry, itemScope);
 }
 
 /**

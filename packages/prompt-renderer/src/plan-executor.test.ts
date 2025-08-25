@@ -1,4 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import { sampleTurnGenCtx } from "@/test/fixtures/test-contexts";
+import {
+  makeConditionTestRegistry,
+  makeOrderingTestRegistry,
+  makeTurnGenTestRegistry,
+} from "@/test/fixtures/test-registries";
 import { DefaultBudgetManager } from "./budget-manager";
 import { compileLeaf } from "./leaf-compiler";
 import {
@@ -9,12 +15,6 @@ import {
   executePlanNode,
   executePlanNodes,
 } from "./plan-executor";
-import {
-  makeConditionTestRegistry,
-  makeOrderingTestRegistry,
-  makeTurnGenTestRegistry,
-  sampleTurnGenCtx,
-} from "./test/fixtures";
 import type { Budget, CompiledPlanNode } from "./types";
 
 describe("Plan Executor", () => {

@@ -1,0 +1,122 @@
+{
+  "id": "tpl_turn_writer_v2",
+  "task": "turn_generation",
+  "name": "Turn Writer ",
+  "version": 1,
+  "layout": [
+    {
+      "kind": "message",
+      "role": "system",
+      "content": "You write vivid, concise third-person prose."
+    },
+    {
+      "kind": "message",
+      "role": "user",
+      "content": "Respect this player intent: {{currentIntent.description}}"
+    },
+
+    {
+      "kind": "slot",
+      "name": "summaries",
+      "header": { "role": "user", "content": "Earlier events:" },
+      "omitIfEmpty": true
+    },
+
+    {
+      "kind": "slot",
+      "name": "turns",
+      "header": {
+        "role": "user",
+        "content": "Recent scene turns (newest first):"
+      },
+      "omitIfEmpty": true
+    },
+
+    {
+      "kind": "slot",
+      "name": "examples",
+      "header": { "role": "user", "content": "Character writing examples:" },
+      "omitIfEmpty": true
+    },
+
+    {
+      "kind": "message",
+      "role": "user",
+      "content": "Write the next turn as prose. 200–350 words. No meta commentary."
+    }
+  ],
+  "slots": {
+    "turns": {
+      "priority": 0,
+      "budget": { "maxTokens": 900 },
+      "plan": [
+        {
+          "kind": "forEach",
+          "source": {
+            "source": "turns",
+            "args": { "order": "desc", "limit": 8 }
+          },
+          "map": [
+            {
+              "kind": "message",
+              "role": "user",
+              "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}"
+            }
+          ],
+          "budget": { "maxTokens": 900 },
+          "stopWhenOutOfBudget": true
+        }
+      ]
+    },
+    "summaries": {
+      "priority": 1,
+      "budget": { "maxTokens": 700 },
+      "plan": [
+        {
+          "kind": "forEach",
+          "source": {
+            "source": "chapterSummaries",
+            "args": { "order": "desc", "limit": 5 }
+          },
+          "map": [
+            {
+              "kind": "message",
+              "role": "user",
+              "content": "Ch {{item.chapterNo}}: {{item.summary}}"
+            }
+          ],
+          "budget": { "maxTokens": 700 },
+          "stopWhenOutOfBudget": true
+        }
+      ]
+    },
+    "examples": {
+      "priority": 2,
+      "when": {
+        "type": "eq",
+        "ref": { "source": "turns", "args": { "order": "desc", "limit": 1 } },
+        "value": []
+      },
+      "budget": { "maxTokens": 500 },
+      "plan": [
+        {
+          "kind": "forEach",
+          "source": {
+            "source": "characters",
+            "args": { "order": "asc", "limit": 4 }
+          },
+          "map": [
+            {
+              "kind": "message",
+              "role": "user",
+              "content": "{{item.name}} — Example: {{item.description}}"
+            }
+          ],
+          "budget": { "maxTokens": 500 },
+          "stopWhenOutOfBudget": true
+        }
+      ]
+    }
+  },
+  "responseFormat": "text"
+}

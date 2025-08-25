@@ -6,6 +6,7 @@
   "layout": [
     {
       "kind": "message",
+      "name": "systemMessage",
       "role": "system",
       "content": "You are a helpful assistant."
     },
@@ -28,6 +29,7 @@
     },
     {
       "kind": "message",
+      "name": "taskInstruction",
       "role": "user",
       "content": "Continue the story."
     }

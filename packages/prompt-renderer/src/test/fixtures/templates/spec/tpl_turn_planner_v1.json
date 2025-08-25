@@ -1,0 +1,95 @@
+{
+  "id": "tpl_turn_planner_v1",
+  "task": "turn_generation",
+  "name": "Planner v1",
+  "version": 1,
+  "layout": [
+    {
+      "kind": "message",
+      "role": "system",
+      "content": "You are the narrative planner for this scene. Think step-by-step but output only the plan."
+    },
+    {
+      "kind": "message",
+      "role": "user",
+      "content": "Constraint: {{currentIntent.constraint}}"
+    },
+    { "kind": "slot", "name": "chars", "omitIfEmpty": true },
+    { "kind": "slot", "name": "turns", "omitIfEmpty": true },
+    {
+      "kind": "message",
+      "role": "user",
+      "content": "Now produce a plan (bullets). Return JSON with keys: goals, beats, risks."
+    },
+    {
+      "kind": "message",
+      "role": "assistant",
+      "content": "{\"goals\":",
+      "prefix": true
+    }
+  ],
+  "slots": {
+    "turns": {
+      "priority": 0,
+      "budget": { "maxTokens": 900 },
+      "plan": [
+        {
+          "kind": "forEach",
+          "source": {
+            "source": "turns",
+            "args": { "order": "desc", "limit": 8 }
+          },
+          "map": [
+            {
+              "kind": "message",
+              "role": "user",
+              "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}"
+            }
+          ],
+          "budget": { "maxTokens": 900 }
+        }
+      ]
+    },
+    "chars": {
+      "priority": 1,
+      "budget": { "maxTokens": 600 },
+      "plan": [
+        {
+          "kind": "forEach",
+          "source": {
+            "source": "characters",
+            "args": { "order": "asc", "limit": 6 }
+          },
+          "map": [
+            {
+              "kind": "message",
+              "role": "user",
+              "content": "{{item.name}} — {{item.description}}"
+            }
+          ],
+          "budget": { "maxTokens": 600 }
+        }
+      ]
+    }
+  },
+  "responseFormat": {
+    "type": "json_schema",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "goals": { "type": "array", "items": { "type": "string" } },
+        "beats": { "type": "array", "items": { "type": "string" } },
+        "risks": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["goals", "beats"]
+    }
+  },
+  "responseTransforms": [
+    {
+      "type": "regexExtract",
+      "pattern": "\\{[\\s\\S]*\\}$",
+      "flags": "m",
+      "group": 0
+    }
+  ]
+}

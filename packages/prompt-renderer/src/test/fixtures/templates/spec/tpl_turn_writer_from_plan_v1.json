@@ -1,0 +1,70 @@
+{
+  "id": "tpl_turn_writer_from_plan_v1",
+  "task": "turn_generation",
+  "name": "Writer from Planner v1",
+  "version": 1,
+  "layout": [
+    {
+      "kind": "message",
+      "name": "systemMessage",
+      "role": "system",
+      "content": "You write vivid, concise third-person prose. Keep continuity and respect constraints."
+    },
+    {
+      "kind": "message",
+      "name": "intentMessage",
+      "role": "user",
+      "content": "Player intent to respect: {{currentIntent.description}}"
+    },
+    {
+      "kind": "message",
+      "name": "plannerGuidance",
+      "role": "user",
+      "content": "Planner guidance follows."
+    },
+    { "kind": "slot", "name": "plan", "omitIfEmpty": true },
+    { "kind": "slot", "name": "context", "omitIfEmpty": true },
+    {
+      "kind": "message",
+      "name": "nextInstruction",
+      "role": "user",
+      "content": "Write the next turn as prose. 200–350 words. No meta commentary."
+    }
+  ],
+  "slots": {
+    "context": {
+      "priority": 0,
+      "budget": { "maxTokens": 600 },
+      "plan": [
+        {
+          "kind": "forEach",
+          "source": {
+            "source": "turns",
+            "args": { "order": "desc", "limit": 6 }
+          },
+          "map": [
+            {
+              "kind": "message",
+              "role": "user",
+              "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}"
+            }
+          ],
+          "budget": { "maxTokens": 600 }
+        }
+      ]
+    },
+    "plan": {
+      "priority": 1,
+      "budget": { "maxTokens": 600 },
+      "plan": [
+        {
+          "kind": "message",
+          "role": "user",
+          "from": { "source": "stepOutput", "args": { "key": "planner.plan" } },
+          "budget": { "maxTokens": 600 }
+        }
+      ]
+    }
+  },
+  "responseFormat": "text"
+}

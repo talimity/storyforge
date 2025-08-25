@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { sampleTurnGenCtx } from "@/test/fixtures/test-contexts";
+import { makeTurnGenTestRegistry } from "@/test/fixtures/test-registries";
 import { DefaultBudgetManager } from "./budget-manager";
 import { assembleLayout } from "./layout-assembler";
 import { compileLeaf } from "./leaf-compiler";
 import type { SlotExecutionResult } from "./slot-executor";
-import { makeTurnGenTestRegistry, sampleTurnGenCtx } from "./test/fixtures";
 import type { CompiledLayoutNode, CompiledMessageBlock } from "./types";
 
 describe("Layout Assembler", () => {

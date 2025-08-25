@@ -1,0 +1,91 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Step Chaining via stepOutput > should chain planner output to writer input > step-chaining-planner-to-writer 1`] = `
+[
+  {
+    "content": "You write vivid, concise third-person prose. Keep continuity and respect constraints.",
+    "role": "system",
+  },
+  {
+    "content": "Player intent to respect: ",
+    "role": "user",
+  },
+  {
+    "content": "Planner guidance follows.",
+    "role": "user",
+  },
+  {
+    "content": "{
+      "goals": ["Develop character tension", "Advance the mystery"],
+      "beats": ["Alice discovers a clue", "Bob expresses doubt", "Unexpected revelation"],
+      "risks": ["Moving too fast", "Breaking character consistency"]
+    }",
+    "role": "user",
+  },
+  {
+    "content": "[6] Bob: Bob closed his book carefully and stood up, brushing dust from his robes.",
+    "role": "user",
+  },
+  {
+    "content": "[5] Alice: "I wasn't expecting to find anyone else here," Alice said, her voice echoing softly in the courtyard.",
+    "role": "user",
+  },
+  {
+    "content": "[4] Charlie: Charlie emerged from behind the pillar, a mysterious smile playing on their lips.",
+    "role": "user",
+  },
+  {
+    "content": "[3] Narrator: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
+    "role": "user",
+  },
+  {
+    "content": "[2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
+    "role": "user",
+  },
+  {
+    "content": "[1] Alice: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.",
+    "role": "user",
+  },
+  {
+    "content": "Write the next turn as prose. 200–350 words. No meta commentary.",
+    "role": "user",
+  },
+]
+`;
+
+exports[`Step Chaining via stepOutput > should work with pre-configured step chained context > step-chaining-preconfigured 1`] = `
+[
+  {
+    "content": "You write vivid, concise third-person prose. Keep continuity and respect constraints.",
+    "role": "system",
+  },
+  {
+    "content": "Player intent to respect: ",
+    "role": "user",
+  },
+  {
+    "content": "Planner guidance follows.",
+    "role": "user",
+  },
+  {
+    "content": "{"goals":["Create dramatic tension","Reveal character motivation"],"beats":["Alice confronts her fear","Bob offers support","An unexpected revelation"],"risks":["Moving too fast","Losing emotional impact"]}",
+    "role": "user",
+  },
+  {
+    "content": "[3] Narrator: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
+    "role": "user",
+  },
+  {
+    "content": "[2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
+    "role": "user",
+  },
+  {
+    "content": "[1] Alice: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.",
+    "role": "user",
+  },
+  {
+    "content": "Write the next turn as prose. 200–350 words. No meta commentary.",
+    "role": "user",
+  },
+]
+`;

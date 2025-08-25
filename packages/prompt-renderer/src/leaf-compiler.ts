@@ -87,7 +87,7 @@ function resolvePath(scope: unknown, path: string): unknown {
     if (current == null || typeof current !== "object") {
       return undefined;
     }
-    // biome-ignore lint/suspicious/noExplicitAny: not worth parameterizing everything to avoid this
+    // biome-ignore lint/suspicious/noExplicitAny: scopes not known at compile time
     current = (current as any)[part];
   }
 

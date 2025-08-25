@@ -21,7 +21,7 @@ import type {
  *
  * This function:
  * - Processes layout nodes in order
- * - Inserts pre-filled slot content (NOT re-budget-checked)
+ * - Inserts pre-filled slot content (budgeted beforehand in Phase A)
  * - Applies budget checking to headers, footers, messages, and separators
  * - Handles omitIfEmpty logic for slots
  * - Throws on missing slot references

@@ -93,7 +93,7 @@ describe("render function", () => {
       // Should include final user message
       expect(messages[messages.length - 1]).toEqual({
         role: "user",
-        content: "Please help me.",
+        content: "Please respond...",
       });
     });
 

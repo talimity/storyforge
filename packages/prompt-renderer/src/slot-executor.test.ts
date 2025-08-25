@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { DefaultBudgetManager } from "./budget-manager";
-import { compileLeaf } from "./leaf-compiler";
-import { executeSlots } from "./slot-executor";
+import { sampleTurnGenCtx } from "@/test/fixtures/test-contexts";
 import {
   makeConditionTestRegistry,
   makeTurnGenTestRegistry,
-  sampleTurnGenCtx,
-} from "./test/fixtures";
+} from "@/test/fixtures/test-registries";
+import { DefaultBudgetManager } from "./budget-manager";
+import { compileLeaf } from "./leaf-compiler";
+import { executeSlots } from "./slot-executor";
 import type { CompiledSlotSpec } from "./types";
 
 describe("Slot Executor", () => {

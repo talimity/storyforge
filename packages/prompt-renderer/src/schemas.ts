@@ -62,6 +62,7 @@ export const messageBlockSchema = z.object({
 export const layoutNodeSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("message"),
+    name: z.string().optional(),
     role: roleSchema,
     content: z.string().optional(),
     from: dataRefSchema.optional(),

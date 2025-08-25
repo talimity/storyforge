@@ -224,6 +224,7 @@ export type CompiledTemplate<K extends TaskKind = TaskKind> = Readonly<{
 export type CompiledLayoutNode = Readonly<
   | {
       kind: "message";
+      name?: string;
       role: ChatCompletionMessageRole;
       content?: CompiledLeafFunction;
       from?: DataRef;
