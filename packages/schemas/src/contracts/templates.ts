@@ -36,7 +36,7 @@ export const templateSummarySchema = z.object({
   name: z.string(),
   task: taskKindSchema,
   version: z.number(),
-  slotCount: z.number(),
+  layoutNodeCount: z.number(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

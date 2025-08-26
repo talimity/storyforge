@@ -1,5 +1,5 @@
-import { TemplateStructureError } from "@/errors";
 import { resolveDataRef } from "./data-ref-resolver";
+import { TemplateStructureError } from "./errors";
 import { createScope } from "./plan-executor";
 import type { SlotExecutionResult } from "./slot-executor";
 import type {

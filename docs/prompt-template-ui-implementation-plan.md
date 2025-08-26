@@ -33,7 +33,7 @@ This document outlines the implementation plan for scaffolding the UI for the pr
   - Display template name, task type badge, version
   - Show slot count and priority order preview
   - Actions: Edit, Duplicate, Export, Delete
-  - Similar design to CharacterCard but more compact
+  - Similar design to CharacterCard/ScenarioCard but more compact
 
 ### 2.2 Library Page Implementation
 - Update `apps/frontend/src/pages/template-library.tsx`:
@@ -41,7 +41,7 @@ This document outlines the implementation plan for scaffolding the UI for the pr
   - Filter by task type (turn_generation, chapter_summarization, writing_assistant)
   - Search by name
   - Import from JSON button
-  - Create from scratch vs. from recipe options
+  - Create template button
   - Empty state with helpful prompts
 
 ## Phase 3: Template Builder Core Components
@@ -186,6 +186,7 @@ This document outlines the implementation plan for scaffolding the UI for the pr
 - Monaco Editor or CodeMirror for code editing
 - React Hook Form + Zod for form management
 - Existing UI components from @/components/ui
+- Utilize the @storyforge/prompt-renderer package for validation and compilation of templates rather than reimplementing the DSL parsing
 
 ## Architecture Notes
 

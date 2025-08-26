@@ -24,7 +24,7 @@ export async function listTemplates(
       version: true,
       createdAt: true,
       updatedAt: true,
-      slots: true, // We need this to count slots
+      layout: true, // We need this to count layout nodes
     },
     where: whereObj,
     orderBy: (t) => [desc(t.updatedAt)],
@@ -35,7 +35,7 @@ export async function listTemplates(
     name: template.name,
     task: template.task as TaskKind,
     version: template.version,
-    slotCount: Object.keys(template.slots).length,
+    layoutNodeCount: template.layout.length,
     createdAt: template.createdAt,
     updatedAt: template.updatedAt,
   }));
