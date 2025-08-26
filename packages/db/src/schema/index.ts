@@ -3,6 +3,7 @@ export * from "./character-examples";
 export * from "./character-starters";
 export * from "./characters";
 export * from "./model-profiles";
+export * from "./prompt-templates";
 export * from "./provider-config";
 export * from "./scenario-participants";
 export * from "./scenarios";

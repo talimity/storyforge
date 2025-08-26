@@ -100,10 +100,13 @@ export type PromptTemplate = {
   id: string;
   task: TaskKind;
   name: string;
-  version: number;
+  version: 1;
   layout: LayoutNode[];
   slots: Record<string, SlotSpec>;
-  responseFormat?: "text" | { type: "json_schema"; schema: object } | "json";
+  responseFormat?:
+    | "text"
+    | { type: "json_schema"; schema: Record<string, unknown> }
+    | "json";
   responseTransforms?: ResponseTransform[];
 };
 

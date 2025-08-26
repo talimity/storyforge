@@ -86,3 +86,5 @@ export type {
 } from "./types";
 
 export { validateTemplateStructure } from "./validator";
+
+export { PROMPT_TEMPLATE_SPEC_VERSION } from "./version";

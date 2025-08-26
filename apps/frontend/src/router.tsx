@@ -11,6 +11,9 @@ import { ScenarioCreatePage } from "./pages/scenario-create";
 import { ScenarioEditPage } from "./pages/scenario-edit";
 import { ScenarioLibraryPage } from "./pages/scenario-library";
 import { SettingsPage } from "./pages/settings";
+import { TemplateCreatePage } from "./pages/template-create";
+import { TemplateEditPage } from "./pages/template-edit";
+import { TemplatesPage } from "./pages/template-library";
 import { ThemeDemoPage } from "./pages/theme-demo";
 
 export const router = createBrowserRouter([
@@ -53,6 +56,18 @@ export const router = createBrowserRouter([
       {
         path: "agents",
         element: <AgentsPage />,
+      },
+      {
+        path: "templates",
+        element: <TemplatesPage />,
+      },
+      {
+        path: "templates/create",
+        element: <TemplateCreatePage />,
+      },
+      {
+        path: "templates/:id/edit",
+        element: <TemplateEditPage />,
       },
       {
         path: "theme-demo",

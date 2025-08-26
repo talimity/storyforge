@@ -14,6 +14,7 @@ import {
   LuChevronLeft,
   LuChevronRight,
   LuDices,
+  LuLayoutTemplate,
   LuPaintBucket,
   LuSettings,
   LuUsersRound,
@@ -131,6 +132,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           to="/agents"
           icon={<LuWorkflow />}
           label="Agents"
+          collapsed={collapsed}
+        />
+
+        <SidebarLink
+          to="/templates"
+          icon={<LuLayoutTemplate />}
+          label="Templates"
           collapsed={collapsed}
         />
 

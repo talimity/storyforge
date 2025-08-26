@@ -1,0 +1,1 @@
+export const PROMPT_TEMPLATE_SPEC_VERSION = 1;

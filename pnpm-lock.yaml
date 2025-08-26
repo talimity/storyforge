@@ -104,6 +104,9 @@ importers:
       '@storyforge/inference':
         specifier: workspace:*
         version: link:../../packages/inference
+      '@storyforge/prompt-renderer':
+        specifier: workspace:*
+        version: link:../../packages/prompt-renderer
       '@storyforge/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
@@ -364,6 +367,9 @@ importers:
 
   packages/schemas:
     dependencies:
+      '@storyforge/prompt-renderer':
+        specifier: workspace:*
+        version: link:../prompt-renderer
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.3.1(typescript@5.9.2)

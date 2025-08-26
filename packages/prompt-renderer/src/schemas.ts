@@ -142,7 +142,7 @@ export const promptTemplateSchema = z.object({
   id: z.string(),
   task: taskKindSchema,
   name: z.string(),
-  version: z.number().int().positive(),
+  version: z.literal(1),
   layout: z.array(layoutNodeSchema),
   slots: z.record(z.string(), slotSpecSchema),
   responseFormat: z
@@ -150,13 +150,20 @@ export const promptTemplateSchema = z.object({
       z.literal("text"),
       z.object({
         type: z.literal("json_schema"),
-        schema: z.object({}).loose(),
+        schema: z.looseObject({}),
       }),
       z.literal("json"),
     ])
     .optional(),
   responseTransforms: z.array(responseTransformSchema).optional(),
 });
+
+type AssertEqual<T, U extends T> = T extends U ? true : never;
+// @ts-ignore - suppress unused type error
+type __PromptTemplateZodDriftCheck = AssertEqual<
+  z.infer<typeof promptTemplateSchema>,
+  PromptTemplate
+>;
 
 /** ---------- Parse function ---------- */
 

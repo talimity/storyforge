@@ -41,6 +41,7 @@
     "@storyforge/config": "workspace:*",
     "@storyforge/db": "workspace:*",
     "@storyforge/inference": "workspace:*",
+    "@storyforge/prompt-renderer": "workspace:*",
     "@storyforge/schemas": "workspace:*",
     "@storyforge/utils": "workspace:*",
     "@storyforge/yolo-onnx": "workspace:*",

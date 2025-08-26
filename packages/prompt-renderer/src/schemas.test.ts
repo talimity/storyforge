@@ -28,7 +28,7 @@ describe("schema validation", () => {
         id: "complex_template",
         name: "Complex Template",
         task: "turn_generation",
-        version: 2,
+        version: 1,
         layout: [
           { kind: "message", role: "system", content: "System message" },
           { kind: "slot", name: "turns", omitIfEmpty: true },

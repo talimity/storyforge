@@ -1,9 +1,10 @@
-import type {
-  LayoutNode,
-  MessageBlock,
-  PlanNode,
-  PromptTemplate,
-  SlotSpec,
+import {
+  type LayoutNode,
+  type MessageBlock,
+  type PlanNode,
+  PROMPT_TEMPLATE_SPEC_VERSION,
+  type PromptTemplate,
+  type SlotSpec,
 } from "@storyforge/prompt-renderer";
 import { getRecipeById } from "../recipes/registry";
 import type {
@@ -21,7 +22,7 @@ export function compileDraft(draft: TemplateDraft): PromptTemplate {
     id: draft.id,
     task: draft.task,
     name: draft.name,
-    version: draft.version,
+    version: PROMPT_TEMPLATE_SPEC_VERSION,
     layout: compileLayout(draft.layoutDraft),
     slots: compileSlots(draft.slotsDraft),
   };
