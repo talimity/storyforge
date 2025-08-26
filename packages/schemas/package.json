@@ -6,12 +6,12 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b tsconfig.build.json",
     "check": "run-p --continue-on-error lint typecheck",
     "clean": "rm -rf dist",
     "fmt": "biome format --write .",
     "lint": "biome check --diagnostic-level error --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@trpc/server": "catalog:",

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "build:frontend": "pnpm --filter frontend run build",
-    "build:clean": "tsc --build --clean && tsc --build",
-    "build": "tsc --build",
+    "build:clean": "tsc --build --clean",
+    "build": "tsc --build && pnpm run --parallel build:tspaths",
     "check": "run-p --continue-on-error lint typecheck",
     "clean": "pnpm run --parallel clean",
     "dev:backend": "pnpm --filter backend dev",
@@ -26,6 +26,7 @@
     "@biomejs/biome": "^2.1.3",
     "ccusage": "^15.5.2",
     "npm-run-all": "^4.1.5",
+    "resolve-tspaths": "^0.8.23",
     "tsx": "catalog:",
     "typescript": "catalog:"
   }

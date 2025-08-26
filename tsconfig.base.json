@@ -14,16 +14,11 @@
     "noImplicitOverride": true,
     "useUnknownInCatchVariables": false,
 
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "incremental": true,
-    "isolatedModules": true,
-
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noErrorTruncation": false,
     "sourceMap": true,
+
     "paths": {
       "@storyforge/*": ["./packages/*/src"]
     }

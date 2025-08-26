@@ -5,15 +5,9 @@
     "rootDir": "./src",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "noEmit": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "scripts/**/*", "**/*.test.ts"],
-  "references": [
-    { "path": "../../packages/config" },
-    { "path": "../../packages/db" },
-    { "path": "../../packages/inference" },
-    { "path": "../../packages/schemas" },
-    { "path": "../../packages/yolo-onnx" }
-  ]
+  "exclude": ["node_modules", "dist", "scripts/**/*", "**/*.test.ts"]
 }
