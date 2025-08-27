@@ -11,6 +11,7 @@ import { useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, toaster } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 interface CharacterImportDialog {
   isOpen: boolean;
@@ -54,11 +55,10 @@ export function CharacterImportDialog({
     const pngFiles = files.filter((file) => file.type === "image/png");
 
     if (pngFiles.length !== files.length) {
-      toaster.create({
+      toaster.error({
         title: "Invalid file format",
         description:
           "Only PNG files are supported. TavernCard character files must be in PNG format.",
-        type: "error",
         duration: 5000,
       });
       return;
@@ -69,10 +69,9 @@ export function CharacterImportDialog({
       (file) => file.size > 10 * 1024 * 1024
     );
     if (oversizedFiles.length > 0) {
-      toaster.create({
+      toaster.error({
         title: "Files too large",
         description: `Files too large: ${oversizedFiles.map((f) => f.name).join(", ")}. Maximum size is 10MB.`,
-        type: "error",
         duration: 5000,
       });
       return;
@@ -143,25 +142,22 @@ export function CharacterImportDialog({
         setUploadProgress(Math.round(((i + 1) / selectedFiles.length) * 100));
       }
 
-      toaster.create({
+      showSuccessToast({
         title: "Import successful",
         description: `Successfully imported ${successCount} character${successCount !== 1 ? "s" : ""}.`,
-        type: "success",
-        duration: 5000,
       });
 
       utils.characters.list.invalidate();
       onImportSuccess();
       handleClose();
     } catch (err) {
-      toaster.create({
+      toaster.error({
         title: "Import failed",
         description:
           err instanceof Error
             ? err.message
             : "Failed to import characters. Please try again.",
-        type: "error",
-        duration: 7000,
+        duration: 5000,
       });
       setUploadProgress(0);
     } finally {

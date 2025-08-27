@@ -1,0 +1,236 @@
+import {
+  Badge,
+  createListCollection,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  Text,
+  Textarea,
+  VStack,
+} from "@chakra-ui/react";
+import type { ChatCompletionMessageRole } from "@storyforge/prompt-renderer";
+import { forwardRef, useCallback } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { LuCheck, LuX } from "react-icons/lu";
+import {
+  Field,
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+  Switch,
+} from "@/components/ui";
+import type { MessageLayoutDraft } from "../../../types";
+import { getNodeColor, getNodeIcon, getRoleLabel } from "../../builder-utils";
+import { NodeFrame } from "../node-frame";
+
+interface MessageNodeEditProps {
+  node: MessageLayoutDraft;
+  isSelected?: boolean;
+  isDragging?: boolean;
+  onSave?: (node: MessageLayoutDraft) => void;
+  onCancel?: () => void;
+  dragHandleProps?: Record<string, unknown>;
+  style?: React.CSSProperties;
+}
+
+const roleOptions = [
+  { label: "System", value: "system" },
+  { label: "User", value: "user" },
+  { label: "Assistant", value: "assistant" },
+];
+
+export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
+  (
+    {
+      node,
+      isSelected = false,
+      isDragging = false,
+      onSave,
+      onCancel,
+      dragHandleProps,
+      style,
+    },
+    ref
+  ) => {
+    const { borderColor } = getNodeColor(node);
+    const NodeIcon = getNodeIcon(node);
+
+    const { register, control, setValue, getValues } = useForm({
+      defaultValues: {
+        role: node.role,
+        name: node.name || "",
+        content: node.content || "",
+        prefix: node.prefix || false,
+      },
+    });
+
+    const handleSave = useCallback(() => {
+      const values = getValues();
+      const updatedNode: MessageLayoutDraft = {
+        ...node,
+        role: values.role,
+        name: values.name || undefined,
+        content: values.content || undefined,
+        prefix: values.prefix || undefined,
+      };
+      onSave?.(updatedNode);
+    }, [node, onSave, getValues]);
+
+    const handleRoleChange = useCallback(
+      (newRole: ChatCompletionMessageRole) => {
+        setValue("role", newRole);
+      },
+      [setValue]
+    );
+
+    const handlePrefixChange = useCallback(
+      (checked: boolean) => {
+        setValue("prefix", checked);
+      },
+      [setValue]
+    );
+
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+      if (event.key === "Enter" && event.shiftKey) {
+        event.preventDefault();
+        handleSave();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        onCancel?.();
+      }
+    };
+
+    return (
+      <NodeFrame
+        ref={ref}
+        node={node}
+        isSelected={isSelected}
+        isDragging={isDragging}
+        dragHandleProps={dragHandleProps}
+        style={style}
+      >
+        <VStack align="stretch" gap={4}>
+          {/* Header */}
+          <HStack gap={2} align="center">
+            <Icon as={NodeIcon} color={borderColor} />
+            <Badge size="sm" colorPalette="neutral">
+              {getRoleLabel(getValues().role)}
+            </Badge>
+            <Text fontSize="sm" fontWeight="medium" flex={1}>
+              Editing Message
+            </Text>
+            <HStack gap={1}>
+              <IconButton
+                size="xs"
+                colorPalette="green"
+                onClick={handleSave}
+                aria-label="Save changes"
+              >
+                <LuCheck />
+              </IconButton>
+              <IconButton
+                size="xs"
+                variant="ghost"
+                onClick={onCancel}
+                aria-label="Cancel edit"
+              >
+                <LuX />
+              </IconButton>
+            </HStack>
+          </HStack>
+
+          {/* Form Fields */}
+          <VStack align="stretch" gap={4}>
+            <Field label="Message Role" required>
+              <Controller
+                name="role"
+                control={control}
+                render={({ field }) => (
+                  <SelectRoot
+                    collection={createListCollection({ items: roleOptions })}
+                    value={[field.value]}
+                    onValueChange={(details) => {
+                      const newRole = details
+                        .value[0] as ChatCompletionMessageRole;
+                      field.onChange(newRole);
+                      handleRoleChange(newRole);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValueText placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roleOptions.map((option) => (
+                        <SelectItem key={option.value} item={option}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectRoot>
+                )}
+              />
+            </Field>
+
+            <Field
+              label="Name"
+              helperText="Optional identifier for this message in the layout"
+            >
+              <Input
+                {...register("name")}
+                placeholder="e.g., system_prompt"
+                onChange={(e) => {
+                  setValue("name", e.target.value);
+                }}
+                onKeyDown={handleKeyDown}
+              />
+            </Field>
+
+            <Field
+              label="Content"
+              helperText="The message content. Use {{variable}} syntax for templating."
+            >
+              <Textarea
+                {...register("content")}
+                placeholder="Enter message content..."
+                rows={4}
+                autoresize
+                fontFamily="mono"
+                onChange={(e) => {
+                  setValue("content", e.target.value);
+                }}
+                onKeyDown={handleKeyDown}
+              />
+            </Field>
+
+            {getValues().role === "assistant" && (
+              <Field
+                label="Assistant Prefix"
+                helperText="If enabled, the model will continue from this content (requires provider support)"
+              >
+                <Controller
+                  name="prefix"
+                  control={control}
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value || false}
+                      colorPalette="primary"
+                      onCheckedChange={({ checked }) => {
+                        field.onChange(checked);
+                        handlePrefixChange(checked);
+                      }}
+                    />
+                  )}
+                />
+              </Field>
+            )}
+          </VStack>
+        </VStack>
+      </NodeFrame>
+    );
+  }
+);
+
+MessageNodeEdit.displayName = "MessageNodeEdit";

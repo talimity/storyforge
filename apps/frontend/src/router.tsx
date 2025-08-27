@@ -14,6 +14,7 @@ import { SettingsPage } from "./pages/settings";
 import { TemplateCreatePage } from "./pages/template-create";
 import { TemplateEditPage } from "./pages/template-edit";
 import { TemplatesPage } from "./pages/template-library";
+import { TemplateTaskSelectPage } from "./pages/template-task-select";
 import { ThemeDemoPage } from "./pages/theme-demo";
 
 export const router = createBrowserRouter([
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
       {
         path: "templates",
         element: <TemplatesPage />,
+      },
+      {
+        path: "templates/select-task",
+        element: <TemplateTaskSelectPage />,
       },
       {
         path: "templates/create",

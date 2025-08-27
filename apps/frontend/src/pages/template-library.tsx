@@ -76,7 +76,7 @@ export function TemplatesPage() {
   };
 
   const handleCreateTemplate = () => {
-    navigate("/templates/create");
+    navigate("/templates/select-task");
   };
 
   const handleImportTemplate = () => {

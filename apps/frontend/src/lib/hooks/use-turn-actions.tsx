@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { toaster } from "@/components/ui/toaster";
 import { trpc } from "@/lib/trpc";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export interface UseTurnActionsOptions {
   onTurnDeleted?: () => void;
@@ -19,7 +19,10 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
 
   const deleteTurnMutation = trpc.play.deleteTurn.useMutation({
     onSuccess: () => {
-      toaster.success({ title: "Turn deleted" });
+      showSuccessToast({
+        title: "Turn deleted",
+        description: "Turn deleted from the scenario timeline.",
+      });
       onTurnDeleted?.();
       setShowDeleteDialog(false);
       setTurnToDelete(null);
@@ -28,7 +31,10 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
 
   const updateTurnContentMutation = trpc.play.updateTurnContent.useMutation({
     onSuccess: () => {
-      toaster.success({ title: "Turn updated" });
+      showSuccessToast({
+        title: "Turn updated",
+        description: "Changes saved.",
+      });
       setEditingTurnId(null);
       onTurnUpdated?.();
     },

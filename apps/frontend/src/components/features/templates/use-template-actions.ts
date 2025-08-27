@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { trpc } from "@/lib/trpc";
+import { showErrorToast } from "@/lib/utils/error-handling";
 
 export function useTemplateActions(templateId: string) {
   const navigate = useNavigate();
@@ -13,18 +14,12 @@ export function useTemplateActions(templateId: string) {
       utils.templates.list.invalidate();
       setIsDeleteDialogOpen(false);
     },
-    onError: (error) => {
-      console.error("Failed to delete template:", error);
-    },
   });
 
   const duplicateTemplateMutation = trpc.templates.duplicate.useMutation({
     onSuccess: () => {
       utils.templates.list.invalidate();
       setIsDuplicateDialogOpen(false);
-    },
-    onError: (error) => {
-      console.error("Failed to duplicate template:", error);
     },
   });
 
@@ -64,7 +59,11 @@ export function useTemplateActions(templateId: string) {
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error("Failed to export template:", error);
+      showErrorToast({
+        title: "Export Failed",
+        fallbackMessage: "Unable to export the template. Please try again.",
+        error,
+      });
     }
   };
 

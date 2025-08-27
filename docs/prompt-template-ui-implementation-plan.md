@@ -1,3 +1,5 @@
+NOTE: this plan is old and does not reflect the revised design and implementation of the prompt template UI. It is kept here for reference only.
+
 # Prompt Template UI Implementation Plan
 
 ## Overview
@@ -30,7 +32,7 @@ This document outlines the implementation plan for scaffolding the UI for the pr
 
 ### 2.1 Template Card Component
 - Create `apps/frontend/src/components/features/templates/template-card.tsx`:
-  - Display template name, task type badge, version
+  - Display template name, task type badge
   - Show slot count and priority order preview
   - Actions: Edit, Duplicate, Export, Delete
   - Similar design to CharacterCard/ScenarioCard but more compact
@@ -105,7 +107,8 @@ This document outlines the implementation plan for scaffolding the UI for the pr
     - Left: Layout builder
     - Center: Selected element configuration
     - Right: Slot manager
-  - Template metadata (name, task, version)
+    - Note: this may need to use a different layout for narrower screens, or altogether if three panels are too cramped
+  - Template metadata (name, task)
   - Response format configuration
   - Response transforms editor (optional)
   - Form validation with react-hook-form and zod
@@ -118,7 +121,6 @@ This document outlines the implementation plan for scaffolding the UI for the pr
   
 - Update `apps/frontend/src/pages/template-edit.tsx`:
   - Load existing template
-  - Version increment on save
   - Unsaved changes protection
   - Preview with mock data
 
@@ -128,9 +130,6 @@ This document outlines the implementation plan for scaffolding the UI for the pr
 - Create `apps/frontend/src/components/features/templates/template-preview.tsx`:
   - Render template with sample task context
   - Show generated ChatCompletionMessage[]
-  - Token count estimation
-  - Budget allocation visualization
-  - Fill order animation
 
 ### 6.2 Mock Data Provider
 - Create `apps/frontend/src/components/features/templates/mock-data.ts`:
@@ -148,12 +147,7 @@ This document outlines the implementation plan for scaffolding the UI for the pr
   - Step outputs
   - Custom instructions
 
-### 7.2 Template Versioning
-- Version history viewer
-- Diff view between versions
-- Rollback capability
-
-### 7.3 Template Sharing
+### 7.2 Template Sharing
 - Export/Import via JSON
 - Template validation on import
 - Template marketplace preparation

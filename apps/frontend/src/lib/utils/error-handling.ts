@@ -26,12 +26,7 @@ export function showErrorToast({
     description = fallbackMessage;
   }
 
-  toaster.create({
-    title,
-    description,
-    type: "error",
-    duration,
-  });
+  toaster.error({ title, description, duration });
 }
 
 /**
@@ -40,30 +35,14 @@ export function showErrorToast({
 export function showSuccessToast({
   title,
   description,
-  duration = 5000,
+  duration = 4000,
 }: {
   title: string;
-  description: string;
+  description?: string;
   duration?: number;
 }) {
-  toaster.create({
-    title,
-    description,
-    type: "success",
-    duration,
-  });
+  toaster.success({ title, description, duration });
 }
-
-/**
- * Common error messages for character operations
- */
-export const CHARACTER_ERROR_MESSAGES = {
-  CREATE_FAILED: "Failed to create character",
-  UPDATE_FAILED: "Failed to update character",
-  DELETE_FAILED: "Failed to delete character",
-  LOAD_FAILED: "Failed to load character",
-  IMPORT_FAILED: "Failed to import character",
-} as const;
 
 /**
  * Common error messages for file operations

@@ -6,7 +6,7 @@ import { ScenarioForm } from "@/components/features/scenario/scenario-form";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function ScenarioEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +24,7 @@ export function ScenarioEditPage() {
     onSuccess: (updatedScenario) => {
       showSuccessToast({
         title: "Scenario updated",
-        description: `Your changes to ${updatedScenario.name} have been saved.`,
+        description: `Changes to scenario '${updatedScenario.name}' saved.`,
       });
 
       utils.scenarios.list.invalidate();
@@ -34,33 +34,18 @@ export function ScenarioEditPage() {
 
       navigate("/scenarios");
     },
-    onError: (error) => {
-      showErrorToast({
-        title: "Failed to update scenario",
-        error,
-        fallbackMessage:
-          "Unable to update the scenario. Please check your input and try again.",
-      });
-    },
   });
 
   const deleteScenarioMutation = trpc.scenarios.delete.useMutation({
     onSuccess: () => {
       showSuccessToast({
         title: "Scenario deleted",
-        description: "The scenario has been deleted successfully.",
+        description: `Scenario '${scenario?.name}' deleted from your library.`,
       });
 
       utils.scenarios.list.invalidate();
 
       navigate("/scenarios");
-    },
-    onError: (error) => {
-      showErrorToast({
-        title: "Failed to delete scenario",
-        error,
-        fallbackMessage: "Unable to delete the scenario. Please try again.",
-      });
     },
   });
 
@@ -145,7 +130,7 @@ export function ScenarioEditPage() {
     <>
       <Container>
         <SimplePageHeader
-          title="Edit Scenario"
+          title={scenario.name}
           actions={
             <Button
               colorPalette="red"

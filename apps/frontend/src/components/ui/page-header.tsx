@@ -247,6 +247,7 @@ interface TabConfig {
   label: string;
   icon?: ReactNode;
   badge?: string | number;
+  badgeColorPalette?: React.ComponentProps<typeof Badge>["colorPalette"];
 }
 
 interface PageHeaderTabsProps {
@@ -287,7 +288,11 @@ function PageHeaderTabs({
           <Tabs.Trigger key={tab.value} value={tab.value}>
             {tab.icon}
             {tab.label}
-            {tab.badge && <Badge>{tab.badge}</Badge>}
+            {tab.badge && (
+              <Badge colorPalette={tab.badgeColorPalette || "gray"} size="xs">
+                {tab.badge}
+              </Badge>
+            )}
           </Tabs.Trigger>
         ))}
         {controls && (

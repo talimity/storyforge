@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ScenarioForm } from "@/components/features/scenario/scenario-form";
 import { SimplePageHeader } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function ScenarioCreatePage() {
   const navigate = useNavigate();
@@ -17,20 +17,12 @@ export function ScenarioCreatePage() {
     onSuccess: (scenario) => {
       showSuccessToast({
         title: "Scenario created",
-        description: `${scenario.name} has been created successfully.`,
+        description: `New scenario '${scenario.name}' saved.`,
       });
 
       utils.scenarios.list.invalidate();
 
       navigate("/scenarios");
-    },
-    onError: (error) => {
-      showErrorToast({
-        title: "Failed to create scenario",
-        error,
-        fallbackMessage:
-          "Unable to create the scenario. Please check your input and try again.",
-      });
     },
   });
 
@@ -62,7 +54,7 @@ export function ScenarioCreatePage() {
 
   return (
     <Container>
-      <SimplePageHeader title="Create Scenario" />
+      <SimplePageHeader title="New Scenario" />
       <ScenarioForm
         onSubmit={handleSubmit}
         onCancel={handleCancel}

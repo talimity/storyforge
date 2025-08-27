@@ -3,11 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CharacterForm } from "@/components/features/character/character-form";
 import { SimplePageHeader } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
-import {
-  CHARACTER_ERROR_MESSAGES,
-  showErrorToast,
-  showSuccessToast,
-} from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function CharacterCreatePage() {
   const navigate = useNavigate();
@@ -17,20 +13,12 @@ export function CharacterCreatePage() {
     onSuccess: (character) => {
       showSuccessToast({
         title: "Character created",
-        description: `${character.name} has been created successfully.`,
+        description: `New character '${character.name}' saved.`,
       });
 
       utils.characters.list.invalidate();
 
       navigate("/characters");
-    },
-    onError: (error) => {
-      showErrorToast({
-        title: CHARACTER_ERROR_MESSAGES.CREATE_FAILED,
-        error,
-        fallbackMessage:
-          "Unable to create the character. Please check your input and try again.",
-      });
     },
   });
 
@@ -54,7 +42,7 @@ export function CharacterCreatePage() {
 
   return (
     <Container>
-      <SimplePageHeader title="Create Character" />
+      <SimplePageHeader title="New Character" />
       <CharacterForm
         onSubmit={handleSubmit}
         onCancel={handleCancel}

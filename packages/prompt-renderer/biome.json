@@ -5,10 +5,6 @@
   "linter": {
     "rules": {
       "suspicious": {
-        "noThenProperty": {
-          "level": "off",
-          "options": {}
-        },
         "noAssignInExpressions": {
           "level": "off",
           "options": {}

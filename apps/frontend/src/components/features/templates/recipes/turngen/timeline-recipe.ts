@@ -6,7 +6,7 @@ export const timelineRecipe: RecipeDefinition = {
   name: "Timeline",
   task: "turn_generation",
   description:
-    "Shows recent turns from the scenario timeline in chronological order",
+    "Shows turns from the scenario's timeline, in chronological order",
 
   parameters: [
     {

@@ -6,11 +6,7 @@ import { CharacterForm } from "@/components/features/character/character-form";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
 import { getApiUrl, trpc } from "@/lib/trpc";
-import {
-  CHARACTER_ERROR_MESSAGES,
-  showErrorToast,
-  showSuccessToast,
-} from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function CharacterEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -28,7 +24,7 @@ export function CharacterEditPage() {
     onSuccess: (updatedCharacter) => {
       showSuccessToast({
         title: "Character updated",
-        description: `Your changes to ${updatedCharacter.name} have been saved.`,
+        description: `Changes to character '${updatedCharacter.name}' saved.`,
       });
 
       utils.characters.list.invalidate();
@@ -38,33 +34,18 @@ export function CharacterEditPage() {
 
       navigate("/characters");
     },
-    onError: (error) => {
-      showErrorToast({
-        title: CHARACTER_ERROR_MESSAGES.UPDATE_FAILED,
-        error,
-        fallbackMessage:
-          "Unable to update the character. Please check your input and try again.",
-      });
-    },
   });
 
   const deleteCharacterMutation = trpc.characters.delete.useMutation({
     onSuccess: () => {
       showSuccessToast({
         title: "Character deleted",
-        description: "The character has been deleted successfully.",
+        description: `Character '${character?.name}' deleted from your library.`,
       });
 
       utils.characters.list.invalidate();
 
       navigate("/characters");
-    },
-    onError: (error) => {
-      showErrorToast({
-        title: CHARACTER_ERROR_MESSAGES.DELETE_FAILED,
-        error,
-        fallbackMessage: "Unable to delete the character. Please try again.",
-      });
     },
   });
 
@@ -146,7 +127,7 @@ export function CharacterEditPage() {
     <>
       <Container>
         <SimplePageHeader
-          title="Edit Character"
+          title={character.name}
           actions={
             <Button
               colorPalette="red"

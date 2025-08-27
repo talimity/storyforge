@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { nonBubblingHandler } from "@/lib/non-bubbling-handler";
 import { trpc } from "@/lib/trpc";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function useCharacterActions(characterId: string) {
   const navigate = useNavigate();
@@ -11,9 +13,7 @@ export function useCharacterActions(characterId: string) {
     onSuccess: () => {
       utils.characters.list.invalidate();
       setIsDeleteDialogOpen(false);
-    },
-    onError: (error) => {
-      console.error("Failed to delete character:", error);
+      showSuccessToast({ title: "Character deleted" });
     },
   });
 
@@ -21,13 +21,13 @@ export function useCharacterActions(characterId: string) {
     deleteCharacterMutation.mutate({ id: characterId });
   };
 
-  const handleEdit = () => {
+  const handleEdit = nonBubblingHandler(() => {
     navigate(`/characters/${characterId}/edit`);
-  };
+  });
 
-  const openDeleteDialog = () => {
+  const openDeleteDialog = nonBubblingHandler(() => {
     setIsDeleteDialogOpen(true);
-  };
+  });
 
   const closeDeleteDialog = () => {
     setIsDeleteDialogOpen(false);

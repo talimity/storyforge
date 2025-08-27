@@ -2,6 +2,7 @@ import {
   ActionBar,
   Center,
   Container,
+  Flex,
   Grid,
   Text,
   VStack,
@@ -221,15 +222,17 @@ export function CharacterLibraryPage() {
         closeOnEscape={true}
       >
         <ActionBarContent layerStyle="contrast" colorPalette="contrast">
-          <ActionBar.SelectionTrigger>
-            <CharacterPile
-              characters={selectedCharacters}
-              maxAvatars={3}
-              size="xs"
-              layerStyle="contrast"
-              shape="rounded"
-            />
-          </ActionBar.SelectionTrigger>
+          <Container>
+            <Flex align="center">
+              <CharacterPile
+                characters={selectedCharacters}
+                maxAvatars={3}
+                size="xs"
+                layerStyle="contrast"
+                shape="rounded"
+              />
+            </Flex>
+          </Container>
           <ActionBar.Separator />
           <Button
             variant="solid"

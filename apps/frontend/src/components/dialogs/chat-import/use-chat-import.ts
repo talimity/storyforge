@@ -6,6 +6,7 @@ import type React from "react";
 import { useRef, useState } from "react";
 import { toaster } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 import { validateFile } from "./file-validation";
 
 interface UseChatImportProps {
@@ -59,10 +60,9 @@ export function useChatImport({
     const validation = validateFile(file);
 
     if (!validation.isValid) {
-      toaster.create({
+      toaster.error({
         title: "Invalid file format",
         description: validation.error,
-        type: "error",
         duration: 5000,
       });
       return;
@@ -130,11 +130,9 @@ export function useChatImport({
         mappings: characterMappings,
       });
 
-      toaster.create({
+      showSuccessToast({
         title: "Import successful",
         description: `Created scenario with ${result.turnCount} turns.`,
-        type: "success",
-        duration: 5000,
       });
 
       await utils.scenarios.list.invalidate();
