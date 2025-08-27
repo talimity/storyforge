@@ -1,8 +1,8 @@
 import { HStack } from "@chakra-ui/react";
+import { CharacterMappingStep } from "@/components/dialogs/chat-import/character-mapping-step";
+import { ChatUploadStep } from "@/components/dialogs/chat-import/chat-upload-step";
+import { useChatImport } from "@/components/dialogs/chat-import/use-chat-import";
 import { Button, Dialog } from "@/components/ui";
-import { CharacterMappingStep } from "./character-mapping-step";
-import { ChatUploadStep } from "./chat-upload-step";
-import { useChatImport } from "./use-chat-import";
 
 interface ChatImportDialogProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ export function ChatImportDialog({
           <Dialog.Title>
             {vm.step === "upload"
               ? "Import SillyTavern Chat"
-              : "Map Characters"}
+              : "Assign Characters"}
           </Dialog.Title>
         </Dialog.Header>
 

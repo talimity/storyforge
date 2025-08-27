@@ -4,10 +4,10 @@ import type {
 } from "@storyforge/schemas";
 import type React from "react";
 import { useRef, useState } from "react";
+import { validateFile } from "@/components/dialogs/chat-import/file-validation";
 import { toaster } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
 import { showSuccessToast } from "@/lib/utils/error-handling";
-import { validateFile } from "./file-validation";
 
 interface UseChatImportProps {
   onClose: () => void;

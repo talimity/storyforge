@@ -10,14 +10,12 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { PromptTemplate, SlotSpec } from "@storyforge/prompt-renderer";
+import { LuBox, LuInfo, LuMessageCircle } from "react-icons/lu";
+import type { TemplateDraft } from "@/components/features/templates/types";
 import {
-  LuBox,
-  LuInfo,
-  LuMessageCircle,
-  LuSeparatorHorizontal,
-} from "react-icons/lu";
-import type { TemplateDraft } from "../types";
-import { compileDraft, validateDraft } from "../utils/compile-draft";
+  compileDraft,
+  validateDraft,
+} from "@/components/features/templates/utils/compile-draft";
 
 interface TemplatePreviewProps {
   draft: TemplateDraft;
@@ -100,7 +98,7 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
               <Text>{compiledTemplate.layout.length}</Text>
             </HStack>
             <HStack justify="space-between" fontSize="sm">
-              <Text fontWeight="medium">Dynamic Content:</Text>
+              <Text fontWeight="medium">Content Slots:</Text>
               <Text>{Object.keys(compiledTemplate.slots).length}</Text>
             </HStack>
           </VStack>
@@ -168,7 +166,7 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
                       <VStack align="start" gap={1} flex={1}>
                         <HStack gap={2}>
                           <Text fontWeight="medium" fontSize="sm">
-                            Dynamic Content: {node.name}
+                            Content Slot: {node.name}
                           </Text>
                           {node.omitIfEmpty && (
                             <Code fontSize="xs" colorPalette="orange">
@@ -203,15 +201,6 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
                           </Text>
                         )}
                       </VStack>
-                    </HStack>
-                  )}
-
-                  {node.kind === "separator" && (
-                    <HStack gap={3} p={2} bg="surface.muted" borderRadius="md">
-                      <Icon as={LuSeparatorHorizontal} color="gray.500" />
-                      <Text fontSize="sm" color="content.muted">
-                        {node.text || "Separator"}
-                      </Text>
                     </HStack>
                   )}
                 </Box>

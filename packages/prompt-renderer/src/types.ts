@@ -93,8 +93,7 @@ export type LayoutNode =
       header?: MessageBlock | MessageBlock[];
       footer?: MessageBlock | MessageBlock[];
       omitIfEmpty?: boolean;
-    }
-  | { kind: "separator"; text?: string };
+    };
 
 export type PromptTemplate = {
   id: string;
@@ -135,6 +134,8 @@ export type SlotSpec = {
   budget?: Budget;
   /** Emits the slot's candidate messages, evaluated under the slot+global budget. */
   plan: PlanNode[];
+  /** Arbitrary metadata for authoring-time use (e.g., UI hints). */
+  meta: Record<string, unknown>;
 };
 
 export type PlanNode =
@@ -239,10 +240,6 @@ export type CompiledLayoutNode = Readonly<
       header?: readonly CompiledMessageBlock[];
       footer?: readonly CompiledMessageBlock[];
       omitIfEmpty?: boolean;
-    }
-  | {
-      kind: "separator";
-      text?: CompiledLeafFunction;
     }
 >;
 

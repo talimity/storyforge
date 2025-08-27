@@ -2,19 +2,22 @@ import { Box, Tabs, VStack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { LuBox, LuEye, LuInfo } from "react-icons/lu";
+import { LuEye, LuInfo, LuRows3 } from "react-icons/lu";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes";
-import { Button, PageHeader } from "@/components/ui";
-import { useUnsavedChangesProtection } from "@/lib/hooks/use-unsaved-changes-protection";
-import { LayoutBuilder } from "./builder/layout-builder";
-import { TemplateMetadata } from "./builder/template-metadata";
-import { TemplatePreview } from "./preview";
+import { LayoutBuilder } from "@/components/features/templates/builder/layout-builder";
+import { TemplateMetadata } from "@/components/features/templates/builder/template-metadata";
+import { TemplatePreview } from "@/components/features/templates/preview/template-preview";
 import {
   type TemplateFormData,
   templateFormSchema,
-} from "./template-form-schema";
-import type { TemplateDraft } from "./types";
-import { validateDraft } from "./utils/compile-draft";
+} from "@/components/features/templates/template-form-schema";
+import type { TemplateDraft } from "@/components/features/templates/types";
+import { Button, PageHeader } from "@/components/ui";
+import { useUnsavedChangesProtection } from "@/lib/hooks/use-unsaved-changes-protection";
+import {
+  getValidationErrors,
+  useTemplateBuilderStore,
+} from "@/stores/template-builder-store";
 
 interface TemplateFormProps {
   initialDraft: TemplateDraft;
@@ -41,6 +44,15 @@ export function TemplateForm({
 }: TemplateFormProps) {
   const [activeTab, setActiveTab] = useState("metadata");
 
+  // Store state
+  const {
+    layoutDraft,
+    slotsDraft,
+    isDirty: builderIsDirty,
+    initialize,
+    markClean,
+  } = useTemplateBuilderStore();
+
   // Form state for metadata
   const {
     handleSubmit,
@@ -56,54 +68,47 @@ export function TemplateForm({
       name: initialDraft.name,
       task: initialDraft.task,
       description: "",
-      responseFormat: "text",
     },
   });
 
-  // Builder state
-  const [layoutDraft, setLayoutDraft] = useState(initialDraft.layoutDraft);
-  const [slotsDraft, setSlotsDraft] = useState(initialDraft.slotsDraft);
-  const [builderIsDirty, setBuilderIsDirty] = useState(false);
-
   // Track if we just submitted to prevent flash on save
   const justSubmittedRef = useRef(false);
-  const prevInitialDraftRef = useRef(initialDraft);
+  const prevInitialDraftRef = useRef<TemplateDraft | null>(null);
 
-  // Update state when initialDraft changes (for edit mode)
+  // Initialize store state when component mounts or initialDraft changes
   useEffect(() => {
-    // Only reset if the draft has actually changed (not just a re-render after save)
+    // Check if this is the first mount or if the draft has actually changed
+    const prev = prevInitialDraftRef.current;
+    const isFirstMount = prev === null;
     const draftChanged =
-      prevInitialDraftRef.current.name !== initialDraft.name ||
-      prevInitialDraftRef.current.task !== initialDraft.task ||
-      JSON.stringify(prevInitialDraftRef.current.layoutDraft) !==
-        JSON.stringify(initialDraft.layoutDraft) ||
-      JSON.stringify(prevInitialDraftRef.current.slotsDraft) !==
-        JSON.stringify(initialDraft.slotsDraft);
+      prev !== null &&
+      (prev.name !== initialDraft.name ||
+        prev.task !== initialDraft.task ||
+        JSON.stringify(prev.layoutDraft) !==
+          JSON.stringify(initialDraft.layoutDraft) ||
+        JSON.stringify(prev.slotsDraft) !==
+          JSON.stringify(initialDraft.slotsDraft));
 
-    if (
-      isEditMode &&
-      initialDraft.name &&
-      draftChanged &&
-      !justSubmittedRef.current
-    ) {
-      reset({
-        name: initialDraft.name,
-        task: initialDraft.task,
-        description: "",
-        responseFormat: "text",
-      });
-      setLayoutDraft(initialDraft.layoutDraft);
-      setSlotsDraft(initialDraft.slotsDraft);
-      setBuilderIsDirty(false);
+    // Initialize on mount or when draft changes
+    if ((isFirstMount || draftChanged) && !justSubmittedRef.current) {
+      if (isEditMode && initialDraft.name) {
+        reset({
+          name: initialDraft.name,
+          task: initialDraft.task,
+          description: "",
+        });
+      }
+      initialize(initialDraft);
     }
 
     // Reset the flag after handling the update
     if (justSubmittedRef.current) {
       justSubmittedRef.current = false;
+      markClean();
     }
 
     prevInitialDraftRef.current = initialDraft;
-  }, [initialDraft, isEditMode, reset]);
+  }, [initialDraft, isEditMode, reset, initialize, markClean]);
 
   const metadata = watch();
 
@@ -119,7 +124,17 @@ export function TemplateForm({
     [initialDraft.id, metadata.name, metadata.task, layoutDraft, slotsDraft]
   );
 
-  const validationErrors = validateDraft(currentDraft);
+  const builderStore = useTemplateBuilderStore();
+  const validationErrors = useMemo(
+    () =>
+      getValidationErrors(
+        builderStore,
+        metadata.task,
+        initialDraft.id,
+        metadata.name
+      ),
+    [builderStore, metadata.task, metadata.name, initialDraft.id]
+  );
   const hasValidationErrors = validationErrors.length > 0;
   const metadataErrorCount = Object.keys(errors).length;
   const structureErrorCount = validationErrors.length;
@@ -133,12 +148,6 @@ export function TemplateForm({
       message:
         "You have unsaved changes to this template. Are you sure you want to leave?",
     });
-
-  // Event handlers
-  const handleLayoutChange = useCallback((newLayout: typeof layoutDraft) => {
-    setLayoutDraft(newLayout);
-    setBuilderIsDirty(true);
-  }, []);
 
   const onFormSubmit = useCallback(
     (formData: TemplateFormData) => {
@@ -170,7 +179,7 @@ export function TemplateForm({
     {
       value: "structure",
       label: "Structure",
-      icon: <LuBox />,
+      icon: <LuRows3 />,
       badge: structureErrorCount > 0 ? structureErrorCount : undefined,
       badgeColorPalette: structureErrorCount > 0 ? ("red" as const) : undefined,
     },
@@ -240,16 +249,7 @@ export function TemplateForm({
                 </Box>
               )}
 
-              <LayoutBuilder
-                layout={layoutDraft}
-                slots={slotsDraft}
-                task={metadata.task}
-                onLayoutChange={handleLayoutChange}
-                onSlotsChange={(newSlots) => {
-                  setSlotsDraft(newSlots);
-                  setBuilderIsDirty(true);
-                }}
-              />
+              <LayoutBuilder task={metadata.task} />
             </VStack>
           </Tabs.Content>
 

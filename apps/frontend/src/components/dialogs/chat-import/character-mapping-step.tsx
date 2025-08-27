@@ -50,8 +50,8 @@ export function CharacterMappingStep({
             Detected Characters ({analyzeResult.detectedCharacters.length})
           </Text>
           <Text fontSize="sm" color="content.muted" mb={4}>
-            Map each detected name to a character in your library, set as
-            narrator, or ignore.
+            Assign the detected characters to existing characters in your
+            library, set them as narrators, or choose to drop their messages.
           </Text>
 
           <VStack gap={3} align="stretch" maxH="300px" overflowY="auto">

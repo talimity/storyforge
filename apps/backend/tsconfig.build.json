@@ -12,6 +12,7 @@
     { "path": "../../packages/config/tsconfig.build.json" },
     { "path": "../../packages/db/tsconfig.build.json" },
     { "path": "../../packages/inference/tsconfig.build.json" },
+    { "path": "../../packages/prompt-renderer/tsconfig.build.json" },
     { "path": "../../packages/schemas/tsconfig.build.json" },
     { "path": "../../packages/utils/tsconfig.build.json" },
     { "path": "../../packages/yolo-onnx/tsconfig.build.json" }

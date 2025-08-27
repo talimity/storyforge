@@ -14,6 +14,13 @@ import { forwardRef, useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { LuCheck, LuX } from "react-icons/lu";
 import {
+  getMessageBlockPlaceholder,
+  getNodeIcon,
+  getRoleLabel,
+} from "@/components/features/templates/builder/index";
+import { NodeFrame } from "@/components/features/templates/builder/nodes/node-frame";
+import type { MessageLayoutDraft } from "@/components/features/templates/types";
+import {
   Field,
   SelectContent,
   SelectItem,
@@ -22,13 +29,9 @@ import {
   SelectValueText,
   Switch,
 } from "@/components/ui";
-import type { MessageLayoutDraft } from "../../../types";
-import { getNodeColor, getNodeIcon, getRoleLabel } from "../../builder-utils";
-import { NodeFrame } from "../node-frame";
 
 interface MessageNodeEditProps {
   node: MessageLayoutDraft;
-  isSelected?: boolean;
   isDragging?: boolean;
   onSave?: (node: MessageLayoutDraft) => void;
   onCancel?: () => void;
@@ -44,18 +47,9 @@ const roleOptions = [
 
 export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
   (
-    {
-      node,
-      isSelected = false,
-      isDragging = false,
-      onSave,
-      onCancel,
-      dragHandleProps,
-      style,
-    },
+    { node, isDragging = false, onSave, onCancel, dragHandleProps, style },
     ref
   ) => {
-    const { borderColor } = getNodeColor(node);
     const NodeIcon = getNodeIcon(node);
 
     const { register, control, setValue, getValues } = useForm({
@@ -107,7 +101,6 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
       <NodeFrame
         ref={ref}
         node={node}
-        isSelected={isSelected}
         isDragging={isDragging}
         dragHandleProps={dragHandleProps}
         style={style}
@@ -115,10 +108,8 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
         <VStack align="stretch" gap={4}>
           {/* Header */}
           <HStack gap={2} align="center">
-            <Icon as={NodeIcon} color={borderColor} />
-            <Badge size="sm" colorPalette="neutral">
-              {getRoleLabel(getValues().role)}
-            </Badge>
+            <Icon as={NodeIcon} />
+            <Badge size="sm">{getRoleLabel(getValues().role)}</Badge>
             <Text fontSize="sm" fontWeight="medium" flex={1}>
               Editing Message
             </Text>
@@ -144,6 +135,21 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
 
           {/* Form Fields */}
           <VStack align="stretch" gap={4}>
+            <Field
+              label="Identifier"
+              helperText="Optional identifier for this message block (does not appear in prompt)"
+            >
+              <Input
+                {...register("name")}
+                placeholder={getMessageBlockPlaceholder(node.role)}
+                autoComplete="off"
+                onChange={(e) => {
+                  setValue("name", e.target.value);
+                }}
+                onKeyDown={handleKeyDown}
+              />
+            </Field>
+
             <Field label="Message Role" required>
               <Controller
                 name="role"
@@ -175,20 +181,6 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
             </Field>
 
             <Field
-              label="Name"
-              helperText="Optional identifier for this message in the layout"
-            >
-              <Input
-                {...register("name")}
-                placeholder="e.g., system_prompt"
-                onChange={(e) => {
-                  setValue("name", e.target.value);
-                }}
-                onKeyDown={handleKeyDown}
-              />
-            </Field>
-
-            <Field
               label="Content"
               helperText="The message content. Use {{variable}} syntax for templating."
             >
@@ -207,8 +199,8 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
 
             {getValues().role === "assistant" && (
               <Field
-                label="Assistant Prefix"
-                helperText="If enabled, the model will continue from this content (requires provider support)"
+                label="Assistant Prefill"
+                helperText="If enabled for the final message, this will prefill the assistant's response with the provided content. Requires provider support."
               >
                 <Controller
                   name="prefix"

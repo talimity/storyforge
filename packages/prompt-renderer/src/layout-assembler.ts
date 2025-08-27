@@ -44,9 +44,6 @@ export function assembleLayout<K extends TaskKind>(
       case "slot":
         processSlotNode(node, slotBuffers, ctx, budget, registry, result);
         break;
-      case "separator":
-        processSeparatorNode(node, ctx, budget, result);
-        break;
       default: {
         const badNode = nodeKind satisfies never;
         console.warn(
@@ -186,35 +183,6 @@ function processSlotNode<K extends TaskKind>(
   if (node.footer && (hasMessages || node.omitIfEmpty === false)) {
     processMessageBlocks(node.footer, ctx, budget, registry, result);
   }
-}
-
-/**
- * Process a separator node in the layout.
- * Emits as a user message with the separator text.
- */
-function processSeparatorNode<K extends TaskKind>(
-  node: CompiledLayoutNode & { kind: "separator" },
-  ctx: TaskCtx<K>,
-  budget: BudgetManager,
-  result: ChatCompletionMessage[]
-): void {
-  // Early exit if no budget
-  if (!budget.hasAny()) return;
-
-  // Get separator text
-  const scope = createScope(ctx);
-  const content = node.text ? node.text(scope) : "";
-
-  // Skip empty separators
-  if (!content) return;
-
-  // Apply budget check
-  if (!budget.canFitTokenEstimate(content)) return;
-
-  // Consume budget and emit separator as user message
-  budget.consume(content);
-
-  result.push({ role: "user", content });
 }
 
 /**

@@ -1,6 +1,5 @@
 /**
  * Shared parameter coercion utilities for recipe implementations
- * These provide type-safe parameter handling with sensible defaults
  */
 
 /**

@@ -12,10 +12,10 @@ describe("compileTemplate", () => {
     layout: [
       { kind: "message", role: "system", content: "Hello {{name}}" },
       { kind: "slot", name: "content" },
-      { kind: "separator", text: "--- {{divider}} ---" },
     ],
     slots: {
       content: {
+        meta: {},
         priority: 0,
         plan: [
           { kind: "message", role: "user", content: "User: {{user.message}}" },
@@ -88,14 +88,6 @@ describe("compileTemplate", () => {
       if (systemMessage.kind === "message") {
         expect(typeof systemMessage.content).toBe("function");
         expect(systemMessage.content!({ name: "Alice" })).toBe("Hello Alice");
-      }
-
-      // Check separator text is compiled
-      const separator = compiled.layout[2];
-      expect(separator.kind).toBe("separator");
-      if (separator.kind === "separator") {
-        expect(typeof separator.text).toBe("function");
-        expect(separator.text!({ divider: "BREAK" })).toBe("--- BREAK ---");
       }
     });
 
@@ -222,6 +214,7 @@ describe("compileTemplate", () => {
         layout: [],
         slots: {
           test: {
+            meta: {},
             priority: 0,
             plan: [
               {
@@ -254,6 +247,7 @@ describe("compileTemplate", () => {
         layout: [],
         slots: {
           test: {
+            meta: {},
             priority: 0,
             plan: [
               {
@@ -273,6 +267,7 @@ describe("compileTemplate", () => {
         ...simpleTemplate,
         slots: {
           test: {
+            meta: {},
             priority: 0,
             plan: [
               {
@@ -300,10 +295,10 @@ describe("compileTemplate", () => {
         version: 1,
         layout: [
           { kind: "message", role: "system", from: { source: "systemPrompt" } },
-          { kind: "separator" },
         ],
         slots: {
           test: {
+            meta: {},
             priority: 0,
             plan: [
               { kind: "message", role: "user", from: { source: "userInput" } },
@@ -317,11 +312,6 @@ describe("compileTemplate", () => {
       const systemMessage = compiled.layout[0];
       if (systemMessage.kind === "message") {
         expect(systemMessage.content).toBeUndefined();
-      }
-
-      const separator = compiled.layout[1];
-      if (separator.kind === "separator") {
-        expect(separator.text).toBeUndefined();
       }
     });
 
@@ -344,6 +334,7 @@ describe("compileTemplate", () => {
         ],
         slots: {
           content: {
+            meta: {},
             priority: 0,
             plan: [{ kind: "message", role: "user", content: "Content" }],
           },

@@ -115,12 +115,6 @@ function compileLayoutNode(node: LayoutNode): CompiledLayoutNode {
         omitIfEmpty: node.omitIfEmpty,
       });
 
-    case "separator":
-      return Object.freeze({
-        kind: "separator",
-        text: node.text ? compileLeaf(node.text) : undefined,
-      });
-
     default: {
       const badKind = kind satisfies never;
       throw new Error(`Unknown layout node kind: ${badKind}`);

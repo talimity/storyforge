@@ -13,19 +13,19 @@ import {
   LuBookOpen,
   LuChevronLeft,
   LuChevronRight,
-  LuDices,
-  LuLayoutTemplate,
   LuPaintBucket,
+  LuPlay,
+  LuScrollText,
   LuSettings,
   LuUsersRound,
   LuWorkflow,
 } from "react-icons/lu";
 import { TbCubeSpark } from "react-icons/tb";
+import { ColorModeToggle } from "@/components/color-mode-toggle";
+import { Logo } from "@/components/logo";
+import { SidebarLink } from "@/components/sidebar-link";
+import { Button } from "@/components/ui/index";
 import { useActiveScenarioWithData } from "@/lib/hooks/use-active-scenario";
-import { ColorModeToggle } from "./color-mode-toggle";
-import { Logo } from "./logo";
-import { SidebarLink } from "./sidebar-link";
-import { Button } from "./ui";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -91,7 +91,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         {hasValidActiveScenario && (
           <SidebarLink
             to={`/play/${activeScenarioId}`}
-            icon={<LuDices />}
+            icon={<LuPlay />}
             label={
               <Flex direction="column" gap="0" lineHeight="1.25">
                 <Text>Resume Scenario</Text>
@@ -137,8 +137,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
         <SidebarLink
           to="/templates"
-          icon={<LuLayoutTemplate />}
-          label="Templates"
+          icon={<LuScrollText />}
+          label="Prompts"
           collapsed={collapsed}
         />
 

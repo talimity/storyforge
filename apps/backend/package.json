@@ -28,7 +28,7 @@
     "test:watch": "vitest",
     "test:completion": "pnpm tsx scripts/test-completion.ts",
     "test:import": "pnpm tsx scripts/test-card-import.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",

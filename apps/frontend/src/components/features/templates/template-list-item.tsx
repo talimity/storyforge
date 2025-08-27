@@ -21,8 +21,8 @@ import {
 } from "react-icons/lu";
 import { TemplateDeleteDialog } from "@/components/dialogs/template-delete";
 import { TemplateDuplicateDialog } from "@/components/dialogs/template-duplicate";
+import { useTemplateActions } from "@/components/features/templates/use-template-actions";
 import { nonBubblingHandler } from "@/lib/non-bubbling-handler";
-import { useTemplateActions } from "./use-template-actions";
 
 interface TemplateListItemProps {
   template: {

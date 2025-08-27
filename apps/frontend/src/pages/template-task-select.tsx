@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/prompt-renderer";
 import type React from "react";
-import { LuBookOpen, LuBrain, LuPenTool } from "react-icons/lu";
+import { LuBookOpenText, LuFoldVertical, LuPenTool } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, SimplePageHeader } from "@/components/ui";
 
@@ -24,22 +24,22 @@ interface TaskOption {
 const taskOptions: TaskOption[] = [
   {
     value: "turn_generation",
-    label: "Turn Generation",
+    label: "Story Progression",
     description:
-      "Create templates for generating narrative turns and story progression",
-    icon: LuBrain,
+      "Prompts used by characters to generate the next turn in a scenario",
+    icon: LuBookOpenText,
   },
   {
     value: "chapter_summarization",
     label: "Chapter Summarization",
-    description: "Build templates for summarizing completed story chapters",
-    icon: LuBookOpen,
+    description: "Prompts used to compact a chapter's turns into a summary",
+    icon: LuFoldVertical,
   },
   {
     value: "writing_assistant",
     label: "Writing Assistant",
     description:
-      "Design templates for general writing assistance and text improvement",
+      "Prompts used to continue, rewrite, or enhance some input text",
     icon: LuPenTool,
   },
 ];
@@ -49,13 +49,14 @@ export function TemplateTaskSelectPage() {
 
   return (
     <Container maxW="6xl">
-      <SimplePageHeader title="Create Template" />
+      <SimplePageHeader title="Create Prompt Template" />
       <VStack gap={6} align="stretch">
         <VStack gap={2} align="center" textAlign="center">
           <Heading size="lg">Choose a Task Type</Heading>
           <Text color="content.muted" maxW="2xl">
-            Templates are designed for specific AI tasks. Select the type of
-            task this template will be used for.
+            Prompts are designed around specific generation tasks. Select the
+            type of task this prompt will perform to get started. This affects
+            the available content that can be inserted into the template.
           </Text>
         </VStack>
 

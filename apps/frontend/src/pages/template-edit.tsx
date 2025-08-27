@@ -10,7 +10,7 @@ import { compileDraft } from "@/components/features/templates/utils/compile-draf
 import { templateToDraft } from "@/components/features/templates/utils/template-conversion";
 import { Button, SimplePageHeader } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
-import { showSuccessToast } from "@/lib/utils/error-handling";
+import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
 
 export function TemplateEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -70,8 +70,11 @@ export function TemplateEditPage() {
         },
       });
     } catch (error) {
-      console.error("Failed to compile template:", error);
-      // TODO: Show error toast
+      showErrorToast({
+        title: "Failed to save template",
+        fallbackMessage: "An unknown error occurred.",
+        error,
+      });
     }
   };
 

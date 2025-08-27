@@ -34,7 +34,6 @@ describe("walkers", () => {
             content: "User message",
             prefix: true,
           },
-          { kind: "separator", text: "---" }, // Should not yield any message blocks
           { kind: "message", role: "assistant", from: { source: "response" } },
         ],
       });
@@ -64,7 +63,7 @@ describe("walkers", () => {
         from: { source: "response" },
         prefix: undefined,
       });
-      expect(blocks[2].path).toBe("layout[3]");
+      expect(blocks[2].path).toBe("layout[2]");
     });
 
     it("should yield message blocks from slot headers and footers", () => {
@@ -83,6 +82,7 @@ describe("walkers", () => {
         slots: {
           content: {
             priority: 0,
+            meta: {},
             plan: [],
           },
         },
@@ -126,6 +126,7 @@ describe("walkers", () => {
         slots: {
           someContentSlot: {
             priority: 0,
+            meta: {},
             plan: [
               { kind: "message", role: "system", content: "Plan message 1" },
               { kind: "message", role: "user", from: { source: "input" } },
@@ -160,6 +161,7 @@ describe("walkers", () => {
         slots: {
           items: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",
@@ -208,6 +210,7 @@ describe("walkers", () => {
         slots: {
           conditionalSlot: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "if",
@@ -277,6 +280,7 @@ describe("walkers", () => {
         slots: {
           veryNestedSlot: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",
@@ -322,10 +326,11 @@ describe("walkers", () => {
 
     it("should handle empty templates", () => {
       const template = createTemplate({
-        layout: [{ kind: "separator", text: "---" }],
+        layout: [],
         slots: {
           empty: {
             priority: 0,
+            meta: {},
             plan: [],
           },
         },
@@ -360,6 +365,7 @@ describe("walkers", () => {
         slots: {
           content: {
             priority: 0,
+            meta: {},
             plan: [{ kind: "message", role: "user", content: "Just content" }],
           },
         },
@@ -414,6 +420,7 @@ describe("walkers", () => {
         slots: {
           content: {
             priority: 0,
+            meta: {},
             plan: [],
           },
         },
@@ -435,6 +442,7 @@ describe("walkers", () => {
         slots: {
           conditionalSlot: {
             priority: 0,
+            meta: {},
             when: {
               type: "exists",
               ref: { source: "condition", args: { test: true } },
@@ -460,6 +468,7 @@ describe("walkers", () => {
         slots: {
           items: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",
@@ -484,6 +493,7 @@ describe("walkers", () => {
         slots: {
           conditionalSlot: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "if",
@@ -520,6 +530,7 @@ describe("walkers", () => {
         slots: {
           complex: {
             priority: 0,
+            meta: {},
             when: { type: "exists", ref: { source: "rootCondition" } },
             plan: [
               {
@@ -579,11 +590,11 @@ describe("walkers", () => {
       const template = createTemplate({
         layout: [
           { kind: "message", role: "system", content: "Static content" },
-          { kind: "separator", text: "---" },
         ],
         slots: {
           simple: {
             priority: 0,
+            meta: {},
             plan: [
               { kind: "message", role: "user", content: "Static message" },
             ],
@@ -625,6 +636,7 @@ describe("walkers", () => {
         slots: {
           items: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",
@@ -665,6 +677,7 @@ describe("walkers", () => {
         slots: {
           test: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",

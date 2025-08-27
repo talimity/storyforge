@@ -4,7 +4,7 @@ import {
   coerceNumber,
   coerceOrder,
   coerceString,
-} from "./param-coercion";
+} from "@/components/features/templates/recipes/param-coercion";
 
 describe("param coercion utilities", () => {
   describe("coerceOrder", () => {

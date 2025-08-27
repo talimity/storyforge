@@ -1,18 +1,18 @@
 import {
   type LayoutNode,
   type MessageBlock,
-  type PlanNode,
   PROMPT_TEMPLATE_SPEC_VERSION,
   type PromptTemplate,
   type SlotSpec,
+  slotSpecSchema,
 } from "@storyforge/prompt-renderer";
-import { getRecipeById } from "../recipes/registry";
+import { getRecipeById } from "@/components/features/templates/recipes/registry";
 import type {
   LayoutNodeDraft,
   MessageBlockDraft,
   SlotDraft,
   TemplateDraft,
-} from "../types";
+} from "@/components/features/templates/types";
 
 /**
  * Compile a UI template draft into an engine-compatible PromptTemplate
@@ -66,12 +66,6 @@ function compileLayoutNode(node: LayoutNodeDraft): LayoutNode {
         }),
       };
 
-    case "separator":
-      return {
-        kind: "separator",
-        ...(node.text && { text: node.text }),
-      };
-
     default: {
       const badNodeKind = nodeKind satisfies never;
       throw new Error(
@@ -96,35 +90,36 @@ function compileSlots(
   return slots;
 }
 
-/**
- * Walk through plan nodes and override all budget settings with the given maxTokens
- */
-function overridePlanBudget(plan: PlanNode[], maxTokens: number): void {
-  for (const node of plan) {
-    if ("budget" in node && node.budget) {
-      node.budget = { maxTokens };
-    }
-    if (node.kind === "forEach" && node.map) {
-      // Child map can carry nested budgets too
-      overridePlanBudget(node.map, maxTokens);
-    } else if (node.kind === "if") {
-      overridePlanBudget(node.then, maxTokens);
-      if (node.else) {
-        overridePlanBudget(node.else, maxTokens);
-      }
-    }
-  }
-}
-
 function compileSlot(slotDraft: SlotDraft): SlotSpec {
   if (slotDraft.recipeId === "custom") {
-    // For custom slots, we would need to parse the user's custom JSON
-    // For now, return a minimal valid slot
-    return {
+    // 1) Safe parse with a valid default
+    let custom: unknown = { plan: [] };
+    if (slotDraft.customSpec && slotDraft.customSpec.trim().length > 0) {
+      try {
+        custom = JSON.parse(slotDraft.customSpec);
+      } catch (e) {
+        throw new DraftCompilationError(
+          `Invalid JSON in custom slot '${slotDraft.name}': ${e.message}`,
+          slotDraft.customSpec
+        );
+      }
+    }
+
+    // 2) Build the candidate spec
+    const parsed = slotSpecSchema.safeParse({
       priority: slotDraft.priority,
-      plan: [],
-      ...(slotDraft.budget && { budget: { maxTokens: slotDraft.budget } }),
-    };
+      ...(typeof slotDraft.budget === "number"
+        ? { budget: { maxTokens: slotDraft.budget } }
+        : {}),
+      ...(custom as object),
+    });
+    if (!parsed.success) {
+      throw new DraftCompilationError(
+        `Invalid custom slot '${slotDraft.name}': ${parsed.error.message}`,
+        slotDraft
+      );
+    }
+    return parsed.data;
   }
 
   // Recipe-backed slot: use the recipe to generate the slot spec
@@ -137,17 +132,18 @@ function compileSlot(slotDraft: SlotDraft): SlotSpec {
   // Then override priority and budget if specified
   // Deep clone to avoid mutating the recipe's internal structures
   const baseSlotSpec = recipe.toSlotSpec(slotDraft.params);
-  const slotSpec: SlotSpec = structuredClone({
+
+  // Add recipe metadata so we can recreate a draft from this slot spec later
+  const recipeMeta = {
+    recipe: { id: slotDraft.recipeId, params: slotDraft.params },
+    ...baseSlotSpec.meta,
+  };
+
+  return structuredClone({
     ...baseSlotSpec,
     priority: slotDraft.priority,
+    meta: recipeMeta,
   });
-
-  if (slotDraft.budget) {
-    slotSpec.budget = { maxTokens: slotDraft.budget };
-    overridePlanBudget(slotSpec.plan, slotDraft.budget);
-  }
-
-  return slotSpec;
 }
 
 /**
@@ -179,9 +175,6 @@ function compileMessageBlock(block: MessageBlockDraft): MessageBlock {
   };
 }
 
-/**
- * Error class for compilation issues
- */
 export class DraftCompilationError extends Error {
   constructor(
     message: string,

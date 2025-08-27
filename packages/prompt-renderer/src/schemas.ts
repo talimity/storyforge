@@ -79,10 +79,6 @@ export const layoutNodeSchema = z.discriminatedUnion("kind", [
       .optional(),
     omitIfEmpty: z.boolean().optional(),
   }),
-  z.object({
-    kind: z.literal("separator"),
-    text: z.string().optional(),
-  }),
 ]);
 
 /** ---------- Plan node schemas (recursive) ---------- */
@@ -128,6 +124,7 @@ export const slotSpecSchema = z.object({
   when: conditionRefSchema.optional(),
   budget: budgetSchema.optional(),
   plan: z.array(planNodeSchema),
+  meta: z.record(z.string(), z.unknown()).default({}),
 });
 
 /** ---------- Top-level template schema ---------- */

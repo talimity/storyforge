@@ -32,12 +32,12 @@ describe("schema validation", () => {
         layout: [
           { kind: "message", role: "system", content: "System message" },
           { kind: "slot", name: "turns", omitIfEmpty: true },
-          { kind: "separator", text: "---" },
         ],
         slots: {
           turns: {
             priority: 0,
             budget: { maxTokens: 1000 },
+            meta: { recipe: "recent_turns" },
             plan: [
               {
                 kind: "forEach",
@@ -70,6 +70,7 @@ describe("schema validation", () => {
         slots: {
           conditional_content: {
             priority: 0,
+            meta: {},
             when: { type: "exists", ref: { source: "turns" } },
             plan: [
               {
@@ -193,6 +194,7 @@ describe("schema validation", () => {
         slots: {
           nested: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",

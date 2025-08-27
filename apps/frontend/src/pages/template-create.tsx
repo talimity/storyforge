@@ -10,7 +10,7 @@ import type {
 import { compileDraft } from "@/components/features/templates/utils/compile-draft";
 import { createBlankTemplate } from "@/components/features/templates/utils/template-conversion";
 import { trpc } from "@/lib/trpc";
-import { showSuccessToast } from "@/lib/utils/error-handling";
+import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
 
 const validTaskTypes: TaskKind[] = [
   "turn_generation",
@@ -76,8 +76,11 @@ export function TemplateCreatePage() {
         responseTransforms: [],
       });
     } catch (error) {
-      console.error("Failed to compile template:", error);
-      // TODO: Show error toast
+      showErrorToast({
+        title: "Failed to create template",
+        fallbackMessage: "An unknown error occurred.",
+        error,
+      });
     }
   };
 

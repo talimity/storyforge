@@ -1,39 +1,39 @@
 import type { ChatCompletionMessageRole } from "@storyforge/prompt-renderer";
 import {
-  LuBot,
+  LuBotMessageSquare,
   LuLayers,
   LuMessageSquare,
-  LuMinus,
-  LuSettings,
-  LuUser,
+  LuMessageSquareCode,
+  LuMessageSquareMore,
 } from "react-icons/lu";
-import type { LayoutNodeDraft, SlotDraft } from "../types";
+import type {
+  LayoutNodeDraft,
+  SlotDraft,
+} from "@/components/features/templates/types";
 
 /**
  * Get the color scheme for a layout node based on its type and role
+ * TODO: Decide whether we want different colors at all
  */
 export function getNodeColor(node: LayoutNodeDraft): {
   borderColor: string;
-  bgColor: string;
 } {
   switch (node.kind) {
     case "message":
       switch (node.role) {
         case "system":
-          return { borderColor: "neutral.600", bgColor: "neutral.50" };
+          return { borderColor: "border" };
         case "user":
-          return { borderColor: "primary.600", bgColor: "primary.50" };
+          return { borderColor: "border" };
         case "assistant":
-          return { borderColor: "secondary.600", bgColor: "secondary.50" };
+          return { borderColor: "border" };
         default:
-          return { borderColor: "neutral.400", bgColor: "neutral.25" };
+          return { borderColor: "border" };
       }
     case "slot":
-      return { borderColor: "accent.600", bgColor: "accent.50" };
-    case "separator":
-      return { borderColor: "neutral.400", bgColor: "neutral.25" };
+      return { borderColor: "border" };
     default:
-      return { borderColor: "neutral.400", bgColor: "neutral.25" };
+      return { borderColor: "border" };
   }
 }
 
@@ -45,18 +45,16 @@ export function getNodeIcon(node: LayoutNodeDraft) {
     case "message":
       switch (node.role) {
         case "system":
-          return LuSettings;
+          return LuMessageSquareCode;
         case "user":
-          return LuUser;
+          return LuMessageSquareMore;
         case "assistant":
-          return LuBot;
+          return LuBotMessageSquare;
         default:
           return LuMessageSquare;
       }
     case "slot":
       return LuLayers;
-    case "separator":
-      return LuMinus;
     default:
       return LuMessageSquare;
   }
@@ -76,8 +74,6 @@ export function getNodeLabel(node: LayoutNodeDraft): string {
     }
     case "slot":
       return `Slot: ${node.name}`;
-    case "separator":
-      return `Separator${node.text ? `: ${node.text}` : ""}`;
     default:
       return "Unknown node";
   }
@@ -89,25 +85,14 @@ export function getNodeLabel(node: LayoutNodeDraft): string {
 export function getRoleLabel(role: ChatCompletionMessageRole): string {
   switch (role) {
     case "system":
-      return "System";
+      return "System Message";
     case "user":
-      return "User";
+      return "User Message";
     case "assistant":
-      return "Assistant";
+      return "Assistant Message";
     default:
       return "Unknown";
   }
-}
-
-/**
- * Get color scheme for slot priority badges
- */
-export function getPriorityColor(priority: number): string {
-  if (priority === 0) return "red"; // Highest priority
-  if (priority === 1) return "orange";
-  if (priority === 2) return "yellow";
-  if (priority <= 5) return "green";
-  return "neutral"; // Low priority
 }
 
 /**
@@ -124,11 +109,13 @@ export function generateSlotName(
   existingSlots: Record<string, SlotDraft>,
   baseName: string = "slot"
 ): string {
+  // remove non-alphanumeric characters, remove leading underscores
+  const safeName = baseName.replace(/[^a-zA-Z0-9_]/g, "").replace(/^_+/, "");
   let counter = 1;
-  let name = baseName;
+  let name = safeName;
 
   while (existingSlots[name]) {
-    name = `${baseName}_${counter}`;
+    name = `${safeName}_${counter}`;
     counter++;
   }
 
@@ -153,11 +140,11 @@ export function getDefaultMessageContent(
 ): string {
   switch (role) {
     case "system":
-      return "You are a helpful assistant.";
+      return "You are a storyteller.";
     case "user":
-      return "Enter your message here...";
+      return "Complete the following task...";
     case "assistant":
-      return "Assistant response...";
+      return "Okay, I'll work on that.";
     default:
       return "";
   }
@@ -223,4 +210,22 @@ export function getSlotStatus(
     hasWarnings: warnings.length > 0,
     warnings,
   };
+}
+
+/**
+ * Gets placeholder for message block identifier depending on its role
+ */
+export function getMessageBlockPlaceholder(
+  role: ChatCompletionMessageRole
+): string {
+  switch (role) {
+    case "system":
+      return "e.g., System Prompt";
+    case "user":
+      return "e.g., Player Request";
+    case "assistant":
+      return "e.g., Prefill";
+    default:
+      return "Message content";
+  }
 }

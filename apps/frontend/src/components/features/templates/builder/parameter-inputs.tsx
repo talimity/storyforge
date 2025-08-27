@@ -4,6 +4,9 @@ import {
   NumberInput,
   Text,
 } from "@chakra-ui/react";
+import type { TemplateVariable } from "@/components/features/templates/builder/template-string-editor";
+import { TemplateStringEditor } from "@/components/features/templates/builder/template-string-editor";
+import type { RecipeParamSpec } from "@/components/features/templates/recipes/registry";
 import {
   Field,
   SelectContent,
@@ -13,9 +16,6 @@ import {
   SelectValueText,
   Switch,
 } from "@/components/ui";
-import type { RecipeParamSpec } from "../recipes/contract";
-import type { TemplateVariable } from "./template-string-editor";
-import { TemplateStringEditor } from "./template-string-editor";
 
 interface BaseParameterInputProps {
   param: RecipeParamSpec;

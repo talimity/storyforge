@@ -1,5 +1,9 @@
-import type { RecipeDefinition } from "../contract";
-import { coerceNumber, coerceOrder, coerceString } from "../param-coercion";
+import {
+  coerceNumber,
+  coerceOrder,
+  coerceString,
+} from "@/components/features/templates/recipes/param-coercion";
+import type { RecipeDefinition } from "@/components/features/templates/recipes/registry";
 
 /**
  * Coerce format parameter for character display
@@ -102,6 +106,7 @@ export const charactersRecipe: RecipeDefinition = {
     return {
       priority: 1, // Characters usually come after timeline
       budget: { maxTokens: budget },
+      meta: {},
       plan: [
         {
           kind: "forEach",

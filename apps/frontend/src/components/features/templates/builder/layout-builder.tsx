@@ -15,33 +15,32 @@ import type {
   ChatCompletionMessageRole,
   TaskKind,
 } from "@storyforge/prompt-renderer";
-import { LuLayers, LuMessageSquare, LuMinus, LuPlus } from "react-icons/lu";
+import { LuLayers, LuMessageSquare, LuPlus } from "react-icons/lu";
+import { LayoutNodeCard } from "@/components/features/templates/builder/layout-node-card";
+import { useLayoutDnd } from "@/components/features/templates/builder/use-layout-dnd";
+import { getRecipesForTask } from "@/components/features/templates/recipes/registry";
+import type { LayoutNodeDraft } from "@/components/features/templates/types";
 import { Button, EmptyState } from "@/components/ui";
-import { getRecipesForTask } from "../recipes/registry";
-import type { LayoutNodeDraft, SlotDraft, SlotRecipeId } from "../types";
 import {
-  generateNodeId,
-  getDefaultMessageContent,
-  validateSlotReferences,
-} from "./builder-utils";
-import { LayoutNodeCard } from "./layout-node-card";
-import { useLayoutDnd } from "./use-layout-dnd";
+  getMissingSlots,
+  useTemplateBuilderStore,
+} from "@/stores/template-builder-store";
 
 interface LayoutBuilderProps {
-  layout: LayoutNodeDraft[];
-  slots: Record<string, SlotDraft>;
-  onLayoutChange: (layout: LayoutNodeDraft[]) => void;
   task?: TaskKind;
-  onSlotsChange?: (slots: Record<string, SlotDraft>) => void;
 }
 
-export function LayoutBuilder({
-  layout,
-  slots,
-  onLayoutChange,
-  task,
-  onSlotsChange,
-}: LayoutBuilderProps) {
+export function LayoutBuilder({ task }: LayoutBuilderProps) {
+  const {
+    layoutDraft: layout,
+    addMessageNode,
+    createSlotFromRecipe,
+    reorderNodes,
+    deleteNode,
+  } = useTemplateBuilderStore();
+
+  const store = useTemplateBuilderStore();
+  const missingSlots = getMissingSlots(store);
   const {
     activeNode,
     dndContextProps,
@@ -49,115 +48,37 @@ export function LayoutBuilder({
     DragOverlayComponent,
   } = useLayoutDnd({
     layout,
-    onLayoutChange,
+    onLayoutChange: (newLayout) => {
+      // Calculate the movements needed
+      const oldIndexMap = new Map(layout.map((node, idx) => [node.id, idx]));
+      const newIndexMap = new Map(newLayout.map((node, idx) => [node.id, idx]));
+
+      // Find the node that moved
+      for (const [nodeId, newIdx] of newIndexMap) {
+        const oldIdx = oldIndexMap.get(nodeId);
+        if (oldIdx !== undefined && oldIdx !== newIdx) {
+          // This node moved from oldIdx to newIdx
+          reorderNodes(oldIdx, newIdx);
+          break;
+        }
+      }
+    },
   });
 
   const handleAddMessage = (role: ChatCompletionMessageRole) => {
-    const newNode: LayoutNodeDraft = {
-      id: generateNodeId(),
-      kind: "message",
-      role,
-      content: getDefaultMessageContent(role),
-    };
-
-    onLayoutChange([...layout, newNode]);
+    addMessageNode(role);
   };
 
-  const handleAddSlotReference = (slotName: string) => {
-    const newNode: LayoutNodeDraft = {
-      id: generateNodeId(),
-      kind: "slot",
-      name: slotName,
-      omitIfEmpty: true,
-    };
-
-    onLayoutChange([...layout, newNode]);
-  };
-
-  const handleAddSeparator = () => {
-    const newNode: LayoutNodeDraft = {
-      id: generateNodeId(),
-      kind: "separator",
-      text: "---",
-    };
-
-    onLayoutChange([...layout, newNode]);
+  const handleCreateSlotFromRecipe = (recipeId: string) => {
+    if (!task) return;
+    createSlotFromRecipe(recipeId);
   };
 
   const handleDeleteNode = (nodeId: string) => {
-    // Find the node being deleted
-    const nodeToDelete = layout.find((node) => node.id === nodeId);
-
-    // Filter out the deleted node
-    const updatedLayout = layout.filter((node) => node.id !== nodeId);
-    onLayoutChange(updatedLayout);
-
-    // If we deleted a slot reference, check if we need to clean up the slot
-    if (nodeToDelete?.kind === "slot" && onSlotsChange) {
-      const slotName = nodeToDelete.name;
-
-      // Check if any remaining layout nodes still reference this slot
-      const hasRemainingReferences = updatedLayout.some(
-        (node) => node.kind === "slot" && node.name === slotName
-      );
-
-      // If no remaining references, remove the slot from slots object
-      if (!hasRemainingReferences && slots[slotName]) {
-        const updatedSlots = { ...slots };
-        delete updatedSlots[slotName];
-        onSlotsChange(updatedSlots);
-      }
-    }
+    deleteNode(nodeId, true); // true = cleanup orphaned slots
   };
 
-  const handleNodeChange = (updatedNode: LayoutNodeDraft) => {
-    const updatedLayout = layout.map((node) =>
-      node.id === updatedNode.id ? updatedNode : node
-    );
-    onLayoutChange(updatedLayout);
-  };
-
-  const handleSlotChange = (updatedSlot: SlotDraft) => {
-    if (!onSlotsChange) return;
-    const updatedSlots = { ...slots, [updatedSlot.name]: updatedSlot };
-    onSlotsChange(updatedSlots);
-  };
-
-  const { missingSlots } = validateSlotReferences(layout, slots);
   const taskRecipes = task ? getRecipesForTask(task) : [];
-  const availableRecipes = taskRecipes.filter(
-    (r) => !Object.values(slots).some((s) => s.recipeId === r.id)
-  );
-
-  const handleCreateSlotFromRecipe = (recipeId: string) => {
-    if (!task || !onSlotsChange) return;
-
-    const recipe = taskRecipes.find((r) => r.id === recipeId);
-    if (!recipe) return;
-
-    const slotName = recipe.name.toLowerCase().replace(/\s+/g, "_");
-    const existingSlot = slots[slotName];
-
-    if (existingSlot) {
-      // If slot already exists, just add a reference to it
-      handleAddSlotReference(slotName);
-      return;
-    }
-
-    // Create new slot
-    const newSlot: SlotDraft = {
-      recipeId: recipe.id as SlotRecipeId,
-      name: slotName,
-      priority: Object.keys(slots).length,
-      params: {},
-    };
-
-    const updatedSlots = { ...slots, [slotName]: newSlot };
-    onSlotsChange(updatedSlots);
-
-    // Also add a reference to the layout
-    handleAddSlotReference(slotName);
-  };
 
   return (
     <VStack align="stretch" gap={4}>
@@ -194,11 +115,7 @@ export function LayoutBuilder({
                 <SortableLayoutNode
                   key={node.id}
                   node={node}
-                  slots={slots}
                   task={task}
-                  isSelected={false}
-                  onNodeChange={handleNodeChange}
-                  onSlotChange={handleSlotChange}
                   onDelete={handleDeleteNode}
                 />
               ))
@@ -252,28 +169,25 @@ export function LayoutBuilder({
           <Separator />
 
           {/* Recipes */}
-          {availableRecipes.length > 0 && (
-            <>
-              {availableRecipes.map((recipe) => (
-                <MenuItem
-                  key={recipe.id}
-                  value={`recipe-${recipe.id}`}
-                  onClick={() => handleCreateSlotFromRecipe(recipe.id)}
-                >
-                  <LuLayers />
-                  {recipe.name}
-                </MenuItem>
-              ))}
-              <Separator />
-            </>
-          )}
-
+          {taskRecipes.map((recipe) => (
+            <MenuItem
+              key={recipe.id}
+              value={`recipe-${recipe.id}`}
+              onClick={() => handleCreateSlotFromRecipe(recipe.id)}
+            >
+              <LuLayers />
+              {recipe.name}
+            </MenuItem>
+          ))}
           <Separator />
 
-          {/* Separator */}
-          <MenuItem value="separator" onClick={handleAddSeparator}>
-            <LuMinus />
-            Separator
+          <MenuItem
+            key="custom-slot"
+            value="custom-slot"
+            onClick={() => handleCreateSlotFromRecipe("custom")}
+          >
+            <LuLayers />
+            Custom Content Slot
           </MenuItem>
         </MenuContent>
       </MenuRoot>
@@ -286,23 +200,11 @@ export function LayoutBuilder({
  */
 interface SortableLayoutNodeProps {
   node: LayoutNodeDraft;
-  slots: Record<string, SlotDraft>;
   task?: TaskKind;
-  isSelected: boolean;
-  onNodeChange: (node: LayoutNodeDraft) => void;
-  onSlotChange: (slot: SlotDraft) => void;
   onDelete: (nodeId: string) => void;
 }
 
-function SortableLayoutNode({
-  node,
-  slots,
-  task,
-  isSelected,
-  onNodeChange,
-  onSlotChange,
-  onDelete,
-}: SortableLayoutNodeProps) {
+function SortableLayoutNode({ node, task, onDelete }: SortableLayoutNodeProps) {
   const {
     attributes,
     listeners,
@@ -322,12 +224,8 @@ function SortableLayoutNode({
       ref={setNodeRef}
       style={style}
       node={node}
-      slots={slots}
       task={task}
-      isSelected={isSelected}
       isDragging={isDragging}
-      onNodeChange={onNodeChange}
-      onSlotChange={onSlotChange}
       onDelete={onDelete}
       dragHandleProps={{ ...attributes, ...listeners }}
     />

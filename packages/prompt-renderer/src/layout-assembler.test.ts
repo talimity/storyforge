@@ -171,95 +171,6 @@ describe("Layout Assembler", () => {
       });
     });
 
-    describe("separator nodes", () => {
-      it("should process separator as user message", () => {
-        const budget = createBudget();
-        const layout: CompiledLayoutNode[] = [
-          {
-            kind: "separator",
-            text: compileLeaf("---"),
-          },
-        ];
-        const slotBuffers: SlotExecutionResult = {};
-
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
-
-        expect(result).toHaveLength(1);
-        expect(result[0]).toEqual({
-          role: "user",
-          content: "---",
-        });
-      });
-
-      it("should skip separator when out of budget", () => {
-        const budget = createBudget(1); // Very small budget
-        const layout: CompiledLayoutNode[] = [
-          {
-            kind: "separator",
-            text: compileLeaf("This is a long separator text"),
-          },
-        ];
-        const slotBuffers: SlotExecutionResult = {};
-
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
-
-        expect(result).toHaveLength(0);
-      });
-
-      it("should skip empty separator", () => {
-        const budget = createBudget();
-        const layout: CompiledLayoutNode[] = [
-          {
-            kind: "separator",
-            text: compileLeaf(""),
-          },
-        ];
-        const slotBuffers: SlotExecutionResult = {};
-
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
-
-        expect(result).toHaveLength(0);
-      });
-
-      it("should handle separator without text", () => {
-        const budget = createBudget();
-        const layout: CompiledLayoutNode[] = [
-          {
-            kind: "separator",
-          },
-        ];
-        const slotBuffers: SlotExecutionResult = {};
-
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
-
-        expect(result).toHaveLength(0);
-      });
-    });
-
     describe("slot nodes", () => {
       it("should insert slot content without re-budget-checking", () => {
         const budget = createBudget(10); // Small budget
@@ -554,10 +465,6 @@ describe("Layout Assembler", () => {
             ],
           },
           {
-            kind: "separator",
-            text: compileLeaf("---"),
-          },
-          {
             kind: "slot",
             name: "main",
           },
@@ -583,7 +490,7 @@ describe("Layout Assembler", () => {
           registry
         );
 
-        expect(result).toHaveLength(7);
+        expect(result).toHaveLength(6);
         expect(result[0]).toEqual({
           role: "system",
           content: "System message",
@@ -593,13 +500,12 @@ describe("Layout Assembler", () => {
           role: "assistant",
           content: "Intro content",
         });
-        expect(result[3]).toEqual({ role: "user", content: "---" });
-        expect(result[4]).toEqual({ role: "user", content: "Main content 1" });
-        expect(result[5]).toEqual({
+        expect(result[3]).toEqual({ role: "user", content: "Main content 1" });
+        expect(result[4]).toEqual({
           role: "assistant",
           content: "Main content 2",
         });
-        expect(result[6]).toEqual({ role: "user", content: "Final message" });
+        expect(result[5]).toEqual({ role: "user", content: "Final message" });
       });
 
       it("should handle budget exhaustion mid-layout", () => {
@@ -672,10 +578,6 @@ describe("Layout Assembler", () => {
                 content: compileLeaf("Header"),
               },
             ],
-          },
-          {
-            kind: "separator",
-            text: compileLeaf("---"),
           },
         ];
         const slotBuffers: SlotExecutionResult = {

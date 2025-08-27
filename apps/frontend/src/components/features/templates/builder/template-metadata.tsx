@@ -1,5 +1,4 @@
 import {
-  Accordion,
   Badge,
   Card,
   createListCollection,
@@ -18,7 +17,8 @@ import {
   type FieldErrors,
   type UseFormRegister,
 } from "react-hook-form";
-import { LuFileText, LuSettings, LuTag } from "react-icons/lu";
+import { LuFileText } from "react-icons/lu";
+import type { TemplateFormData } from "@/components/features/templates/template-form-schema";
 import {
   Field,
   SelectContent,
@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui";
-import type { TemplateFormData } from "../template-form-schema";
 
 interface TemplateMetadataProps {
   register: UseFormRegister<TemplateFormData>;
@@ -55,16 +54,6 @@ const taskOptions = [
   },
 ];
 
-const responseFormatOptions = [
-  { label: "Text", value: "text", description: "Plain text response" },
-  { label: "JSON", value: "json", description: "JSON object response" },
-  {
-    label: "JSON Schema",
-    value: "json_schema",
-    description: "Structured JSON with schema validation",
-  },
-];
-
 export function TemplateMetadata({
   register,
   control,
@@ -73,9 +62,6 @@ export function TemplateMetadata({
   isEditMode = false,
 }: TemplateMetadataProps) {
   const selectedTask = taskOptions.find((t) => t.value === watchedValues.task);
-  const selectedFormat = responseFormatOptions.find(
-    (f) => f.value === watchedValues.responseFormat
-  );
 
   return (
     <Card.Root layerStyle="surface">
@@ -85,7 +71,7 @@ export function TemplateMetadata({
           <LuFileText size={20} />
           <VStack align="start" gap={0}>
             <Heading size="md" textStyle="heading">
-              Template Information
+              Prompt Template Information
             </Heading>
             <Text color="content.muted" fontSize="sm">
               Basic metadata and configuration
@@ -169,118 +155,6 @@ export function TemplateMetadata({
             />
           </Field>
         </Stack>
-
-        <Separator />
-
-        {/* Advanced Options */}
-        <Accordion.Root collapsible>
-          <Accordion.Item value="response-format">
-            <Accordion.ItemTrigger>
-              <HStack>
-                <LuSettings size={16} />
-                <Text>Response Format</Text>
-                {selectedFormat && (
-                  <Badge size="sm">{selectedFormat.label}</Badge>
-                )}
-              </HStack>
-            </Accordion.ItemTrigger>
-            <Accordion.ItemContent>
-              <Accordion.ItemBody>
-                <Stack gap={4}>
-                  <Field
-                    label="Format Type"
-                    helperText={selectedFormat?.description}
-                  >
-                    <Controller
-                      name="responseFormat"
-                      control={control}
-                      render={({ field }) => (
-                        <SelectRoot
-                          collection={createListCollection({
-                            items: responseFormatOptions,
-                          })}
-                          value={field.value ? [String(field.value)] : []}
-                          onValueChange={(details) => {
-                            const value = details.value[0];
-                            if (value === "text" || value === "json") {
-                              field.onChange(value);
-                            } else if (value === "json_schema") {
-                              field.onChange({
-                                type: "json_schema",
-                                schema: { type: "object", properties: {} },
-                              });
-                            }
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValueText placeholder="Select response format" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {responseFormatOptions.map((option) => (
-                              <SelectItem key={option.value} item={option}>
-                                <VStack align="start" gap={1}>
-                                  <Text>{option.label}</Text>
-                                  <Text fontSize="xs" color="content.muted">
-                                    {option.description}
-                                  </Text>
-                                </VStack>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </SelectRoot>
-                      )}
-                    />
-                  </Field>
-
-                  {typeof watchedValues.responseFormat === "object" &&
-                    watchedValues.responseFormat?.type === "json_schema" && (
-                      <Field
-                        label="JSON Schema"
-                        helperText="Define the structure for the JSON response"
-                      >
-                        <Textarea
-                          placeholder='{"type": "object", "properties": {...}}'
-                          rows={6}
-                          fontFamily="mono"
-                          fontSize="sm"
-                          // Note: We'd need to implement schema editing here
-                          readOnly
-                          bg="surface.muted"
-                          value="JSON schema editing is not yet implemented"
-                        />
-                      </Field>
-                    )}
-                </Stack>
-              </Accordion.ItemBody>
-            </Accordion.ItemContent>
-          </Accordion.Item>
-
-          <Accordion.Item value="transforms">
-            <Accordion.ItemTrigger>
-              <HStack>
-                <LuTag size={16} />
-                <Text>Response Transforms</Text>
-                <Badge size="sm" colorPalette="neutral">
-                  Optional
-                </Badge>
-              </HStack>
-            </Accordion.ItemTrigger>
-            <Accordion.ItemContent>
-              <Accordion.ItemBody>
-                <VStack align="start" gap={2}>
-                  <Text fontSize="sm" color="content.muted">
-                    Response transforms allow you to post-process the model's
-                    output using regex patterns.
-                  </Text>
-                  <Text fontSize="sm" color="content.muted">
-                    This feature is not yet implemented in the UI. Use JSON
-                    export/import for complex transforms.
-                  </Text>
-                </VStack>
-              </Accordion.ItemBody>
-            </Accordion.ItemContent>
-          </Accordion.Item>
-        </Accordion.Root>
       </Stack>
     </Card.Root>
   );

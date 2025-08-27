@@ -3,19 +3,27 @@ import type {
   MessageBlock,
   PromptTemplate,
   SlotSpec,
+  TaskKind,
 } from "@storyforge/prompt-renderer";
 import { nanoid } from "nanoid";
+import {
+  isValidRecipeId,
+  recipeMetaSchema,
+} from "@/components/features/templates/recipes/registry";
 import type {
   LayoutNodeDraft,
   MessageBlockDraft,
   SlotDraft,
   TemplateDraft,
-} from "../types";
+} from "@/components/features/templates/types";
 
 /**
  * Convert a PromptTemplate from the API into a TemplateDraft for editing
  */
 export function templateToDraft(template: PromptTemplate): TemplateDraft {
+  console.log(
+    `Converting template ${template.id} (${template.name}) to draft format`
+  );
   return {
     id: template.id,
     name: template.name,
@@ -56,13 +64,6 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
         ...(node.omitIfEmpty !== undefined && {
           omitIfEmpty: node.omitIfEmpty,
         }),
-      };
-
-    case "separator":
-      return {
-        id,
-        kind: "separator",
-        ...(node.text && { text: node.text }),
       };
 
     default: {
@@ -106,15 +107,31 @@ function convertSlotsToDraft(
   const slotsDraft: Record<string, SlotDraft> = {};
 
   for (const [name, slot] of Object.entries(slots)) {
-    // For imported templates, we'll treat all slots as custom since we can't
-    // reliably determine which recipe they came from
-    slotsDraft[name] = {
-      recipeId: "custom",
-      params: {}, // Custom slots will need manual configuration
-      name,
-      priority: slot.priority,
-      budget: slot.budget?.maxTokens,
-    };
+    const recipeMeta = recipeMetaSchema.safeParse(slot.meta);
+    if (!recipeMeta.success || !isValidRecipeId(recipeMeta.data.recipe.id)) {
+      console.log(
+        `Slot ${name} has no valid recipe meta, converting to custom format`
+      );
+      slotsDraft[name] = {
+        recipeId: "custom",
+        params: {}, // Custom slots will need manual configuration
+        customSpec: JSON.stringify(slot, null, 2),
+        name,
+        priority: slot.priority,
+        budget: slot.budget?.maxTokens,
+      };
+    } else {
+      console.log(
+        `Converting slot ${name} with recipe ${recipeMeta.data.recipe.id} to draft format`
+      );
+      slotsDraft[name] = {
+        recipeId: recipeMeta.data.recipe.id,
+        params: recipeMeta.data.recipe.params,
+        name,
+        priority: slot.priority,
+        budget: slot.budget?.maxTokens,
+      };
+    }
   }
 
   return slotsDraft;
@@ -123,9 +140,7 @@ function convertSlotsToDraft(
 /**
  * Create a new blank template draft
  */
-export function createBlankTemplate(
-  task: import("@storyforge/prompt-renderer").TaskKind
-): TemplateDraft {
+export function createBlankTemplate(task: TaskKind): TemplateDraft {
   return {
     id: nanoid(12),
     name: "",
@@ -135,71 +150,9 @@ export function createBlankTemplate(
         id: nanoid(8),
         kind: "message",
         role: "system",
-        content: "You are a helpful assistant.",
+        content: "You are a storyteller.",
       },
     ],
     slotsDraft: {},
-  };
-}
-
-/**
- * Create a template draft from a starter recipe
- */
-export function createFromStarter(
-  task: import("@storyforge/prompt-renderer").TaskKind,
-  starterName: string
-): TemplateDraft {
-  const base = createBlankTemplate(task);
-
-  // Add common starter patterns based on task type
-  if (task === "turn_generation") {
-    return {
-      ...base,
-      name: starterName,
-      layoutDraft: [
-        {
-          id: nanoid(8),
-          kind: "message",
-          role: "system",
-          content:
-            "You write vivid, engaging narrative prose for a tabletop RPG session.",
-        },
-        {
-          id: nanoid(8),
-          kind: "slot",
-          name: "context",
-          header: {
-            role: "user",
-            content: "Current scene context:",
-          },
-          omitIfEmpty: true,
-        },
-        {
-          id: nanoid(8),
-          kind: "message",
-          role: "user",
-          content:
-            "Write the next turn in 200-350 words. Focus on advancing the story.",
-        },
-      ],
-      slotsDraft: {
-        context: {
-          recipeId: "timeline_basic",
-          params: {
-            maxTurns: 6,
-            order: "desc",
-            budget: 800,
-          },
-          name: "context",
-          priority: 0,
-          budget: 800,
-        },
-      },
-    };
-  }
-
-  return {
-    ...base,
-    name: starterName,
   };
 }

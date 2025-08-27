@@ -132,12 +132,6 @@ describe("render function", () => {
         content: "You are a helpful assistant.",
       });
 
-      // Should include separator (as user message)
-      expect(messages).toContainEqual({
-        role: "user",
-        content: "---",
-      });
-
       // Should include final user message
       expect(messages[messages.length - 1]).toEqual({
         role: "user",
@@ -149,20 +143,6 @@ describe("render function", () => {
         role: "system",
         content: "Alice: A friendly character",
       });
-
-      // Check order of key messages
-      const sysIdx = messages.findIndex(
-        (m) =>
-          m.role === "system" && m.content === "You are a helpful assistant."
-      );
-      const sepIdx = messages.findIndex(
-        (m) => m.role === "user" && m.content === "---"
-      );
-      const finalIdx = messages.findIndex(
-        (m) => m.role === "user" && m.content === "Continue the story."
-      );
-      expect(sysIdx).toBeLessThan(sepIdx);
-      expect(sepIdx).toBeLessThan(finalIdx);
     });
 
     it("should handle conditions correctly", () => {

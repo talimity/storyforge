@@ -173,7 +173,7 @@ export function TemplateStringEditor({
       }
       invalid={hasErrors}
     >
-      <VStack align="stretch" gap={3}>
+      <VStack align="stretch" gap={3} width="full">
         {/* Main textarea */}
         <Box position="relative">
           <Textarea
@@ -186,6 +186,7 @@ export function TemplateStringEditor({
             rows={rows}
             maxH={`${maxRows * 1.5}rem`}
             resize="vertical"
+            autoresize
             borderColor={hasErrors ? "red.300" : "surface.border"}
             _focus={{
               borderColor: hasErrors ? "red.500" : "accent.500",

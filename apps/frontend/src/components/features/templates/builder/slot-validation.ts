@@ -1,7 +1,10 @@
 import { z } from "zod";
-import type { RecipeParamSpec } from "../recipes/contract";
-import type { LayoutNodeDraft, SlotDraft } from "../types";
-import type { TemplateVariable } from "./template-string-editor";
+import type { TemplateVariable } from "@/components/features/templates/builder/template-string-editor";
+import type { RecipeParamSpec } from "@/components/features/templates/recipes/registry";
+import type {
+  LayoutNodeDraft,
+  SlotDraft,
+} from "@/components/features/templates/types";
 
 /**
  * Validation schema for slot priority
@@ -10,7 +13,7 @@ export const slotPrioritySchema = z
   .number()
   .int()
   .min(0, "Priority must be 0 or greater")
-  .max(10, "Priority must be 10 or less");
+  .max(100, "Priority must be 100 or less");
 
 /**
  * Validation schema for slot budget
@@ -19,7 +22,6 @@ export const slotBudgetSchema = z
   .number()
   .int()
   .min(50, "Budget must be at least 50 tokens")
-  .max(5000, "Budget must not exceed 5000 tokens")
   .optional();
 
 /**

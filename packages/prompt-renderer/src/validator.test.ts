@@ -12,11 +12,11 @@ describe("validateTemplateStructure", () => {
     layout: [
       { kind: "message", role: "system", content: "System message" },
       { kind: "slot", name: "content" },
-      { kind: "separator", text: "---" },
     ],
     slots: {
       content: {
         priority: 0,
+        meta: {},
         plan: [
           { kind: "message", role: "user", content: "User message" },
           {
@@ -60,8 +60,8 @@ describe("validateTemplateStructure", () => {
           { kind: "slot", name: "summary" },
         ],
         slots: {
-          content: { priority: 0, plan: [] },
-          summary: { priority: 1, plan: [] },
+          content: { priority: 0, meta: {}, plan: [] },
+          summary: { priority: 1, meta: {}, plan: [] },
         },
       };
 
@@ -117,6 +117,7 @@ describe("validateTemplateStructure", () => {
         slots: {
           content: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "message",
@@ -145,6 +146,7 @@ describe("validateTemplateStructure", () => {
         slots: {
           content: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",
@@ -177,6 +179,7 @@ describe("validateTemplateStructure", () => {
         slots: {
           content: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "if",

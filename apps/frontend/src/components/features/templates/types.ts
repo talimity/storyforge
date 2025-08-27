@@ -38,16 +38,8 @@ export interface SlotLayoutDraft extends BaseLayoutNodeDraft {
   omitIfEmpty?: boolean;
 }
 
-export interface SeparatorLayoutDraft extends BaseLayoutNodeDraft {
-  kind: "separator";
-  text?: string;
-}
-
 // Union type for layout nodes
-export type LayoutNodeDraft =
-  | MessageLayoutDraft
-  | SlotLayoutDraft
-  | SeparatorLayoutDraft;
+export type LayoutNodeDraft = MessageLayoutDraft | SlotLayoutDraft;
 
 // Message block for headers/footers
 export interface MessageBlockDraft {
@@ -64,6 +56,7 @@ export interface SlotDraft {
   name: string;
   priority: number;
   budget?: number; // Simplified to just maxTokens for UI
+  customSpec?: string; // For custom slots, this is a JSON string of its SlotSpec
 }
 
 // Parameter specification for recipe forms

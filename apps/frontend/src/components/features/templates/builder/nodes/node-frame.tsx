@@ -1,12 +1,11 @@
 import { Box, Card, HStack, Icon, VStack } from "@chakra-ui/react";
 import { forwardRef } from "react";
 import { LuGripVertical } from "react-icons/lu";
-import type { LayoutNodeDraft } from "../../types";
-import { getNodeColor } from "../builder-utils";
+import { getNodeColor } from "@/components/features/templates/builder/index";
+import type { LayoutNodeDraft } from "@/components/features/templates/types";
 
 interface NodeFrameProps {
   node: LayoutNodeDraft;
-  isSelected?: boolean;
   isDragging?: boolean;
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
@@ -14,18 +13,8 @@ interface NodeFrameProps {
 }
 
 export const NodeFrame = forwardRef<HTMLDivElement, NodeFrameProps>(
-  (
-    {
-      node,
-      isSelected = false,
-      isDragging = false,
-      dragHandleProps,
-      style,
-      children,
-    },
-    ref
-  ) => {
-    const { borderColor, bgColor } = getNodeColor(node);
+  ({ node, isDragging = false, dragHandleProps, style, children }, ref) => {
+    const { borderColor } = getNodeColor(node);
 
     return (
       <Card.Root
@@ -34,7 +23,7 @@ export const NodeFrame = forwardRef<HTMLDivElement, NodeFrameProps>(
         layerStyle="surface"
         borderLeft="4px solid"
         borderLeftColor={borderColor}
-        bg={isSelected ? bgColor : "surface"}
+        bg="surface"
         opacity={isDragging ? 0.5 : 1}
         transition="all 0.2s"
         overflow="hidden"

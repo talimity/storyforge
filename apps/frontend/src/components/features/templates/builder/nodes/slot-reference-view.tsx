@@ -8,28 +8,31 @@ import {
 } from "@chakra-ui/react";
 import { forwardRef } from "react";
 import { LuPencil, LuTrash2 } from "react-icons/lu";
-import type { SeparatorLayoutDraft } from "../../../types";
-import { getNodeColor, getNodeIcon } from "../../builder-utils";
-import { NodeFrame } from "../node-frame";
+import { getNodeIcon } from "@/components/features/templates/builder/index";
+import { NodeFrame } from "@/components/features/templates/builder/nodes/node-frame";
+import type {
+  SlotDraft,
+  SlotLayoutDraft,
+} from "@/components/features/templates/types";
 
-interface SeparatorNodeViewProps {
-  node: SeparatorLayoutDraft;
-  isSelected?: boolean;
+interface SlotReferenceViewProps {
+  node: SlotLayoutDraft;
+  slot?: SlotDraft;
   isDragging?: boolean;
-  onEdit?: (node: SeparatorLayoutDraft) => void;
+  onEdit?: (node: SlotLayoutDraft) => void;
   onDelete?: (nodeId: string) => void;
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
 }
 
-export const SeparatorNodeView = forwardRef<
+export const SlotReferenceView = forwardRef<
   HTMLDivElement,
-  SeparatorNodeViewProps
+  SlotReferenceViewProps
 >(
   (
     {
       node,
-      isSelected = false,
+      slot,
       isDragging = false,
       onEdit,
       onDelete,
@@ -38,31 +41,29 @@ export const SeparatorNodeView = forwardRef<
     },
     ref
   ) => {
-    const { borderColor } = getNodeColor(node);
     const NodeIcon = getNodeIcon(node);
-    const hasContent = !!node.text;
+    if (!slot) {
+      return <Text color="red.500">Slot not found for ID: {node.id}</Text>;
+    }
 
     return (
       <NodeFrame
         ref={ref}
         node={node}
-        isSelected={isSelected}
         isDragging={isDragging}
         dragHandleProps={dragHandleProps}
         style={style}
       >
         <VStack align="start" gap={2}>
           <HStack gap={2} align="center" w="full">
-            <Icon as={NodeIcon} color={borderColor} />
+            <Icon as={NodeIcon} />
 
             {/* Node Type Badge */}
-            <Badge size="sm" colorPalette="neutral">
-              Separator
-            </Badge>
+            <Badge size="sm">Content Slot</Badge>
 
             {/* Node Name/Title */}
             <Text fontSize="sm" fontWeight="medium" flex={1}>
-              Separator
+              {node.name}
             </Text>
 
             {/* Actions */}
@@ -74,7 +75,7 @@ export const SeparatorNodeView = forwardRef<
                   e.stopPropagation();
                   onEdit?.(node);
                 }}
-                aria-label="Edit content"
+                aria-label="Edit slot reference"
               >
                 <LuPencil />
               </IconButton>
@@ -95,22 +96,22 @@ export const SeparatorNodeView = forwardRef<
             </HStack>
           </HStack>
 
-          {/* Content Display */}
-          {hasContent && (
-            <Text
-              fontSize="sm"
-              color="content.muted"
-              w="full"
-              lineClamp={2}
-              wordBreak="break-word"
-            >
-              {node.text}
-            </Text>
-          )}
+          {/* Slot Info */}
+          <Text fontSize="xs" color="content.muted">
+            Priority: {slot.priority} • Type: {slot.recipeId}
+            {slot.budget && ` • Budget: ${slot.budget} tokens`}
+          </Text>
+
+          {/* Reference-specific info */}
+          <HStack gap={2} fontSize="xs" color="content.subtle">
+            {node.header && <Text>Has header</Text>}
+            {node.footer && <Text>Has footer</Text>}
+            {node.omitIfEmpty && <Text>Hidden when empty</Text>}
+          </HStack>
         </VStack>
       </NodeFrame>
     );
   }
 );
 
-SeparatorNodeView.displayName = "SeparatorNodeView";
+SlotReferenceView.displayName = "SlotReferenceView";

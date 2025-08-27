@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useMemo, useState } from "react";
-import type { LayoutNodeDraft } from "../types";
+import type { LayoutNodeDraft } from "@/components/features/templates/types";
 
 interface UseLayoutDndProps {
   layout: LayoutNodeDraft[];

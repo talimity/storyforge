@@ -8,13 +8,15 @@ import {
 } from "@chakra-ui/react";
 import { forwardRef } from "react";
 import { LuPencil, LuTrash2 } from "react-icons/lu";
-import type { MessageLayoutDraft } from "../../../types";
-import { getNodeColor, getNodeIcon, getRoleLabel } from "../../builder-utils";
-import { NodeFrame } from "../node-frame";
+import {
+  getNodeIcon,
+  getRoleLabel,
+} from "@/components/features/templates/builder/index";
+import { NodeFrame } from "@/components/features/templates/builder/nodes/node-frame";
+import type { MessageLayoutDraft } from "@/components/features/templates/types";
 
 interface MessageNodeViewProps {
   node: MessageLayoutDraft;
-  isSelected?: boolean;
   isDragging?: boolean;
   onEdit?: (node: MessageLayoutDraft) => void;
   onDelete?: (nodeId: string) => void;
@@ -24,18 +26,9 @@ interface MessageNodeViewProps {
 
 export const MessageNodeView = forwardRef<HTMLDivElement, MessageNodeViewProps>(
   (
-    {
-      node,
-      isSelected = false,
-      isDragging = false,
-      onEdit,
-      onDelete,
-      dragHandleProps,
-      style,
-    },
+    { node, isDragging = false, onEdit, onDelete, dragHandleProps, style },
     ref
   ) => {
-    const { borderColor } = getNodeColor(node);
     const NodeIcon = getNodeIcon(node);
     const hasContent = node.content || node.from;
 
@@ -43,19 +36,16 @@ export const MessageNodeView = forwardRef<HTMLDivElement, MessageNodeViewProps>(
       <NodeFrame
         ref={ref}
         node={node}
-        isSelected={isSelected}
         isDragging={isDragging}
         dragHandleProps={dragHandleProps}
         style={style}
       >
         <VStack align="start" gap={2}>
           <HStack gap={2} align="center" w="full">
-            <Icon as={NodeIcon} color={borderColor} />
+            <Icon as={NodeIcon} />
 
             {/* Node Type Badge */}
-            <Badge size="sm" colorPalette="neutral">
-              {getRoleLabel(node.role)}
-            </Badge>
+            <Badge size="sm">{getRoleLabel(node.role)}</Badge>
 
             {/* Node Name/Title */}
             <Text fontSize="sm" fontWeight="medium" flex={1}>
@@ -100,7 +90,8 @@ export const MessageNodeView = forwardRef<HTMLDivElement, MessageNodeViewProps>(
               fontSize="sm"
               color="content.muted"
               w="full"
-              lineClamp={2}
+              lineClamp={3}
+              whiteSpace="pre-wrap"
               wordBreak="break-word"
             >
               {node.content || `Data from: ${node.from?.source}`}
@@ -110,7 +101,7 @@ export const MessageNodeView = forwardRef<HTMLDivElement, MessageNodeViewProps>(
           {/* Message-specific info */}
           {node.prefix && (
             <Badge size="xs" colorPalette="orange">
-              Prefix
+              Assistant Prefill
             </Badge>
           )}
         </VStack>

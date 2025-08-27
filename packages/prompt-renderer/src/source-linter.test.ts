@@ -21,6 +21,7 @@ describe("source-linter", () => {
     slots: {
       content: {
         priority: 0,
+        meta: {},
         when: { type: "exists", ref: { source: "characters" } },
         plan: [
           {
@@ -73,7 +74,6 @@ describe("source-linter", () => {
         version: 1,
         layout: [
           { kind: "message", role: "system", content: "Static message" },
-          { kind: "separator", text: "---" },
         ],
         slots: {},
       };
@@ -92,6 +92,7 @@ describe("source-linter", () => {
         slots: {
           slot1: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",
@@ -119,6 +120,7 @@ describe("source-linter", () => {
         slots: {
           conditional: {
             priority: 0,
+            meta: {},
             when: { type: "exists", ref: { source: "specialData" } },
             plan: [],
           },
@@ -139,6 +141,7 @@ describe("source-linter", () => {
         slots: {
           nested: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "if",
@@ -211,6 +214,7 @@ describe("source-linter", () => {
         slots: {
           content: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",
@@ -263,6 +267,7 @@ describe("source-linter", () => {
         slots: {
           content: {
             priority: 0,
+            meta: {},
             plan: [
               {
                 kind: "forEach",

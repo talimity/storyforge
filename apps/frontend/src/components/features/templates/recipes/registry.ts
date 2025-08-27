@@ -1,9 +1,54 @@
-import type { TaskKind } from "@storyforge/prompt-renderer";
-import type { SlotRecipeId } from "../types";
-import type { RecipeDefinition } from "./contract";
-import { charactersRecipe } from "./turngen/characters-recipe";
-import { timelineRecipe } from "./turngen/timeline-recipe";
+import type { SlotSpec, TaskKind } from "@storyforge/prompt-renderer";
+import { z } from "zod";
+import { charactersRecipe } from "@/components/features/templates/recipes/turngen/characters-recipe";
+import { timelineRecipe } from "@/components/features/templates/recipes/turngen/timeline-recipe";
+import type { SlotRecipeId } from "@/components/features/templates/types";
 
+// Recipe parameter specification for form generation
+export interface RecipeParamSpec {
+  key: string;
+  label: string;
+  type: "number" | "select" | "toggle" | "template_string";
+  defaultValue?: unknown;
+  help?: string;
+  min?: number;
+  max?: number;
+  options?: Array<{ label: string; value: string | number | boolean }>;
+}
+
+/** Recipe definition interface */
+export interface RecipeDefinition {
+  id: SlotRecipeId;
+  name: string;
+  task: TaskKind;
+  description?: string;
+  parameters: RecipeParamSpec[];
+
+  /**
+   * Transform the user's parameter values into a complete SlotSpec
+   * that can be used by the prompt renderer engine
+   */
+  toSlotSpec(params: Record<string, unknown>): SlotSpec;
+
+  /**
+   * Optional: Available variables that can be used in template_string parameters
+   * These will be shown as hints in the UI
+   */
+  availableVariables?: Array<{
+    name: string;
+    description: string;
+    example?: string;
+  }>;
+}
+
+export const recipeMetaSchema = z
+  .object({
+    recipe: z.object({
+      id: z.string(),
+      params: z.record(z.string(), z.unknown()),
+    }),
+  })
+  .loose();
 // Central registry of all available recipes
 export const TURN_GEN_RECIPES = {
   timeline_basic: timelineRecipe,

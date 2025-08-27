@@ -21,7 +21,7 @@ import {
 } from "react-icons/lu";
 import { TemplateDeleteDialog } from "@/components/dialogs/template-delete";
 import { TemplateDuplicateDialog } from "@/components/dialogs/template-duplicate";
-import { useTemplateActions } from "./use-template-actions";
+import { useTemplateActions } from "@/components/features/templates/use-template-actions";
 
 interface TemplateCardProps {
   template: {
