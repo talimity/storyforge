@@ -6,8 +6,8 @@ import { config } from "@storyforge/config";
 import Fastify from "fastify";
 import { FastifySSEPlugin } from "fastify-sse-v2";
 import { registerAPI } from "@/api/register";
-import { appContextPlugin } from "@/app-context-plugin";
 import { logger } from "@/logging";
+import { resources } from "@/resources";
 
 const fastify = Fastify({
   bodyLimit: 1024 * 1024 * 15, // 15MB
@@ -37,7 +37,7 @@ fastify.register(websocket);
 fastify.register(FastifySSEPlugin);
 
 // Add context to all requests
-fastify.register(appContextPlugin);
+fastify.register(resources);
 
 // Entry point for all API/RPC routes
 registerAPI(fastify);

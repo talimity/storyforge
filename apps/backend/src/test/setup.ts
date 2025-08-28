@@ -13,14 +13,11 @@ export async function createTestDatabase(): Promise<TestDatabase> {
   const tempDir = mkdtempSync(path.join(tmpdir(), "storyforge-test-"));
   const dbPath = path.join(tempDir, "test.db");
 
-  const sqlite = createClient({
-    url: `file:${dbPath}`,
-    concurrency: 1,
-  });
+  const sqlite = createClient({ url: `file:${dbPath}`, concurrency: 1 });
 
   await sqlite.execute(`PRAGMA foreign_keys = ON;`);
   await sqlite.execute(`PRAGMA busy_timeout = 500;`);
-  await sqlite.execute(`PRAGMA journal_mode = WAL;`); // WAL is better for file-based
+  await sqlite.execute(`PRAGMA journal_mode = WAL;`);
 
   const db = drizzle(sqlite, { schema, relations });
 
@@ -56,10 +53,19 @@ export function cleanupTestDatabase(db: TestDatabase) {
  */
 export async function createFreshTestCaller(db?: TestDatabase) {
   const { appRouter } = await import("@/api/app-router");
-  const { createTestAppContext } = await import("@/api/app-context");
 
   const testDb = db || (await createTestDatabase());
-  const testContext = await createTestAppContext(testDb);
+  const mockLogger = {
+    debug: () => {},
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+    fatal: () => {},
+  } as any;
+  const testContext = {
+    db: testDb,
+    logger: { child: () => mockLogger, ...mockLogger },
+  };
   return {
     caller: appRouter.createCaller(testContext),
     db: testContext.db,
@@ -74,14 +80,14 @@ export async function createTestFastifyServer(db?: TestDatabase) {
   const Fastify = (await import("fastify")).default;
   const sensible = (await import("@fastify/sensible")).default;
   const multipart = (await import("@fastify/multipart")).default;
-  const { testAppContextPlugin } = await import("@/app-context-plugin");
+  const { resources } = await import("@/resources");
 
   const testDb = db || (await createTestDatabase());
   const fastify = Fastify({ logger: false });
 
   await fastify.register(sensible);
   await fastify.register(multipart);
-  await fastify.register(testAppContextPlugin, { db: testDb });
+  await fastify.register(resources, { db: testDb });
 
   return fastify;
 }

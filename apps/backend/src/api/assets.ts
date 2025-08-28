@@ -5,7 +5,7 @@ import { getCharaAvatarCrop } from "@/services/character/utils/face-detection";
 export function registerAssetsRoutes(fastify: FastifyInstance) {
   fastify.get("/assets/characters/:id/card", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const { db } = request.appContext;
+    const { db } = request.server;
 
     try {
       const data = await getCharacterPortrait(db, id);
@@ -26,7 +26,7 @@ export function registerAssetsRoutes(fastify: FastifyInstance) {
 
   fastify.get("/assets/characters/:id/avatar", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const { db } = request.appContext;
+    const { db } = request.server;
 
     try {
       const data = await getCharacterPortrait(db, id);

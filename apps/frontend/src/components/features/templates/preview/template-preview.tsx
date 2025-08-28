@@ -112,7 +112,7 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
             <li>Add `templates.preview` procedure, accepting scenario ID</li>
             <li>Add template dry run service</li>
             <li>Dry run the template with the scenario</li>
-            <li>Display the ChatCompletionsMessage array here</li>
+            <li>Display the ChatCompletionMessage array here</li>
           </ul>
         </Card.Body>
       </Card.Root>

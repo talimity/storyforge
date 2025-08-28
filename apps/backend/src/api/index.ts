@@ -1,14 +1,14 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import type { OpenApiMeta } from "trpc-to-openapi";
-import type { AppContext } from "@/api/app-context";
 import { engineErrorToTRPC } from "@/api/engine-error-to-trpc";
 import { serviceErrorToTRPC } from "@/api/service-error-to-trpc";
+import type { TRPCContext } from "@/api/trpc-context";
 import { EngineError } from "@/engine/engine-error";
 import { ServiceError } from "@/service-error";
 
 const t = initTRPC
-  .context<AppContext>()
+  .context<TRPCContext>()
   .meta<OpenApiMeta>()
   .create({
     transformer: superjson,

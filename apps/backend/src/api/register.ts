@@ -1,17 +1,17 @@
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import type { FastifyInstance } from "fastify";
 import { createOpenApiHttpHandler } from "trpc-to-openapi";
-import { createAppContext } from "@/api/app-context";
 import { appRouter } from "@/api/app-router";
 import { registerAssetsRoutes } from "@/api/assets";
 import { openApiDocument } from "@/api/openapi";
+import { createContext } from "./trpc-context";
 
 /**
  * Register all tRPC and REST (via trpc-to-openapi) routes given a Fastify
  * instance.
  */
 export function registerAPI(fastify: FastifyInstance) {
-  // Register non-tRPC routes for images, and SSE
+  // Register non-tRPC routes for serving assets
   registerAssetsRoutes(fastify);
 
   // Register tRPC routers
@@ -20,7 +20,7 @@ export function registerAPI(fastify: FastifyInstance) {
     useWSS: true,
     trpcOptions: {
       router: appRouter,
-      createContext: createAppContext,
+      createContext,
       onError({ error }: { error: Error }) {
         fastify.log.error({ error }, "tRPC error");
       },
@@ -30,7 +30,7 @@ export function registerAPI(fastify: FastifyInstance) {
   // Set up trpc-to-openapi for RESTful API endpoints
   const openApiHttpHandler = createOpenApiHttpHandler({
     router: appRouter,
-    createContext: createAppContext,
+    createContext,
     // biome-ignore lint/suspicious/noExplicitAny: trpc-to-openapi expects node:http types and does not like fastify
   } as any);
   fastify.all("/api/*", async (request, reply) => {
