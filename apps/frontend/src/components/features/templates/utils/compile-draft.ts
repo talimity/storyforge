@@ -22,6 +22,7 @@ export function compileDraft(draft: TemplateDraft): PromptTemplate {
     id: draft.id,
     task: draft.task,
     name: draft.name,
+    description: draft.description,
     version: PROMPT_TEMPLATE_SPEC_VERSION,
     layout: compileLayout(draft.layoutDraft),
     slots: compileSlots(draft.slotsDraft),

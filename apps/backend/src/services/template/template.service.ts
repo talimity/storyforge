@@ -28,11 +28,10 @@ export class TemplateService {
       id: "temp-id-for-validation",
       task: data.task,
       name: data.name,
+      description: data.description,
       version: 1,
       layout: data.layout,
       slots: data.slots,
-      responseFormat: data.responseFormat,
-      responseTransforms: data.responseTransforms,
     };
 
     try {
@@ -46,15 +45,12 @@ export class TemplateService {
     const operation = async (tx: SqliteTransaction) => {
       // Convert from prompt-renderer types to database JSON types
       const dbData = {
-        name: data.name,
         task: data.task,
+        name: data.name,
+        description: data.description,
         version: 1,
         layout: data.layout,
         slots: data.slots,
-        responseFormat: data.responseFormat ? data.responseFormat : null,
-        responseTransforms: data.responseTransforms
-          ? data.responseTransforms
-          : null,
       };
 
       const [dbTemplate] = await tx
@@ -96,12 +92,10 @@ export class TemplateService {
         id: existingAsSpec.id,
         task: data.task ?? existingAsSpec.task,
         name: data.name ?? existingAsSpec.name,
+        description: data.description ?? existingAsSpec.description,
         version: existingAsSpec.version,
         layout: data.layout ?? existingAsSpec.layout,
         slots: data.slots ?? existingAsSpec.slots,
-        responseFormat: data.responseFormat ?? existingAsSpec.responseFormat,
-        responseTransforms:
-          data.responseTransforms ?? existingAsSpec.responseTransforms,
       };
 
       try {
@@ -117,18 +111,12 @@ export class TemplateService {
         version: existingAsSpec.version,
       };
 
-      if (data.name !== undefined) updateData.name = data.name;
       if (data.task !== undefined) updateData.task = data.task;
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.description !== undefined)
+        updateData.description = data.description;
       if (data.layout !== undefined) updateData.layout = data.layout;
       if (data.slots !== undefined) updateData.slots = data.slots;
-      if (data.responseFormat !== undefined)
-        updateData.responseFormat = data.responseFormat
-          ? data.responseFormat
-          : null;
-      if (data.responseTransforms !== undefined)
-        updateData.responseTransforms = data.responseTransforms
-          ? data.responseTransforms
-          : null;
 
       const [dbTemplate] = await tx
         .update(schema.promptTemplates)
@@ -190,12 +178,11 @@ export class TemplateService {
         .insert(schema.promptTemplates)
         .values({
           name: newName,
+          description: existing.description,
           task: existing.task,
           version: existing.version,
           layout: existing.layout,
           slots: existing.slots,
-          responseFormat: existing.responseFormat,
-          responseTransforms: existing.responseTransforms,
         })
         .returning()
         .all();

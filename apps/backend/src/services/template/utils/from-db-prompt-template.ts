@@ -11,11 +11,10 @@ export function fromDbPromptTemplate(template: DbTemplate): SpecPromptTemplate {
     id: template.id,
     task: template.task,
     name: template.name,
+    description: template.description ?? undefined,
     version: template.version,
     layout: template.layout,
     slots: template.slots,
-    responseFormat: template.responseFormat,
-    responseTransforms: template.responseTransforms,
   };
 
   try {

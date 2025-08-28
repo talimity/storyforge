@@ -52,10 +52,6 @@ describe("compileTemplate", () => {
         ],
       },
     },
-    responseFormat: "text",
-    responseTransforms: [
-      { type: "regexReplace", pattern: "old", replace: "new", flags: "g" },
-    ],
   };
 
   describe("basic compilation", () => {
@@ -66,10 +62,6 @@ describe("compileTemplate", () => {
       expect(compiled.task).toBe("turn_generation");
       expect(compiled.name).toBe("Test Template");
       expect(compiled.version).toBe(1);
-      expect(compiled.responseFormat).toBe("text");
-      expect(compiled.responseTransforms).toEqual([
-        { type: "regexReplace", pattern: "old", replace: "new", flags: "g" },
-      ]);
     });
 
     it("should parse JSON input", () => {
@@ -381,8 +373,6 @@ describe("compileTemplate", () => {
       };
 
       const compiled = compileTemplate(minimalTemplate);
-      expect(compiled.responseFormat).toBeUndefined();
-      expect(compiled.responseTransforms).toBeUndefined();
       expect(Object.keys(compiled.slots)).toHaveLength(0);
     });
   });

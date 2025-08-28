@@ -11,6 +11,7 @@ export type SlotRecipeId = "timeline_basic" | "characters_basic";
 export interface TemplateDraft {
   id: string;
   name: string;
+  description?: string;
   task: TaskKind;
   layoutDraft: LayoutNodeDraft[];
   slotsDraft: Record<string, SlotDraft>;

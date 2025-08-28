@@ -172,6 +172,10 @@ export interface ProviderAdapter {
 }
 ```
 
+### 2.6 Prompt Templates
+
+The prompt templating and rendering system is handled by a separate package (`prompt-renderer`) and is not part of the provider architecture. Given a workflow task context (inputs) and a template it returns `ChatCompletionsMessage[]` that the provider adapter can send to the API.
+
 **Notes**
 
 * `completeStream` implementations should accumulate chunks internally as they yield them, so that they can construct a `ChatCompletionsResponse` and return that.
@@ -223,13 +227,7 @@ export interface ProviderAdapter {
     * timestamps
 
 * `prompt_templates`
-
-    * `id TEXT PRIMARY KEY`
-    * `name TEXT NOT NULL`
-    * `template TEXT NOT NULL`       // handlebars or some simple DSL
-    * `inputs_schema TEXT`           // JSON schema for inputs... maybe used for *additional* inputs, on top of ones specified by the LLM task type
-    * `metadata TEXT`                // { author, description, tags, version }
-    * timestamps
+    * See [prompt-renderer](./prompt-template-engine-specification.md) for details
 
 **Notes**
 
@@ -242,7 +240,9 @@ export interface ProviderAdapter {
 
 ### 4.1 Workflow Model (multi‑step, model‑per‑step)
 
-A *Workflow* is an ordered list of Steps.
+A *Workflow* is an ordered list of Steps. Workflows are always bound to a specific LLM Task (eg., Chapter Summarization, Writing Assistant, Turn Generation).
+
+The *Task* defines the *base schema* of inputs (task context) that all workflows for that task will receive. Each Step can consume any subset of those inputs, plus outputs from previous steps in the same workflow.
 
 ```ts
 export type Step = {
@@ -268,17 +268,17 @@ export type Step = {
 };
 ```
 
-* **Context vs Prompt**: *Context* is *loaded* by the feature executing an LLM task (ie., a chapter's turn history for "summarization" task, textarea input for "writing assistant" task, scenario timeline for "turn generation" task). Then the prompt is *rendered*, using inputs + `PromptTemplate` (text instructions + slots/macros for replacements), and with transformations. The feature loads all of the `inputs` that the pure renderer uses to fill the template.
-    - Different renderer per feature type -- summarization renderer probably looks quite different from the writing assistant renderer.
+* **Context vs Prompt**:
+    * *TaskCtx* is *loaded* by the feature executing an LLM task (ie., a chapter's turn history for "summarization" task, textarea input for "writing assistant" task, scenario timeline for "turn generation" task).
+    * `makeRegistry<K extends TaskKind>(handlers: Record<string, SourceHandler<K>>): SourceRegistry<K>` in `prompt-renderer` package allows registering custom context loaders per task kind.
 * How is lorebook/world info handled?
     * Just another input, presumably; feature provides the renderer with a loader function, which given an input (such as the text of recent turns) does regex matching or vector similarity to return lore entries that should be injected. Renderer doesn't care and just calls the loader with the turns it has decided to insert.
 
 ### 4.2 Prompt Templates
 
-* Stored separately from workflows, can be used across them, reusable across workflows.
-* Renderer: Handlebars or basic tag syntax with functions (e.g., `{{trim chapterText 12000}}`). Needs to be able to handle conditionals.
+* Handled by `prompt-renderer` package as a separate concern. Accepts a `PromptTemplate` and a task context object and returns `ChatCompletionsMessage[]`, but has no knowledge of workflows, models, capabilities, or providers.
 
-### 4.3 Example Built‑In Workflows
+### 4.3 Example Workflows
 
 * **Chapter Summarization**: 1 step → `modelProfileId = default_summarizer` → `promptTemplate = summarize_v1`.
 * **Writing Assistant** (inline): 1 step → `default_assistant_model` → `promptTemplate = assistant_actions_v1`.
@@ -321,7 +321,7 @@ export type Step = {
        a. Capabilities checkbox field
        b. Generation parameter mapping
        c. Quirks checkbox field
-    6. Test Connection (ping / small completion)
+    5. Test Connection (ping / small completion)
 
 * **Instance Detail**: edit API key, headers; capabilities matrix; params; delete;
 

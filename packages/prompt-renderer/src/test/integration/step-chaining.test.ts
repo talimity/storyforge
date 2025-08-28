@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "../../budget-manager";
 import { compileTemplate } from "../../compiler";
 import { render } from "../../renderer";
-import { applyTransforms } from "../../response-transformer";
 import { parseTemplate } from "../../schemas";
 import {
   standardTurnGenCtx,
@@ -43,34 +42,18 @@ describe("Step Chaining via stepOutput", () => {
       "risks": ["Moving too fast", "Breaking character consistency"]
     }`;
 
-    // Step 3: Apply response transforms
-    const transforms = plannerTemplate.responseTransforms || [];
-    const extractedPlan = applyTransforms(mockPlannerResponse, transforms);
-
-    // Verify transform extracted the JSON properly
-    expect(extractedPlan.trim()).toMatch(/^\{.*\}$/s);
-    expect(JSON.parse(extractedPlan)).toEqual({
-      goals: ["Develop character tension", "Advance the mystery"],
-      beats: [
-        "Alice discovers a clue",
-        "Bob expresses doubt",
-        "Unexpected revelation",
-      ],
-      risks: ["Moving too fast", "Breaking character consistency"],
-    });
-
-    // Step 4: Inject plan into step inputs for writer
+    // Step 3: Inject plan into step inputs for writer
     const contextWithPlan = {
       ...standardTurnGenCtx,
       stepInputs: {
         ...standardTurnGenCtx.stepInputs,
         planner: {
-          plan: extractedPlan,
+          plan: JSON.parse(mockPlannerResponse),
         },
       },
     };
 
-    // Step 5: Render writer template with injected plan
+    // Step 4: Render writer template with injected plan
     const writerTemplate = parseTemplate(turnWriterFromPlanV1Json);
     const compiledWriter = compileTemplate(writerTemplate);
 

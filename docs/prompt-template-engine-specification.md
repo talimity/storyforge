@@ -14,7 +14,8 @@
     * **Phase A – Fill:** Consume a global token budget by filling slots in **priority** order (lowest numeric value first). Each slot has a plan that can iterate arrays, apply conditions, and emit messages.
     * **Phase B – Assemble:** Emit the final `ChatCompletionMessage[]` by walking the **layout** and inserting filled slot contents (with optional headers/footers).
 
-* Templates may declare **response transforms** (e.g., regex extract/replace) to post-process the assistant’s text before capture.
+* ~~Templates may declare **response transforms** (e.g., regex extract/replace) to post-process the assistant’s text before capture.~~
+    * Response handling is no longer part of the prompt template engine; it is now the responsibility of the workflow runner.
 
 * Micro-templating (e.g., Handlebars) is allowed **only inside leaf strings** (e.g., message `content`). The **structure** (ordering, iteration, budgeting) is declarative in the DSL.
 
@@ -51,7 +52,7 @@
   };
   ```
 
-* **Source Registry (per TaskKind):** A pure, synchronous resolver used by the renderer to fulfill **DataRefs**. Each task defines which sources exist and how to resolve them from that task’s context.
+* **Source Registry (per TaskKind):** A resolver used by the renderer to fulfill **DataRefs**. Each task defines which sources exist and how to resolve them from that task’s context.
 
 * **Message:** `{ role: 'system'|'user'|'assistant', content: string, prefix?: boolean }`. If the final assistant message sets `prefix: true`, the caller must route to a model that supports assistant prefixing (enforced upstream).
 
@@ -86,11 +87,10 @@ export type TaskBoundTemplate<K extends TaskKind> = PromptTemplate & { task: K }
 export type PromptTemplate = {
   id: string;
   name: string;
-  version: number;
+  description?: string; // optional, for authoring UIs
+  version: number; // spec version (integer, starts at 1)
   layout: LayoutNode[];                  // display order
   slots: Record<string, SlotSpec>;       // fill order & logic
-  responseFormat?: 'text' | { type: 'json_schema'; schema: object } | 'json';
-  responseTransforms?: ResponseTransform[]; // optional output post-processing
 };
 
 export type LayoutNode =
@@ -143,12 +143,6 @@ export type ConditionRef =
   | { type: 'exists'; ref: DataRef }
   | { type: 'nonEmpty'; ref: DataRef }
   | { type: 'eq'|'neq'|'gt'|'lt'; ref: DataRef; value: any };
-
-/** ---------- Output Post-Processing ---------- */
-
-export type ResponseTransform =
-  | { type: 'regexExtract'; pattern: string; flags?: string; group?: number } // select one capture group (default 0)
-  | { type: 'regexReplace'; pattern: string; flags?: string; replace: string };
 
 /** ---------- Render Inputs & Outputs ---------- */
 
@@ -277,18 +271,7 @@ export function render<K extends TaskKind>(
 
 ---
 
-## 8) Response Transforms (optional)
-
-Transforms apply **after** the model’s assistant text is obtained and **before** the step captures it.
-
-* `regexExtract`: Applies the regex to the text; if a match is found, replace the entire text with `match[group]` (default group 0). If no match, leave unchanged.
-* `regexReplace`: Standard global replacement.
-
-Transforms run **in order** and MUST NOT throw; on failure, leave text unchanged.
-
----
-
-## 9) Examples
+## 8) Examples
 
 Note: examples are illustrative. Source names may not match the final implementation.
 
@@ -373,8 +356,7 @@ Note: examples are illustrative. Source names may not match the final implementa
         }
       ]
     }
-  },
-  "responseFormat": "text"
+  }
 }
 ```
 
@@ -429,18 +411,7 @@ Demonstrates a two-step workflow. The renderer does not handle step chaining dir
         }
       ]
     }
-  },
-  "responseFormat": { "type": "json_schema",
-    "schema": { "type": "object",
-      "properties": {
-        "goals": { "type": "array", "items": { "type": "string" } },
-        "beats":  { "type": "array", "items": { "type": "string" } },
-        "risks":  { "type": "array", "items": { "type": "string" } }
-      },
-      "required": ["goals","beats"] } },
-  "responseTransforms": [
-    { "type": "regexExtract", "pattern": "\\{[\\s\\S]*\\}$", "flags": "m", "group": 0 }
-  ]
+  }
 }
 ```
 
@@ -484,8 +455,7 @@ Demonstrates a two-step workflow. The renderer does not handle step chaining dir
           "budget": { "maxTokens": 600 } }
       ]
     }
-  },
-  "responseFormat": "text"
+  }
 }
 ```
 
@@ -496,7 +466,6 @@ Demonstrates a two-step workflow. The renderer does not handle step chaining dir
 * **Template authoring errors** (e.g., layout references unknown slot) SHOULD throw at render time.
 * **Missing data** (e.g., a `DataRef` resolves to `undefined`) results in **no emission** for that node; the renderer MUST NOT throw.
 * **Budget exhaustion**: loops stop early; single messages that do not fit are omitted.
-* **Transforms** never throw; if a regex fails to match, the text remains unchanged.
 
 ---
 
@@ -504,5 +473,3 @@ Demonstrates a two-step workflow. The renderer does not handle step chaining dir
 
 * Each template has a monotonically increasing `version` (integer).
 * This DSL document is **v1**. Backwards-incompatible DSL changes MUST bump this version.
-
----

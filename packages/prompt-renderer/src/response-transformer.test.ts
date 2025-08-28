@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { applyTransforms } from "./response-transformer";
-import type { ResponseTransform } from "./types";
+import {
+  applyTransforms,
+  type ResponseTransform,
+} from "./response-transformer";
 
 describe("Response Transformer", () => {
   describe("applyTransforms", () => {

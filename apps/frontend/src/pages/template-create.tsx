@@ -47,11 +47,6 @@ export function TemplateCreatePage() {
       name: string;
       task: TaskKind;
       description?: string;
-      responseFormat?:
-        | "text"
-        | "json"
-        | { type: "json_schema"; schema: { [x: string]: unknown } }
-        | undefined;
     };
     layoutDraft: LayoutNodeDraft[];
     slotsDraft: Record<string, SlotDraft>;
@@ -69,12 +64,7 @@ export function TemplateCreatePage() {
 
       const compiledTemplate = compileDraft(draft);
 
-      createMutation.mutate({
-        ...compiledTemplate,
-        task: taskType,
-        responseFormat: data.metadata.responseFormat,
-        responseTransforms: [],
-      });
+      createMutation.mutate({ ...compiledTemplate, task: taskType });
     } catch (error) {
       showErrorToast({
         title: "Failed to create template",

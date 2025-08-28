@@ -15,11 +15,7 @@ exports[`Step Chaining via stepOutput > should chain planner output to writer in
     "role": "user",
   },
   {
-    "content": "{
-      "goals": ["Develop character tension", "Advance the mystery"],
-      "beats": ["Alice discovers a clue", "Bob expresses doubt", "Unexpected revelation"],
-      "risks": ["Moving too fast", "Breaking character consistency"]
-    }",
+    "content": "{"goals":["Develop character tension","Advance the mystery"],"beats":["Alice discovers a clue","Bob expresses doubt","Unexpected revelation"],"risks":["Moving too fast","Breaking character consistency"]}",
     "role": "user",
   },
   {

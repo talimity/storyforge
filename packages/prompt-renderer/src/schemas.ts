@@ -33,23 +33,6 @@ export const conditionRefSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
-/** ---------- Transform schemas ---------- */
-
-export const responseTransformSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("regexExtract"),
-    pattern: z.string(),
-    flags: z.string().optional(),
-    group: z.number().int().nonnegative().optional(),
-  }),
-  z.object({
-    type: z.literal("regexReplace"),
-    pattern: z.string(),
-    flags: z.string().optional(),
-    replace: z.string(),
-  }),
-]);
-
 /** ---------- Message and layout schemas ---------- */
 
 export const messageBlockSchema = z.object({
@@ -139,20 +122,10 @@ export const promptTemplateSchema = z.object({
   id: z.string(),
   task: taskKindSchema,
   name: z.string(),
+  description: z.string().optional(),
   version: z.literal(1),
   layout: z.array(layoutNodeSchema),
   slots: z.record(z.string(), slotSpecSchema),
-  responseFormat: z
-    .union([
-      z.literal("text"),
-      z.object({
-        type: z.literal("json_schema"),
-        schema: z.looseObject({}),
-      }),
-      z.literal("json"),
-    ])
-    .optional(),
-  responseTransforms: z.array(responseTransformSchema).optional(),
 });
 
 type AssertEqual<T, U extends T> = T extends U ? true : never;

@@ -80,48 +80,6 @@ describe("Assistant Prefix Emission", () => {
     expect(hasCharContent).toBe(true);
   });
 
-  it("should work with response format and transforms", () => {
-    const template = parseTemplate(turnPlannerV1Json);
-    const compiled = compileTemplate(template);
-
-    // Verify the template has the expected response format
-    expect(template.responseFormat).toEqual({
-      type: "json_schema",
-      schema: {
-        type: "object",
-        properties: {
-          goals: { type: "array", items: { type: "string" } },
-          beats: { type: "array", items: { type: "string" } },
-          risks: { type: "array", items: { type: "string" } },
-        },
-        required: ["goals", "beats"],
-      },
-    });
-
-    // Verify response transforms
-    expect(template.responseTransforms).toEqual([
-      {
-        type: "regexExtract",
-        pattern: "\\{[\\s\\S]*\\}$",
-        flags: "m",
-        group: 0,
-      },
-    ]);
-
-    const budget = new DefaultBudgetManager({ maxTokens: 5000 });
-    const messages = render(compiled, standardTurnGenCtx, budget, registry);
-
-    // The assistant prefix should still be present and correct
-    const assistantMsg = messages.find(
-      (m) => m.role === "assistant" && m.prefix
-    );
-    expect(assistantMsg).toBeDefined();
-    expect(assistantMsg?.content).toBe('{"goals":');
-
-    // Complete message snapshot
-    expect(messages).toMatchSnapshot("assistant-prefix-with-formats");
-  });
-
   it("should handle prefix with minimal context", () => {
     const template = parseTemplate(turnPlannerV1Json);
     const compiled = compileTemplate(template);

@@ -61,10 +61,6 @@ export function compileTemplate(
     version: parsedTemplate.version,
     layout: compileLayoutNodes(parsedTemplate.layout),
     slots: compileSlots(parsedTemplate.slots),
-    responseFormat: parsedTemplate.responseFormat,
-    responseTransforms: parsedTemplate.responseTransforms
-      ? [...parsedTemplate.responseTransforms]
-      : undefined,
   };
 
   // 5: Deep freeze the result

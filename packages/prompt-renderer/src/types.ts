@@ -97,16 +97,12 @@ export type LayoutNode =
 
 export type PromptTemplate = {
   id: string;
-  task: TaskKind;
   name: string;
+  description?: string;
+  task: TaskKind;
   version: 1;
   layout: LayoutNode[];
   slots: Record<string, SlotSpec>;
-  responseFormat?:
-    | "text"
-    | { type: "json_schema"; schema: Record<string, unknown> }
-    | "json";
-  responseTransforms?: ResponseTransform[];
 };
 
 /** ---------- DataRef via Source Registry ---------- */
@@ -167,12 +163,6 @@ export type ConditionRef =
   // biome-ignore lint/suspicious/noExplicitAny: dunno how one would type this
   | { type: "eq" | "neq" | "gt" | "lt"; ref: DataRef; value: any };
 
-/** ---------- Output Post-Processing ---------- */
-
-export type ResponseTransform =
-  | { type: "regexExtract"; pattern: string; flags?: string; group?: number } // select one capture group (default 0)
-  | { type: "regexReplace"; pattern: string; flags?: string; replace: string };
-
 /** ---------- Render Inputs & Outputs ---------- */
 
 export type ChatCompletionMessage = {
@@ -221,8 +211,6 @@ export type CompiledTemplate<K extends TaskKind = TaskKind> = Readonly<{
   version: number;
   layout: readonly CompiledLayoutNode[];
   slots: Readonly<Record<string, CompiledSlotSpec>>;
-  responseFormat?: "text" | { type: "json_schema"; schema: object } | "json";
-  responseTransforms?: readonly ResponseTransform[];
 }>;
 
 export type CompiledLayoutNode = Readonly<

@@ -27,6 +27,7 @@ describe("schema validation", () => {
       const complexTemplate = {
         id: "complex_template",
         name: "Complex Template",
+        description: "A complex template with slots and plan nodes",
         task: "turn_generation",
         version: 1,
         layout: [
@@ -53,7 +54,6 @@ describe("schema validation", () => {
             ],
           },
         },
-        responseFormat: "text",
       };
 
       const result = parseTemplate(complexTemplate);
@@ -98,31 +98,6 @@ describe("schema validation", () => {
 
       const result = parseTemplate(templateWithConditions);
       expect(result).toEqual(templateWithConditions);
-    });
-
-    it("should parse template with response transforms", () => {
-      const templateWithTransforms = {
-        id: "transform_template",
-        name: "Transform Template",
-        task: "turn_generation",
-        version: 1,
-        layout: [
-          { kind: "message", role: "system", content: "System message" },
-        ],
-        slots: {},
-        responseTransforms: [
-          {
-            type: "regexExtract",
-            pattern: "\\{[\\s\\S]*\\}$",
-            flags: "m",
-            group: 0,
-          },
-          { type: "regexReplace", pattern: "old", replace: "new", flags: "g" },
-        ],
-      };
-
-      const result = parseTemplate(templateWithTransforms);
-      expect(result).toEqual(templateWithTransforms);
     });
 
     it("should throw on invalid template structure", () => {

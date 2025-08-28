@@ -54,7 +54,7 @@ export function cleanupTestDatabase(db: TestDatabase) {
 /**
  * Create a fresh tRPC caller with a new test AppContext and database.
  */
-export async function createFreshTestCaller(db?: TestDatabase): Promise<any> {
+export async function createFreshTestCaller(db?: TestDatabase) {
   const { appRouter } = await import("@/api/app-router");
   const { createTestAppContext } = await import("@/api/app-context");
 

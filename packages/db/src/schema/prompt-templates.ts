@@ -7,6 +7,7 @@ export const promptTemplates = sqliteTable("prompt_templates", {
     .primaryKey()
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
+  description: text("description"),
   task: text("task").notNull(),
   version: integer("version").notNull().default(1),
   // Database temmplates are intentionally typed as unknown. Consumer code
@@ -18,12 +19,6 @@ export const promptTemplates = sqliteTable("prompt_templates", {
   slots: text("slots", { mode: "json" })
     .$type<Record<string, unknown>>()
     .notNull(),
-  responseFormat: text("response_format", { mode: "json" }).$type<
-    string | Record<string, unknown>
-  >(),
-  responseTransforms: text("response_transforms", { mode: "json" }).$type<
-    Record<string, unknown>[]
-  >(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

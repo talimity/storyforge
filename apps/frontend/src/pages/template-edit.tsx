@@ -38,11 +38,6 @@ export function TemplateEditPage() {
       name: string;
       task: TaskKind;
       description?: string;
-      responseFormat?:
-        | "text"
-        | "json"
-        | { type: "json_schema"; schema: { [x: string]: unknown } }
-        | undefined;
     };
     layoutDraft: LayoutNodeDraft[];
     slotsDraft: Record<string, SlotDraft>;
@@ -64,9 +59,9 @@ export function TemplateEditPage() {
         id: templateQuery.data.id,
         data: {
           name: data.metadata.name,
+          description: data.metadata.description,
           layout: compiledTemplate.layout,
           slots: compiledTemplate.slots,
-          responseFormat: data.metadata.responseFormat,
         },
       });
     } catch (error) {

@@ -1,4 +1,28 @@
-import type { ResponseTransform } from "./types";
+import { z } from "zod";
+
+// TODO: this module is no longer used in the renderer. maybe repurposable for
+// workflow runner.
+
+/** ---------- Output Post-Processing ---------- */
+
+export type ResponseTransform =
+  | { type: "regexExtract"; pattern: string; flags?: string; group?: number } // select one capture group (default 0)
+  | { type: "regexReplace"; pattern: string; flags?: string; replace: string };
+
+export const responseTransformSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("regexExtract"),
+    pattern: z.string(),
+    flags: z.string().optional(),
+    group: z.number().int().nonnegative().optional(),
+  }),
+  z.object({
+    type: z.literal("regexReplace"),
+    pattern: z.string(),
+    flags: z.string().optional(),
+    replace: z.string(),
+  }),
+]);
 
 /**
  * Apply response transforms to text in sequence.
