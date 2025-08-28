@@ -14,5 +14,4 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 
 - **Single-user desktop application** - Not a hosted web service or commercial product, stack runs locally
 - **Bring your own API key** - Players provide cloud inference API keys or local models
-- **TypeScript/Node.js focused** - Nothing exotic, shared code for easier consistency
-- **Monorepo with pnpm** - To facilitate shared code and possible multiple frontends
+- **TypeScript/Node.js focused** - Shared codebase between backend and frontend

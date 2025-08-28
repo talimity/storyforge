@@ -2,7 +2,7 @@ import type { PromptTemplate as DbTemplate } from "@storyforge/db";
 import {
   parseTemplate,
   type PromptTemplate as SpecPromptTemplate,
-} from "@storyforge/prompt-renderer";
+} from "@storyforge/prompt-rendering";
 import { ServiceError } from "@/service-error";
 
 export function fromDbPromptTemplate(template: DbTemplate): SpecPromptTemplate {

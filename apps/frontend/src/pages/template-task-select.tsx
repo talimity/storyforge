@@ -8,7 +8,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/prompt-renderer";
+import type { TaskKind } from "@storyforge/prompt-rendering";
 import type React from "react";
 import { LuBookOpenText, LuFoldVertical, LuPenTool } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";

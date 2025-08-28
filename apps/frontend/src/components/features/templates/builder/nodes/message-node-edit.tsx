@@ -9,7 +9,7 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import type { ChatCompletionMessageRole } from "@storyforge/prompt-renderer";
+import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
 import { forwardRef, useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { LuCheck, LuX } from "react-icons/lu";

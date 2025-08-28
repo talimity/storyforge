@@ -1,5 +1,5 @@
 import { Container, Heading, Text, VStack } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/prompt-renderer";
+import type { TaskKind } from "@storyforge/prompt-rendering";
 import { useNavigate, useParams } from "react-router-dom";
 import { TemplateForm } from "@/components/features/templates/template-form";
 import type {
@@ -34,11 +34,7 @@ export function TemplateEditPage() {
   });
 
   const handleSubmit = (data: {
-    metadata: {
-      name: string;
-      task: TaskKind;
-      description?: string;
-    };
+    metadata: { name: string; task: TaskKind; description?: string };
     layoutDraft: LayoutNodeDraft[];
     slotsDraft: Record<string, SlotDraft>;
   }) => {
@@ -48,6 +44,7 @@ export function TemplateEditPage() {
       const draft = {
         id: templateQuery.data.id,
         name: data.metadata.name,
+        description: data.metadata.description || "",
         task: templateQuery.data.task, // Task cannot change in edit mode
         layoutDraft: data.layoutDraft,
         slotsDraft: data.slotsDraft,
@@ -118,7 +115,7 @@ export function TemplateEditPage() {
         onCancel={handleCancel}
         isSubmitting={updateMutation.isPending}
         submitLabel="Save Changes"
-        pageTitle={`Edit '${template.name}'`}
+        pageTitle={template.name}
         isEditMode={true}
       />
     </Container>

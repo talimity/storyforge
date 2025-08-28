@@ -11,6 +11,7 @@ describe("compileDraft", () => {
     const draft: TemplateDraft = {
       id: "test_template_1",
       name: "Test Template",
+      description: "This is a test template",
       task: "turn_generation",
       layoutDraft: [
         {
@@ -69,6 +70,7 @@ describe("validateDraft", () => {
     const draft: TemplateDraft = {
       id: "valid_template",
       name: "Valid Template",
+      description: "This is a valid template",
       task: "turn_generation",
       layoutDraft: [
         {
@@ -95,6 +97,7 @@ describe("validateDraft", () => {
     const draft: TemplateDraft = {
       id: "invalid_template",
       name: "Invalid Template",
+      description: "This template has an unknown slot",
       task: "turn_generation",
       layoutDraft: [
         {
@@ -121,6 +124,7 @@ describe("validateDraft", () => {
     const draft: TemplateDraft = {
       id: "invalid_recipe",
       name: "Invalid Recipe",
+      description: "This template has an unknown recipe",
       task: "turn_generation",
       layoutDraft: [],
       slotsDraft: {
@@ -143,6 +147,7 @@ describe("validateDraft", () => {
     const draft: TemplateDraft = {
       id: "unreachable_slot_test",
       name: "Unreachable Slot Test",
+      description: "This template has an unused slot",
       task: "turn_generation",
       layoutDraft: [
         {
@@ -179,6 +184,7 @@ describe("content vs from mutual exclusivity", () => {
     const draft: TemplateDraft = {
       id: "content_from_test",
       name: "Content From Test",
+      description: "This template has a message with both content and from",
       task: "turn_generation",
       layoutDraft: [
         {
@@ -202,6 +208,7 @@ describe("content vs from mutual exclusivity", () => {
     const draft: TemplateDraft = {
       id: "header_content_from_test",
       name: "Header Content From Test",
+      description: "This template has a slot header with both content and from",
       task: "turn_generation",
       layoutDraft: [
         {

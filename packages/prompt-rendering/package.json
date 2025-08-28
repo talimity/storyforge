@@ -1,6 +1,6 @@
 {
-  "name": "@storyforge/prompt-renderer",
-  "description": "Rendering engine for Storyforge prompt templates",
+  "name": "@storyforge/prompt-rendering",
+  "description": "Prompt template rendering engine for Storyforge.",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",

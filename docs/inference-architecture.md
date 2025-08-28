@@ -174,7 +174,7 @@ export interface ProviderAdapter {
 
 ### 2.6 Prompt Templates
 
-The prompt templating and rendering system is handled by a separate package (`prompt-renderer`) and is not part of the provider architecture. Given a workflow task context (inputs) and a template it returns `ChatCompletionsMessage[]` that the provider adapter can send to the API.
+The prompt templating and rendering system is handled by a separate package (`prompt-rendering`) and is not part of the provider architecture. Given a workflow task context (inputs) and a template it returns `ChatCompletionsMessage[]` that the provider adapter can send to the API.
 
 **Notes**
 
@@ -227,7 +227,7 @@ The prompt templating and rendering system is handled by a separate package (`pr
     * timestamps
 
 * `prompt_templates`
-    * See [prompt-renderer](./prompt-template-engine-specification.md) for details
+    * See [prompt-rendering](./prompt-template-engine-specification.md) for details
 
 **Notes**
 
@@ -270,13 +270,13 @@ export type Step = {
 
 * **Context vs Prompt**:
     * *TaskCtx* is *loaded* by the feature executing an LLM task (ie., a chapter's turn history for "summarization" task, textarea input for "writing assistant" task, scenario timeline for "turn generation" task).
-    * `makeRegistry<K extends TaskKind>(handlers: Record<string, SourceHandler<K>>): SourceRegistry<K>` in `prompt-renderer` package allows registering custom context loaders per task kind.
+    * `makeRegistry<K extends TaskKind>(handlers: Record<string, SourceHandler<K>>): SourceRegistry<K>` in `prompt-rendering` package allows registering custom context loaders per task kind.
 * How is lorebook/world info handled?
     * Just another input, presumably; feature provides the renderer with a loader function, which given an input (such as the text of recent turns) does regex matching or vector similarity to return lore entries that should be injected. Renderer doesn't care and just calls the loader with the turns it has decided to insert.
 
 ### 4.2 Prompt Templates
 
-* Handled by `prompt-renderer` package as a separate concern. Accepts a `PromptTemplate` and a task context object and returns `ChatCompletionsMessage[]`, but has no knowledge of workflows, models, capabilities, or providers.
+* Handled by `prompt-rendering` package as a separate concern. Accepts a `PromptTemplate` and a task context object and returns `ChatCompletionsMessage[]`, but has no knowledge of workflows, models, capabilities, or providers.
 
 ### 4.3 Example Workflows
 

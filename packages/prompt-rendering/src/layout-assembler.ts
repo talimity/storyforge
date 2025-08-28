@@ -47,7 +47,7 @@ export function assembleLayout<K extends TaskKind>(
       default: {
         const badNode = nodeKind satisfies never;
         console.warn(
-          `prompt-renderer assembler: Unsupported LayoutNode '${badNode}'.`
+          `prompt-rendering assembler: Unsupported LayoutNode '${badNode}'.`
         );
       }
     }

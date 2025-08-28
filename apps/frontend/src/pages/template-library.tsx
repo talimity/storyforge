@@ -9,7 +9,7 @@ import {
   Stack,
   VStack,
 } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/prompt-renderer";
+import type { TaskKind } from "@storyforge/prompt-rendering";
 import { useState } from "react";
 import {
   LuFileText,

@@ -14,7 +14,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type {
   ChatCompletionMessageRole,
   TaskKind,
-} from "@storyforge/prompt-renderer";
+} from "@storyforge/prompt-rendering";
 import { LuLayers, LuMessageSquare, LuPlus } from "react-icons/lu";
 import { LayoutNodeCard } from "@/components/features/templates/builder/layout-node-card";
 import { useLayoutDnd } from "@/components/features/templates/builder/use-layout-dnd";

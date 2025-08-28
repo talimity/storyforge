@@ -1,5 +1,5 @@
 import type { SqliteDatabase } from "@storyforge/db";
-import type { TaskKind } from "@storyforge/prompt-renderer";
+import type { TaskKind } from "@storyforge/prompt-rendering";
 import { desc } from "drizzle-orm";
 import { ServiceError } from "@/service-error";
 import { fromDbPromptTemplate } from "@/services/template/utils/from-db-prompt-template";

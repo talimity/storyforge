@@ -15,7 +15,7 @@ catalog:
   tsx: ^4.20.3
   typescript: ^5.9.2
   vitest: ^3.2.4
-  zod: ^4.0.14
+  zod: ^4.0.17
   zod-openapi: ^5.0.1
 
 catalogMode: manual

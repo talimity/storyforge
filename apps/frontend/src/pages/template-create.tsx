@@ -1,5 +1,5 @@
 import { Container } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/prompt-renderer";
+import type { TaskKind } from "@storyforge/prompt-rendering";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TemplateForm } from "@/components/features/templates/template-form";
@@ -57,6 +57,7 @@ export function TemplateCreatePage() {
       const draft = {
         id: `template_${Date.now()}`, // Temporary ID
         name: data.metadata.name,
+        description: data.metadata.description || "",
         task: taskType,
         layoutDraft: data.layoutDraft,
         slotsDraft: data.slotsDraft,

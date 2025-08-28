@@ -8,5 +8,5 @@
     "declarationMap": true
   },
   "exclude": ["**/*.test.ts", "src/test/**", "**/__tests__/**"],
-  "references": [{ "path": "../prompt-renderer/tsconfig.build.json" }]
+  "references": [{ "path": "../prompt-rendering/tsconfig.build.json" }]
 }

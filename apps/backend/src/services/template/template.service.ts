@@ -7,12 +7,12 @@ import {
 import {
   compileTemplate,
   type PromptTemplate as SpecPromptTemplate,
-} from "@storyforge/prompt-renderer";
+} from "@storyforge/prompt-rendering";
 import { eq } from "drizzle-orm";
 import { ServiceError } from "@/service-error";
 import { fromDbPromptTemplate } from "@/services/template/utils/from-db-prompt-template";
 
-// Use the prompt-renderer types for validation, then convert to database format
+// Use the prompt-rendering types for validation, then convert to database format
 interface CreateTemplateData
   extends Omit<SpecPromptTemplate, "id" | "version"> {}
 
@@ -43,7 +43,7 @@ export class TemplateService {
     }
 
     const operation = async (tx: SqliteTransaction) => {
-      // Convert from prompt-renderer types to database JSON types
+      // Convert from prompt-rendering types to database JSON types
       const dbData = {
         task: data.task,
         name: data.name,
@@ -87,10 +87,10 @@ export class TemplateService {
 
       const existingAsSpec = fromDbPromptTemplate(existing);
 
-      // Create updated template for validation (convert database types to prompt-renderer types)
+      // Create updated template for validation (convert database types to prompt-rendering types)
       const updatedTemplate: SpecPromptTemplate = {
         id: existingAsSpec.id,
-        task: data.task ?? existingAsSpec.task,
+        task: existingAsSpec.task,
         name: data.name ?? existingAsSpec.name,
         description: data.description ?? existingAsSpec.description,
         version: existingAsSpec.version,
@@ -106,12 +106,12 @@ export class TemplateService {
         });
       }
 
-      // Convert from prompt-renderer types to database JSON types for update
+      // Convert from prompt-rendering types to database JSON types for update
       const updateData: Partial<NewPromptTemplate> = {
         version: existingAsSpec.version,
+        task: existingAsSpec.task,
       };
 
-      if (data.task !== undefined) updateData.task = data.task;
       if (data.name !== undefined) updateData.name = data.name;
       if (data.description !== undefined)
         updateData.description = data.description;

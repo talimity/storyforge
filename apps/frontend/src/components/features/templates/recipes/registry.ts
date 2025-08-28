@@ -1,4 +1,4 @@
-import type { SlotSpec, TaskKind } from "@storyforge/prompt-renderer";
+import type { SlotSpec, TaskKind } from "@storyforge/prompt-rendering";
 import { z } from "zod";
 import { charactersRecipe } from "@/components/features/templates/recipes/turngen/characters-recipe";
 import { timelineRecipe } from "@/components/features/templates/recipes/turngen/timeline-recipe";

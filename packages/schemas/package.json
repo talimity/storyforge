@@ -14,7 +14,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@storyforge/prompt-renderer": "workspace:*",
+    "@storyforge/prompt-rendering": "workspace:*",
     "@trpc/server": "catalog:",
     "trpc-to-openapi": "catalog:",
     "zod": "catalog:"

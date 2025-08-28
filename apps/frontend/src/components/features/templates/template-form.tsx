@@ -67,7 +67,7 @@ export function TemplateForm({
     defaultValues: {
       name: initialDraft.name,
       task: initialDraft.task,
-      description: "",
+      description: initialDraft.description || "",
     },
   });
 
@@ -95,7 +95,7 @@ export function TemplateForm({
         reset({
           name: initialDraft.name,
           task: initialDraft.task,
-          description: "",
+          description: initialDraft.description,
         });
       }
       initialize(initialDraft);
@@ -117,27 +117,29 @@ export function TemplateForm({
     () => ({
       id: initialDraft.id,
       name: metadata.name,
+      description: metadata.description || "",
       task: metadata.task,
       layoutDraft,
       slotsDraft,
     }),
-    [initialDraft.id, metadata.name, metadata.task, layoutDraft, slotsDraft]
+    [
+      initialDraft.id,
+      metadata.name,
+      metadata.description,
+      metadata.task,
+      layoutDraft,
+      slotsDraft,
+    ]
   );
 
   const builderStore = useTemplateBuilderStore();
-  const validationErrors = useMemo(
-    () =>
-      getValidationErrors(
-        builderStore,
-        metadata.task,
-        initialDraft.id,
-        metadata.name
-      ),
-    [builderStore, metadata.task, metadata.name, initialDraft.id]
+  const structureErrors = useMemo(
+    () => getValidationErrors(builderStore, metadata.task),
+    [builderStore, metadata.task]
   );
-  const hasValidationErrors = validationErrors.length > 0;
+  const hasStructureErrors = structureErrors.length > 0;
   const metadataErrorCount = Object.keys(errors).length;
-  const structureErrorCount = validationErrors.length;
+  const structureErrorCount = structureErrors.length;
 
   const hasUnsavedChanges =
     (metadataIsDirty || builderIsDirty) && !isSubmitting;
@@ -151,7 +153,7 @@ export function TemplateForm({
 
   const onFormSubmit = useCallback(
     (formData: TemplateFormData) => {
-      if (hasValidationErrors) {
+      if (hasStructureErrors) {
         setActiveTab("structure");
         return;
       }
@@ -161,7 +163,7 @@ export function TemplateForm({
 
       onSubmit({ metadata: formData, layoutDraft, slotsDraft });
     },
-    [hasValidationErrors, layoutDraft, slotsDraft, onSubmit]
+    [hasStructureErrors, layoutDraft, slotsDraft, onSubmit]
   );
 
   const handleFormSubmit = useCallback(() => {
@@ -209,7 +211,7 @@ export function TemplateForm({
               onClick={handleFormSubmit}
               disabled={
                 isSubmitting ||
-                (hasValidationErrors && activeTab === "structure")
+                (hasStructureErrors && activeTab === "structure")
               }
               loading={isSubmitting}
               loadingText={isEditMode ? "Saving..." : "Creating..."}
@@ -231,7 +233,7 @@ export function TemplateForm({
           <Tabs.Content value="structure">
             <VStack align="stretch" gap={4}>
               {/* Validation Errors */}
-              {hasValidationErrors && (
+              {hasStructureErrors && (
                 <Box
                   bg="red.50"
                   border="1px solid"
@@ -240,7 +242,7 @@ export function TemplateForm({
                   borderRadius="md"
                 >
                   <VStack align="start" gap={1}>
-                    {validationErrors.map((error) => (
+                    {structureErrors.map((error) => (
                       <Box key={error} fontSize="sm" color="red.600">
                         • {error}
                       </Box>

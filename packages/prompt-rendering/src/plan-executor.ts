@@ -60,7 +60,7 @@ export function executePlanNode<K extends TaskKind>(
       // TypeScript should prevent this, but handle gracefully
       const _badKind = nodeKind satisfies never;
       console.warn(
-        `prompt-renderer executor: Unsupported PlanNode '${_badKind}'.`
+        `prompt-rendering executor: Unsupported PlanNode '${_badKind}'.`
       );
       return [];
     }

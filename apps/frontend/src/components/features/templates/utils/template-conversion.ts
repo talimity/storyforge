@@ -4,7 +4,7 @@ import type {
   PromptTemplate,
   SlotSpec,
   TaskKind,
-} from "@storyforge/prompt-renderer";
+} from "@storyforge/prompt-rendering";
 import { nanoid } from "nanoid";
 import {
   isValidRecipeId,
@@ -28,6 +28,7 @@ export function templateToDraft(template: PromptTemplate): TemplateDraft {
     id: template.id,
     name: template.name,
     task: template.task,
+    description: template.description || "",
     layoutDraft: template.layout.map(convertLayoutNodeToDraft),
     slotsDraft: convertSlotsToDraft(template.slots),
   };
@@ -144,6 +145,7 @@ export function createBlankTemplate(task: TaskKind): TemplateDraft {
   return {
     id: nanoid(12),
     name: "",
+    description: "",
     task,
     layoutDraft: [
       {

@@ -1,7 +1,7 @@
 import type {
   ChatCompletionMessageRole,
   TaskKind,
-} from "@storyforge/prompt-renderer";
+} from "@storyforge/prompt-rendering";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import {
@@ -194,14 +194,12 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
         slotName = generateSlotName(state.slotsDraft, baseName);
 
         // Create the slot
-        const newSlot: SlotDraft = {
+        state.slotsDraft[slotName] = {
           recipeId: (recipe?.id || "custom") as SlotRecipeId | "custom",
           name: slotName,
           priority: Object.keys(state.slotsDraft).length,
           params,
         };
-
-        state.slotsDraft[slotName] = newSlot;
 
         // Add a reference to the layout
         const newNode: LayoutNodeDraft = {
@@ -350,16 +348,11 @@ export const getUnreferencedSlots = (state: TemplateBuilderState): string[] => {
 
 export const getValidationErrors = (
   state: TemplateBuilderState,
-  task: TaskKind,
-  templateId: string,
-  templateName: string
+  task: TaskKind
 ): string[] => {
-  const draft: TemplateDraft = {
-    id: templateId,
-    name: templateName,
+  return validateDraft({
     task: task,
     layoutDraft: state.layoutDraft,
     slotsDraft: state.slotsDraft,
-  };
-  return validateDraft(draft);
+  });
 };

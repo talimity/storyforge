@@ -1,16 +1,14 @@
 import {
   Box,
   Card,
-  Code,
   Heading,
   HStack,
   Icon,
-  Stack,
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { PromptTemplate, SlotSpec } from "@storyforge/prompt-renderer";
-import { LuBox, LuInfo, LuMessageCircle } from "react-icons/lu";
+import type { PromptTemplate } from "@storyforge/prompt-rendering";
+import { LuInfo } from "react-icons/lu";
 import type { TemplateDraft } from "@/components/features/templates/types";
 import {
   compileDraft,
@@ -108,126 +106,16 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
       {/* Layout Preview */}
       <Card.Root layerStyle="surface">
         <Card.Body>
-          <VStack align="stretch" gap={4}>
-            <Heading size="md">Template Structure</Heading>
-            <Text color="content.muted" fontSize="sm">
-              This shows how your template will be assembled for AI processing.
-            </Text>
-
-            <Stack gap={3}>
-              {compiledTemplate.layout.map((node) => (
-                <Box
-                  key={`${node.kind}-${"name" in node ? node.name : Math.random()}`}
-                >
-                  {node.kind === "message" && (
-                    <HStack gap={3} p={3} bg="surface.subtle" borderRadius="md">
-                      <Icon as={LuMessageCircle} color="blue.500" />
-                      <VStack align="start" gap={1} flex={1}>
-                        <HStack gap={2}>
-                          <Text fontWeight="medium" fontSize="sm">
-                            {node.role.charAt(0).toUpperCase() +
-                              node.role.slice(1)}{" "}
-                            Message
-                          </Text>
-                          {"name" in node && node.name ? (
-                            <Code fontSize="xs" colorPalette="gray">
-                              {String(node.name)}
-                            </Code>
-                          ) : null}
-                          {node.prefix && (
-                            <Code fontSize="xs" colorPalette="blue">
-                              prefix
-                            </Code>
-                          )}
-                        </HStack>
-                        {node.content && (
-                          <Text
-                            fontSize="sm"
-                            color="content.muted"
-                            fontFamily="mono"
-                          >
-                            {node.content.length > 100
-                              ? `${node.content.slice(0, 100)}...`
-                              : node.content}
-                          </Text>
-                        )}
-                        {"from" in node && node.from ? (
-                          <Code fontSize="xs" colorPalette="purple">
-                            from: {String(node.from)}
-                          </Code>
-                        ) : null}
-                      </VStack>
-                    </HStack>
-                  )}
-
-                  {node.kind === "slot" && (
-                    <HStack gap={3} p={3} bg="surface.subtle" borderRadius="md">
-                      <Icon as={LuBox} color="green.500" />
-                      <VStack align="start" gap={1} flex={1}>
-                        <HStack gap={2}>
-                          <Text fontWeight="medium" fontSize="sm">
-                            Content Slot: {node.name}
-                          </Text>
-                          {node.omitIfEmpty && (
-                            <Code fontSize="xs" colorPalette="orange">
-                              hide when empty
-                            </Code>
-                          )}
-                        </HStack>
-
-                        {/* Show slot details */}
-                        {compiledTemplate.slots[node.name] && (
-                          <SlotPreview
-                            slot={compiledTemplate.slots[node.name]}
-                            slotName={node.name}
-                          />
-                        )}
-
-                        {/* Show headers/footers */}
-                        {node.header && (
-                          <Text fontSize="xs" color="content.muted">
-                            Header:{" "}
-                            {Array.isArray(node.header)
-                              ? `${node.header.length} messages`
-                              : "1 message"}
-                          </Text>
-                        )}
-                        {node.footer && (
-                          <Text fontSize="xs" color="content.muted">
-                            Footer:{" "}
-                            {Array.isArray(node.footer)
-                              ? `${node.footer.length} messages`
-                              : "1 message"}
-                          </Text>
-                        )}
-                      </VStack>
-                    </HStack>
-                  )}
-                </Box>
-              ))}
-            </Stack>
-          </VStack>
+          <p>TODO: Implement layout preview</p>
+          <ul>
+            <li>Add scenario selector</li>
+            <li>Add `templates.preview` procedure, accepting scenario ID</li>
+            <li>Add template dry run service</li>
+            <li>Dry run the template with the scenario</li>
+            <li>Display the ChatCompletionsMessage array here</li>
+          </ul>
         </Card.Body>
       </Card.Root>
-    </VStack>
-  );
-}
-
-interface SlotPreviewProps {
-  slot: SlotSpec;
-  slotName: string;
-}
-
-function SlotPreview({ slot, slotName }: SlotPreviewProps) {
-  return (
-    <VStack align="start" gap={1} fontSize="xs" color="content.muted">
-      <Text>Priority: {slot.priority}</Text>
-      {slot.budget?.maxTokens && (
-        <Text>Budget: {slot.budget.maxTokens} tokens</Text>
-      )}
-      {slot.plan && slot.plan.length > 0 && (
-        <Text>Plan steps: {slot.plan.length}</Text>
-      )}
     </VStack>
   );
 }

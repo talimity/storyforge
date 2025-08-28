@@ -1,4 +1,4 @@
-import { taskKindSchema } from "@storyforge/prompt-renderer";
+import { taskKindSchema } from "@storyforge/prompt-rendering";
 import { z } from "zod";
 
 export const templateFormSchema = z.object({

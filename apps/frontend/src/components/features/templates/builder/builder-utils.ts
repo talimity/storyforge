@@ -1,4 +1,4 @@
-import type { ChatCompletionMessageRole } from "@storyforge/prompt-renderer";
+import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
 import {
   LuBotMessageSquare,
   LuLayers,

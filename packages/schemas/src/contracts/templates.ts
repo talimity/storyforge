@@ -1,7 +1,7 @@
 import {
   promptTemplateSchema,
   taskKindSchema,
-} from "@storyforge/prompt-renderer";
+} from "@storyforge/prompt-rendering";
 import { z } from "zod";
 
 // Input schemas

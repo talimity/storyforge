@@ -5,7 +5,7 @@ import {
   type PromptTemplate,
   type SlotSpec,
   slotSpecSchema,
-} from "@storyforge/prompt-renderer";
+} from "@storyforge/prompt-rendering";
 import { getRecipeById } from "@/components/features/templates/recipes/registry";
 import type {
   LayoutNodeDraft,
@@ -189,24 +189,28 @@ export class DraftCompilationError extends Error {
 /**
  * Validate that a draft can be compiled successfully
  */
-export function validateDraft(draft: TemplateDraft): string[] {
+export function validateDraft({
+  layoutDraft,
+  slotsDraft,
+  task,
+}: Pick<TemplateDraft, "layoutDraft" | "slotsDraft" | "task">): string[] {
   const errors: string[] = [];
 
   // Track which slots are referenced in the layout
   const referencedSlots = new Set<string>();
 
   // Check that slot references in layout exist
-  for (const node of draft.layoutDraft) {
+  for (const node of layoutDraft) {
     if (node.kind === "slot") {
       referencedSlots.add(node.name);
-      if (!(node.name in draft.slotsDraft)) {
+      if (!(node.name in slotsDraft)) {
         errors.push(`Layout references unknown slot: ${node.name}`);
       }
     }
   }
 
   // Check slots and detect unreachable ones
-  for (const [slotName, slot] of Object.entries(draft.slotsDraft)) {
+  for (const [slotName, slot] of Object.entries(slotsDraft)) {
     // Check recipe validity
     if (slot.recipeId !== "custom") {
       const recipe = getRecipeById(slot.recipeId);
@@ -214,9 +218,9 @@ export function validateDraft(draft: TemplateDraft): string[] {
         errors.push(`Slot '${slotName}' uses unknown recipe: ${slot.recipeId}`);
       } else {
         // Ensure task compatibility
-        if (recipe.task && recipe.task !== draft.task) {
+        if (recipe.task && recipe.task !== task) {
           errors.push(
-            `Slot '${slotName}' recipe '${slot.recipeId}' is not compatible with task '${draft.task}'`
+            `Slot '${slotName}' recipe '${slot.recipeId}' is not compatible with task '${task}'`
           );
         }
       }

@@ -64,7 +64,7 @@
 
 ## 3) Type Definitions
 
-(Note: check the latest TypeScript definitions in the prompt-renderer package for any updates as the implementation evolves.)
+(Note: check the latest TypeScript definitions in the prompt-rendering package for any updates as the implementation evolves.)
 
 ```ts
 /** ---------- Task binding ---------- */

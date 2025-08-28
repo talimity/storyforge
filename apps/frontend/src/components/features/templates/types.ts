@@ -2,7 +2,7 @@ import type {
   ChatCompletionMessageRole,
   DataRef,
   TaskKind,
-} from "@storyforge/prompt-renderer";
+} from "@storyforge/prompt-rendering";
 
 // Recipe ID for identifying slot recipes
 export type SlotRecipeId = "timeline_basic" | "characters_basic";
