@@ -8,9 +8,9 @@
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
     "check": "run-p --continue-on-error lint typecheck",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "fmt": "biome format --write .",
-    "lint": "biome check --diagnostic-level error --write .",
+    "lint": "biome check --diagnostic-level error --write --unsafe .",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit"

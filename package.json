@@ -4,19 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:frontend": "pnpm --filter frontend run build",
-    "build:clean": "tsc --build --clean",
-    "build": "tsc --build && pnpm run --parallel build:tspaths",
-    "check": "run-p --continue-on-error lint typecheck",
-    "clean": "pnpm run --parallel clean",
+    "build": "pnpm -r run build",
+    "check": "pnpm lint && pnpm typecheck",
+    "clean": "pnpm -r run clean",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
-    "dev": "pnpm run --parallel dev",
-    "fmt": "biome format --write .",
-    "lint": "biome check --diagnostic-level error --write --unsafe .",
-    "typecheck": "pnpm run --parallel typecheck",
+    "dev": "pnpm -r --parallel run dev",
+    "fmt": "pnpm -r --parallel run fmt",
+    "lint": "pnpm -r --parallel run lint",
+    "typecheck": "pnpm -r run typecheck",
     "usage": "ccusage blocks",
-    "test": "pnpm run --parallel test"
+    "test": "pnpm -r run test"
   },
   "workspaces": [
     "apps/*",

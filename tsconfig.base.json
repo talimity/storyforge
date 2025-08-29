@@ -17,11 +17,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noErrorTruncation": false,
-    "sourceMap": true,
-
-    "paths": {
-      "@storyforge/*": ["./packages/*/src"]
-    }
+    "sourceMap": true
   },
   "files": []
 }

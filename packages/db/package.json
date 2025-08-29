@@ -25,7 +25,7 @@
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
     "check": "run-p --continue-on-error lint typecheck",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "drizzle-kit": "pnpm exec tsx node_modules/drizzle-kit/bin.cjs",
     "db:generate": "pnpm drizzle-kit generate",
     "db:migrate": "pnpm drizzle-kit migrate",
@@ -33,7 +33,7 @@
     "db:query": "tsx scripts/db-query.ts",
     "db:studio": "pnpm drizzle-kit studio",
     "fmt": "biome format --write .",
-    "lint": "biome check --diagnostic-level error --write .",
+    "lint": "biome check --diagnostic-level error --write --unsafe .",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

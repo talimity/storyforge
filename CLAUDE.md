@@ -10,14 +10,11 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 
 ```bash
 # Code quality
-pnpm check # typecheck + biome auto-fix
-
+pnpm check # lint/format/fix imports with biome + typecheck
 # Run tests (backend, integration-only)
 pnpm test
-
-# Remember to rebuild when changing contracts in packages/schemas/
-pnpm build # tsc -b against entire project
-pnpm build:frontend # Vite build
+# Remember to rebuild types after changing shared packages
+pnpm build
 
 # Remember to generate migrations when changing database schema in packages/db
 pnpm db:generate # Drizzle migration generation
@@ -46,89 +43,6 @@ devctl stop       # Stop both dev servers
 - **TypeScript/Node.js focused** - Nothing exotic, shared code for easier consistency
 - **Monorepo with pnpm** - To facilitate shared code and possible multiple frontends
 
-## Current Status
-
-- ✅ Monorepo with pnpm
-- ✅ Fastify, Drizzle with SQLite, and tRPC setup
-- ✅ OpenAPI schema generation via trpc-to-openapi
-- ✅ Shared packages (config, db, schemas)
-- ✅ Vite React frontend application
-- ✅ LLM inference architecture
-  - ✅ Provider abstraction layer
-    - ❌ Add tool calling support
-  - ✅ LLM provider implementation
-    - ✅ OpenRouter Chat Completion
-    - ✅ DeepSeek Chat Completion
-    - ❌ OpenAI-compat Chat Completion (OpenAI, llama.cpp, vllm, etc.)
-    - ❌ Anthropic Chat Completion
-  - ❌ Model registry (add models and specify which provider to use)
-- ❌ Story engine
-  - ❌ Context construction (build context from turn history, chara data, prompt templates, and agent config)
-  - ❌ Player intent/intent effect system
-    - ❌ Direct Control intent
-    - ❌ Story Constraint intent
-    - ❌ Scene Control intent
-    - ❌ Quick Action intent
-  - ❌ Turn generation (agent workflow executor)
-    - ❌ Simple workflow (no behavior, agent just sends input to LLM verbatim)
-    - ❌ Tabletop workflow
-    - ❌ Dreamer -> Critic -> Writer workflow
-    - ❌ Planner -> Screenplay -> Prose workflow
-    - ❌ Customizable workflows
-  - ✅ Persistence
-    - ✅ Turn history
-    - ✅ Timeline graph operations
-    - ❌ Chapter management (create, edit, delete chapters)
-  - ❌ LLM input/output transforms
-    - ❌ Regex (trim unwanted content from LLM output)
-    - ❌ Structured output (JSON/YAML)
-  - ❌ Events
-    - ❌ Turn events (e.g. turn started, turn completed)
-    - ❌ Agent events (e.g. workflow start, agent input, agent output, agent error, wokflow complete)
-- ❌ Library (user content management)
-  - ✅ Characters / SillyTavern character import
-  - ✅ Scenario CRUD / participants
-  - ❌ LLM provider configuration
-  - ❌ Model registry
-  - ❌ Prompt templates
-  - ❌ Assets (chara images, scene backgrounds, CSS themes)
-  - ❌ Regex templates (e.g., 'Convert straight quotes to curly quotes')
-  - ❌ Agent workflows
-  - ❌ Settings (simple KV store, mostly for UI state and prefs)
-- ❌ tRPC API
-  - ✅ Character library
-  - ✅ Scenario library
-  - ✅ Scenario interact
-  - ❌ Prompt templates library
-  - ❌ LLM providers
-  - ❌ Asset upload and management
-  - ❌ Regex templates
-  - ❌ Agent workflows
-  - ❌ Settings
-- ✅ Frontend
-  - ✅ Scaffolding
-    - ✅ Vite + React
-    - ✅ Chakra UI v3
-  - ❌ Library
-    - ✅ Characters
-      - ✅ Character list
-      - ✅ Character card with actions
-      - ✅ Character import workflow
-      - ✅ Character editor
-    - ✅ Scenarios
-    - ❌ Prompt templates
-  - ❌ Scenario player
-    - ✅ Separate shell for scenario player
-    - ❌ Editor (setup, participants)
-    - ✅ Runner (turn display, input, state feedback)
-  - ❌ Settings
-    - ❌ API key configuration
-    - ❌ Model configuration
-    - ❌ Agent workflow configuration
-  - ❌ Mobile affordances
-- ❌ Packaging
-  - ❌ just use docker
-
 ## Stack
 
 - **Frontend**: Vite + React + Chakra UI v3
@@ -141,46 +55,17 @@ devctl stop       # Stop both dev servers
 ```
 storyforge
 ├── apps
-│   ├── backend                # Fastify backend application (:3001)
-│   │   ├── data               # Fixtures, test characters
-│   │   ├── scripts            # Scripts for development tasks
-│   │   └── src
-│   │       ├── api            # tRPC/OpenAPI layer
-│   │       │   └── routers    # tRPC routers
-│   │       ├── engine         # Story engine/domain logic
-│   │       │   ├── agents     # Agent workflows
-│   │       │   ├── context    # Context building using loaded data from library
-│   │       │   ├── invariants # Functions that ensure correctness of engine/state transitions
-│   │       │   └── turns      # Turn generation
-│   │       ├── inference      # LLM inference layer, ports / adapters
-│   │       │   └── providers  # LLM provider implementations
-│   │       ├── services       # Service layer, orchestration of engine and inference
-│   │       │   ├── character
-│   │       │   ├── scenario
-│   │       │   ├── turn
-│   │       │   └── context-loader.ts   # Fetches all data needed to build generation context
-│   │       └── test           # Integration tests
-│   └── frontend               # Vite React app (:8080)
-│       └── src
-│           ├── components     # React components
-│           ├── lib            # Client utilities
-│           ├── pages          # Page components
-│           └── stores         # Zustand stores
+│   ├── backend                # Fastify/tRPC backend application (:3001)
+│   └── frontend               # React SPA with Vite (:8080)
+├── docs                       # Specification and design documents
 └── packages                   # Shared packages
     ├── config                 # Configuration management
-    │   └── src
-    │       └── index.ts       # Config/environment loader
-    │── db                     # Data access layer
-    │   └── src
-    │       ├── migrations
-    │       ├── schema         # Drizzle schema definitions
-    │       ├── client.ts      # SQLite client
-    │       └── relations.ts   # Drizzle relation definitions
+    │── db                     # Drizzle ORM database layer
+    ├── inference              # Adapters for inference APIs
+    ├── prompt-rendering       # Prompt template rendering engine
     ├── schemas                # Zod runtime schemas and types
-    │   └── src
-    │       ├── contracts      # tRPC API input/output schemas
-    │       └── types          # Inferred types from schemas
-    └── yolo-onnx              # yolov8n-face wrapper
+    ├── utils                  # Isomorphic utility functions
+    └── yolo-onnx              # YOLOv8 ONNX wrapper for face detection
 ```
 
 ## Code Style Guidelines
@@ -189,8 +74,9 @@ storyforge
   - Strict mode enabled
   - Explicit `any` usage is forbidden
   - Casting via `as` is strongly discouraged
-    - Instead: type guard or assertion guard (e.g. `assertIsCharacter(obj: unknown): asserts obj is Character`)
-    - Instead: use Zod's `parse` for complex, structured data validation
+    - Instead: assertion guard functions (e.g. `assertIsCharacter(obj: unknown): asserts obj is Character`)
+      - Use `assertDefined` from utils instead of `!` operator
+    - Instead: write a Zod schema and use `parse`/`safeParse`
   - Minimize nested structures
     - Use intermediate variables to make expressions clearer
     - Return early to avoid deep nesting in functions
@@ -201,7 +87,7 @@ storyforge
     - Never write a class that only contains static members
 - **Imports**:
   - Run `pnpm check` to auto-sort imports
-  - Use `@/` for absolute imports in frontend
+  - Use `@/` for absolute imports within apps
   - Never deep import from other packages
 - **Naming conventions**:
   - Files: kebab-case
