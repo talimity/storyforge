@@ -5,7 +5,7 @@
 * **engine/** - **pure domain core**. Invariants, rules, and planners; no db/network/filesystem.
 * **services/** - **impure application layer**. Transactional writes (UoW), screen/workflow-shaped reads, service orchestration, SQL/CTEs, file parsing, etc.
 * **api/** - **transport**. tRPC procedures only: I/O validation, OpenAPI metadata, error mapping; no business logic.
-* **inference/** - **ports/adapters** to external LLM providers.
+* **@storyforge/inference** package - **ports/adapters** to external LLM providers.
 
 ```
 apps/backend/src/
@@ -28,8 +28,6 @@ apps/backend/src/
       play.ts
       chat-import.ts
       ...
-  inference/
-    providers/
 ```
 
 Reusable cross-feature helpers go in **`packages/utils`**.
@@ -195,14 +193,3 @@ export const featureRouter = router({
       Use/extend **engine** only if you add or change domain rules.
 4. **(Optional)** Add `services/<feature>/utils/*` for feature-local helpers.
 5. **Frontend** consumes the query/service contract directly. See the frontend CLAUDE.md for its own architecture guidelines.
-
-## LLM Inference Architecture
-
-**Flow**: `GenerationContext` → `GenerationContextAdapter` → `ChatCompletionRequest` → `LLMProvider` → API payload
-
-- **GenerationContext**: Narrative-aware sections (system/reference/history/task) + parameters + model
-- **ChatCompletionRequest**: Standard `{messages: ChatMessage[], parameters, model}` - provider-agnostic
-- **GenerationContextAdapter**: Converts narrative contexts to standardized chat messages
-- **LLMProvider interface**: `generate()`, `generateStream()`, `listModels()`, `renderPrompt()`
-
-**Providers**: OpenRouter, DeepSeek, Mock

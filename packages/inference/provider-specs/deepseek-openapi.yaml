@@ -1,0 +1,690 @@
+openapi: 3.0.3
+info:
+  title: DeepSeek API
+  description: DeepSeek API for chat completions and model management
+  version: 1.0.0
+  contact:
+    email: api-service@deepseek.com
+  license:
+    name: DeepSeek License
+servers:
+  - url: https://api.deepseek.com
+    description: Production server
+  - url: https://api.deepseek.com/beta
+    description: Beta server (for beta features)
+
+paths:
+  /models:
+    get:
+      summary: Lists Models
+      description: Lists the currently available models, and provides basic information about each one such as the owner and availability. Check Models & Pricing for our currently supported models.
+      operationId: listModels
+      tags:
+        - Models
+      responses:
+        '200':
+          description: OK, returns a list of models
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                    description: The object type, which is always "list"
+                  data:
+                    type: array
+                    description: Array of available models
+                    items:
+                      $ref: '#/components/schemas/Model'
+              examples:
+                default:
+                  summary: List of available models
+                  value:
+                    object: "list"
+                    data:
+                      - id: "deepseek-chat"
+                        object: "model"
+                        owned_by: "deepseek"
+                      - id: "deepseek-reasoner"
+                        object: "model"
+                        owned_by: "deepseek"
+
+  /chat/completions:
+    post:
+      summary: Create Chat Completion
+      description: Creates a model response for the given chat conversation.
+      operationId: createChatCompletion
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+            examples:
+              simple_chat:
+                summary: Simple chat completion
+                value:
+                  model: "deepseek-chat"
+                  messages:
+                    - role: "user"
+                      content: "Hello! How can you help me today?"
+              with_system_message:
+                summary: Chat with system message
+                value:
+                  model: "deepseek-chat"
+                  messages:
+                    - role: "system"
+                      content: "You are a helpful assistant."
+                    - role: "user"
+                      content: "Explain quantum computing"
+                  temperature: 0.7
+                  max_tokens: 1000
+      responses:
+        '200':
+          description: OK, returns a chat completion object or streamed chunks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+              examples:
+                non_streaming:
+                  summary: Non-streaming response
+                  value:
+                    id: "930c60df-bf64-41c9-a88e-3ec75f81e00e"
+                    choices:
+                      - finish_reason: "stop"
+                        index: 0
+                        message:
+                          content: "Hello! How can I help you today?"
+                          role: "assistant"
+                    created: 1705651092
+                    model: "deepseek-chat"
+                    object: "chat.completion"
+                    usage:
+                      completion_tokens: 10
+                      prompt_tokens: 16
+                      total_tokens: 26
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionChunk'
+              examples:
+                streaming:
+                  summary: Streaming response example
+                  value: |
+                    data: {"id": "1f633d8bfc032625086f14113c411638", "choices": [{"index": 0, "delta": {"content": "", "role": "assistant"}, "finish_reason": null}], "created": 1718345013, "model": "deepseek-chat", "object": "chat.completion.chunk"}
+                    data: {"choices": [{"delta": {"content": "Hello"}, "finish_reason": null, "index": 0}], "created": 1718345013, "id": "1f633d8bfc032625086f14113c411638", "model": "deepseek-chat", "object": "chat.completion.chunk"}
+                    data: [DONE]
+
+components:
+  schemas:
+    Model:
+      type: object
+      required:
+        - id
+        - object
+        - owned_by
+      properties:
+        id:
+          type: string
+          description: The model identifier, which can be referenced in the API endpoints.
+          example: "deepseek-chat"
+        object:
+          type: string
+          enum:
+            - model
+          description: The object type, which is always "model".
+        owned_by:
+          type: string
+          description: The organization that owns the model.
+          example: "deepseek"
+
+    ChatCompletionRequest:
+      type: object
+      required:
+        - messages
+        - model
+      properties:
+        messages:
+          type: array
+          minItems: 1
+          description: A list of messages comprising the conversation so far.
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/SystemMessage'
+              - $ref: '#/components/schemas/UserMessage'
+              - $ref: '#/components/schemas/AssistantMessage'
+              - $ref: '#/components/schemas/ToolMessage'
+        model:
+          type: string
+          enum:
+            - deepseek-chat
+            - deepseek-reasoner
+          description: ID of the model to use.
+        frequency_penalty:
+          type: number
+          nullable: true
+          minimum: -2
+          maximum: 2
+          default: 0
+          description: Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far.
+        max_tokens:
+          type: integer
+          nullable: true
+          minimum: 1
+          maximum: 8192
+          default: 4096
+          description: The maximum number of tokens that can be generated in the chat completion.
+        presence_penalty:
+          type: number
+          nullable: true
+          minimum: -2
+          maximum: 2
+          default: 0
+          description: Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far.
+        response_format:
+          type: object
+          nullable: true
+          description: An object specifying the format that the model must output.
+          properties:
+            type:
+              type: string
+              enum:
+                - text
+                - json_object
+              default: text
+              description: Must be one of text or json_object.
+        stop:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+              maxItems: 16
+          nullable: true
+          description: Up to 16 sequences where the API will stop generating further tokens.
+        stream:
+          type: boolean
+          nullable: true
+          description: If set, partial message deltas will be sent as server-sent events.
+        stream_options:
+          type: object
+          nullable: true
+          description: "Options for streaming response. Only set this when you set stream: true."
+          properties:
+            include_usage:
+              type: boolean
+              description: If set, an additional chunk will be streamed before the data:[DONE] message with usage statistics.
+        temperature:
+          type: number
+          nullable: true
+          maximum: 2
+          default: 1
+          description: What sampling temperature to use, between 0 and 2.
+        top_p:
+          type: number
+          nullable: true
+          maximum: 1
+          default: 1
+          description: An alternative to sampling with temperature, called nucleus sampling.
+        tools:
+          type: array
+          nullable: true
+          maxItems: 128
+          description: A list of tools the model may call. Currently, only functions are supported.
+          items:
+            $ref: '#/components/schemas/Tool'
+        tool_choice:
+          oneOf:
+            - type: string
+              enum:
+                - none
+                - auto
+                - required
+            - $ref: '#/components/schemas/NamedToolChoice'
+          nullable: true
+          description: Controls which (if any) tool is called by the model.
+        logprobs:
+          type: boolean
+          nullable: true
+          description: Whether to return log probabilities of the output tokens.
+        top_logprobs:
+          type: integer
+          nullable: true
+          maximum: 20
+          description: An integer between 0 and 20 specifying the number of most likely tokens to return.
+
+    SystemMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum:
+            - system
+          description: The role of the messages author, in this case system.
+        content:
+          type: string
+          description: The contents of the system message.
+        name:
+          type: string
+          description: An optional name for the participant.
+
+    UserMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum:
+            - user
+          description: The role of the messages author, in this case user.
+        content:
+          type: string
+          description: The contents of the user message.
+        name:
+          type: string
+          description: An optional name for the participant.
+
+    AssistantMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum:
+            - assistant
+          description: The role of the messages author, in this case assistant.
+        content:
+          type: string
+          nullable: true
+          description: The contents of the assistant message.
+        name:
+          type: string
+          description: An optional name for the participant.
+        prefix:
+          type: boolean
+          description: (Beta) Set this to true to force the model to start its answer by the content of the supplied prefix.
+        reasoning_content:
+          type: string
+          nullable: true
+          description: (Beta) Used for the deepseek-reasoner model in the Chat Prefix Completion feature.
+
+    ToolMessage:
+      type: object
+      required:
+        - role
+        - content
+        - tool_call_id
+      properties:
+        role:
+          type: string
+          enum:
+            - tool
+          description: The role of the messages author, in this case tool.
+        content:
+          type: string
+          description: The contents of the tool message.
+        tool_call_id:
+          type: string
+          description: Tool call that this message is responding to.
+
+    Tool:
+      type: object
+      required:
+        - type
+        - function
+      properties:
+        type:
+          type: string
+          enum:
+            - function
+          description: The type of the tool. Currently, only function is supported.
+        function:
+          $ref: '#/components/schemas/Function'
+
+    Function:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+
+          description: The name of the function to be called.
+        description:
+          type: string
+          description: A description of what the function does.
+        parameters:
+          type: object
+          description: The parameters the functions accepts, described as a JSON Schema object.
+          additionalProperties: true
+        strict:
+          type: boolean
+          default: false
+          description: If set to true, the API will use strict-mode for the function calling.
+
+    NamedToolChoice:
+      type: object
+      required:
+        - type
+        - function
+      properties:
+        type:
+          type: string
+          enum:
+            - function
+          description: The type of the tool.
+        function:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: The name of the function to call.
+
+    ChatCompletionResponse:
+      type: object
+      required:
+        - id
+        - choices
+        - created
+        - model
+        - system_fingerprint
+        - object
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the chat completion.
+        choices:
+          type: array
+          description: A list of chat completion choices.
+          items:
+            $ref: '#/components/schemas/ChatCompletionChoice'
+        created:
+          type: integer
+          description: The Unix timestamp (in seconds) of when the chat completion was created.
+        model:
+          type: string
+          description: The model used for the chat completion.
+        system_fingerprint:
+          type: string
+          description: This fingerprint represents the backend configuration that the model runs with.
+        object:
+          type: string
+          enum:
+            - chat.completion
+          description: The object type, which is always chat.completion.
+        usage:
+          $ref: '#/components/schemas/Usage'
+
+    ChatCompletionChoice:
+      type: object
+      required:
+        - finish_reason
+        - index
+        - message
+        - logprobs
+      properties:
+        finish_reason:
+          type: string
+          enum:
+            - stop
+            - length
+            - content_filter
+            - tool_calls
+            - insufficient_system_resource
+          description: The reason the model stopped generating tokens.
+        index:
+          type: integer
+          description: The index of the choice in the list of choices.
+        message:
+          $ref: '#/components/schemas/ChatCompletionResponseMessage'
+        logprobs:
+          $ref: '#/components/schemas/LogProbs'
+          nullable: true
+
+    ChatCompletionResponseMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum:
+            - assistant
+          description: The role of the author of this message.
+        content:
+          type: string
+          nullable: true
+          description: The contents of the message.
+        reasoning_content:
+          type: string
+          nullable: true
+          description: For deepseek-reasoner model only. The reasoning contents of the assistant message.
+        tool_calls:
+          type: array
+          description: The tool calls generated by the model.
+          items:
+            $ref: '#/components/schemas/ToolCall'
+
+    ToolCall:
+      type: object
+      required:
+        - id
+        - type
+        - function
+      properties:
+        id:
+          type: string
+          description: The ID of the tool call.
+        type:
+          type: string
+          enum:
+            - function
+          description: The type of the tool.
+        function:
+          $ref: '#/components/schemas/FunctionCall'
+
+    FunctionCall:
+      type: object
+      required:
+        - name
+        - arguments
+      properties:
+        name:
+          type: string
+          description: The name of the function to call.
+        arguments:
+          type: string
+          description: The arguments to call the function with, as generated by the model in JSON format.
+
+    Usage:
+      type: object
+      required:
+        - completion_tokens
+        - prompt_tokens
+        - prompt_cache_hit_tokens
+        - prompt_cache_miss_tokens
+        - total_tokens
+      properties:
+        completion_tokens:
+          type: integer
+          description: Number of tokens in the generated completion.
+        prompt_tokens:
+          type: integer
+          description: Number of tokens in the prompt.
+        prompt_cache_hit_tokens:
+          type: integer
+          description: Number of tokens in the prompt that hits the context cache.
+        prompt_cache_miss_tokens:
+          type: integer
+          description: Number of tokens in the prompt that misses the context cache.
+        total_tokens:
+          type: integer
+          description: Total number of tokens used in the request (prompt + completion).
+        completion_tokens_details:
+          $ref: '#/components/schemas/CompletionTokensDetails'
+
+    CompletionTokensDetails:
+      type: object
+      properties:
+        reasoning_tokens:
+          type: integer
+          description: Tokens generated by the model for reasoning.
+
+    LogProbs:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: array
+          nullable: true
+          description: A list of message content tokens with log probability information.
+          items:
+            $ref: '#/components/schemas/LogProbsContent'
+
+    LogProbsContent:
+      type: object
+      required:
+        - token
+        - logprob
+        - bytes
+        - top_logprobs
+      properties:
+        token:
+          type: string
+          description: The token.
+        logprob:
+          type: number
+          description: The log probability of this token.
+        bytes:
+          type: array
+          nullable: true
+          items:
+            type: integer
+          description: A list of integers representing the UTF-8 bytes representation of the token.
+        top_logprobs:
+          type: array
+          description: List of the most likely tokens and their log probability.
+          items:
+            $ref: '#/components/schemas/TopLogProb'
+
+    TopLogProb:
+      type: object
+      required:
+        - token
+        - logprob
+        - bytes
+      properties:
+        token:
+          type: string
+          description: The token.
+        logprob:
+          type: number
+          description: The log probability of this token.
+        bytes:
+          type: array
+          nullable: true
+          items:
+            type: integer
+          description: A list of integers representing the UTF-8 bytes representation of the token.
+
+    ChatCompletionChunk:
+      type: object
+      required:
+        - id
+        - choices
+        - created
+        - model
+        - system_fingerprint
+        - object
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the chat completion. Each chunk has the same ID.
+        choices:
+          type: array
+          description: A list of chat completion choices.
+          items:
+            $ref: '#/components/schemas/ChatCompletionChunkChoice'
+        created:
+          type: integer
+          description: The Unix timestamp (in seconds) of when the chat completion was created.
+        model:
+          type: string
+          description: The model to generate the completion.
+        system_fingerprint:
+          type: string
+          description: This fingerprint represents the backend configuration that the model runs with.
+        object:
+          type: string
+          enum:
+            - chat.completion.chunk
+          description: The object type, which is always chat.completion.chunk.
+
+    ChatCompletionChunkChoice:
+      type: object
+      required:
+        - delta
+        - finish_reason
+        - index
+      properties:
+        delta:
+          $ref: '#/components/schemas/ChatCompletionDelta'
+        finish_reason:
+          type: string
+          nullable: true
+          enum:
+            - stop
+            - length
+            - content_filter
+            - tool_calls
+            - insufficient_system_resource
+          description: The reason the model stopped generating tokens.
+        index:
+          type: integer
+          description: The index of the choice in the list of choices.
+
+    ChatCompletionDelta:
+      type: object
+      properties:
+        content:
+          type: string
+          nullable: true
+          description: The contents of the chunk message.
+        reasoning_content:
+          type: string
+          nullable: true
+          description: For deepseek-reasoner model only. The reasoning contents of the assistant message.
+        role:
+          type: string
+          enum:
+            - assistant
+          description: The role of the author of this message.
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

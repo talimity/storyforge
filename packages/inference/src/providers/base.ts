@@ -1,87 +1,66 @@
-import type { TextInferenceCapabilities } from "../types";
-
-export interface ChatMessage {
-  role: "system" | "user" | "assistant" | "tool";
-  content: string;
-}
-
-export interface ChatCompletionRequest {
-  messages: ChatMessage[];
-  model: string;
-  temperature?: number;
-  topP?: number;
-  topK?: number;
-  maxTokens?: number;
-  presencePenalty?: number;
-  frequencyPenalty?: number;
-  stop?: string[];
-  seed?: number;
-  responseFormat?: "text" | { type: "json_schema"; schema: object } | "json";
-  usePrefill?: boolean;
-}
-
-export interface ChatCompletionResponse {
-  message: ChatMessage;
-  metadata?: Record<string, unknown>;
-}
-
-export interface ChatCompletionChunk {
-  delta?: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface ModelSearchResult {
-  id: string;
-  name?: string;
-  description?: string;
-  contextLength?: number;
-  tags?: string[];
-}
-
-export interface ProviderAuth {
-  apiKey?: string;
-  orgId?: string;
-  extraHeaders?: Record<string, string>;
-}
+import { preflightPrefill } from "../preflights";
+import type {
+  ChatCompletionChunk,
+  ChatCompletionRequest,
+  ChatCompletionResponse,
+  ProviderAuth,
+  ProviderModelSearchResult,
+  TextInferenceCapabilities,
+  TextInferenceGenParams,
+} from "../types";
 
 export abstract class ProviderAdapter {
   abstract readonly kind: string;
 
-  constructor(
+  protected constructor(
     protected auth: ProviderAuth,
     protected baseUrl?: string
   ) {}
 
   abstract defaultCapabilities(): TextInferenceCapabilities;
 
-  abstract supportedParams(): Array<keyof ChatCompletionRequest>;
+  abstract supportedParams(): Array<keyof TextInferenceGenParams>;
 
+  /**
+   * Abstract method to complete a chat request.
+   * @param request The chat completion request.
+   * @returns A promise that resolves to the chat completion response.
+   */
   abstract complete(
     request: ChatCompletionRequest
   ): Promise<ChatCompletionResponse>;
 
+  /**
+   * Abstract method to complete a chat request with streaming support.
+   * @param request The chat completion request.
+   */
   abstract completeStream(
     request: ChatCompletionRequest
-  ): AsyncIterable<ChatCompletionChunk>;
+  ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse>;
 
   abstract renderPrompt(request: ChatCompletionRequest): string;
 
-  async searchModels(_query?: string): Promise<ModelSearchResult[]> {
-    // Default implementation returns empty array
-    // Providers can override to implement actual search
+  async searchModels(_query?: string): Promise<ProviderModelSearchResult[]> {
     return [];
   }
 
-  protected validateRequest(
+  /**
+   * Run preflight checks on the request against the provider's capabilities.
+   * Returns relevant metadata for request transformation.
+   */
+  protected preflight(
     request: ChatCompletionRequest,
     capabilities: TextInferenceCapabilities
-  ): void {
-    // Check if prefill is requested but not supported
-    if (request.usePrefill && !capabilities.assistantPrefill) {
-      throw new Error("Assistant prefill is not supported by this provider");
+  ) {
+    const prefill = preflightPrefill(request, capabilities);
+    // TODO: add more validation based on capabilities
+    // ...
+
+    if (!prefill.ok) {
+      throw new Error(`Request validation failed: ${prefill.reason}`);
     }
 
-    // Additional validation can be added here
+    return { prefillMode: prefill.prefillMode };
   }
 
   protected getHeaders(): Record<string, string> {
@@ -89,6 +68,8 @@ export abstract class ProviderAdapter {
       "Content-Type": "application/json",
     };
 
+    // TODO: some providers do not use Bearer authentication (e.g. Anthropic
+    // uses "x-api-key" header instead) so this needs to be provider-specific
     if (this.auth.apiKey) {
       headers.Authorization = `Bearer ${this.auth.apiKey}`;
     }

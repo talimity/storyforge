@@ -1,23 +1,18 @@
-import type { ProviderAdapter, ProviderAuth } from "./providers/base";
-import { DeepSeekAdapter } from "./providers/deepseek";
+import type { ProviderAdapter } from "./providers/base";
+
+import { DeepseekAdapter } from "./providers/deepseek";
+import { MockAdapter } from "./providers/mock";
 import { OpenAICompatibleAdapter } from "./providers/openai-compatible";
 import { OpenRouterAdapter } from "./providers/openrouter";
-import type { TextInferenceCapabilities } from "./types";
-
-export interface ProviderConfig {
-  kind: "openrouter" | "deepseek" | "openai-compatible";
-  auth: ProviderAuth;
-  baseUrl?: string;
-  capabilities?: Partial<TextInferenceCapabilities>;
-}
+import type { ProviderConfig, TextInferenceCapabilities } from "./types";
 
 export function createAdapter(config: ProviderConfig): ProviderAdapter {
   switch (config.kind) {
+    case "deepseek":
+      return new DeepseekAdapter(config.auth, config.baseUrl);
+
     case "openrouter":
       return new OpenRouterAdapter(config.auth);
-
-    case "deepseek":
-      return new DeepSeekAdapter(config.auth);
 
     case "openai-compatible":
       if (!config.baseUrl) {
@@ -26,8 +21,12 @@ export function createAdapter(config: ProviderConfig): ProviderAdapter {
       return new OpenAICompatibleAdapter(
         config.auth,
         config.baseUrl,
-        config.capabilities
+        config.capabilities,
+        config.genParams
       );
+
+    case "mock":
+      return new MockAdapter(config.auth);
 
     default:
       throw new Error(`Unknown provider kind: ${config.kind}`);
@@ -38,21 +37,23 @@ export function getDefaultCapabilities(
   kind: string
 ): TextInferenceCapabilities {
   switch (kind) {
+    case "deepseek":
+      return new DeepseekAdapter({ apiKey: "" }).defaultCapabilities();
+
     case "openrouter":
       return new OpenRouterAdapter({ apiKey: "" }).defaultCapabilities();
-
-    case "deepseek":
-      return new DeepSeekAdapter({ apiKey: "" }).defaultCapabilities();
 
     case "openai-compatible":
       // Return conservative defaults for generic OpenAI-compatible
       return {
         streaming: true,
-        assistantPrefill: false,
-        logprobs: false,
+        assistantPrefill: "explicit",
         tools: false,
         fim: false,
       };
+
+    case "mock":
+      return new MockAdapter({ apiKey: "" }).defaultCapabilities();
 
     default:
       throw new Error(`Unknown provider kind: ${kind}`);

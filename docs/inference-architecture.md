@@ -74,8 +74,6 @@ export type TextInferenceCapabilities = {
   streaming: boolean;
   /** Whether the assistant message can be prefilled to guide generation. */
   assistantPrefill: boolean;
-  /** Whether logprobs can be requested for generated tokens. */
-  logprobs: boolean;
   /** Whether tool use is supported. */
   tools: boolean;
 
@@ -88,13 +86,18 @@ export type TextInferenceCapabilities = {
 * Built-in providers will have Capabilities hard-coded (according to whatever the built-in adapter implements).
 * OpenAI-compatible's adapter will be more flexible, so its capabilities are declared in the schema and toggleable in the UI.
 * Model Profiles can **override** any of these when a specific model differs (e.g. OpenRouter's API interface can do everything, but some of its models won't return logprobs).
+* If a feature is not REQUIRED for a workflow step to succeed (ie. top K sampling), it should not be modeled as a capability. Only things that are absolutely required for the request to succeed (streaming, tools, prefill) should be modeled as capabilities.
+  * TextInferenceGenParams can be used to model optional parameters like `topK`, `topP`, `temperature`, etc.
+  * Logprobs are not modeled as a capability because it tends to be a quirky feature that does not work consistently across providers and models even when they claim to support it. All features that want to use logprobs need to degrade gracefully if logprobs are not available (at the request level, or even individual tokens).
 
 ### 2.4 Standard Chat Request/Response
 
 The application talks only in this shape.
 
+See the `packages/inference/src/types.ts` file for the full definitions.
+
 ```ts
-export type ChatCompletionsMessage = {
+export type ChatCompletionMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string; // multimodal can be a future extension
 };
@@ -112,8 +115,8 @@ export type ToolCall = {
   id?: string;    // to correlate
 };
 
-export type ChatCompletionsRequest = {
-  messages: ChatCompletionsMessage[];
+export type ChatCompletionRequest = {
+  messages: ChatCompletionMessage[];
   tools?: ToolDef[];
   toolChoice?: 'auto' | { name: string } | 'none';
   responseFormat?: 'text' | { type: 'json_schema', schema: object } | 'json';
@@ -123,14 +126,14 @@ export type ChatCompletionsRequest = {
   usePrefill: boolean; // some providers automatically prefill the assistant response if the final message is an assistant message, but some need a hint (and some do not support it)
 };
 
-export type ChatCompletionsChunk = {
+export type ChatCompletionChunk = {
   delta?: string;                     // streaming text delta
   toolCallDelta?: Partial<ToolCall>;  // streaming tool-call
   metadata?: Record<string, unknown>; // metadata to merge
 };
 
-export type ChatCompletionsResponse = {
-  message: ChatCompletionsMessage;
+export type ChatCompletionResponse = {
+  message: ChatCompletionMessage;
   toolCalls?: ToolCall[];
   metadata?: Record<string, unknown>; // `_prompt` key contains the exact rendered prompt as sent to the API
 }
@@ -145,7 +148,6 @@ export interface ProviderAdapter {
   kind: ProviderKind;
   // Introspection
   defaultCapabilities(): TextInferenceCapabilities;
-  supportedParams(): Array<keyof TextInferenceGenParams>; // e.g., temperature, topP, maxTokens
 
   // Optional
   searchModels?(query: string, auth: Auth, baseUrl?: string): Promise<Array<{id: string, label?: string, tags?: string[]}>>;
@@ -154,31 +156,31 @@ export interface ProviderAdapter {
   complete(
     config: ProviderConfig,
     modelId: string,
-    request: ChatCompletionsRequest,
-  ): Promise<ChatCompletionsResponse>;
+    request: ChatCompletionRequest,
+  ): Promise<ChatCompletionResponse>;
   
   completeStream(
     config: ProviderConfig,
     modelId: string,
-    request: ChatCompletionsRequest,
-  ): AsyncIterable<ChatCompletionsChunk, ChatCompletionsResponse>
+    request: ChatCompletionRequest,
+  ): AsyncIterable<ChatCompletionChunk, ChatCompletionResponse>
 
   // Returns the exact JSON payload the adapter would send for a given completion request, for troubleshooting and testing workflows
   renderPrompt(
     config: ProviderConfig,
     modelId: string,
-    request: ChatCompletionsRequest,
+    request: ChatCompletionRequest,
   ): string
 }
 ```
 
 ### 2.6 Prompt Templates
 
-The prompt templating and rendering system is handled by a separate package (`prompt-rendering`) and is not part of the provider architecture. Given a workflow task context (inputs) and a template it returns `ChatCompletionsMessage[]` that the provider adapter can send to the API.
+The prompt templating and rendering system is handled by a separate package (`prompt-rendering`) and is not part of the provider architecture. Given a workflow task context (inputs) and a template it returns `ChatCompletionMessage[]` that the provider adapter can send to the API.
 
 **Notes**
 
-* `completeStream` implementations should accumulate chunks internally as they yield them, so that they can construct a `ChatCompletionsResponse` and return that.
+* `completeStream` implementations should accumulate chunks internally as they yield them, so that they can construct a `ChatCompletionResponse` and return that.
 * Each provider implements its own quirks as a 'post-processing' step. That means merging duplicated consecutive roles (user->user->assistant), stripping `system` role messages and adding a `systemPrompt` if the API requires a top-level system prompt, etc.
 * We might eventually add a way to let generic `openai-compatible` provider dynamically apply certain quirks transformations, based on enabled quirks. This is a specific behavior of the generic openai-compatible adapater, not the built-in adapters for specific providers.
 
@@ -276,7 +278,7 @@ export type Step = {
 
 ### 4.2 Prompt Templates
 
-* Handled by `prompt-rendering` package as a separate concern. Accepts a `PromptTemplate` and a task context object and returns `ChatCompletionsMessage[]`, but has no knowledge of workflows, models, capabilities, or providers.
+* Handled by `prompt-rendering` package as a separate concern. Accepts a `PromptTemplate` and a task context object and returns `ChatCompletionMessage[]`, but has no knowledge of workflows, models, capabilities, or providers.
 
 ### 4.3 Example Workflows
 

@@ -1,196 +1,105 @@
-import type { TextInferenceCapabilities } from "../types";
-import {
-  type ChatCompletionChunk,
-  type ChatCompletionRequest,
-  type ChatCompletionResponse,
-  type ModelSearchResult,
-  ProviderAdapter,
-  type ProviderAuth,
-} from "./base";
+import type {
+  ChatCompletionRequest,
+  ChatCompletionResponse,
+  ProviderAuth,
+  TextInferenceCapabilities,
+  TextInferenceGenParams,
+} from "../types";
+import { ProviderAdapter } from "./base";
 
-interface OpenAIMessage {
+interface OpenAICompatibleMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-interface OpenAIRequest {
+interface OpenAICompatibleRequest {
   model: string;
-  messages: OpenAIMessage[];
+  messages: OpenAICompatibleMessage[];
   temperature?: number;
   top_p?: number;
   max_tokens?: number;
   presence_penalty?: number;
   frequency_penalty?: number;
   stop?: string[];
-  seed?: number;
   stream?: boolean;
 }
 
-interface OpenAIResponse {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: Array<{
-    index: number;
-    message: {
-      role: string;
-      content: string;
-    };
-    finish_reason: string;
-  }>;
-  usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
-
-interface OpenAIModel {
-  id: string;
-  object: string;
-  created: number;
-  owned_by: string;
-}
+// interface OpenAICompatibleResponse {
+//   id: string;
+//   object: string;
+//   created: number;
+//   model: string;
+//   choices: Array<{
+//     index: number;
+//     message: {
+//       role: string;
+//       content: string;
+//     };
+//     finish_reason: string;
+//   }>;
+//   usage?: {
+//     prompt_tokens: number;
+//     completion_tokens: number;
+//     total_tokens: number;
+//   };
+// }
 
 export class OpenAICompatibleAdapter extends ProviderAdapter {
   readonly kind = "openai-compatible";
-  private capabilities: TextInferenceCapabilities;
+  private readonly capabilities: TextInferenceCapabilities;
+  private readonly genParams: Array<keyof TextInferenceGenParams>;
 
   constructor(
     auth: ProviderAuth,
     baseUrl: string,
-    capabilities?: Partial<TextInferenceCapabilities>
+    capabilities?: Partial<TextInferenceCapabilities>,
+    genParams?: Array<keyof TextInferenceGenParams>
   ) {
     super(auth, baseUrl);
 
     // Default capabilities that can be overridden
     this.capabilities = {
       streaming: true,
-      assistantPrefill: false,
-      logprobs: false,
+      assistantPrefill: "explicit",
       tools: false,
       fim: false,
       ...capabilities,
     };
+
+    // Default generation parameters that can be overridden
+    this.genParams = genParams || [
+      "temperature",
+      "topP",
+      "topK",
+      "presencePenalty",
+      "frequencyPenalty",
+      "topLogprobs",
+    ];
+
+    // TODO: openai-compatible needs a way to customize parameter mapping, since
+    // each implementation may differ slightly especially for parameters that
+    // are not in the OpenAI spec (e.g. topK).
   }
 
   defaultCapabilities(): TextInferenceCapabilities {
     return this.capabilities;
   }
 
-  supportedParams(): Array<keyof ChatCompletionRequest> {
-    // Most OpenAI-compatible APIs support these parameters
-    return [
-      "messages",
-      "model",
-      "temperature",
-      "topP",
-      "maxTokens",
-      "presencePenalty",
-      "frequencyPenalty",
-      "stop",
-      "seed",
-    ];
+  supportedParams(): Array<keyof TextInferenceGenParams> {
+    return this.genParams;
   }
 
   async complete(
-    request: ChatCompletionRequest
+    _request: ChatCompletionRequest
   ): Promise<ChatCompletionResponse> {
-    this.validateRequest(request, this.capabilities);
-
-    if (!this.baseUrl) {
-      throw new Error("Base URL is required for OpenAI-compatible provider");
-    }
-
-    const openAIRequest = this.transformRequest(request, false);
-
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify(openAIRequest),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI-compatible API error: ${error}`);
-    }
-
-    const data: OpenAIResponse = await response.json();
-
-    return {
-      message: {
-        role: "assistant",
-        content: data.choices[0]?.message.content || "",
-      },
-      metadata: {
-        model: data.model,
-        usage: data.usage,
-      },
-    };
+    throw new Error("OpenAI-compatible completion not implemented yet");
   }
 
-  async *completeStream(
-    request: ChatCompletionRequest
-  ): AsyncIterable<ChatCompletionChunk> {
-    this.validateRequest(request, this.capabilities);
-
-    if (!this.baseUrl) {
-      throw new Error("Base URL is required for OpenAI-compatible provider");
-    }
-
-    const openAIRequest = this.transformRequest(request, true);
-
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify(openAIRequest),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI-compatible API error: ${error}`);
-    }
-
-    if (!response.body) {
-      throw new Error("No response body from OpenAI-compatible API");
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") {
-              return;
-            }
-
-            try {
-              const chunk = JSON.parse(data);
-              const delta = chunk.choices?.[0]?.delta?.content;
-              if (delta) {
-                yield { delta };
-              }
-            } catch {
-              // Skip invalid JSON
-            }
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
+  async *completeStream(_request: ChatCompletionRequest) {
+    // biome-ignore lint/suspicious/noExplicitAny: NYI
+    yield [] as any;
+    // biome-ignore lint/suspicious/noExplicitAny: NYI
+    return {} as any;
   }
 
   renderPrompt(request: ChatCompletionRequest): string {
@@ -198,7 +107,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
     return JSON.stringify(transformed, null, 2);
   }
 
-  override async searchModels(query?: string): Promise<ModelSearchResult[]> {
+  override async searchModels(query?: string) {
     if (!this.baseUrl) {
       return [];
     }
@@ -217,7 +126,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
       }
 
       const data = await response.json();
-      const models: OpenAIModel[] = data.data || [];
+      const models: { id: string }[] = data.data || [];
 
       let filtered = models;
       if (query) {
@@ -230,7 +139,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
       return filtered.map((m) => ({
         id: m.id,
         name: m.id,
-        description: `Owned by ${m.owned_by}`,
+        description: m.id,
         tags: [],
       }));
     } catch {
@@ -240,42 +149,11 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
   }
 
   private transformRequest(
-    request: ChatCompletionRequest,
-    stream: boolean
-  ): OpenAIRequest {
-    // Handle assistant prefill if supported
-    let messages = request.messages;
-    if (request.usePrefill && this.capabilities.assistantPrefill) {
-      // Some OpenAI-compatible APIs might support assistant messages
-      // This would need to be configured per provider
-    } else if (request.usePrefill && messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === "assistant") {
-        // Convert to user message if prefill not supported
-        messages = [
-          ...messages.slice(0, -1),
-          {
-            role: "user",
-            content: `Continue from: "${lastMessage.content}"`,
-          },
-        ];
-      }
-    }
-
-    return {
-      model: request.model,
-      messages: messages.map((m) => ({
-        role: m.role === "tool" ? "assistant" : m.role,
-        content: m.content,
-      })),
-      temperature: request.temperature,
-      top_p: request.topP,
-      max_tokens: request.maxTokens,
-      presence_penalty: request.presencePenalty,
-      frequency_penalty: request.frequencyPenalty,
-      stop: request.stop,
-      seed: request.seed,
-      stream,
-    };
+    _request: ChatCompletionRequest,
+    _stream: boolean
+  ): OpenAICompatibleRequest {
+    throw new Error(
+      "OpenAI-compatible request transformation not implemented yet"
+    );
   }
 }

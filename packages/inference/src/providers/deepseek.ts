@@ -1,42 +1,143 @@
-import type { TextInferenceCapabilities } from "../types";
-import {
-  type ChatCompletionChunk,
-  type ChatCompletionRequest,
-  type ChatCompletionResponse,
-  type ModelSearchResult,
-  ProviderAdapter,
-  type ProviderAuth,
-} from "./base";
+import { InferenceProviderError } from "../errors";
+import { mergeConsecutiveRoles } from "../transforms";
+import type {
+  ChatCompletionChunk,
+  ChatCompletionFinishReason,
+  ChatCompletionRequest,
+  ChatCompletionResponse,
+  ProviderAuth,
+  ProviderModelSearchResult,
+  TextInferenceCapabilities,
+  TextInferenceGenParams,
+} from "../types";
+import { ProviderAdapter } from "./base";
 
-interface DeepSeekMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
+// Deepseek-specific types based on the OpenAPI spec
+interface DeepseekMessage {
+  role: "system" | "user" | "assistant" | "tool";
+  content: string | null;
+  name?: string;
+  prefix?: boolean; // For assistant messages: force model to start with this content
+  reasoning_content?: string | null; // For deepseek-reasoner model
+  tool_call_id?: string; // For tool messages
+  tool_calls?: Array<{
+    id: string;
+    type: "function";
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>;
 }
 
-interface DeepSeekRequest {
+interface DeepseekRequest {
   model: string;
-  messages: DeepSeekMessage[];
+  messages: DeepseekMessage[];
   temperature?: number;
   top_p?: number;
   max_tokens?: number;
   presence_penalty?: number;
   frequency_penalty?: number;
-  stop?: string[];
+  stop?: string | string[];
   stream?: boolean;
+  stream_options?: {
+    include_usage?: boolean;
+  };
+  logprobs?: boolean;
+  top_logprobs?: number;
+  response_format?: {
+    type: "text" | "json_object";
+  };
+  seed?: number;
+  // Tool use (not implemented yet)
+  tools?: Array<{
+    type: "function";
+    function: {
+      name: string;
+      description?: string;
+      parameters?: object;
+      strict?: boolean;
+    };
+  }>;
+  tool_choice?:
+    | "none"
+    | "auto"
+    | "required"
+    | { type: "function"; function: { name: string } };
 }
 
-interface DeepSeekResponse {
+interface DeepseekResponse {
   id: string;
-  object: string;
+  object: "chat.completion";
   created: number;
   model: string;
+  system_fingerprint: string;
   choices: Array<{
     index: number;
     message: {
-      role: string;
-      content: string;
+      role: "assistant";
+      content: string | null;
+      reasoning_content?: string | null;
+      tool_calls?: Array<{
+        id: string;
+        type: "function";
+        function: {
+          name: string;
+          arguments: string;
+        };
+      }>;
     };
-    finish_reason: string;
+    finish_reason:
+      | "stop"
+      | "length"
+      | "content_filter"
+      | "tool_calls"
+      | "insufficient_system_resource";
+    logprobs?: {
+      content: Array<{
+        token: string;
+        logprob: number;
+        bytes: number[] | null;
+        top_logprobs: Array<{
+          token: string;
+          logprob: number;
+          bytes: number[] | null;
+        }>;
+      }> | null;
+    };
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+    prompt_cache_hit_tokens?: number;
+    prompt_cache_miss_tokens?: number;
+    completion_tokens_details?: {
+      reasoning_tokens?: number;
+    };
+  };
+}
+
+interface DeepseekStreamChunk {
+  id: string;
+  object: "chat.completion.chunk";
+  created: number;
+  model: string;
+  system_fingerprint: string;
+  choices: Array<{
+    index: number;
+    delta: {
+      role?: "assistant";
+      content?: string | null;
+      reasoning_content?: string | null;
+    };
+    finish_reason?:
+      | "stop"
+      | "length"
+      | "content_filter"
+      | "tool_calls"
+      | "insufficient_system_resource"
+      | null;
   }>;
   usage?: {
     prompt_tokens: number;
@@ -45,59 +146,42 @@ interface DeepSeekResponse {
   };
 }
 
-// Hardcoded list of DeepSeek models
-const DEEPSEEK_MODELS: ModelSearchResult[] = [
-  {
-    id: "deepseek-chat",
-    name: "DeepSeek Chat",
-    description: "Advanced conversational AI model optimized for dialogue",
-    contextLength: 128000,
-    tags: ["chat", "general"],
-  },
-  {
-    id: "deepseek-reasoner",
-    name: "DeepSeek Reasoner",
-    description: "Model optimized for complex reasoning and problem-solving",
-    contextLength: 128000,
-    tags: ["reasoning", "analysis"],
-  },
-  {
-    id: "deepseek-coder",
-    name: "DeepSeek Coder",
-    description: "Specialized model for code generation and understanding",
-    contextLength: 128000,
-    tags: ["code", "programming"],
-  },
-];
+interface DeepseekModelObject {
+  id: string;
+  object: "model";
+  owned_by: string;
+}
 
-export class DeepSeekAdapter extends ProviderAdapter {
+interface DeepseekModelsResponse {
+  object: "list";
+  data: DeepseekModelObject[];
+}
+
+export class DeepseekAdapter extends ProviderAdapter {
   readonly kind = "deepseek";
-  private readonly apiUrl = "https://api.deepseek.com/v1";
+  private readonly apiUrl: string;
 
-  constructor(auth: ProviderAuth) {
-    super(auth, "https://api.deepseek.com/v1");
+  constructor(auth: ProviderAuth, baseUrl = "https://api.deepseek.com") {
+    super(auth, baseUrl);
+    this.apiUrl = baseUrl;
   }
 
   defaultCapabilities(): TextInferenceCapabilities {
     return {
       streaming: true,
-      assistantPrefill: false,
-      logprobs: false,
-      tools: false,
+      assistantPrefill: "explicit", // Uses the 'prefix' flag
+      tools: true,
       fim: false,
     };
   }
 
-  supportedParams(): Array<keyof ChatCompletionRequest> {
+  supportedParams(): Array<keyof TextInferenceGenParams> {
     return [
-      "messages",
-      "model",
       "temperature",
       "topP",
-      "maxTokens",
       "presencePenalty",
       "frequencyPenalty",
-      "stop",
+      "topLogprobs",
     ];
   }
 
@@ -105,86 +189,136 @@ export class DeepSeekAdapter extends ProviderAdapter {
     request: ChatCompletionRequest
   ): Promise<ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
-    this.validateRequest(request, capabilities);
+    const { prefillMode } = this.preflight(request, capabilities);
 
-    const deepSeekRequest = this.transformRequest(request, false);
+    const deepseekRequest = this.transformRequest(request, false, prefillMode);
 
     const response = await fetch(`${this.apiUrl}/chat/completions`, {
       method: "POST",
       headers: this.getHeaders(),
-      body: JSON.stringify(deepSeekRequest),
+      body: JSON.stringify(deepseekRequest),
+      signal: request.signal,
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`DeepSeek API error: ${error}`);
+      await this.handleErrorResponse(response);
     }
 
-    const data: DeepSeekResponse = await response.json();
+    const data: DeepseekResponse = await response.json();
+    const result = this.transformResponse(data);
 
-    return {
-      message: {
-        role: "assistant",
-        content: data.choices[0]?.message.content || "",
-      },
-      metadata: {
-        model: data.model,
-        usage: data.usage,
-      },
-    };
+    // Add debug metadata with the exact request sent
+    result.metadata = { ...result.metadata, _prompt: deepseekRequest };
+
+    return result;
   }
 
   async *completeStream(
     request: ChatCompletionRequest
-  ): AsyncIterable<ChatCompletionChunk> {
+  ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
-    this.validateRequest(request, capabilities);
+    const { prefillMode } = this.preflight(request, capabilities);
 
-    const deepSeekRequest = this.transformRequest(request, true);
+    const deepseekRequest = this.transformRequest(request, true, prefillMode);
+
+    // Add streaming-specific headers
+    const headers = this.getHeaders();
+    headers.Accept = "text/event-stream";
 
     const response = await fetch(`${this.apiUrl}/chat/completions`, {
       method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify(deepSeekRequest),
+      headers,
+      body: JSON.stringify(deepseekRequest),
+      signal: request.signal,
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`DeepSeek API error: ${error}`);
+      await this.handleErrorResponse(response);
     }
 
     if (!response.body) {
-      throw new Error("No response body from DeepSeek");
+      throw new InferenceProviderError("No response body from Deepseek API");
     }
+
+    let accumulatedContent = "";
+    let accumulatedReasoningContent = "";
+    let role: "assistant" | undefined;
+    let finishReason: ChatCompletionFinishReason = "stop";
+    let usageData: DeepseekStreamChunk["usage"] | undefined;
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let eventBuffer: string[] = [];
 
     try {
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+
+        if (done) {
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
         for (const line of lines) {
+          // Accumulate data lines for the current event
           if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") {
-              return;
-            }
+            eventBuffer.push(line.slice(6).trimStart());
+          } else if (line.trim() === "") {
+            // Empty line marks the end of an SSE event
+            if (eventBuffer.length > 0) {
+              const dataStr = eventBuffer.join("\n");
+              eventBuffer = [];
 
-            try {
-              const chunk = JSON.parse(data);
-              const delta = chunk.choices?.[0]?.delta?.content;
-              if (delta) {
-                yield { delta };
+              if (dataStr === "[DONE]") {
+                continue;
               }
-            } catch {
-              // Skip invalid JSON
+
+              try {
+                const chunk: DeepseekStreamChunk = JSON.parse(dataStr);
+
+                if (chunk.choices?.[0]) {
+                  const choice = chunk.choices[0];
+
+                  // Yield role if present
+                  if (choice.delta?.role) {
+                    role = choice.delta.role;
+                    yield { delta: { role } };
+                  }
+
+                  // Yield content if present
+                  if (choice.delta?.content) {
+                    accumulatedContent += choice.delta.content;
+                    yield { delta: { content: choice.delta.content } };
+                  }
+
+                  // Accumulate reasoning content if present (for deepseek-reasoner)
+                  if (choice.delta?.reasoning_content) {
+                    accumulatedReasoningContent +=
+                      choice.delta.reasoning_content;
+                    yield {
+                      delta: {
+                        reasoningContent: choice.delta.reasoning_content,
+                      },
+                    };
+                  }
+
+                  // Update finish reason if present
+                  if (choice.finish_reason) {
+                    finishReason = this.mapFinishReason(choice.finish_reason);
+                  }
+                }
+
+                // Capture usage data if present (typically in the final chunk)
+                if (chunk.usage) {
+                  usageData = chunk.usage;
+                }
+              } catch (error) {
+                console.error("Failed to parse SSE event:", error);
+              }
             }
           }
         }
@@ -192,62 +326,266 @@ export class DeepSeekAdapter extends ProviderAdapter {
     } finally {
       reader.releaseLock();
     }
+
+    // Return the final accumulated response
+    const finalResponse: ChatCompletionResponse = {
+      message: {
+        role: role || "assistant",
+        content: accumulatedContent,
+      },
+      finishReason,
+      metadata: {
+        provider: "deepseek",
+        model: request.model,
+        _prompt: deepseekRequest,
+      },
+    };
+
+    if (accumulatedReasoningContent) {
+      finalResponse.reasoningContent = accumulatedReasoningContent;
+    }
+
+    // Add usage statistics if available from streaming
+    if (usageData && finalResponse.metadata) {
+      finalResponse.metadata.usage = {
+        promptTokens: usageData.prompt_tokens,
+        completionTokens: usageData.completion_tokens,
+        totalTokens: usageData.total_tokens,
+      };
+    }
+
+    return finalResponse;
   }
 
   renderPrompt(request: ChatCompletionRequest): string {
-    const transformed = this.transformRequest(request, false);
+    const capabilities = this.defaultCapabilities();
+    const { prefillMode } = this.preflight(request, capabilities);
+    const transformed = this.transformRequest(request, false, prefillMode);
     return JSON.stringify(transformed, null, 2);
   }
 
-  override async searchModels(query?: string): Promise<ModelSearchResult[]> {
-    // Return hardcoded list, optionally filtered by query
-    if (!query) {
-      return DEEPSEEK_MODELS;
-    }
+  override async searchModels(
+    query?: string
+  ): Promise<ProviderModelSearchResult[]> {
+    try {
+      const response = await fetch(`${this.apiUrl}/models`, {
+        method: "GET",
+        headers: this.getHeaders(),
+      });
 
-    const lowerQuery = query.toLowerCase();
-    return DEEPSEEK_MODELS.filter(
-      (m) =>
-        m.id.toLowerCase().includes(lowerQuery) ||
-        m.name?.toLowerCase().includes(lowerQuery) ||
-        m.description?.toLowerCase().includes(lowerQuery) ||
-        m.tags?.some((t) => t.toLowerCase().includes(lowerQuery))
-    );
+      if (!response.ok) {
+        console.warn(
+          `Failed to fetch models from Deepseek API: ${response.status} ${response.statusText}`
+        );
+        return [];
+      }
+
+      const data: DeepseekModelsResponse = await response.json();
+
+      let models = data.data.map((model) => ({ id: model.id }));
+
+      if (query) {
+        const lowerQuery = query.toLowerCase();
+        models = models.filter((m) => m.id.toLowerCase().includes(lowerQuery));
+      }
+
+      return models;
+    } catch (error) {
+      console.warn("Failed to fetch models from Deepseek API:", error);
+      return [];
+    }
   }
 
   private transformRequest(
     request: ChatCompletionRequest,
-    stream: boolean
-  ): DeepSeekRequest {
-    // DeepSeek doesn't support assistant prefill, so we need to handle it
-    let messages = request.messages;
-    if (request.usePrefill && messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === "assistant") {
-        // Convert assistant prefill to a user message with instruction
-        messages = [
-          ...messages.slice(0, -1),
-          {
-            role: "user",
-            content: `Continue from: "${lastMessage.content}"`,
-          },
-        ];
+    stream: boolean,
+    prefillMode: "prefill" | "no-prefill"
+  ): DeepseekRequest {
+    const { model, maxTokens, genParams, stop } = request;
+
+    // Transform messages to Deepseek format
+    const mergedMessages = mergeConsecutiveRoles(request.messages);
+    const messages: DeepseekMessage[] = mergedMessages.map(
+      ({ role, content }, index) => {
+        const deepseekMsg: DeepseekMessage = { role, content };
+
+        // Handle explicit assistant prefill using the 'prefix' flag
+        if (
+          role === "assistant" &&
+          index === mergedMessages.length - 1 &&
+          prefillMode === "prefill"
+        ) {
+          deepseekMsg.prefix = true;
+        }
+
+        return deepseekMsg;
+      }
+    );
+
+    const payload: DeepseekRequest = { model, messages, stream };
+
+    // Map generation parameters
+    if (genParams) {
+      const {
+        temperature,
+        topP,
+        presencePenalty,
+        frequencyPenalty,
+        topLogprobs,
+      } = genParams;
+
+      if (temperature !== undefined) {
+        payload.temperature = Math.max(0, Math.min(2, temperature));
+      }
+
+      if (topP !== undefined) {
+        payload.top_p = Math.max(0, Math.min(1, topP));
+      }
+
+      if (presencePenalty !== undefined) {
+        payload.presence_penalty = Math.max(-2, Math.min(2, presencePenalty));
+      }
+
+      if (frequencyPenalty !== undefined) {
+        payload.frequency_penalty = Math.max(-2, Math.min(2, frequencyPenalty));
+      }
+
+      const wantsLogprobs = topLogprobs !== undefined && !stream;
+      if (wantsLogprobs) {
+        payload.logprobs = true;
+        payload.top_logprobs = Math.min(20, Number(topLogprobs));
       }
     }
 
-    return {
-      model: request.model,
-      messages: messages.map((m) => ({
-        role: m.role === "tool" ? "assistant" : m.role,
-        content: m.content,
-      })),
-      temperature: request.temperature,
-      top_p: request.topP,
-      max_tokens: request.maxTokens,
-      presence_penalty: request.presencePenalty,
-      frequency_penalty: request.frequencyPenalty,
-      stop: request.stop,
-      stream,
+    // Set max tokens
+    if (maxTokens !== undefined) {
+      payload.max_tokens = Math.min(8192, maxTokens);
+    }
+
+    // Set stop sequences (Deepseek supports up to 16)
+    if (Array.isArray(stop) && stop.length > 0) {
+      payload.stop = stop.slice(0, 16);
+    }
+
+    // Request usage stats in streaming mode
+    if (stream) {
+      payload.stream_options = { include_usage: true };
+    }
+
+    return payload;
+  }
+
+  private transformResponse(
+    response: DeepseekResponse
+  ): ChatCompletionResponse {
+    const choice = response.choices[0];
+
+    if (!choice) {
+      throw new InferenceProviderError("No choices in Deepseek response");
+    }
+
+    const result: ChatCompletionResponse = {
+      message: {
+        role: "assistant",
+        content: choice.message.content || "",
+      },
+      finishReason: this.mapFinishReason(choice.finish_reason),
+      metadata: {
+        provider: "deepseek",
+        model: response.model,
+        id: response.id,
+        created: response.created,
+      },
     };
+
+    // Include reasoning content if present (for deepseek-reasoner)
+    if (choice.message.reasoning_content) {
+      result.reasoningContent = choice.message.reasoning_content;
+    }
+
+    // Transform logprobs if present
+    if (choice.logprobs?.content) {
+      result.logprobs = choice.logprobs.content.map((lp) => ({
+        token: lp.token,
+        logprob: lp.logprob,
+        bytes: lp.bytes || undefined,
+        topLogprobs: lp.top_logprobs?.map((tlp) => ({
+          token: tlp.token,
+          logprob: tlp.logprob,
+          bytes: tlp.bytes || [],
+        })),
+      }));
+    }
+
+    // Include usage statistics if present
+    if (response.usage && result.metadata) {
+      result.metadata.usage = {
+        promptTokens: response.usage.prompt_tokens,
+        completionTokens: response.usage.completion_tokens,
+        totalTokens: response.usage.total_tokens,
+        promptCacheHitTokens: response.usage.prompt_cache_hit_tokens,
+        promptCacheMissTokens: response.usage.prompt_cache_miss_tokens,
+        reasoningTokens:
+          response.usage.completion_tokens_details?.reasoning_tokens,
+      };
+    }
+
+    return result;
+  }
+
+  private async handleErrorResponse(response: Response) {
+    const errorText = await response.text();
+    const statusCode = response.status;
+    let errorMessage = errorText || response.statusText;
+
+    // Try to extract more specific error message from JSON response
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error?.message) {
+        errorMessage = errorData.error.message;
+      }
+    } catch {
+      // Use raw text if not JSON
+    }
+
+    // Map status codes to specific error types
+    if (statusCode === 401 || statusCode === 403) {
+      throw new InferenceProviderError(`Authentication error: ${errorMessage}`);
+    }
+    if (statusCode === 429) {
+      throw new InferenceProviderError(`Rate limit exceeded: ${errorMessage}`);
+    }
+    if (statusCode === 413 || errorMessage.toLowerCase().includes("context")) {
+      throw new InferenceProviderError(`Context too large: ${errorMessage}`);
+    }
+
+    // Generic upstream error
+    throw new InferenceProviderError(
+      `Deepseek API error (${statusCode}): ${errorMessage}`
+    );
+  }
+
+  private mapFinishReason(
+    reason:
+      | "stop"
+      | "length"
+      | "content_filter"
+      | "tool_calls"
+      | "insufficient_system_resource"
+  ): ChatCompletionFinishReason {
+    switch (reason) {
+      case "stop":
+        return "stop";
+      case "length":
+        return "length";
+      case "content_filter":
+        return "content_filter";
+      case "tool_calls":
+        return "tool_use";
+      case "insufficient_system_resource":
+        return "other";
+      default:
+        return "other";
+    }
   }
 }

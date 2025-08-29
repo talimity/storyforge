@@ -54,7 +54,9 @@
 
 * **Source Registry (per TaskKind):** A resolver used by the renderer to fulfill **DataRefs**. Each task defines which sources exist and how to resolve them from that task’s context.
 
-* **Message:** `{ role: 'system'|'user'|'assistant', content: string, prefix?: boolean }`. If the final assistant message sets `prefix: true`, the caller must route to a model that supports assistant prefixing (enforced upstream).
+* **Message:** `{ role: 'system'|'user'|'assistant', content: string, prefix?: boolean }`. 
+  * ~~If the final assistant message sets `prefix: true`, the caller must route to a model that supports assistant prefixing (enforced upstream).~~
+  * Modified: this field is being dropped from the message object as it is semantically a requirement on the entire prompt, not on individual messages. Thus it will become a configuration option on the caller side (e.g., the workflow step that uses the prompt).
 
 * **Slot:** A named container that gets **filled** under budgets in **priority** order, then **inserted** at a layout position.
 
@@ -94,7 +96,7 @@ export type PromptTemplate = {
 };
 
 export type LayoutNode =
-  | { kind: 'message'; name?: string; role: ChatCompletonMessageRole; content?: string; from?: DataRef; prefix?: boolean }
+  | { kind: 'message'; name?: string; role: ChatCompletonMessageRole; content?: string; from?: DataRef; @deprecated prefix?: boolean }
   | { kind: 'slot'; name: string; header?: MessageBlock | MessageBlock[]; footer?: MessageBlock | MessageBlock[]; omitIfEmpty?: boolean }
   | { kind: 'separator'; text?: string };
 
@@ -126,7 +128,7 @@ export type Budget = {
 };
 
 export type PlanNode =
-  | { kind: 'message'; role: ChatCompletonMessageRole; content?: string; from?: DataRef; prefix?: boolean; budget?: Budget }
+  | { kind: 'message'; role: ChatCompletonMessageRole; content?: string; from?: DataRef; @deprecated prefix?: boolean; budget?: Budget }
   | { kind: 'forEach';
       source: DataRef;                   // must resolve to an array
       order?: 'asc'|'desc';
@@ -149,7 +151,9 @@ export type ConditionRef =
 export type ChatCompletionMessage = {
   role: ChatCompletonMessageRole;
   content: string;
-  /** If true and role==='assistant', this is a required prefix; capability must be enforced upstream. */
+  /**
+   * @deprecated Removed. Consumer of prompt should decide how a final assistant message is handled.
+   */
   prefix?: boolean;
 };
 
@@ -206,7 +210,7 @@ export function render<K extends TaskKind>(
 
     * Evaluate `slot.plan` under `budget.withNodeBudget(slot.budget, ...)`:
 
-        * `message` node: compute content (prefer `from` via `registry.resolve(from, ctx)`; otherwise use `content`). If `budget.canFitTokenEstimate(text)` then `budget.consume(text)` and append `{role, content, prefix?}` to the slot buffer; else omit.
+        * `message` node: compute content (prefer `from` via `registry.resolve(from, ctx)`; otherwise use `content`). If `budget.canFitTokenEstimate(text)` then `budget.consume(text)` and append `{role, content}` to the slot buffer; else omit.
         * `forEach` node: resolve `array = registry.resolve(source, ctx)`; apply `order` and `limit`. For each `item`, evaluate `map` in a child scope. If `stopWhenOutOfBudget` (default true) and the next emission wouldn’t fit, **break**.
         * `if` node: evaluate `ConditionRef` by resolving `ref` via the registry; choose `then` or `else`.
 
@@ -230,7 +234,7 @@ export function render<K extends TaskKind>(
 
 **Post-conditions & validation:**
 
-* The returned `ChatCompletionMessage[]` is the final prompt. If any message sets `role:'assistant'` and `prefix:true`, this is a **hard requirement** signaled to the caller; enforcement happens outside the renderer.
+* ~~The returned `ChatCompletionMessage[]` is the final prompt. If any message sets `role:'assistant'` and `prefix:true`, this is a **hard requirement** signaled to the caller; enforcement happens outside the renderer.~~
 * If the layout references a **nonexistent slot name**, this is a **template authoring error** (the renderer SHOULD throw).
 
 **Determinism:**
@@ -364,7 +368,7 @@ Note: examples are illustrative. Source names may not match the final implementa
 
 Demonstrates a two-step workflow. The renderer does not handle step chaining directly; the application must capture the first step’s output and pass it to the second via the `stepOutput` registry.
 
-**Planner** template (outputs JSON plan; requires assistant prefix):
+**Planner** template (outputs JSON plan):
 
 ```json
 {
@@ -380,7 +384,7 @@ Demonstrates a two-step workflow. The renderer does not handle step chaining dir
     { "kind": "slot", "name": "chars", "omitIfEmpty": true },
     { "kind": "slot", "name": "turns", "omitIfEmpty": true },
     { "kind": "message", "role": "user", "content": "Now produce a plan (bullets). Return JSON with keys: goals, beats, risks." },
-    { "kind": "message", "role": "assistant", "content": "{\"goals\":", "prefix": true }
+    { "kind": "message", "role": "assistant", "content": "{\"goals\":" }
   ],
   "slots": {
     "turns": {

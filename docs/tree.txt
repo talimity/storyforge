@@ -3,10 +3,8 @@
 │ ├── backend
 │ │ ├── package.json
 │ │ ├── scripts
-│ │ │ └── test-completion.ts
 │ │ ├── src
 │ │ │ ├── api
-│ │ │ │ ├── app-context.ts
 │ │ │ │ ├── app-router.ts
 │ │ │ │ ├── assets.ts
 │ │ │ │ ├── engine-error-to-trpc.ts
@@ -16,34 +14,25 @@
 │ │ │ │ ├── routers
 │ │ │ │ │ ├── characters.ts
 │ │ │ │ │ ├── chat-import.ts
-│ │ │ │ │ ├── debug.ts
 │ │ │ │ │ ├── play.ts
-│ │ │ │ │ └── scenarios.ts
+│ │ │ │ │ ├── providers.ts
+│ │ │ │ │ ├── scenarios.ts
+│ │ │ │ │ └── templates.ts
 │ │ │ │ ├── service-error-to-trpc.ts
-│ │ │ │ ├── sse.ts
+│ │ │ │ ├── trpc-context.ts
 │ │ │ │ └── trpc-ui.ts
-│ │ │ ├── app-context-plugin.ts
 │ │ │ ├── config.ts
 │ │ │ ├── engine
 │ │ │ │ ├── context
-│ │ │ │ │ ├── context-builder.test.ts
-│ │ │ │ │ └── context-builder.ts
+│ │ │ │ │ └── macro-replacement.ts
 │ │ │ │ ├── engine-error.ts
-│ │ │ │ ├── invariants
-│ │ │ │ │ ├── turn-content.ts
-│ │ │ │ │ ├── turn-progression.ts
-│ │ │ │ │ └── turn.ts
-│ │ │ │ └── scenario-runtime.ts
-│ │ │ ├── inference
-│ │ │ │ ├── generation-context-adapter.ts
-│ │ │ │ ├── provider-manager.ts
-│ │ │ │ └── providers
-│ │ │ │ ├── base-provider.ts
-│ │ │ │ ├── deepseek.ts
-│ │ │ │ ├── mock.ts
-│ │ │ │ └── openrouter.ts
+│ │ │ │ └── invariants
+│ │ │ │ ├── turn-content.ts
+│ │ │ │ ├── turn-progression.ts
+│ │ │ │ └── turn.ts
 │ │ │ ├── logging.ts
 │ │ │ ├── main.ts
+│ │ │ ├── resources.ts
 │ │ │ ├── service-error.ts
 │ │ │ ├── services
 │ │ │ │ ├── chapter
@@ -59,28 +48,35 @@
 │ │ │ │ │ └── chat-import.service.ts
 │ │ │ │ ├── context-loader.ts
 │ │ │ │ ├── intent.service.ts
+│ │ │ │ ├── provider
+│ │ │ │ │ ├── provider.queries.ts
+│ │ │ │ │ └── provider.service.ts
 │ │ │ │ ├── scenario
 │ │ │ │ │ ├── scenario.queries.ts
+│ │ │ │ │ ├── scenario.service.test.ts
 │ │ │ │ │ ├── scenario.service.ts
 │ │ │ │ │ └── scenario.transforms.ts
 │ │ │ │ ├── selectors.ts
+│ │ │ │ ├── template
+│ │ │ │ │ ├── template.queries.ts
+│ │ │ │ │ ├── template.service.ts
+│ │ │ │ │ └── utils
+│ │ │ │ │ └── from-db-prompt-template.ts
 │ │ │ │ └── turn
 │ │ │ │ ├── timeline.service.test.ts
 │ │ │ │ ├── timeline.service.ts
 │ │ │ │ ├── turn-content.service.ts
 │ │ │ │ ├── turn.queries.ts
 │ │ │ │ └── utils
-│ │ │ │  └── mutation-planner.ts
+│ │ │ │ └── mutation-planner.ts
 │ │ │ ├── test
 │ │ │ │ ├── characters.integration.test.ts
 │ │ │ │ ├── fixtures.ts
 │ │ │ │ ├── scenarios.integration.test.ts
 │ │ │ │ └── setup.ts
-│ │ │ ├── types
-│ │ │ │ └── fastify.d.ts
 │ │ │ └── types.ts
+│ │ ├── tsconfig.build.json
 │ │ ├── tsconfig.json
-│ │ ├── tsconfig.test.json
 │ │ └── vitest.config.ts
 │ └── frontend
 │ ├── biome.json
@@ -107,6 +103,9 @@
 │ │ │ │ │ └── use-chat-import.ts
 │ │ │ │ ├── discard-changes.tsx
 │ │ │ │ ├── scenario-delete.tsx
+│ │ │ │ ├── template-delete.tsx
+│ │ │ │ ├── template-duplicate.tsx
+│ │ │ │ ├── template-import.tsx
 │ │ │ │ ├── turn-delete.tsx
 │ │ │ │ └── unsaved-changes.tsx
 │ │ │ ├── features
@@ -119,6 +118,19 @@
 │ │ │ │ │ ├── character-selector.tsx
 │ │ │ │ │ ├── compact-character-card.tsx
 │ │ │ │ │ └── use-character-actions.ts
+│ │ │ │ ├── inference
+│ │ │ │ │ ├── create-model-profile-dialog.tsx
+│ │ │ │ │ ├── create-provider-dialog.tsx
+│ │ │ │ │ ├── delete-model-profile-dialog.tsx
+│ │ │ │ │ ├── delete-provider-dialog.tsx
+│ │ │ │ │ ├── edit-model-profile-dialog.tsx
+│ │ │ │ │ ├── edit-provider-dialog.tsx
+│ │ │ │ │ ├── model-profile-card.tsx
+│ │ │ │ │ ├── model-profile-form.tsx
+│ │ │ │ │ ├── provider-card.tsx
+│ │ │ │ │ ├── provider-form.tsx
+│ │ │ │ │ ├── providers-tab.tsx
+│ │ │ │ │ └── test-connection-button.tsx
 │ │ │ │ ├── player
 │ │ │ │ │ ├── intent-panel
 │ │ │ │ │ │ ├── direct-control-panel.tsx
@@ -140,10 +152,47 @@
 │ │ │ │ │ ├── scene-widget.tsx
 │ │ │ │ │ ├── tools-widget.tsx
 │ │ │ │ │ └── widget-panels.tsx
-│ │ │ │ └── scenario
-│ │ │ │ ├── scenario-card.tsx
-│ │ │ │ ├── scenario-form.tsx
-│ │ │ │ └── use-scenario-actions.ts
+│ │ │ │ ├── scenario
+│ │ │ │ │ ├── participant-manager.tsx
+│ │ │ │ │ ├── scenario-card.tsx
+│ │ │ │ │ ├── scenario-form.tsx
+│ │ │ │ │ └── use-scenario-actions.ts
+│ │ │ │ └── templates
+│ │ │ │ ├── builder
+│ │ │ │ │ ├── builder-utils.ts
+│ │ │ │ │ ├── index.ts
+│ │ │ │ │ ├── layout-builder.tsx
+│ │ │ │ │ ├── layout-node-card.tsx
+│ │ │ │ │ ├── nodes
+│ │ │ │ │ │ ├── message-node-edit.tsx
+│ │ │ │ │ │ ├── message-node-view.tsx
+│ │ │ │ │ │ ├── node-frame.tsx
+│ │ │ │ │ │ ├── slot-reference-edit.tsx
+│ │ │ │ │ │ └── slot-reference-view.tsx
+│ │ │ │ │ ├── parameter-inputs.tsx
+│ │ │ │ │ ├── slot-validation.ts
+│ │ │ │ │ ├── template-metadata.tsx
+│ │ │ │ │ ├── template-string-editor.tsx
+│ │ │ │ │ └── use-layout-dnd.ts
+│ │ │ │ ├── preview
+│ │ │ │ │ └── template-preview.tsx
+│ │ │ │ ├── recipes
+│ │ │ │ │ ├── param-coercion.test.ts
+│ │ │ │ │ ├── param-coercion.ts
+│ │ │ │ │ ├── registry.ts
+│ │ │ │ │ └── turngen
+│ │ │ │ │ ├── characters-recipe.ts
+│ │ │ │ │ └── timeline-recipe.ts
+│ │ │ │ ├── template-card.tsx
+│ │ │ │ ├── template-form-schema.ts
+│ │ │ │ ├── template-form.tsx
+│ │ │ │ ├── template-list-item.tsx
+│ │ │ │ ├── types.ts
+│ │ │ │ ├── use-template-actions.ts
+│ │ │ │ └── utils
+│ │ │ │ ├── compile-draft.test.ts
+│ │ │ │ ├── compile-draft.ts
+│ │ │ │ └── template-conversion.ts
 │ │ │ ├── logo.tsx
 │ │ │ ├── sidebar-link.tsx
 │ │ │ ├── sidebar.tsx
@@ -171,12 +220,14 @@
 │ │ │ │ ├── use-active-scenario.ts
 │ │ │ │ ├── use-auto-load-more.tsx
 │ │ │ │ ├── use-character-search.ts
+│ │ │ │ ├── use-debounced-callback.ts
 │ │ │ │ ├── use-image-field.ts
 │ │ │ │ ├── use-scenario-environment.ts
 │ │ │ │ ├── use-scenario-intent.ts
 │ │ │ │ ├── use-scenario-timeline.ts
 │ │ │ │ ├── use-turn-actions.tsx
 │ │ │ │ └── use-unsaved-changes-protection.ts
+│ │ │ ├── non-bubbling-handler.tsx
 │ │ │ ├── providers
 │ │ │ │ └── scenario-provider.tsx
 │ │ │ ├── providers.tsx
@@ -198,18 +249,26 @@
 │ │ │ ├── scenario-edit.tsx
 │ │ │ ├── scenario-library.tsx
 │ │ │ ├── settings.tsx
+│ │ │ ├── template-create.tsx
+│ │ │ ├── template-edit.tsx
+│ │ │ ├── template-library.tsx
+│ │ │ ├── template-task-select.tsx
 │ │ │ └── theme-demo.tsx
 │ │ ├── router.tsx
 │ │ ├── stores
-│ │ │ └── scenario-store.ts
+│ │ │ ├── scenario-store.ts
+│ │ │ └── template-builder-store.ts
+│ │ ├── test
+│ │ │ ├── setup.ts
+│ │ │ └── test-utils.tsx
 │ │ ├── theme.ts
 │ │ └── vite-env.d.ts
 │ ├── tsconfig.json
 │ ├── tsconfig.node.json
-│ └── vite.config.ts
+│ ├── vite.config.ts
+│ └── vitest.config.ts
 ├── biome.json
 ├── biome-rules
-│ ├── no-async-sqlite-tx.grit
 │ └── no-console-use-pino.grit
 ├── docs
 │ └── tree.txt
@@ -221,6 +280,7 @@
 │ │ ├── package.json
 │ │ ├── src
 │ │ │ └── index.ts
+│ │ ├── tsconfig.build.json
 │ │ └── tsconfig.json
 │ ├── db
 │ │ ├── drizzle.config.ts
@@ -234,29 +294,128 @@
 │ │ │ ├── migrate.ts
 │ │ │ ├── migrations
 │ │ │ ├── relations.ts
-│ │ │ └── schema
-│ │ │ ├── chapters.ts
-│ │ │ ├── character-examples.ts
-│ │ │ ├── character-starters.ts
-│ │ │ ├── characters.ts
-│ │ │ ├── index.ts
-│ │ │ ├── scenario-participants.ts
-│ │ │ ├── scenarios.ts
-│ │ │ ├── turn-layers.ts
-│ │ │ └── turns.ts
+│ │ │ ├── schema
+│ │ │ │ ├── chapters.ts
+│ │ │ │ ├── character-examples.ts
+│ │ │ │ ├── character-starters.ts
+│ │ │ │ ├── characters.ts
+│ │ │ │ ├── index.ts
+│ │ │ │ ├── model-profiles.ts
+│ │ │ │ ├── prompt-templates.ts
+│ │ │ │ ├── provider-config.ts
+│ │ │ │ ├── scenario-participants.ts
+│ │ │ │ ├── scenarios.ts
+│ │ │ │ ├── turn-layers.ts
+│ │ │ │ ├── turns.ts
+│ │ │ │ └── workflows.ts
+│ │ │ └── utils.ts
+│ │ ├── tsconfig.build.json
 │ │ └── tsconfig.json
+│ ├── inference
+│ │ ├── package.json
+│ │ ├── provider-specs
+│ │ │ └── deepseek-openapi.yaml
+│ │ ├── src
+│ │ │ ├── errors.ts
+│ │ │ ├── index.ts
+│ │ │ ├── provider-factory.ts
+│ │ │ ├── providers
+│ │ │ │ ├── base.ts
+│ │ │ │ ├── mock.ts
+│ │ │ │ ├── openai-compatible.ts
+│ │ │ │ └── openrouter.ts
+│ │ │ └── types.ts
+│ │ ├── tsconfig.build.json
+│ │ └── tsconfig.json
+│ ├── prompt-rendering
+│ │ ├── biome.json
+│ │ ├── package.json
+│ │ ├── src
+│ │ │ ├── budget-manager.test.ts
+│ │ │ ├── budget-manager.ts
+│ │ │ ├── compiler.test.ts
+│ │ │ ├── compiler.ts
+│ │ │ ├── condition-evaluator.test.ts
+│ │ │ ├── condition-evaluator.ts
+│ │ │ ├── data-ref-resolver.test.ts
+│ │ │ ├── data-ref-resolver.ts
+│ │ │ ├── errors.ts
+│ │ │ ├── index.ts
+│ │ │ ├── layout-assembler.test.ts
+│ │ │ ├── layout-assembler.ts
+│ │ │ ├── leaf-compiler.test.ts
+│ │ │ ├── leaf-compiler.ts
+│ │ │ ├── plan-executor.test.ts
+│ │ │ ├── plan-executor.ts
+│ │ │ ├── renderer.test.ts
+│ │ │ ├── renderer.ts
+│ │ │ ├── response-transformer.test.ts
+│ │ │ ├── response-transformer.ts
+│ │ │ ├── schemas.test.ts
+│ │ │ ├── schemas.ts
+│ │ │ ├── slot-executor.test.ts
+│ │ │ ├── slot-executor.ts
+│ │ │ ├── source-linter.test.ts
+│ │ │ ├── source-linter.ts
+│ │ │ ├── source-registry.test.ts
+│ │ │ ├── source-registry.ts
+│ │ │ ├── test
+│ │ │ │ ├── fixtures
+│ │ │ │ │ ├── contexts
+│ │ │ │ │ │ ├── index.ts
+│ │ │ │ │ │ └── turn-generation-contexts.ts
+│ │ │ │ │ ├── index.ts
+│ │ │ │ │ ├── registries
+│ │ │ │ │ │ ├── index.ts
+│ │ │ │ │ │ └── turn-generation-registry.ts
+│ │ │ │ │ ├── templates
+│ │ │ │ │ │ ├── complex-template.json
+│ │ │ │ │ │ ├── minimal-template.json
+│ │ │ │ │ │ ├── multi-slot-template.json
+│ │ │ │ │ │ └── spec
+│ │ │ │ │ │ ├── tpl_turn_planner_v1.json
+│ │ │ │ │ │ ├── tpl_turn_writer_from_plan_v1.json
+│ │ │ │ │ │ └── tpl_turn_writer_v2.json
+│ │ │ │ │ ├── test-contexts.ts
+│ │ │ │ │ └── test-registries.ts
+│ │ │ │ └── integration
+│ │ │ │ ├── assistant-prefix.test.ts
+│ │ │ │ ├── budget-cutoff.test.ts
+│ │ │ │ ├── conditional-slots.test.ts
+│ │ │ │ ├── determinism.test.ts
+│ │ │ │ ├── slot-priority.test.ts
+│ │ │ │ ├── __snapshots__
+│ │ │ │ │ ├── assistant-prefix.test.ts.snap
+│ │ │ │ │ ├── budget-cutoff.test.ts.snap
+│ │ │ │ │ ├── conditional-slots.test.ts.snap
+│ │ │ │ │ ├── determinism.test.ts.snap
+│ │ │ │ │ ├── slot-priority.test.ts.snap
+│ │ │ │ │ └── step-chaining.test.ts.snap
+│ │ │ │ ├── step-chaining.test.ts
+│ │ │ │ └── transform-chains.test.ts
+│ │ │ ├── types.ts
+│ │ │ ├── validator.test.ts
+│ │ │ ├── validator.ts
+│ │ │ ├── version.ts
+│ │ │ ├── walkers.test.ts
+│ │ │ └── walkers.ts
+│ │ ├── tsconfig.build.json
+│ │ ├── tsconfig.json
+│ │ └── vitest.config.ts
 │ ├── schemas
 │ │ ├── package.json
 │ │ ├── src
 │ │ │ ├── contracts
 │ │ │ │ ├── character.ts
 │ │ │ │ ├── chat-import.ts
-│ │ │ │ ├── debug.ts
 │ │ │ │ ├── play.ts
-│ │ │ │ └── scenario.ts
+│ │ │ │ ├── provider.ts
+│ │ │ │ ├── scenario.ts
+│ │ │ │ └── templates.ts
 │ │ │ ├── index.ts
 │ │ │ └── utils
 │ │ │ └── data-uri-validation.ts
+│ │ ├── tsconfig.build.json
 │ │ └── tsconfig.json
 │ ├── utils
 │ │ ├── package.json
@@ -267,6 +426,7 @@
 │ │ │ ├── is-defined.ts
 │ │ │ ├── lexo-order.ts
 │ │ │ └── result.ts
+│ │ ├── tsconfig.build.json
 │ │ └── tsconfig.json
 │ └── yolo-onnx
 │ ├── models
@@ -274,14 +434,12 @@
 │ │ └── yolov8n-face.onnx
 │ ├── package.json
 │ ├── src
-│ │ └── index.ts
-│ ├── test-face-detection.ts
+│ │ ├── index.ts
+│ │ └── test-face-detection.ts
+│ ├── tsconfig.build.json
 │ └── tsconfig.json
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
-├── todos
-│ └── journals
-├── tsconfig.base.json
-└── tsconfig.json
+└── tsconfig.base.json
 
-66 directories, 219 files
+87 directories, 356 files
