@@ -1,4 +1,5 @@
-import { preflightPrefill } from "../preflights";
+import { InferenceProviderCompatibilityError } from "@/errors";
+import { preflightPrefill } from "@/preflights";
 import type {
   ChatCompletionChunk,
   ChatCompletionRequest,
@@ -7,7 +8,7 @@ import type {
   ProviderModelSearchResult,
   TextInferenceCapabilities,
   TextInferenceGenParams,
-} from "../types";
+} from "@/types";
 
 export abstract class ProviderAdapter {
   abstract readonly kind: string;
@@ -22,17 +23,16 @@ export abstract class ProviderAdapter {
   abstract supportedParams(): Array<keyof TextInferenceGenParams>;
 
   /**
-   * Abstract method to complete a chat request.
-   * @param request The chat completion request.
-   * @returns A promise that resolves to the chat completion response.
+   * Given a chat completion request, invoke the provider's API to get a
+   * completion response.
    */
   abstract complete(
     request: ChatCompletionRequest
   ): Promise<ChatCompletionResponse>;
 
   /**
-   * Abstract method to complete a chat request with streaming support.
-   * @param request The chat completion request.
+   * Given a chat completion request, invoke the provider's API to get a
+   * streaming completion response.
    */
   abstract completeStream(
     request: ChatCompletionRequest
@@ -57,7 +57,9 @@ export abstract class ProviderAdapter {
     // ...
 
     if (!prefill.ok) {
-      throw new Error(`Request validation failed: ${prefill.reason}`);
+      throw new InferenceProviderCompatibilityError(
+        `Request validation failed: ${prefill.reason}`
+      );
     }
 
     return { prefillMode: prefill.prefillMode };

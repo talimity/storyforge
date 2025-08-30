@@ -24,6 +24,9 @@ catalogs:
     drizzle-orm:
       specifier: 1.0.0-beta.1-40d80bd
       version: 1.0.0-beta.1-40d80bd
+    resolve-tspaths:
+      specifier: ^0.8.23
+      version: 0.8.23
     sharp:
       specifier: ^0.34.3
       version: 0.34.3
@@ -62,9 +65,6 @@ importers:
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
-      resolve-tspaths:
-        specifier: ^0.8.23
-        version: 0.8.23(typescript@5.9.2)
       tsx:
         specifier: 'catalog:'
         version: 4.20.3
@@ -181,7 +181,7 @@ importers:
         specifier: ^4.0.4
         version: 4.0.4
       resolve-tspaths:
-        specifier: ^0.8.23
+        specifier: 'catalog:'
         version: 0.8.23(typescript@5.9.2)
       tsx:
         specifier: 'catalog:'
@@ -354,6 +354,9 @@ importers:
 
   packages/inference:
     devDependencies:
+      resolve-tspaths:
+        specifier: 'catalog:'
+        version: 0.8.23(typescript@5.9.2)
       typescript:
         specifier: 'catalog:'
         version: 5.9.2

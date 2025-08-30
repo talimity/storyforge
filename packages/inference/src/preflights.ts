@@ -2,7 +2,7 @@ import type {
   ChatCompletionRequest,
   PreflightResult,
   TextInferenceCapabilities,
-} from "./types";
+} from "@/types";
 
 /**
  * Given a chat completion request and the provider's capabilities, determine

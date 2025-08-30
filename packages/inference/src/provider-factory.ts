@@ -1,10 +1,10 @@
-import type { ProviderAdapter } from "./providers/base";
+import type { ProviderAdapter } from "@/providers/base";
 
-import { DeepseekAdapter } from "./providers/deepseek";
-import { MockAdapter } from "./providers/mock";
-import { OpenAICompatibleAdapter } from "./providers/openai-compatible";
-import { OpenRouterAdapter } from "./providers/openrouter";
-import type { ProviderConfig, TextInferenceCapabilities } from "./types";
+import { DeepseekAdapter } from "@/providers/deepseek";
+import { MockAdapter } from "@/providers/mock";
+import { OpenAICompatibleAdapter } from "@/providers/openai-compatible";
+import { OpenRouterAdapter } from "@/providers/openrouter";
+import type { ProviderConfig, TextInferenceCapabilities } from "@/types";
 
 export function createAdapter(config: ProviderConfig): ProviderAdapter {
   switch (config.kind) {
@@ -12,7 +12,7 @@ export function createAdapter(config: ProviderConfig): ProviderAdapter {
       return new DeepseekAdapter(config.auth, config.baseUrl);
 
     case "openrouter":
-      return new OpenRouterAdapter(config.auth);
+      return new OpenRouterAdapter(config.auth, config.baseUrl);
 
     case "openai-compatible":
       if (!config.baseUrl) {

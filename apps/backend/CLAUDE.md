@@ -2,10 +2,13 @@
 
 ## Layering (one-liners)
 
-* **engine/** - **pure domain core**. Invariants, rules, and planners; no db/network/filesystem.
 * **services/** - **impure application layer**. Transactional writes (UoW), screen/workflow-shaped reads, service orchestration, SQL/CTEs, file parsing, etc.
 * **api/** - **transport**. tRPC procedures only: I/O validation, OpenAPI metadata, error mapping; no business logic.
 * **@storyforge/inference** package - **ports/adapters** to external LLM providers.
+* **engine/** - pure domain core; invariants, rules, and planners; no db/network/filesystem.
+  * Migrate domain logic here from services as it stabilizes.
+  * Should be side-effect free.
+  * Gradually moving to separate package (see `packages/prompt-rendering`)
 
 ```
 apps/backend/src/
@@ -52,7 +55,6 @@ Reusable cross-feature helpers go in **`packages/utils`**.
 * `*.service.ts` → **writes**. One UoW, calls engine invariants, does DB/file ops, emits domain errors.
 
 ### Errors
-
 * **Engine** returns typed failures via `Result<T, E>` for domain rule violations (e.g., `ChapterProgressionInvalid`, `MissingPresentationLayer`).
 * **Services** throw...
     - `EngineError(code)` for failures returned by the domain layer.
@@ -60,47 +62,49 @@ Reusable cross-feature helpers go in **`packages/utils`**.
 * **api/** maps errors to TRPC/HTTP (e.g., `engine-error-to-trpc.ts`)
 
 ### Contracts-first
-
 * Define Zod I/O in `packages/schemas`.
 * Routers import those schemas; all routes include OpenAPI meta to generate REST endpoints.
 * Queries/services should exactly satisfy the API contract shape.
     - Result transformation should ideally happen inside of the `*.queries.ts`. Don't create a separate module for just mapping or transformations.
 
 ### SQL policy
-
-* Use Drizzle's relational API (object literal-style) when it is ergonomic.
-* Use Drizzle's SQL-style API when the relational API is not cutting it.
-* Drop to raw SQL/CTEs for complex or highly optimized cases.
+* Use Drizzle's SQL-like query builder API for most queries.
+* Use Drizzle's relational query builder API when you need to express relations/joins as it will handle data mapping for you.
+  * For situations where the relational API is too limited or cumbersome, use the SQL-like API with manual joins and mapping, or raw SQL/CTEs for particularly complex queries.
+  * This is the v2 API, which uses object literals for `where` clauses:
+```ts
+  await db.query.scenarioParticipants.findMany({
+    columns: { id: true, role: true },
+    where: { scenarioId }, // note: NOT `where(eq(p.scenarioId, scenarioId))`, that is the old api
+    with: {
+      character: {
+        columns: { id: true, name: true },
+      },
+    },
+    orderBy: (p) => [p.orderIndex],
+  });
+```
+* Tailor `*.queries.ts` SQL to the specific screen/workflow; avoid generic "get full entity" queries; avoid turning queries modules into repositories.
 * Keep `*.service.ts` SQL simple and focused on the UoW; no fancy read shaping there.
 * Avoid executing individual SQL statements within loops; prefer joins or batched queries when possible.
 
----
-
 ## Classification: where does code go?
-
 **Decision table**
 
 | Question                                                           | YES →                             | NO →                                        |
 |--------------------------------------------------------------------|-----------------------------------|---------------------------------------------|
 | Does it mutate state / need a transaction?                         | `services/<feature>/*.service.ts` | next                                        |
-| Is it a domain rule/logic whose correctness the engine depends on? | `engine/**`                       | next                                        |
+| Is it a domain rule/logic whose correctness the engine depends on? | `engine/**` or separate package   | next                                        |
 | Is it a UI/workflow-shaped read?                                   | `services/<feature>/*.queries.ts` | next                                        |
 | Is it a helper used only by one feature?                           | `services/<feature>/utils/`       | Put it in `packages/utils` if cross-feature |
 
----
-
 ## Naming & file conventions
-
 * Feature folder names are **nouns** (`turn`, `scenario`, `chat-import`).
 * Public APIs are **verbs**:
     * Services: `advanceTurn`, `deleteTurn`, `importChatAsScenario`
     * Queries: `getTimelineWindow`, `analyzeChat`
 
-
----
-
 ## Service skeleton (writes)
-
 ```ts
 // apps/backend/src/services/feature/feature.service.ts
 export class FeatureService {
@@ -127,16 +131,12 @@ export class FeatureService {
 ```
 
 **Rules**
-
 * Validate via **engine** before mutating.
     * If it's simple input validation, do it straight in the Zod contract.
 * Throw `EngineError` for domain rule failures; `ServiceError` for product/input policy.
 * Accept `outerTx` and pass it down.
 
----
-
 ## Query skeleton (reads)
-
 ```ts
 // apps/backend/src/services/feature/feature.queries.ts
 export async function getScreenData(db: SqliteDatabase, input: Input) {
@@ -147,15 +147,11 @@ export async function getScreenData(db: SqliteDatabase, input: Input) {
 ```
 
 **Rules**
-
 * No writes. No transactions.
 * Shape exactly for the consumer screen/workflow.
 * Don't call `queries` from services, because they will escape the transaction.
 
----
-
 ## Router skeleton
-
 ```ts
 // apps/backend/src/api/routers/feature.ts
 export const featureRouter = router({
@@ -181,10 +177,7 @@ export const featureRouter = router({
 });
 ```
 
----
-
 ## Vertical slice implementation on-rails
-
 1. **Add contracts** in `packages/schemas`.
 2. **Create router** with OpenAPI meta in `api/routers/*`.
 3. **Implement**:

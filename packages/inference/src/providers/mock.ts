@@ -1,3 +1,4 @@
+import { ProviderAdapter } from "@/providers/base";
 import type {
   ChatCompletionChunk,
   ChatCompletionRequest,
@@ -6,8 +7,7 @@ import type {
   ProviderModelSearchResult,
   TextInferenceCapabilities,
   TextInferenceGenParams,
-} from "../types";
-import { ProviderAdapter } from "./base";
+} from "@/types";
 
 interface MockResponse {
   /** Response text to return */

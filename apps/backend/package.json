@@ -68,7 +68,7 @@
     "@types/png-chunks-extract": "^1.0.2",
     "drizzle-orm": "catalog:",
     "form-data": "^4.0.4",
-    "resolve-tspaths": "^0.8.23",
+    "resolve-tspaths": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

@@ -1,5 +1,6 @@
-import { InferenceProviderError } from "../errors";
-import { mergeConsecutiveRoles } from "../transforms";
+import { bubbleProviderError, InferenceProviderError } from "@/errors";
+import { ProviderAdapter } from "@/providers/base";
+import { mergeConsecutiveRoles } from "@/transforms";
 import type {
   ChatCompletionChunk,
   ChatCompletionFinishReason,
@@ -9,8 +10,9 @@ import type {
   ProviderModelSearchResult,
   TextInferenceCapabilities,
   TextInferenceGenParams,
-} from "../types";
-import { ProviderAdapter } from "./base";
+} from "@/types";
+import { safeJson } from "@/utils/safe-json";
+import { iterateSSE } from "@/utils/sse";
 
 // Deepseek-specific types based on the OpenAPI spec
 interface DeepseekMessage {
@@ -246,115 +248,64 @@ export class DeepseekAdapter extends ProviderAdapter {
     let finishReason: ChatCompletionFinishReason = "stop";
     let usageData: DeepseekStreamChunk["usage"] | undefined;
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let eventBuffer: string[] = [];
-
     try {
-      while (true) {
-        const { done, value } = await reader.read();
+      for await (const evt of iterateSSE(response.body)) {
+        if (!evt.data) continue;
 
-        if (done) {
-          break;
+        const chunk = safeJson<DeepseekStreamChunk>(evt.data);
+        if (!chunk) continue; // ignore malformed/keep-alive lines
+
+        if (chunk.usage) usageData = chunk.usage;
+        if (!chunk.choices?.[0]) continue;
+
+        const choice = chunk.choices[0];
+
+        if (choice.delta?.role) {
+          role = choice.delta.role;
+          yield { delta: { role } };
         }
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        if (choice.delta?.content) {
+          accumulatedContent += choice.delta.content;
+          yield { delta: { content: choice.delta.content } };
+        }
 
-        for (const line of lines) {
-          // Accumulate data lines for the current event
-          if (line.startsWith("data: ")) {
-            eventBuffer.push(line.slice(6).trimStart());
-          } else if (line.trim() === "") {
-            // Empty line marks the end of an SSE event
-            if (eventBuffer.length > 0) {
-              const dataStr = eventBuffer.join("\n");
-              eventBuffer = [];
+        if (choice.delta?.reasoning_content) {
+          accumulatedReasoningContent += choice.delta.reasoning_content;
+          yield {
+            delta: {
+              reasoningContent: choice.delta.reasoning_content,
+            },
+          };
+        }
 
-              if (dataStr === "[DONE]") {
-                continue;
-              }
-
-              try {
-                const chunk: DeepseekStreamChunk = JSON.parse(dataStr);
-
-                if (chunk.choices?.[0]) {
-                  const choice = chunk.choices[0];
-
-                  // Yield role if present
-                  if (choice.delta?.role) {
-                    role = choice.delta.role;
-                    yield { delta: { role } };
-                  }
-
-                  // Yield content if present
-                  if (choice.delta?.content) {
-                    accumulatedContent += choice.delta.content;
-                    yield { delta: { content: choice.delta.content } };
-                  }
-
-                  // Accumulate reasoning content if present (for deepseek-reasoner)
-                  if (choice.delta?.reasoning_content) {
-                    accumulatedReasoningContent +=
-                      choice.delta.reasoning_content;
-                    yield {
-                      delta: {
-                        reasoningContent: choice.delta.reasoning_content,
-                      },
-                    };
-                  }
-
-                  // Update finish reason if present
-                  if (choice.finish_reason) {
-                    finishReason = this.mapFinishReason(choice.finish_reason);
-                  }
-                }
-
-                // Capture usage data if present (typically in the final chunk)
-                if (chunk.usage) {
-                  usageData = chunk.usage;
-                }
-              } catch (error) {
-                console.error("Failed to parse SSE event:", error);
-              }
-            }
-          }
+        if (choice.finish_reason) {
+          finishReason = this.mapFinishReason(choice.finish_reason);
         }
       }
-    } finally {
-      reader.releaseLock();
+    } catch (err) {
+      bubbleProviderError(err, "Deepseek streaming error");
     }
 
-    // Return the final accumulated response
-    const finalResponse: ChatCompletionResponse = {
-      message: {
-        role: role || "assistant",
-        content: accumulatedContent,
-      },
+    return {
+      message: { role: role || "assistant", content: accumulatedContent },
       finishReason,
       metadata: {
         provider: "deepseek",
         model: request.model,
         _prompt: deepseekRequest,
+        ...(usageData && {
+          usage: {
+            promptTokens: usageData.prompt_tokens,
+            completionTokens: usageData.completion_tokens,
+            totalTokens: usageData.total_tokens,
+          },
+        }),
       },
+      ...(accumulatedReasoningContent && {
+        reasoningContent: accumulatedReasoningContent,
+      }),
     };
-
-    if (accumulatedReasoningContent) {
-      finalResponse.reasoningContent = accumulatedReasoningContent;
-    }
-
-    // Add usage statistics if available from streaming
-    if (usageData && finalResponse.metadata) {
-      finalResponse.metadata.usage = {
-        promptTokens: usageData.prompt_tokens,
-        completionTokens: usageData.completion_tokens,
-        totalTokens: usageData.total_tokens,
-      };
-    }
-
-    return finalResponse;
   }
 
   renderPrompt(request: ChatCompletionRequest): string {
