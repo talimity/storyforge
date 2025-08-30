@@ -47,6 +47,7 @@
 │ │ │ │ ├── chat-import
 │ │ │ │ │ └── chat-import.service.ts
 │ │ │ │ ├── context-loader.ts
+│ │ │ │ ├── gentask
 │ │ │ │ ├── intent.service.ts
 │ │ │ │ ├── provider
 │ │ │ │ │ ├── provider.queries.ts
@@ -299,6 +300,7 @@
 │ │ │ │ ├── character-examples.ts
 │ │ │ │ ├── character-starters.ts
 │ │ │ │ ├── characters.ts
+│ │ │ │ ├── gentasks.ts
 │ │ │ │ ├── index.ts
 │ │ │ │ ├── model-profiles.ts
 │ │ │ │ ├── prompt-templates.ts
@@ -306,25 +308,31 @@
 │ │ │ │ ├── scenario-participants.ts
 │ │ │ │ ├── scenarios.ts
 │ │ │ │ ├── turn-layers.ts
-│ │ │ │ ├── turns.ts
-│ │ │ │ └── gentasks.ts
+│ │ │ │ └── turns.ts
 │ │ │ └── utils.ts
 │ │ ├── tsconfig.build.json
 │ │ └── tsconfig.json
 │ ├── inference
-│ │ ├── package.json
-│ │ ├── provider-specs
+│ │ ├── docs
+│ │ │ └── provider-specs
 │ │ │ └── deepseek-openapi.yaml
+│ │ ├── package.json
 │ │ ├── src
 │ │ │ ├── errors.ts
 │ │ │ ├── index.ts
+│ │ │ ├── preflights.ts
 │ │ │ ├── provider-factory.ts
 │ │ │ ├── providers
 │ │ │ │ ├── base.ts
+│ │ │ │ ├── deepseek.ts
 │ │ │ │ ├── mock.ts
 │ │ │ │ ├── openai-compatible.ts
 │ │ │ │ └── openrouter.ts
-│ │ │ └── types.ts
+│ │ │ ├── transforms.ts
+│ │ │ ├── types.ts
+│ │ │ └── utils
+│ │ │ ├── safe-json.ts
+│ │ │ └── sse.ts
 │ │ ├── tsconfig.build.json
 │ │ └── tsconfig.json
 │ ├── prompt-rendering
@@ -442,4 +450,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
 
-87 directories, 356 files
+90 directories, 361 files

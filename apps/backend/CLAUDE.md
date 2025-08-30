@@ -167,12 +167,8 @@ export const featureRouter = router({
     .output(doThingOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const svc = new FeatureService(ctx.db);
-      try {
-        return await svc.doSomething(input);
-      } catch (e) {
-        // map EngineError/ServiceError to TRPC here (or via shared helpers)
-        throw mapError(e);
-      }
+      return await svc.doSomething(input);
+      // service/engine errors caught and mapped to trpc by error middleware
     }),
 });
 ```
