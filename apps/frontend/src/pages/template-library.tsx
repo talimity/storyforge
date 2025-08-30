@@ -87,7 +87,7 @@ export function TemplatesPage() {
     const matchesSearch =
       !searchQuery ||
       template.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTask = !taskFilter || template.task === taskFilter;
+    const matchesTask = !taskFilter || template.kind === taskFilter;
     return matchesSearch && matchesTask;
   });
 
@@ -229,7 +229,7 @@ export function TemplatesPage() {
               template={{
                 id: template.id,
                 name: template.name,
-                task: template.task as TaskKind,
+                task: template.kind,
                 version: template.version,
                 layoutNodeCount: template.layoutNodeCount,
                 updatedAt: new Date(template.updatedAt),
@@ -245,7 +245,7 @@ export function TemplatesPage() {
               template={{
                 id: template.id,
                 name: template.name,
-                task: template.task as TaskKind,
+                task: template.kind,
                 version: template.version,
                 layoutNodeCount: template.layoutNodeCount,
                 updatedAt: new Date(template.updatedAt),

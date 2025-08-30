@@ -157,7 +157,7 @@ export class MockAdapter extends ProviderAdapter {
     request: ChatCompletionRequest
   ): Promise<ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
-    this.preflight(request, capabilities);
+    this.preflightCheck(request, capabilities);
 
     const mockResponse = this.selectResponse(request);
 
@@ -198,7 +198,7 @@ export class MockAdapter extends ProviderAdapter {
     request: ChatCompletionRequest
   ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
-    this.preflight(request, capabilities);
+    this.preflightCheck(request, capabilities);
 
     const mockResponse = this.selectResponse(request);
 

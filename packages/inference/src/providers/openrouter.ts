@@ -237,7 +237,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
     request: ChatCompletionRequest
   ): Promise<ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
-    const { prefillMode } = this.preflight(request, capabilities);
+    const { prefillMode } = this.preflightCheck(request, capabilities);
 
     const openRouterRequest = this.transformRequest(
       request,
@@ -269,7 +269,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
     request: ChatCompletionRequest
   ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
-    const { prefillMode } = this.preflight(request, capabilities);
+    const { prefillMode } = this.preflightCheck(request, capabilities);
 
     const openRouterRequest = this.transformRequest(request, true, prefillMode);
 
@@ -365,7 +365,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
 
   renderPrompt(request: ChatCompletionRequest): string {
     const capabilities = this.defaultCapabilities();
-    const { prefillMode } = this.preflight(request, capabilities);
+    const { prefillMode } = this.preflightCheck(request, capabilities);
     const transformed = this.transformRequest(request, false, prefillMode);
     return JSON.stringify(transformed, null, 2);
   }

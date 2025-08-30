@@ -73,12 +73,29 @@ export type TextInferenceCapabilities = {
   /** Whether tokens can be streamed as they are generated. */
   streaming: boolean;
   /** Whether the assistant message can be prefilled to guide generation. */
-  assistantPrefill: boolean;
+  assistantPrefill: "implicit" | "explicit" | "unsupported";
   /** Whether tool use is supported. */
   tools: boolean;
 
   // TODO: FIM, guided generation, `n` for parallel generations, etc. - for now YAGNI
 };
+
+// GenParams are treated as optional, whereas capabilities are required.
+export interface TextInferenceGenParams {
+  temperature?: number;
+  topP?: number;
+  // ...
+}
+
+// Hints guide provider behavior and help reject incompatble requests early. We
+// use hints when capability needs cannot be inferred from the prompt alone.
+export type ChatCompletionRequestHints = {
+  assistantPrefill?: "auto" | "require" | "forbid";
+};
+
+export type PreflightResult =
+  | { ok: true; prefillMode: "prefill" | "no-prefill" }
+  | { ok: false; reason: string };
 ```
 
 **Notes**
@@ -86,7 +103,7 @@ export type TextInferenceCapabilities = {
 * Built-in providers will have Capabilities hard-coded (according to whatever the built-in adapter implements).
 * OpenAI-compatible's adapter will be more flexible, so its capabilities are declared in the schema and toggleable in the UI.
 * Model Profiles can **override** any of these when a specific model differs (e.g. OpenRouter's API interface can do everything, but some of its models won't return logprobs).
-* If a feature is not REQUIRED for a workflow step to succeed (ie. top K sampling), it should not be modeled as a capability. Only things that are absolutely required for the request to succeed (streaming, tools, prefill) should be modeled as capabilities.
+* If a feature is not REQUIRED for a generative task workflow's step to succeed (ie. top K sampling), it should not be modeled as a capability. Only things that are absolutely required for the request to succeed (streaming, tools, prefill) should be modeled as capabilities.
   * TextInferenceGenParams can be used to model optional parameters like `topK`, `topP`, `temperature`, etc.
   * Logprobs are not modeled as a capability because it tends to be a quirky feature that does not work consistently across providers and models even when they claim to support it. All features that want to use logprobs need to degrade gracefully if logprobs are not available (at the request level, or even individual tokens).
 
@@ -102,18 +119,14 @@ export type ChatCompletionMessage = {
   content: string; // multimodal can be a future extension
 };
 
-// Tool use interface very much not settled as it will be a much later feature; don't implement right away, just leave space
-export type ToolDef = {
-  name: string;
-  description?: string;
-  jsonSchema?: object; // for structured args if provider supports it
-};
+// Tools not modeled or implemented in v1, but they will eventually be needed
 
-export type ToolCall = {
-  name: string;
-  arguments: any; // json
-  id?: string;    // to correlate
-};
+export type ChatCompletionFinishReason =
+  | "stop"
+  | "length"
+  | "tool_use"
+  | "content_filter"
+  | "other";
 
 export type ChatCompletionRequest = {
   messages: ChatCompletionMessage[];
@@ -127,14 +140,13 @@ export type ChatCompletionRequest = {
 };
 
 export type ChatCompletionChunk = {
-  delta?: string;                     // streaming text delta
-  toolCallDelta?: Partial<ToolCall>;  // streaming tool-call
+  delta?: { role, content, /* ... */ }      // streaming text delta
   metadata?: Record<string, unknown>; // metadata to merge
 };
 
 export type ChatCompletionResponse = {
   message: ChatCompletionMessage;
-  toolCalls?: ToolCall[];
+  finishReason: ChatCompletionFinishReason;
   metadata?: Record<string, unknown>; // `_prompt` key contains the exact rendered prompt as sent to the API
 }
 ```
@@ -144,39 +156,42 @@ export type ChatCompletionResponse = {
 ### 2.5 Provider Adapter Interface
 
 ```ts
-export interface ProviderAdapter {
-  kind: ProviderKind;
+export abstract class ProviderAdapter {
+  abstract readonly kind: string;
+
+  protected constructor(
+    protected auth: ProviderAuth,
+    protected baseUrl?: string
+  ) {}
+  
   // Introspection
-  defaultCapabilities(): TextInferenceCapabilities;
+  abstract defaultCapabilities(): TextInferenceCapabilities;
+  abstract supportedParams(): Array<keyof TextInferenceGenParams>;
 
   // Optional
-  searchModels?(query: string, auth: Auth, baseUrl?: string): Promise<Array<{id: string, label?: string, tags?: string[]}>>;
+  abstract searchModels?(query: string): Promise<Array<{id: string, label?: string, tags?: string[]}>>;
 
   // Core
-  complete(
-    config: ProviderConfig,
-    modelId: string,
-    request: ChatCompletionRequest,
+  abstract complete(
+    request: ChatCompletionRequest
   ): Promise<ChatCompletionResponse>;
-  
-  completeStream(
-    config: ProviderConfig,
-    modelId: string,
-    request: ChatCompletionRequest,
-  ): AsyncIterable<ChatCompletionChunk, ChatCompletionResponse>
-
+  abstract completeStream(
+    request: ChatCompletionRequest
+  ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse>;
   // Returns the exact JSON payload the adapter would send for a given completion request, for troubleshooting and testing workflows
-  renderPrompt(
-    config: ProviderConfig,
-    modelId: string,
-    request: ChatCompletionRequest,
-  ): string
+  abstract renderPrompt(request: ChatCompletionRequest): string;
+  
+  protected preflightCheck(
+    request: ChatCompletionRequest
+  ): PreflightResult {}
+  
+  protected getHeaders(): Record<string, string> {}
 }
 ```
 
 ### 2.6 Prompt Templates
 
-The prompt templating and rendering system is handled by a separate package (`prompt-rendering`) and is not part of the provider architecture. Given a workflow task context (inputs) and a template it returns `ChatCompletionMessage[]` that the provider adapter can send to the API.
+The prompt templating and rendering system is handled by a separate package (`prompt-rendering`) and is not part of the provider architecture. Given a generative task's context (inputs) and a template it returns `ChatCompletionMessage[]` that the provider adapter can send to the API.
 
 **Notes**
 
@@ -189,7 +204,6 @@ The prompt templating and rendering system is handled by a separate package (`pr
 **Tables**
 
 * `provider_configs`
-
     * `id TEXT PRIMARY KEY`
     * `provider_kind TEXT NOT NULL`         // ∈ {`openrouter`, `deepseek`, `openai-compatible`}
     * `display_name TEXT NOT NULL`
@@ -201,7 +215,6 @@ The prompt templating and rendering system is handled by a separate package (`pr
     * timestamps
 
 * `model_profiles`
-
     * `id TEXT PRIMARY KEY`
     * `provider_instance_id TEXT NOT NULL`
     * `name TEXT NOT NULL`
@@ -209,23 +222,21 @@ The prompt templating and rendering system is handled by a separate package (`pr
     * `capability_overrides TEXT`      // Partial<TextInferenceCapabilities>
     * timestamps + FK
 
-* `llm_tasks` (bind app features → prompt/workflow)
-
+* `gentasks` (generative task workflows bound to a particular task kind)
     * `id TEXT PRIMARY KEY`
-    * `task_kind TEXT NOT NULL`           // e.g., 'chapter_summarization', 'writing_assistant', 'turn_generation'
-    * `display_name TEXT`
-    * `workflow_id TEXT`                  // fk → workflow.id
-    * `scope TEXT NOT NULL`               // 'default' | characterId | participantId
-    * timestamps
-
-* `workflows`
-
-    * `id TEXT PRIMARY KEY`
+    * `kind TEXT NOT NULL`           // e.g., 'chapter_summarization', 'writing_assistant', 'turn_generation'
     * `name TEXT NOT NULL`
     * `description TEXT`
     * `version INTEGER NOT NULL`
-    * `nodes TEXT NOT NULL`               // JSON array of Step (see 4.1)
+    * `steps TEXT NOT NULL`               // JSON array of Step (see 4.1)
     * `is_builtin INTEGER NOT NULL`
+    * timestamps
+
+* `gentask_bindings` (bind app features → gentasks, with optional scope for overrides)
+    * `id TEXT PRIMARY KEY`
+    * `display_name TEXT`
+    * `gentask_id TEXT`                  // fk → gentask.id
+    * `scope TEXT NOT NULL`               // 'default' | scenario | character | participant
     * timestamps
 
 * `prompt_templates`
@@ -234,53 +245,65 @@ The prompt templating and rendering system is handled by a separate package (`pr
 **Notes**
 
 * ProviderConfig capabilities/params/quirks are nullable in the database because they only apply to "openai-compatible"-type providers. Use a check if SQLite has them to enforce that.
-* Might be best to type all of the JSON fields as `Record<string, unknown>` at the drizzle level and force consumers to `safeParse` with zod before using, maybe combined with a `version` column for workflows.
+* Prompt templates and generative tasks are typed as `Record<string, unknown>` in the DB since they are JSON blobs. They will have a `version` field that indicates the schema version, so we can migrate them if needed.
+  * Consumers must always validate them with Zod before use, because DB schema migrations will not update the stored JSON blobs. We will keep each version of the Zod schema around so old versions can still be validated and migrated in the application code.
 
 ---
 
-## 4) Workflows, Prompts, and Context
+## 4) Generative Task Workflows, Prompt Templates, and Context
 
 ### 4.1 Workflow Model (multi‑step, model‑per‑step)
 
-A *Workflow* is an ordered list of Steps. Workflows are always bound to a specific LLM Task (eg., Chapter Summarization, Writing Assistant, Turn Generation).
+A *Generative Task Workflow* (gentask) is an ordered list of Steps. Gentasks have a task kind (e.g., "turn_generation", "chapter_summarization", "writing_assistant") that determines the base schema of inputs (task context) that all steps receive.
+
+The application uses a *gentask binding* to bind a particular feature (e.g., "turn generation for character X") to a gentask. The binding can have a `scope` that allows overriding the default gentask for that feature in certain contexts (e.g., a specific character or participant).
 
 The *Task* defines the *base schema* of inputs (task context) that all workflows for that task will receive. Each Step can consume any subset of those inputs, plus outputs from previous steps in the same workflow.
 
 ```ts
-export type Step = {
+export type GenTaskStep = {
   id: string;
   name: string; // e.g., Draft, Refine, Critique, Tool‑use
   modelProfileId: string; // which model/profile to use
   promptTemplateId: string; // which template to render
-  truncationRules?: {
-    maxContextTokens?: number; // budget for context
-    includePastTurns?: number; // N past turns
-    includePastChapterSummaries?: number; // summaries for past N chapters
-  };
-  // transformations might need to be extracted since they might often be reused across workflows and steps to handle model quirks or apply user style preferences
+  genParams?: Partial<TextInferenceGenParams>; // optional overrides to the model's default params for this step (ie. to increase temperature for a creative step)
+  globalMaxTokens?: number; // if set, sets the template's global token budget to this value
+  // (transformations might need to be extracted, since they'll likely often be reused across workflows and steps to handle model quirks or apply user style preferences)
   transformations: {
     applyTo: "input" | "output";
     regex?: { pattern: RegExp; substitution: string; };
     trim?: "start" | "end" | "both";
   }[];
   outputs: {
-    key: string; // e.g., 'draft', 'summary', 'edits'
+    key: string; // used for both the TurnContent layer key and as the `stepOutputs` key, allowing subsequent steps' prompt templates to consume it
     capture: 'assistantText' | 'jsonParsed' | 'toolResults';
   }[];
 };
 ```
 
 * **Context vs Prompt**:
-    * *TaskCtx* is *loaded* by the feature executing an LLM task (ie., a chapter's turn history for "summarization" task, textarea input for "writing assistant" task, scenario timeline for "turn generation" task).
-    * `makeRegistry<K extends TaskKind>(handlers: Record<string, SourceHandler<K>>): SourceRegistry<K>` in `prompt-rendering` package allows registering custom context loaders per task kind.
-* How is lorebook/world info handled?
-    * Just another input, presumably; feature provides the renderer with a loader function, which given an input (such as the text of recent turns) does regex matching or vector similarity to return lore entries that should be injected. Renderer doesn't care and just calls the loader with the turns it has decided to insert.
+    * *GenTaskCtx* is *loaded* by the feature executing an LLM task (ie., a chapter's turn history for "summarization" task, textarea input for "writing assistant" task, scenario timeline for "turn generation" task).
+      * Prompt templates are pure, so ALL data must be loaded up front. For lore info, this may mean running a lore matching step (either regex or possibly embedding-based) to find relevant lore entries and include them in the context.
+    * `makeRegistry<K extends TaskKind>(handlers: Record<string, SourceHandler<K>>): SourceRegistry<K>` in `prompt-rendering` package knows how to extract the right fields from the task context for a given task kind, so that prompt templates can declare what inputs they need and get them from the task context.
+    * Source registry handlers can take parameters, such as `start` and `end` indices so that a template can include arbitrary slices of a long text input (possibly multiple different slices, to format recent vs older turns differently).
 
-### 4.2 Prompt Templates
+### 4.2 Generative Task Scopes
+*Gentask scopes* are hierarchical:
+1. `default` (no scope) is the global default for that task kind.
+2. `scenario` scope overrides the default for all characters in that scenario.
+3. `character` scope overrides the scenario and default for a specific character.
+4. `participant` scope overrides all scopes for a specific participant within a scenario.
 
-* Handled by `prompt-rendering` package as a separate concern. Accepts a `PromptTemplate` and a task context object and returns `ChatCompletionMessage[]`, but has no knowledge of workflows, models, capabilities, or providers.
+When executing a task, the application looks for the most specific binding that matches the context (e.g., if generating a turn for character X in scenario Y, it first looks for a `participant` binding for that participant, then a `character` binding for character X, then a `scenario` binding for scenario Y, and finally falls back to the `default` binding).
 
-### 4.3 Example Workflows
+The default bindings can be changed, but can't be deleted. Scoped bindings can be created and deleted freely, but only one binding per (task kind, scope) pair is allowed.
+
+### 4.3 Prompt Templates
+
+* Handled by `prompt-rendering` package as a separate concern. Accepts a `PromptTemplate` and a `GenTaskCtx` object and returns `ChatCompletionMessage[]`, but has no knowledge of workflows, models, capabilities, or providers.
+* See `docs/prompt-template-engine-specification.md` for the full DSL and behavior spec.
+
+### 4.4 Example Workflows
 
 * **Chapter Summarization**: 1 step → `modelProfileId = default_summarizer` → `promptTemplate = summarize_v1`.
 * **Writing Assistant** (inline): 1 step → `default_assistant_model` → `promptTemplate = assistant_actions_v1`.
@@ -289,10 +312,12 @@ export type Step = {
 ## 5) Validation & Capability Negotiation
 
 * Combine `ProviderConfig.capabilities` with `ModelProfile.capabilityOverrides` → `effectiveCaps`.
-* Check `ChatCompletionRequest` features vs `effectiveCaps`. Error with:
+* Adapters check `ChatCompletionRequest` features and hints vs `effectiveCaps` in a preflight step before making any HTTP requests.
+* Adapters raise an error on anything that would either cause the request to fail, or have a high chance of producing unsatisfactory model output.
     * Missing capability (e.g., tool calling not supported);
-    * Unsupported param (e.g., `topK` not mapped to any provider param);
-    * Incompatible options (e.g., prefix hint set but prefix is not supported by model or provider)
+    * Incompatible options (e.g., prefill hint set but prefill is not supported by model or provider)
+* Adapters do NOT raise an error for missing or unmappable generation parameters (e.g., `topK`, `presencePenalty`); generation params' effects are often subtle and subjective, so we don't block requests on them.
+* If a generation parameter being dropped would cause a significant change in the task's behavior or result, then it should be modeled as a capability instead of a generation parameter.
 
 ## 6) Provider Search Interface
 
@@ -300,15 +325,15 @@ export type Step = {
 
 * `searchModels?(query, auth, baseUrl)` returns `{id, label?}[]`.
 * **OpenRouter**: implement real search per OpenRouter API
-* **DeepSeek**: return a filtered list from a hardcoded catalog (e.g., `deepseek-chat`, `deepseek-reasoner`).
 * **OpenAI‑Compatible**: optional `/models` if server supports; otherwise none.
+* Providers without a search API: either return a hard-coded list (if it would not cause maintenance burden) or just an empty array and let the user look up model IDs themselves.
 
 ### 6.2 UI Behavior
 
-* Autocomplete dropdown sources from `searchModels` when available; otherwise expose a local list or “No search available”.
-* Always show a **Manual Entry** field; if user types a value not in search results, accept it.
+* Autocomplete dropdown sources from `searchModels` when available
+* Model ID autocomplete cannot be the only way to enter a model ID; always allow manual entry
 
-## 7) Frontend UX Spec
+## 7) Frontend UX
 
 ### 7.1 Settings → Providers (ProviderConfigs)
 

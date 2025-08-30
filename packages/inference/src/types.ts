@@ -164,6 +164,65 @@ export interface ChatCompletionMessage {
 }
 
 /**
+ * Represents a chat completion request that can be sent to an inference
+ * provider.
+ *
+ * This interface is designed to be provider-agnostic, allowing different
+ * providers to implement their own adapters while adhering to a common
+ * structure.
+ */
+export interface ChatCompletionRequest {
+  /**
+   * The message history for the chat completion request.
+   *
+   * There are no guarantees made about the order of messages, the number of
+   * messages per role, whether the last message is from the user or assistant,
+   * whether roles always alternate, etc.
+   *
+   * It is up to each adapter to apply any necessary post-processing to the
+   * messages before sending them to the provider.
+   */
+  messages: ChatCompletionMessage[];
+  /**
+   * The provider-specific model ID requested for the chat completion.
+   */
+  model: string;
+  /**
+   * The maximum number of tokens to generate in the response. May be ignored or
+   * clamped by the provider.
+   *
+   * The adapter is responsible for clamping this value to the provider's
+   * maximum token limit, if applicable.
+   */
+  maxTokens: number;
+  /**
+   * A list of stop sequences that will cause the model to stop generating
+   * tokens.
+   *
+   * The adapter is responsible for ensuring that the list is trimmed to the
+   * provider's maximum supported length, if applicable.
+   */
+  stop: string[];
+  /**
+   * Generation/sampling parameters for the chat completion request.
+   */
+  genParams?: TextInferenceGenParams;
+  /**
+   * Hints to guide the adapter in how to handle certain aspects of the
+   * request, or whether it should be rejected based on capabilities.
+   */
+  hints?: ChatCompletionRequestHints;
+  /**
+   * An optional AbortSignal that can be used to cancel the request.
+   * Adapters should pass this signal to their fetch calls to enable
+   * request cancellation from the workflow runner.
+   */
+  signal?: AbortSignal;
+
+  // TODO: strucutred output, tool use
+}
+
+/**
  * Represents the reason why a chat completion response finished.
  * - "stop": The model stopped because it reached a stop sequence.
  * - "length": The model stopped because it reached the max output length.
@@ -296,63 +355,4 @@ export interface ChatCompletionChunk {
    * previous metadata, with later values taking precedence.
    */
   metadata?: Record<string, unknown>;
-}
-
-/**
- * Represents a chat completion request that can be sent to an inference
- * provider.
- *
- * This interface is designed to be provider-agnostic, allowing different
- * providers to implement their own adapters while adhering to a common
- * structure.
- */
-export interface ChatCompletionRequest {
-  /**
-   * The message history for the chat completion request.
-   *
-   * There are no guarantees made about the order of messages, the number of
-   * messages per role, whether the last message is from the user or assistant,
-   * whether roles always alternate, etc.
-   *
-   * It is up to each adapter to apply any necessary post-processing to the
-   * messages before sending them to the provider.
-   */
-  messages: ChatCompletionMessage[];
-  /**
-   * The provider-specific model ID requested for the chat completion.
-   */
-  model: string;
-  /**
-   * The maximum number of tokens to generate in the response. May be ignored or
-   * clamped by the provider.
-   *
-   * The adapter is responsible for clamping this value to the provider's
-   * maximum token limit, if applicable.
-   */
-  maxTokens: number;
-  /**
-   * A list of stop sequences that will cause the model to stop generating
-   * tokens.
-   *
-   * The adapter is responsible for ensuring that the list is trimmed to the
-   * provider's maximum supported length, if applicable.
-   */
-  stop: string[];
-  /**
-   * Generation/sampling parameters for the chat completion request.
-   */
-  genParams?: TextInferenceGenParams;
-  /**
-   * Hints to guide the adapter in how to handle certain aspects of the
-   * request, or whether it should be rejected based on capabilities.
-   */
-  hints?: ChatCompletionRequestHints;
-  /**
-   * An optional AbortSignal that can be used to cancel the request.
-   * Adapters should pass this signal to their fetch calls to enable
-   * request cancellation from the workflow runner.
-   */
-  signal?: AbortSignal;
-
-  // TODO: strucutred output, tool use
 }

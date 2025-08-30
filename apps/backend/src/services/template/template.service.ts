@@ -45,7 +45,7 @@ export class TemplateService {
     const operation = async (tx: SqliteTransaction) => {
       // Convert from prompt-rendering types to database JSON types
       const dbData = {
-        task: data.task,
+        kind: data.task,
         name: data.name,
         description: data.description,
         version: 1,
@@ -109,7 +109,7 @@ export class TemplateService {
       // Convert from prompt-rendering types to database JSON types for update
       const updateData: Partial<NewPromptTemplate> = {
         version: existingAsSpec.version,
-        task: existingAsSpec.task,
+        kind: existingAsSpec.task,
       };
 
       if (data.name !== undefined) updateData.name = data.name;
@@ -179,7 +179,7 @@ export class TemplateService {
         .values({
           name: newName,
           description: existing.description,
-          task: existing.task,
+          kind: existing.kind,
           version: existing.version,
           layout: existing.layout,
           slots: existing.slots,

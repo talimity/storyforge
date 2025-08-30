@@ -8,7 +8,7 @@ export const promptTemplates = sqliteTable("prompt_templates", {
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
   description: text("description"),
-  task: text("task").notNull(),
+  kind: text("kind").notNull(),
   version: integer("version").notNull().default(1),
   // Database temmplates are intentionally typed as unknown. Consumer code
   // should parse and validate them using the appropriate Zod schema for the

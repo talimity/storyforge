@@ -48,7 +48,7 @@ export abstract class ProviderAdapter {
    * Run preflight checks on the request against the provider's capabilities.
    * Returns relevant metadata for request transformation.
    */
-  protected preflight(
+  protected preflightCheck(
     request: ChatCompletionRequest,
     capabilities: TextInferenceCapabilities
   ) {

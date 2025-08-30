@@ -34,7 +34,7 @@ export const listTemplatesQuerySchema = z.object({
 export const templateSummarySchema = z.object({
   id: z.string(),
   name: z.string(),
-  task: taskKindSchema,
+  kind: taskKindSchema,
   version: z.number(),
   layoutNodeCount: z.number(),
   createdAt: z.date(),

@@ -20,7 +20,7 @@ export async function listTemplates(
     columns: {
       id: true,
       name: true,
-      task: true,
+      kind: true,
       version: true,
       createdAt: true,
       updatedAt: true,
@@ -33,7 +33,7 @@ export async function listTemplates(
   return templates.map((template) => ({
     id: template.id,
     name: template.name,
-    task: template.task as TaskKind,
+    kind: template.kind as TaskKind,
     version: template.version,
     layoutNodeCount: template.layout.length,
     createdAt: template.createdAt,
