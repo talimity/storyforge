@@ -110,6 +110,5 @@ Several MCP utilities are available to help you with conducting research, troubl
 - **chakra-ui** - Docs and examples for specific Chakra UI components
 - **react-icons-mcp** - Search for icons from the react-icons library
 - **GlobTool/GrepTool**: Fast code analysis and pattern detection
-- **playwright** - Control a browser to validate frontend functionality
 
-IMPORTANT: Always delegate research tasks or playwright validation to an agent using dispatch_agent. Avoid invoking the tools directly. Similarly, if you need to analyze many files in the codebase to understand some architecture or broad structure, ask an agent to do this for you and return a summary.
+IMPORTANT: Always delegate research tasks to an agent using dispatch_agent. Avoid invoking the tools directly. Similarly, if you need to analyze many files in the codebase to understand some architecture or broad structure, ask an agent to do this for you and return a summary.
