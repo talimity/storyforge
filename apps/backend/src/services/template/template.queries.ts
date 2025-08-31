@@ -1,8 +1,8 @@
 import type { SqliteDatabase } from "@storyforge/db";
-import type { TaskKind } from "@storyforge/prompt-rendering";
+import type { TaskKind } from "@storyforge/gentasks";
 import { desc } from "drizzle-orm";
 import { ServiceError } from "@/service-error";
-import { fromDbPromptTemplate } from "@/services/template/utils/from-db-prompt-template";
+import { fromDbPromptTemplate } from "@/services/template/utils/marshalling";
 
 export type TemplateSummary = Awaited<ReturnType<typeof listTemplates>>[0];
 

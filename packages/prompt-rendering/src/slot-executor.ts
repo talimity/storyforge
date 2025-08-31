@@ -5,8 +5,7 @@ import type {
   ChatCompletionMessage,
   CompiledSlotSpec,
   SourceRegistry,
-  TaskCtx,
-  TaskKind,
+  SourceSpec,
 } from "./types";
 
 /**
@@ -25,11 +24,11 @@ export type SlotExecutionResult = Record<string, ChatCompletionMessage[]>;
  * @param registry - Source registry for resolving DataRefs
  * @returns Map of slot names to their generated messages
  */
-export function executeSlots<K extends TaskKind>(
-  slots: Readonly<Record<string, CompiledSlotSpec>>,
-  ctx: TaskCtx<K>,
+export function executeSlots<Ctx extends object, S extends SourceSpec>(
+  slots: Readonly<Record<string, CompiledSlotSpec<S>>>,
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>
+  registry: SourceRegistry<Ctx, S>
 ): SlotExecutionResult {
   const result: SlotExecutionResult = {};
 

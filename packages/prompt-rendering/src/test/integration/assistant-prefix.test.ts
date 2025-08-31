@@ -4,15 +4,19 @@ import { compileTemplate } from "../../compiler";
 import { render } from "../../renderer";
 import { parseTemplate } from "../../schemas";
 import { standardTurnGenCtx } from "../fixtures/contexts/turn-generation-contexts";
-import { makeSpecTurnGenerationRegistry } from "../fixtures/registries/turn-generation-registry";
+import {
+  type FakeTurnGenSourceSpec,
+  makeSpecTurnGenerationRegistry,
+} from "../fixtures/registries/turn-generation-registry";
 import turnPlannerV1Json from "../fixtures/templates/spec/tpl_turn_planner_v1.json";
 
 describe("Assistant Prefix Emission", () => {
   const registry = makeSpecTurnGenerationRegistry();
 
   it("should emit assistant message with prefix=true", () => {
-    const template = parseTemplate(turnPlannerV1Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnPlannerV1Json
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
     const messages = render(compiled, standardTurnGenCtx, budget, registry);
@@ -31,8 +35,9 @@ describe("Assistant Prefix Emission", () => {
   });
 
   it("should place prefix message at correct position in layout", () => {
-    const template = parseTemplate(turnPlannerV1Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnPlannerV1Json
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
     const messages = render(compiled, standardTurnGenCtx, budget, registry);
@@ -58,8 +63,9 @@ describe("Assistant Prefix Emission", () => {
   });
 
   it("should render slots before assistant prefix", () => {
-    const template = parseTemplate(turnPlannerV1Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnPlannerV1Json
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
     const messages = render(compiled, standardTurnGenCtx, budget, registry);
@@ -81,8 +87,9 @@ describe("Assistant Prefix Emission", () => {
   });
 
   it("should handle prefix with minimal context", () => {
-    const template = parseTemplate(turnPlannerV1Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnPlannerV1Json
+    );
 
     // Use empty context to test prefix with minimal slots
     const emptyCtx = {
@@ -148,8 +155,9 @@ describe("Assistant Prefix Emission", () => {
   });
 
   it("should handle budget constraints with prefix message", () => {
-    const template = parseTemplate(turnPlannerV1Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnPlannerV1Json
+    );
 
     // Constrained budget but enough for layout messages
     const smallBudget = new DefaultBudgetManager({ maxTokens: 800 });

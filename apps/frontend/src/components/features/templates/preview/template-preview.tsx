@@ -7,7 +7,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { PromptTemplate } from "@storyforge/prompt-rendering";
+import type { UnboundTemplate } from "@storyforge/prompt-rendering";
 import { LuInfo } from "react-icons/lu";
 import type { TemplateDraft } from "@/components/features/templates/types";
 import {
@@ -21,7 +21,7 @@ interface TemplatePreviewProps {
 
 export function TemplatePreview({ draft }: TemplatePreviewProps) {
   // Try to compile the draft to show the result
-  let compiledTemplate: PromptTemplate | undefined;
+  let compiledTemplate: UnboundTemplate | undefined;
   let compilationErrors: string[] = [];
 
   try {

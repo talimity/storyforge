@@ -1,5 +1,5 @@
 import { TemplateStructureError } from "./errors";
-import type { PromptTemplate } from "./types";
+import type { PromptTemplate, SourceSpec } from "./types";
 import { iterMessageBlocks } from "./walkers";
 
 /**
@@ -7,7 +7,10 @@ import { iterMessageBlocks } from "./walkers";
  * @param template - The template to validate
  * @throws {TemplateStructureError} if validation fails
  */
-export function validateTemplateStructure(template: PromptTemplate): void {
+export function validateTemplateStructure<
+  K extends string,
+  S extends SourceSpec,
+>(template: PromptTemplate<K, S>): void {
   validateUniqueSlotNames(template);
   validateLayoutSlotReferences(template);
   validateAssistantPrefixUsage(template);
@@ -16,7 +19,9 @@ export function validateTemplateStructure(template: PromptTemplate): void {
 /**
  * Ensures all slot names are unique.
  */
-function validateUniqueSlotNames(template: PromptTemplate): void {
+function validateUniqueSlotNames<K extends string, S extends SourceSpec>(
+  template: PromptTemplate<K, S>
+): void {
   const slotNames = Object.keys(template.slots);
   const uniqueNames = new Set(slotNames);
 
@@ -28,7 +33,9 @@ function validateUniqueSlotNames(template: PromptTemplate): void {
 /**
  * Ensures all layout slot references point to existing slots.
  */
-function validateLayoutSlotReferences(template: PromptTemplate): void {
+function validateLayoutSlotReferences<K extends string, S extends SourceSpec>(
+  template: PromptTemplate<K, S>
+): void {
   const availableSlots = new Set(Object.keys(template.slots));
 
   for (const node of template.layout) {
@@ -46,7 +53,9 @@ function validateLayoutSlotReferences(template: PromptTemplate): void {
  * Validates that prefix:true only appears on assistant role messages.
  * Uses the walker to check all message blocks including headers/footers.
  */
-function validateAssistantPrefixUsage(template: PromptTemplate): void {
+function validateAssistantPrefixUsage<K extends string, S extends SourceSpec>(
+  template: PromptTemplate<K, S>
+): void {
   for (const { block, path } of iterMessageBlocks(template)) {
     if (block.prefix === true && block.role !== "assistant") {
       throw new TemplateStructureError(

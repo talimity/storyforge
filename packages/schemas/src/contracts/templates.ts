@@ -1,18 +1,20 @@
-import {
-  promptTemplateSchema,
-  taskKindSchema,
-} from "@storyforge/prompt-rendering";
+import { taskKindSchema } from "@storyforge/gentasks";
+import { promptTemplateSchema } from "@storyforge/prompt-rendering";
 import { z } from "zod";
+
+const taskPromptTemplate = promptTemplateSchema.extend({
+  task: taskKindSchema,
+});
 
 // Input schemas
 export const templateIdSchema = z.object({ id: z.string().min(1) });
 
-export const createTemplateSchema = promptTemplateSchema.omit({
+export const createTemplateSchema = taskPromptTemplate.omit({
   id: true,
   version: true,
 });
 
-export const updateTemplateSchema = promptTemplateSchema
+export const updateTemplateSchema = taskPromptTemplate
   .omit({ id: true, version: true })
   .partial();
 
@@ -41,7 +43,7 @@ export const templateSummarySchema = z.object({
   updatedAt: z.date(),
 });
 
-export const templateDetailSchema = promptTemplateSchema.extend({
+export const templateDetailSchema = taskPromptTemplate.extend({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -55,7 +57,7 @@ export const templateDetailResponseSchema = templateDetailSchema;
 export const templateOperationResponseSchema = templateDetailSchema;
 
 export const exportTemplateResponseSchema = z.object({
-  template: promptTemplateSchema,
+  template: taskPromptTemplate,
   exportedAt: z.date(),
 });
 

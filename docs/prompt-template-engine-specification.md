@@ -17,7 +17,7 @@
 * ~~Templates may declare **response transforms** (e.g., regex extract/replace) to post-process the assistant’s text before capture.~~
     * Response handling is no longer part of the prompt template engine; it is now the responsibility of the workflow runner.
 
-* Micro-templating (e.g., Handlebars) is allowed **only inside leaf strings** (e.g., message `content`). The **structure** (ordering, iteration, budgeting) is declarative in the DSL.
+* Micro-templating (Handlebars-like) is allowed **only inside leaf strings** (e.g., message `content`). The **structure** (ordering, iteration, budgeting) is declarative in the DSL.
 
 ---
 
@@ -62,11 +62,18 @@
 
 * **Plan:** A small sequence of nodes that, when evaluated, emits 0..N messages into a slot.
 
+Note: TaskKind, render contexts, and source registries are only used generically in the prompt-rendering package.
+
 ---
 
 ## 3) Type Definitions
 
-(Note: check the latest TypeScript definitions in the prompt-rendering package for any updates as the implementation evolves.)
+Note: Newest implementation has a number of differences:
+- Task binding is no longer part of the prompt-rendering package, which only exports generic types. Task kinds and specs are handled in another package, which binds templates to tasks and context/source registry shapes.
+- PromptTemplate is generic over TaskKind and SourceSpec, to allow type-safe DataRef args.
+- A set of `Unbound` types wherein the TaskKind and SourceSpec are erased is exported for use at boundaries (e.g., storage, transport) where task binding is not known.
+
+See packages/prompt-renderer/src/types.ts for the latest code.
 
 ```ts
 /** ---------- Task binding ---------- */
@@ -123,8 +130,6 @@ export type SlotSpec = {
 export type Budget = {
   /** Hard ceiling for this node/slot; renderer will stop before exceeding it. */
   maxTokens?: number;
-  /** Soft target; renderer may stop around this value. (Advisory only.) */
-  softTokens?: number;
 };
 
 export type PlanNode =
@@ -234,7 +239,6 @@ export function render<K extends TaskKind>(
 
 **Post-conditions & validation:**
 
-* ~~The returned `ChatCompletionMessage[]` is the final prompt. If any message sets `role:'assistant'` and `prefix:true`, this is a **hard requirement** signaled to the caller; enforcement happens outside the renderer.~~
 * If the layout references a **nonexistent slot name**, this is a **template authoring error** (the renderer SHOULD throw).
 
 **Determinism:**

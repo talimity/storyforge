@@ -137,7 +137,7 @@ describe("DefaultBudgetManager", () => {
       const globalBudget: Budget = { maxTokens: 10 };
       const manager = new DefaultBudgetManager(globalBudget);
 
-      const localBudget: Budget = { softTokens: 5 }; // No maxTokens
+      const localBudget: Budget = {};
 
       manager.withNodeBudget(localBudget, () => {
         // Should use global budget only
@@ -219,22 +219,6 @@ describe("DefaultBudgetManager", () => {
 
       // Methods should be restored
       expect(manager.canFitTokenEstimate("a".repeat(40))).toBe(originalCanFit);
-    });
-  });
-
-  describe("softTokens handling", () => {
-    it("should not enforce softTokens limit (advisory only)", () => {
-      const budget: Budget = { maxTokens: 100, softTokens: 5 };
-      const manager = new DefaultBudgetManager(budget);
-
-      // softTokens should not affect behavior - only maxTokens matters
-      expect(manager.canFitTokenEstimate("a".repeat(24))).toBe(true); // 6 tokens > softTokens but < maxTokens
-      manager.consume("a".repeat(24));
-      expect(manager.hasAny()).toBe(true);
-
-      // Should still be limited by maxTokens
-      expect(manager.canFitTokenEstimate("a".repeat(376))).toBe(true); // 94 tokens, total would be 100
-      expect(manager.canFitTokenEstimate("a".repeat(380))).toBe(false); // 95 tokens, total would be 101
     });
   });
 });

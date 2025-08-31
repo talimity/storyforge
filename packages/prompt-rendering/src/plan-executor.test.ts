@@ -48,7 +48,7 @@ describe("Plan Executor", () => {
     describe("content resolution", () => {
       it("should use 'from' DataRef when present", () => {
         const budget = createBudget();
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           from: { source: "currentIntent" },
@@ -66,7 +66,7 @@ describe("Plan Executor", () => {
       it("should use literal 'content' when 'from' is not present", () => {
         const budget = createBudget();
         const compiledContent = compileLeaf("Hello {{item.name}}!");
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "assistant",
           content: compiledContent,
@@ -85,7 +85,7 @@ describe("Plan Executor", () => {
       it("should prefer 'from' over 'content' when both are present", () => {
         const budget = createBudget();
         const compiledContent = compileLeaf("This should not appear");
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           from: { source: "worldName" },
@@ -103,7 +103,7 @@ describe("Plan Executor", () => {
 
       it("should handle missing DataRef sources gracefully", () => {
         const budget = createBudget();
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           from: { source: "nonexistentSource" },
@@ -117,7 +117,7 @@ describe("Plan Executor", () => {
 
       it("should stringify non-string from values as JSON", () => {
         const budget = createBudget();
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           from: { source: "stepOutput", args: { key: "planner" } },
@@ -135,12 +135,12 @@ describe("Plan Executor", () => {
 
       it("should handle null/undefined from values by skipping emission", () => {
         const budget = createBudget();
-        const nullNode: CompiledPlanNode & { kind: "message" } = {
+        const nullNode: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           from: { source: "nullValue" },
         };
-        const undefinedNode: CompiledPlanNode & { kind: "message" } = {
+        const undefinedNode: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           from: { source: "undefinedValue" },
@@ -162,7 +162,7 @@ describe("Plan Executor", () => {
     describe("prefix flag", () => {
       it("should preserve prefix flag when true", () => {
         const budget = createBudget();
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "assistant",
           content: compileLeaf("Test message"),
@@ -181,7 +181,7 @@ describe("Plan Executor", () => {
 
       it("should not include prefix when false or undefined", () => {
         const budget = createBudget();
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           content: compileLeaf("Test message"),
@@ -201,7 +201,7 @@ describe("Plan Executor", () => {
     describe("budget handling", () => {
       it("should consume budget for message content", () => {
         const budget = createBudget(100);
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           content: compileLeaf("Test message"),
@@ -215,7 +215,7 @@ describe("Plan Executor", () => {
 
       it("should skip message if no global budget", () => {
         const budget = createBudget(0); // No budget
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           content: compileLeaf("Test message"),
@@ -229,7 +229,7 @@ describe("Plan Executor", () => {
       it("should respect node-level budget", () => {
         const budget = createBudget(100);
         const nodeBudget: Budget = { maxTokens: 1 }; // Very small budget
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           content: compileLeaf(
@@ -245,7 +245,7 @@ describe("Plan Executor", () => {
 
       it("should skip empty messages", () => {
         const budget = createBudget();
-        const node: CompiledPlanNode & { kind: "message" } = {
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
           content: compileLeaf(""),
@@ -264,12 +264,12 @@ describe("Plan Executor", () => {
     describe("basic iteration", () => {
       it("should iterate over array and execute child nodes", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Turn {{item.turnNo}}: {{item.content}}"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "turns" },
           map: [childNode],
@@ -291,12 +291,12 @@ describe("Plan Executor", () => {
 
       it("should handle empty arrays", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Should not appear"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "emptyArray" },
           map: [childNode],
@@ -309,12 +309,12 @@ describe("Plan Executor", () => {
 
       it("should handle non-array sources gracefully", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Should not appear"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "currentIntent" }, // Returns string, not array
           map: [childNode],
@@ -329,12 +329,12 @@ describe("Plan Executor", () => {
     describe("ordering", () => {
       it("should maintain original order when no order specified", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("{{item}}"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "numbers" },
           map: [childNode],
@@ -349,12 +349,12 @@ describe("Plan Executor", () => {
 
       it("should sort ascending with 'asc' order", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("{{item}}"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "strings" },
           order: "asc",
@@ -371,12 +371,12 @@ describe("Plan Executor", () => {
 
       it("should sort descending with 'desc' order", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("{{item}}"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "strings" },
           order: "desc",
@@ -395,12 +395,12 @@ describe("Plan Executor", () => {
     describe("limit", () => {
       it("should respect limit parameter", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Character {{item.name}}"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "characters" },
           limit: 2,
@@ -416,12 +416,12 @@ describe("Plan Executor", () => {
 
       it("should handle limit larger than array size", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("{{item}}"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "singleItem" },
           limit: 10,
@@ -438,12 +438,12 @@ describe("Plan Executor", () => {
     describe("interleave separators", () => {
       it("should add separators between items", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "assistant",
           content: compileLeaf("{{item}}"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "singleItem" },
           map: [childNode],
@@ -474,12 +474,12 @@ describe("Plan Executor", () => {
 
       it("should not add separator after last item", () => {
         const budget = createBudget();
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "assistant",
           content: compileLeaf("{{item}}"),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "singleItem" },
           map: [childNode],
@@ -497,14 +497,14 @@ describe("Plan Executor", () => {
     describe("budget handling", () => {
       it("should stop early when out of budget and stopWhenOutOfBudget is true", () => {
         const budget = createBudget(5); // Very small budget
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf(
             "This is a long message that will consume budget"
           ),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "characters" },
           map: [childNode],
@@ -521,13 +521,13 @@ describe("Plan Executor", () => {
         const budget = createBudget(100); // Reasonable budget
 
         // Create a child node that logs execution but may produce empty messages
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("{{item.name}}"),
         };
 
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "characters" },
           map: [childNode], // Only use the main child node
@@ -545,14 +545,14 @@ describe("Plan Executor", () => {
 
       it("should default stopWhenOutOfBudget to true", () => {
         const budget = createBudget(5); // Very small budget
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf(
             "This is a long message that will consume budget"
           ),
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "characters" },
           map: [childNode],
@@ -567,12 +567,12 @@ describe("Plan Executor", () => {
 
       it("should respect node budget ceiling for entire forEach loop", () => {
         const budget = createBudget(1000); // Global budget
-        const childNode: CompiledPlanNode = {
+        const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Short message"), // Each message ~3 tokens
         };
-        const node: CompiledPlanNode & { kind: "forEach" } = {
+        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
           source: { source: "characters" }, // 3 characters
           map: [childNode],
@@ -595,17 +595,17 @@ describe("Plan Executor", () => {
     describe("condition evaluation", () => {
       it("should execute 'then' branch when condition is true", () => {
         const budget = createBudget();
-        const thenNode: CompiledPlanNode = {
+        const thenNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Condition was true"),
         };
-        const elseNode: CompiledPlanNode = {
+        const elseNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Condition was false"),
         };
-        const node: CompiledPlanNode & { kind: "if" } = {
+        const node: CompiledPlanNode<any> & { kind: "if" } = {
           kind: "if",
           when: { type: "exists", ref: { source: "existsValue" } },
           then: [thenNode],
@@ -620,17 +620,17 @@ describe("Plan Executor", () => {
 
       it("should execute 'else' branch when condition is false", () => {
         const budget = createBudget();
-        const thenNode: CompiledPlanNode = {
+        const thenNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Condition was true"),
         };
-        const elseNode: CompiledPlanNode = {
+        const elseNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Condition was false"),
         };
-        const node: CompiledPlanNode & { kind: "if" } = {
+        const node: CompiledPlanNode<any> & { kind: "if" } = {
           kind: "if",
           when: { type: "exists", ref: { source: "nullValue" } },
           then: [thenNode],
@@ -645,12 +645,12 @@ describe("Plan Executor", () => {
 
       it("should return empty array when condition is false and no else branch", () => {
         const budget = createBudget();
-        const thenNode: CompiledPlanNode = {
+        const thenNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Condition was true"),
         };
-        const node: CompiledPlanNode & { kind: "if" } = {
+        const node: CompiledPlanNode<any> & { kind: "if" } = {
           kind: "if",
           when: { type: "exists", ref: { source: "nullValue" } },
           then: [thenNode],
@@ -663,7 +663,7 @@ describe("Plan Executor", () => {
 
       it("should handle all condition types", () => {
         const budget = createBudget();
-        const thenNode: CompiledPlanNode = {
+        const thenNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("Success"),
@@ -724,7 +724,7 @@ describe("Plan Executor", () => {
         ];
 
         for (const condition of conditions) {
-          const node: CompiledPlanNode & { kind: "if" } = {
+          const node: CompiledPlanNode<any> & { kind: "if" } = {
             kind: "if",
             when: condition,
             then: [thenNode],
@@ -745,17 +745,17 @@ describe("Plan Executor", () => {
     describe("nested execution", () => {
       it("should execute multiple nodes in then branch", () => {
         const budget = createBudget();
-        const node1: CompiledPlanNode = {
+        const node1: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
           content: compileLeaf("First message"),
         };
-        const node2: CompiledPlanNode = {
+        const node2: CompiledPlanNode<any> = {
           kind: "message",
           role: "assistant",
           content: compileLeaf("Second message"),
         };
-        const ifNode: CompiledPlanNode & { kind: "if" } = {
+        const ifNode: CompiledPlanNode<any> & { kind: "if" } = {
           kind: "if",
           when: { type: "exists", ref: { source: "existsValue" } },
           then: [node1, node2],
@@ -775,7 +775,7 @@ describe("Plan Executor", () => {
   describe("executePlanNode - dispatcher", () => {
     it("should dispatch message nodes correctly", () => {
       const budget = createBudget();
-      const node: CompiledPlanNode = {
+      const node: CompiledPlanNode<any> = {
         kind: "message",
         role: "user",
         content: compileLeaf("Test message"),
@@ -789,12 +789,12 @@ describe("Plan Executor", () => {
 
     it("should dispatch forEach nodes correctly", () => {
       const budget = createBudget();
-      const childNode: CompiledPlanNode = {
+      const childNode: CompiledPlanNode<any> = {
         kind: "message",
         role: "user",
         content: compileLeaf("Item: {{item.name}}"),
       };
-      const node: CompiledPlanNode = {
+      const node: CompiledPlanNode<any> = {
         kind: "forEach",
         source: { source: "characters" },
         limit: 1,
@@ -809,12 +809,12 @@ describe("Plan Executor", () => {
 
     it("should dispatch if nodes correctly", () => {
       const budget = createBudget();
-      const thenNode: CompiledPlanNode = {
+      const thenNode: CompiledPlanNode<any> = {
         kind: "message",
         role: "user",
         content: compileLeaf("True branch"),
       };
-      const node: CompiledPlanNode = {
+      const node: CompiledPlanNode<any> = {
         kind: "if",
         when: { type: "exists", ref: { source: "currentIntent" } },
         then: [thenNode],
@@ -848,12 +848,12 @@ describe("Plan Executor", () => {
   describe("executePlanNodes", () => {
     it("should execute multiple nodes in sequence", () => {
       const budget = createBudget();
-      const node1: CompiledPlanNode = {
+      const node1: CompiledPlanNode<any> = {
         kind: "message",
         role: "user",
         content: compileLeaf("First"),
       };
-      const node2: CompiledPlanNode = {
+      const node2: CompiledPlanNode<any> = {
         kind: "message",
         role: "assistant",
         content: compileLeaf("Second"),
@@ -871,7 +871,7 @@ describe("Plan Executor", () => {
 
     it("should handle empty node array", () => {
       const budget = createBudget();
-      const nodes: CompiledPlanNode[] = [];
+      const nodes: CompiledPlanNode<any>[] = [];
 
       const result = executePlanNodes(nodes, ctx, budget, registry);
 

@@ -12,7 +12,6 @@ import {
   resolveDataRef,
 } from "./data-ref-resolver";
 import { makeRegistry } from "./source-registry";
-import type { DataRef, TurnGenCtx } from "./types";
 
 describe("Type Guards", () => {
   describe("isArray", () => {
@@ -136,7 +135,7 @@ describe("Type Guards", () => {
 });
 
 describe("DataRef Resolution", () => {
-  const mockCtx: TurnGenCtx = {
+  const mockCtx = {
     turns: [
       {
         turnNo: 1,
@@ -152,15 +151,15 @@ describe("DataRef Resolution", () => {
 
   describe("resolveDataRef", () => {
     it("should resolve DataRefs through registry", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         turns: (_ref, ctx) => ctx.turns,
         characters: (_ref, ctx) => ctx.characters,
         intent: (_ref, ctx) => ctx.currentIntent,
       });
 
-      const turnsRef: DataRef = { source: "turns" };
-      const charactersRef: DataRef = { source: "characters" };
-      const intentRef: DataRef = { source: "intent" };
+      const turnsRef = { args: undefined, source: "turns" };
+      const charactersRef = { args: undefined, source: "characters" };
+      const intentRef = { args: undefined, source: "intent" };
 
       expect(resolveDataRef(turnsRef, mockCtx, registry)).toBe(mockCtx.turns);
       expect(resolveDataRef(charactersRef, mockCtx, registry)).toBe(
@@ -172,24 +171,24 @@ describe("DataRef Resolution", () => {
     });
 
     it("should return undefined for unknown sources", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         turns: (_ref, ctx) => ctx.turns,
       });
 
-      const unknownRef: DataRef = { source: "unknown" };
+      const unknownRef = { args: undefined, source: "unknown" };
       expect(resolveDataRef(unknownRef, mockCtx, registry)).toBeUndefined();
     });
 
     it("should handle registry errors gracefully", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         errorSource: () => {
           throw new Error("Registry error");
         },
         goodSource: (_ref, ctx) => ctx.turns,
       });
 
-      const errorRef: DataRef = { source: "errorSource" };
-      const goodRef: DataRef = { source: "goodSource" };
+      const errorRef = { args: undefined, source: "errorSource" };
+      const goodRef = { args: undefined, source: "goodSource" };
 
       // Should return undefined for error case, not throw
       const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
@@ -204,13 +203,13 @@ describe("DataRef Resolution", () => {
     });
 
     it("should handle null and undefined returns from registry", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         nullSource: () => null,
         undefinedSource: () => undefined,
       });
 
-      const nullRef: DataRef = { source: "nullSource" };
-      const undefinedRef: DataRef = { source: "undefinedSource" };
+      const nullRef = { args: undefined, source: "nullSource" };
+      const undefinedRef = { args: undefined, source: "undefinedSource" };
 
       expect(resolveDataRef(nullRef, mockCtx, registry)).toBeNull();
       expect(resolveDataRef(undefinedRef, mockCtx, registry)).toBeUndefined();
@@ -219,15 +218,15 @@ describe("DataRef Resolution", () => {
 
   describe("resolveAsArray", () => {
     it("should return arrays when resolution produces arrays", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         turns: (_ref, ctx) => ctx.turns,
         characters: (_ref, ctx) => ctx.characters,
         emptyArray: () => [],
       });
 
-      const turnsRef: DataRef = { source: "turns" };
-      const charactersRef: DataRef = { source: "characters" };
-      const emptyRef: DataRef = { source: "emptyArray" };
+      const turnsRef = { args: undefined, source: "turns" };
+      const charactersRef = { args: undefined, source: "characters" };
+      const emptyRef = { args: undefined, source: "emptyArray" };
 
       expect(resolveAsArray(turnsRef, mockCtx, registry)).toBe(mockCtx.turns);
       expect(resolveAsArray(charactersRef, mockCtx, registry)).toBe(
@@ -237,7 +236,7 @@ describe("DataRef Resolution", () => {
     });
 
     it("should return undefined for non-array results", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         string: () => "hello",
         number: () => 123,
         object: () => ({ id: 1 }),
@@ -265,15 +264,15 @@ describe("DataRef Resolution", () => {
 
   describe("resolveAsString", () => {
     it("should return strings when resolution produces strings", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         greeting: () => "hello",
         empty: () => "",
         description: (_ref, ctx) => ctx.currentIntent.description,
       });
 
-      const greetingRef: DataRef = { source: "greeting" };
-      const emptyRef: DataRef = { source: "empty" };
-      const descRef: DataRef = { source: "description" };
+      const greetingRef = { args: undefined, source: "greeting" };
+      const emptyRef = { args: undefined, source: "empty" };
+      const descRef = { args: undefined, source: "description" };
 
       expect(resolveAsString(greetingRef, mockCtx, registry)).toBe("hello");
       expect(resolveAsString(emptyRef, mockCtx, registry)).toBe("");
@@ -281,7 +280,7 @@ describe("DataRef Resolution", () => {
     });
 
     it("should return undefined for non-string results", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         number: () => 123,
         array: () => ["hello"],
         object: () => ({ name: "hello" }),
@@ -309,7 +308,7 @@ describe("DataRef Resolution", () => {
 
   describe("resolveAsNumber", () => {
     it("should return numbers when resolution produces valid numbers", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         zero: () => 0,
         positive: () => 123,
         negative: () => -45,
@@ -333,7 +332,7 @@ describe("DataRef Resolution", () => {
     });
 
     it("should return undefined for NaN and non-number results", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<typeof mockCtx, any>({
         nan: () => Number.NaN,
         string: () => "123",
         array: () => [123],
@@ -365,7 +364,13 @@ describe("DataRef Resolution", () => {
 
   describe("integration with args", () => {
     it("should work with DataRefs that have args", () => {
-      const registry = makeRegistry<"turn_generation">({
+      const registry = makeRegistry<
+        typeof mockCtx,
+        {
+          firstN: { args: { count: number }; out: typeof mockCtx.turns };
+          repeat: { args: { text: string; times: number }; out: string };
+        }
+      >({
         firstN: (ref, ctx) => {
           const args = ref.args as { count: number };
           return ctx.turns.slice(0, args.count);
@@ -376,9 +381,9 @@ describe("DataRef Resolution", () => {
         },
       });
 
-      const arrayRef: DataRef = { source: "firstN", args: { count: 1 } };
-      const stringRef: DataRef = {
-        source: "repeat",
+      const arrayRef = { source: "firstN" as const, args: { count: 1 } };
+      const stringRef = {
+        source: "repeat" as const,
         args: { text: "hi", times: 3 },
       };
 

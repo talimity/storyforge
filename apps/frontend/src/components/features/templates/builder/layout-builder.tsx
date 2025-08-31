@@ -11,15 +11,16 @@ import {
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type {
-  ChatCompletionMessageRole,
-  TaskKind,
-} from "@storyforge/prompt-rendering";
+import type { TaskKind } from "@storyforge/gentasks";
+import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
 import { LuLayers, LuMessageSquare, LuPlus } from "react-icons/lu";
 import { LayoutNodeCard } from "@/components/features/templates/builder/layout-node-card";
 import { useLayoutDnd } from "@/components/features/templates/builder/use-layout-dnd";
 import { getRecipesForTask } from "@/components/features/templates/recipes/registry";
-import type { LayoutNodeDraft } from "@/components/features/templates/types";
+import type {
+  AnyRecipeId,
+  LayoutNodeDraft,
+} from "@/components/features/templates/types";
 import { Button, EmptyState } from "@/components/ui";
 import {
   getMissingSlots,
@@ -69,7 +70,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
     addMessageNode(role);
   };
 
-  const handleCreateSlotFromRecipe = (recipeId: string) => {
+  const handleCreateSlotFromRecipe = (recipeId: AnyRecipeId | "custom") => {
     if (!task) return;
     createSlotFromRecipe(recipeId);
   };

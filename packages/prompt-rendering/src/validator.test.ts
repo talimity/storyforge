@@ -4,7 +4,7 @@ import type { PromptTemplate } from "./types";
 import { validateTemplateStructure } from "./validator";
 
 describe("validateTemplateStructure", () => {
-  const validTemplate: PromptTemplate = {
+  const validTemplate: PromptTemplate<any, any> = {
     id: "test_template",
     name: "Test Template",
     task: "turn_generation",
@@ -36,7 +36,7 @@ describe("validateTemplateStructure", () => {
 
   describe("slot name validation", () => {
     it("should throw for missing slot reference in layout", () => {
-      const invalidTemplate: PromptTemplate = {
+      const invalidTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         layout: [
           { kind: "message", role: "system", content: "System message" },
@@ -53,7 +53,7 @@ describe("validateTemplateStructure", () => {
     });
 
     it("should pass when all slot references exist", () => {
-      const validMultiSlotTemplate: PromptTemplate = {
+      const validMultiSlotTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         layout: [
           { kind: "slot", name: "content" },
@@ -73,7 +73,7 @@ describe("validateTemplateStructure", () => {
 
   describe("assistant prefix validation", () => {
     it("should allow prefix:true on assistant role messages", () => {
-      const validPrefixTemplate: PromptTemplate = {
+      const validPrefixTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         layout: [
           {
@@ -91,7 +91,7 @@ describe("validateTemplateStructure", () => {
     });
 
     it("should throw for prefix:true on non-assistant role in layout", () => {
-      const invalidPrefixTemplate: PromptTemplate = {
+      const invalidPrefixTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         layout: [
           {
@@ -112,7 +112,7 @@ describe("validateTemplateStructure", () => {
     });
 
     it("should throw for prefix:true on non-assistant role in slot plan", () => {
-      const invalidSlotPrefixTemplate: PromptTemplate = {
+      const invalidSlotPrefixTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         slots: {
           content: {
@@ -141,8 +141,11 @@ describe("validateTemplateStructure", () => {
     });
 
     it("should throw for prefix:true in nested plan nodes", () => {
-      const nestedInvalidTemplate: PromptTemplate = {
-        ...validTemplate,
+      const nestedInvalidTemplate: PromptTemplate<
+        any,
+        { items: { out: any; args: never } }
+      > = {
+        ...(validTemplate as any),
         slots: {
           content: {
             priority: 0,
@@ -174,7 +177,7 @@ describe("validateTemplateStructure", () => {
     });
 
     it("should throw for prefix:true in if node", () => {
-      const ifInvalidTemplate: PromptTemplate = {
+      const ifInvalidTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         slots: {
           content: {
@@ -217,7 +220,7 @@ describe("validateTemplateStructure", () => {
 
   describe("edge cases", () => {
     it("should handle templates with no slots", () => {
-      const noSlotsTemplate: PromptTemplate = {
+      const noSlotsTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         layout: [
           { kind: "message", role: "system", content: "Just a message" },
@@ -229,7 +232,7 @@ describe("validateTemplateStructure", () => {
     });
 
     it("should handle templates with empty layout", () => {
-      const emptyLayoutTemplate: PromptTemplate = {
+      const emptyLayoutTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         layout: [],
       };
@@ -240,7 +243,7 @@ describe("validateTemplateStructure", () => {
     });
 
     it("should handle undefined prefix (should not throw)", () => {
-      const undefinedPrefixTemplate: PromptTemplate = {
+      const undefinedPrefixTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         layout: [
           { kind: "message", role: "user", content: "No prefix defined" },
@@ -253,7 +256,7 @@ describe("validateTemplateStructure", () => {
     });
 
     it("should handle false prefix (should not throw)", () => {
-      const falsePrefixTemplate: PromptTemplate = {
+      const falsePrefixTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
         layout: [
           {

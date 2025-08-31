@@ -1,14 +1,5 @@
-import type {
-  ChapterSummCtx,
-  ChapterSummCtxDTO,
-  CharacterCtxDTO,
-  TurnCtxDTO,
-  TurnGenCtx,
-  WritingAssistantCtx,
-} from "../../types";
-
 /** Sample turn data for testing */
-export const sampleTurns: TurnCtxDTO[] = [
+export const sampleTurnsDTOFixture = [
   {
     turnNo: 1,
     authorName: "Alice",
@@ -30,7 +21,7 @@ export const sampleTurns: TurnCtxDTO[] = [
 ];
 
 /** Sample chapter summaries for testing */
-export const sampleChapterSummaries: ChapterSummCtxDTO[] = [
+export const sampleChapterSummariesDTOFixture = [
   {
     chapterNo: 1,
     summary: "Alice and Bob meet for the first time at the market square.",
@@ -43,7 +34,7 @@ export const sampleChapterSummaries: ChapterSummCtxDTO[] = [
 ];
 
 /** Sample character data for testing */
-export const sampleCharacters: CharacterCtxDTO[] = [
+export const sampleCharactersDTOFixture = [
   {
     id: "alice",
     name: "Alice",
@@ -63,10 +54,10 @@ export const sampleCharacters: CharacterCtxDTO[] = [
 ];
 
 /** Complete turn generation context for testing */
-export const sampleTurnGenCtx: TurnGenCtx = {
-  turns: sampleTurns,
-  chapterSummaries: sampleChapterSummaries,
-  characters: sampleCharacters,
+export const sampleTurnGenCtx = {
+  turns: sampleTurnsDTOFixture,
+  chapterSummaries: sampleChapterSummariesDTOFixture,
+  characters: sampleCharactersDTOFixture,
   currentIntent: {
     description: "Continue the conversation between Alice and Bob",
     constraint: "Keep the tone light and friendly",
@@ -88,7 +79,7 @@ export const sampleTurnGenCtx: TurnGenCtx = {
 };
 
 /** Writing assistant context for testing */
-export const sampleWritingAssistantCtx: WritingAssistantCtx = {
+export const sampleWritingAssistantCtx = {
   userText: "The quick brown fox jumps over the lazy dog.",
   examples: [
     "The agile auburn fox leaps gracefully over the sleepy canine.",
@@ -109,9 +100,9 @@ export const sampleWritingAssistantCtx: WritingAssistantCtx = {
 };
 
 /** Chapter summarization context for testing */
-export const sampleChapterSummCtx: ChapterSummCtx = {
-  turns: sampleTurns,
-  chapterSummaries: sampleChapterSummaries.slice(0, 1), // Only previous chapters
+export const sampleChapterSummCtx = {
+  turns: sampleTurnsDTOFixture,
+  chapterSummaries: sampleChapterSummariesDTOFixture.slice(0, 1), // Only previous chapters
   globals: {
     storyGenre: "fantasy",
     maxSummaryLength: 200,
@@ -119,16 +110,16 @@ export const sampleChapterSummCtx: ChapterSummCtx = {
 };
 
 /** Minimal contexts for edge case testing */
-export const emptyTurnGenCtx: TurnGenCtx = {
+export const emptyTurnGenCtx = {
   turns: [],
   chapterSummaries: [],
   characters: [],
   currentIntent: { description: "Start a new story" },
 };
 
-export const minimalTurnGenCtx: TurnGenCtx = {
-  turns: [sampleTurns[0]],
+export const minimalTurnGenCtx = {
+  turns: [sampleTurnsDTOFixture[0]],
   chapterSummaries: [],
-  characters: [sampleCharacters[0]],
+  characters: [sampleCharactersDTOFixture[0]],
   currentIntent: { description: "Simple test" },
 };

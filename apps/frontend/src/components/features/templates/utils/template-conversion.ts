@@ -1,15 +1,13 @@
+import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import type {
   LayoutNode,
   MessageBlock,
-  PromptTemplate,
   SlotSpec,
-  TaskKind,
+  UnboundTemplate,
 } from "@storyforge/prompt-rendering";
 import { nanoid } from "nanoid";
-import {
-  isValidRecipeId,
-  recipeMetaSchema,
-} from "@/components/features/templates/recipes/registry";
+import { z } from "zod";
+import { isValidRecipeId } from "@/components/features/templates/recipes/registry";
 import type {
   LayoutNodeDraft,
   MessageBlockDraft,
@@ -20,14 +18,11 @@ import type {
 /**
  * Convert a PromptTemplate from the API into a TemplateDraft for editing
  */
-export function templateToDraft(template: PromptTemplate): TemplateDraft {
-  console.log(
-    `Converting template ${template.id} (${template.name}) to draft format`
-  );
+export function templateToDraft(template: UnboundTemplate): TemplateDraft {
   return {
     id: template.id,
     name: template.name,
-    task: template.task,
+    task: taskKindSchema.parse(template.task),
     description: template.description || "",
     layoutDraft: template.layout.map(convertLayoutNodeToDraft),
     slotsDraft: convertSlotsToDraft(template.slots),
@@ -97,6 +92,15 @@ function convertMessageBlockToDraft(block: MessageBlock): MessageBlockDraft {
     ...(block.prefix && { prefix: block.prefix }),
   };
 }
+
+const recipeMetaSchema = z
+  .object({
+    recipe: z.object({
+      id: z.string(),
+      params: z.record(z.string(), z.unknown()),
+    }),
+  })
+  .loose();
 
 /**
  * Convert slots from engine format to draft format

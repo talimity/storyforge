@@ -1,5 +1,5 @@
 {
-  "name": "@storyforge/gentask-specs",
+  "name": "@storyforge/gentasks",
   "description": "Provides gentask types and datasource registries for use with the gentask runner and prompt rendering systems.",
   "version": "1.0.0",
   "type": "module",
@@ -14,7 +14,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@storyforge/prompt-rendering": "workspace:*"
+    "@storyforge/prompt-rendering": "workspace:*",
+    "@storyforge/utils": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:",

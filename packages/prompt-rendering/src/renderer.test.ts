@@ -8,13 +8,13 @@ import complexTemplateJson from "./test/fixtures/templates/complex-template.json
 import minimalTemplateJson from "./test/fixtures/templates/minimal-template.json";
 import multiSlotTemplateJson from "./test/fixtures/templates/multi-slot-template.json";
 import { makeTurnGenTestRegistry } from "./test/fixtures/test-registries";
-import type { BudgetManager, TurnGenCtx } from "./types";
+import type { BudgetManager } from "./types";
 
 describe("render function", () => {
   const budget = new DefaultBudgetManager({ maxTokens: 10000 });
   const registry = makeTurnGenTestRegistry();
 
-  const sampleContext: TurnGenCtx = {
+  const sampleContext = {
     turns: [
       {
         turnNo: 1,
@@ -98,7 +98,7 @@ describe("render function", () => {
     });
 
     it("should handle empty slot results", () => {
-      const emptyContext: TurnGenCtx = {
+      const emptyContext = {
         ...sampleContext,
         characters: [], // Empty characters
       };
@@ -147,7 +147,7 @@ describe("render function", () => {
 
     it("should handle conditions correctly", () => {
       // Test with data that should trigger the 'then' branch
-      const contextWithTurns: TurnGenCtx = {
+      const contextWithTurns = {
         ...sampleContext,
         // Add recentTurns for the complex template
         recentTurns: [{ turnNo: 1, content: "Recent turn content" }],

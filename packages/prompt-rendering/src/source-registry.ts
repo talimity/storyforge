@@ -1,30 +1,32 @@
-import type { DataRef, SourceRegistry, TaskCtx, TaskKind } from "./types";
-
-/**
- * Source handler function type - receives a DataRef and task context,
- * returns any value that the source provides.
- */
-export type SourceHandler<K extends TaskKind> = (
-  ref: DataRef,
-  ctx: TaskCtx<K>
-) => unknown;
+import type {
+  DataRef,
+  SourceHandler,
+  SourceRegistry,
+  SourceSpec,
+} from "./types";
 
 /**
  * Registry implementation that delegates to a map of source handlers.
  */
-class MapBasedRegistry<K extends TaskKind> implements SourceRegistry<K> {
-  constructor(private readonly handlers: Record<string, SourceHandler<K>>) {}
-
-  resolve(ref: DataRef, ctx: TaskCtx<K>): unknown {
-    const handler = this.handlers[ref.source];
-    if (!handler) {
-      return undefined;
+class MapBasedRegistry<Ctx, S extends SourceSpec>
+  implements SourceRegistry<Ctx, S>
+{
+  constructor(
+    private readonly handlers: {
+      [K in keyof S & string]: SourceHandler<Ctx, S, K>;
     }
-    return handler(ref, ctx);
+  ) {}
+
+  resolve<K extends keyof S & string>(
+    ref: DataRef<K, S[K]["args"]>,
+    ctx: Ctx
+  ): S[K]["out"] | undefined {
+    const handler = this.handlers[ref.source];
+    return handler ? handler(ref, ctx) : undefined;
   }
 
-  list(): string[] {
-    return Object.keys(this.handlers);
+  list(): Array<keyof S & string> {
+    return Object.keys(this.handlers) as Array<keyof S & string>;
   }
 }
 
@@ -36,15 +38,15 @@ class MapBasedRegistry<K extends TaskKind> implements SourceRegistry<K> {
  *
  * @example
  * ```typescript
- * const registry = makeRegistry({
+ * const registry = makeRegistry<MyCtx, MySourceSpec>({
  *   turns: (ref, ctx) => ctx.turns,
  *   characters: (ref, ctx) => ctx.characters,
  *   intent: (ref, ctx) => ctx.currentIntent,
  * });
  * ```
  */
-export function makeRegistry<K extends TaskKind>(
-  handlers: Record<string, SourceHandler<K>>
-): SourceRegistry<K> {
+export function makeRegistry<Ctx, S extends SourceSpec>(
+  handlers: { [K in keyof S & string]: SourceHandler<Ctx, S, K> }
+): SourceRegistry<Ctx, S> {
   return new MapBasedRegistry(handlers);
 }

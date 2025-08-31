@@ -1,9 +1,10 @@
 import type {
-  DataRef,
+  DataRefOf,
   LayoutNode,
   MessageBlock,
   PlanNode,
   PromptTemplate,
+  SourceSpec,
 } from "./types";
 
 /** A breadcrumb path to be displayed in errors, e.g. "layout[0]" or "slots.content.if.then[1]" */
@@ -12,14 +13,16 @@ export type NodePath = string;
 type PathSeg = string;
 const join = (segs: PathSeg[]) => segs.join(".");
 
-function normalizeBlocks(b?: MessageBlock | MessageBlock[]): MessageBlock[] {
+function normalizeBlocks<S extends SourceSpec>(
+  b?: MessageBlock<S> | MessageBlock<S>[]
+): MessageBlock<S>[] {
   if (!b) return [];
   return Array.isArray(b) ? b : [b];
 }
 
-function toMessageBlock(
-  node: (LayoutNode | PlanNode) & { kind: "message" }
-): MessageBlock {
+function toMessageBlock<S extends SourceSpec>(
+  node: (LayoutNode<S> | PlanNode<S>) & { kind: "message" }
+): MessageBlock<S> {
   return {
     role: node.role,
     content: node.content,
@@ -29,9 +32,9 @@ function toMessageBlock(
 }
 
 /** Yield every message-like block in the template, regardless of where it appears. */
-export function* iterMessageBlocks(
-  tpl: PromptTemplate
-): Generator<{ block: MessageBlock; path: NodePath }> {
+export function* iterMessageBlocks<K extends string, S extends SourceSpec>(
+  tpl: PromptTemplate<K, S>
+): Generator<{ block: MessageBlock<S>; path: NodePath }> {
   const root: PathSeg[] = [];
 
   // Layout nodes
@@ -66,10 +69,10 @@ export function* iterMessageBlocks(
   }
 }
 
-function* walkPlanNodes(
-  nodes: PlanNode[],
+function* walkPlanNodes<S extends SourceSpec>(
+  nodes: PlanNode<S>[],
   base: PathSeg[]
-): Generator<{ block: MessageBlock; path: NodePath }> {
+): Generator<{ block: MessageBlock<S>; path: NodePath }> {
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
     const here = [...base, `plan[${i}]`];
@@ -109,9 +112,9 @@ function* walkPlanNodes(
 }
 
 /** Yield every DataRef in the template with a precise path for diagnostics. */
-export function* iterDataRefs(
-  tpl: PromptTemplate
-): Generator<{ ref: DataRef; path: NodePath }> {
+export function* iterDataRefs<K extends string, S extends SourceSpec>(
+  tpl: PromptTemplate<K, S>
+): Generator<{ ref: DataRefOf<S>; path: NodePath }> {
   const root: PathSeg[] = [];
 
   // Layout nodes
@@ -169,10 +172,10 @@ export function* iterDataRefs(
  * @param base - The base path segments used to construct the complete path
  * @yields Objects containing the DataRef and its corresponding NodePath for diagnostic purposes
  */
-function* walkPlanDataRefs(
-  nodes: PlanNode[],
+function* walkPlanDataRefs<S extends SourceSpec>(
+  nodes: PlanNode<S>[],
   base: PathSeg[]
-): Generator<{ ref: DataRef; path: NodePath }> {
+): Generator<{ ref: DataRefOf<S>; path: NodePath }> {
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
     const here = [...base, `plan[${i}]`];

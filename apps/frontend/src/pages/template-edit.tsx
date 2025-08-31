@@ -1,5 +1,5 @@
 import { Container, Heading, Text, VStack } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/prompt-rendering";
+import type { TaskKind } from "@storyforge/gentasks";
 import { useNavigate, useParams } from "react-router-dom";
 import { TemplateForm } from "@/components/features/templates/template-form";
 import type {

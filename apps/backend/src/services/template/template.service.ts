@@ -4,27 +4,22 @@ import {
   type SqliteTransaction,
   schema,
 } from "@storyforge/db";
-import {
-  compileTemplate,
-  type PromptTemplate as SpecPromptTemplate,
-} from "@storyforge/prompt-rendering";
+import type { UnboundTemplate } from "@storyforge/prompt-rendering";
 import { eq } from "drizzle-orm";
 import { ServiceError } from "@/service-error";
-import { fromDbPromptTemplate } from "@/services/template/utils/from-db-prompt-template";
+import {
+  fromDbPromptTemplate,
+  tryCompileUnboundTemplate,
+} from "@/services/template/utils/marshalling";
 
-// Use the prompt-rendering types for validation, then convert to database format
-interface CreateTemplateData
-  extends Omit<SpecPromptTemplate, "id" | "version"> {}
-
-interface UpdateTemplateData
-  extends Partial<Omit<SpecPromptTemplate, "id" | "version">> {}
+type CreateTemplateData = Omit<UnboundTemplate, "id" | "version">;
+type UpdateTemplateData = Partial<Omit<UnboundTemplate, "id" | "version">>;
 
 export class TemplateService {
   constructor(private db: SqliteDatabase) {}
 
   async createTemplate(data: CreateTemplateData, outerTx?: SqliteTransaction) {
-    // Compile the template to validate its structure
-    const templateForValidation: SpecPromptTemplate = {
+    const templateForValidation: UnboundTemplate = {
       id: "temp-id-for-validation",
       task: data.task,
       name: data.name,
@@ -34,13 +29,7 @@ export class TemplateService {
       slots: data.slots,
     };
 
-    try {
-      compileTemplate(templateForValidation);
-    } catch (error) {
-      throw new ServiceError("InvalidInput", {
-        message: `Template validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      });
-    }
+    tryCompileUnboundTemplate(templateForValidation);
 
     const operation = async (tx: SqliteTransaction) => {
       // Convert from prompt-rendering types to database JSON types
@@ -85,31 +74,26 @@ export class TemplateService {
         });
       }
 
-      const existingAsSpec = fromDbPromptTemplate(existing);
+      const existingUnboundTemplate = fromDbPromptTemplate(existing);
 
       // Create updated template for validation (convert database types to prompt-rendering types)
-      const updatedTemplate: SpecPromptTemplate = {
-        id: existingAsSpec.id,
-        task: existingAsSpec.task,
-        name: data.name ?? existingAsSpec.name,
-        description: data.description ?? existingAsSpec.description,
-        version: existingAsSpec.version,
-        layout: data.layout ?? existingAsSpec.layout,
-        slots: data.slots ?? existingAsSpec.slots,
+      const newUnboundTemplate: UnboundTemplate = {
+        id: existingUnboundTemplate.id,
+        task: existingUnboundTemplate.task,
+        name: data.name ?? existingUnboundTemplate.name,
+        description: data.description ?? existingUnboundTemplate.description,
+        version: existingUnboundTemplate.version,
+        layout: data.layout ?? existingUnboundTemplate.layout,
+        slots: data.slots ?? existingUnboundTemplate.slots,
       };
 
-      try {
-        compileTemplate(updatedTemplate);
-      } catch (error) {
-        throw new ServiceError("InvalidInput", {
-          message: `Template validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        });
-      }
+      // Validate the updated template structure
+      tryCompileUnboundTemplate(newUnboundTemplate);
 
       // Convert from prompt-rendering types to database JSON types for update
       const updateData: Partial<NewPromptTemplate> = {
-        version: existingAsSpec.version,
-        kind: existingAsSpec.task,
+        version: existingUnboundTemplate.version,
+        kind: existingUnboundTemplate.task,
       };
 
       if (data.name !== undefined) updateData.name = data.name;
@@ -198,23 +182,11 @@ export class TemplateService {
   }
 
   async importTemplate(
-    templateData: Omit<SpecPromptTemplate, "id" | "version">,
+    templateData: Omit<UnboundTemplate, "id" | "version">,
     outerTx?: SqliteTransaction
   ) {
-    const templateForValidation: SpecPromptTemplate = {
-      id: "temp-id-for-validation",
-      version: 1,
-      ...templateData,
-    };
-
-    try {
-      compileTemplate(templateForValidation);
-    } catch (error) {
-      throw new ServiceError("InvalidInput", {
-        message: `Invalid template: ${error instanceof Error ? error.message : "Unknown error"}`,
-      });
-    }
-
+    // May eventually need some dedicated import logic (e.g., to merge with existing templates)
+    // but for now just create a new template
     return this.createTemplate(templateData, outerTx);
   }
 }

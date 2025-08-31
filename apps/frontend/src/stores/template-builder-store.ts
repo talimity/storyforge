@@ -1,7 +1,5 @@
-import type {
-  ChatCompletionMessageRole,
-  TaskKind,
-} from "@storyforge/prompt-rendering";
+import type { TaskKind } from "@storyforge/gentasks";
+import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import {
@@ -11,9 +9,9 @@ import {
 } from "@/components/features/templates/builder/builder-utils";
 import { getRecipeById } from "@/components/features/templates/recipes/registry";
 import type {
+  AnyRecipeId,
   LayoutNodeDraft,
   SlotDraft,
-  SlotRecipeId,
   TemplateDraft,
 } from "@/components/features/templates/types";
 import { validateDraft } from "@/components/features/templates/utils/compile-draft";
@@ -44,7 +42,7 @@ export interface TemplateBuilderState {
 
   // Slot Actions
   createSlotFromRecipe: (
-    recipeId: string,
+    recipeId: AnyRecipeId | "custom",
     params?: Record<string, unknown>
   ) => string; // Returns the slot name
   updateSlot: (slotName: string, updates: Partial<SlotDraft>) => void;
@@ -187,15 +185,13 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
       let slotName = "";
       set((state) => {
         const recipe =
-          recipeId !== "custom"
-            ? getRecipeById(recipeId as SlotRecipeId)
-            : undefined;
+          recipeId !== "custom" ? getRecipeById(recipeId) : undefined;
         const baseName = recipe?.name || "custom_content";
         slotName = generateSlotName(state.slotsDraft, baseName);
 
         // Create the slot
         state.slotsDraft[slotName] = {
-          recipeId: (recipe?.id || "custom") as SlotRecipeId | "custom",
+          recipeId: recipe?.id || "custom",
           name: slotName,
           priority: Object.keys(state.slotsDraft).length,
           params,

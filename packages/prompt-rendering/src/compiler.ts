@@ -1,6 +1,5 @@
 import { compileLeaf } from "./leaf-compiler";
 import { parseTemplate } from "./schemas";
-import { lintSourceNames } from "./source-linter";
 import type {
   CompiledLayoutNode,
   CompiledMessageBlock,
@@ -13,48 +12,40 @@ import type {
   PlanNode,
   PromptTemplate,
   SlotSpec,
-  TaskBoundTemplate,
-  TaskKind,
+  SourceSpec,
 } from "./types";
 import { validateTemplateStructure } from "./validator";
 
 /**
- * Compiles a prompttemplate, applying validation and preprocessing all leaf strings.
+ * Compiles a template, applying validation and preprocessing all leaf strings.
  * @param template - The template to compile (or JSON to parse)
  * @param options - Compilation options
  * @returns Immutable compiled template
  */
-export function compileTemplate<T extends TaskKind>(
-  template: TaskBoundTemplate<T>,
+export function compileTemplate<K extends string, S extends SourceSpec>(
+  template: PromptTemplate<K, S>,
   options?: CompileOptions
-): CompiledTemplate<T>;
-export function compileTemplate(
-  template: PromptTemplate | unknown,
+): CompiledTemplate<K, S>;
+export function compileTemplate<K extends string, S extends SourceSpec>(
+  template: unknown,
   options?: CompileOptions
-): CompiledTemplate;
-export function compileTemplate(
-  template: PromptTemplate | unknown,
+): CompiledTemplate<K, S>;
+export function compileTemplate<K extends string, S extends SourceSpec>(
+  template: PromptTemplate<K, S> | unknown,
   options?: CompileOptions
-): CompiledTemplate {
-  // 1: Parse with Zod
-  const parsedTemplate = parseTemplate(template);
+): CompiledTemplate<K, S> {
+  // 1: Parse with Zod and lint source references to try to
+  const parsedTemplate = parseTemplate<K, S>(
+    template,
+    options?.kind,
+    options?.allowedSources
+  );
 
   // 2: Ensure consistent slot names and references
   validateTemplateStructure(parsedTemplate);
 
-  // 3: Lint source names if options provided
-  if (options?.allowedSources) {
-    lintSourceNames(parsedTemplate, new Set(options.allowedSources));
-  }
-  if (options?.taskKindSources) {
-    const taskSources = options.taskKindSources[parsedTemplate.task];
-    if (taskSources) {
-      lintSourceNames(parsedTemplate, new Set(taskSources));
-    }
-  }
-
   // 4: Compile all leaf strings
-  const compiled: CompiledTemplate = {
+  const compiled: CompiledTemplate<K, S> = {
     id: parsedTemplate.id,
     task: parsedTemplate.task,
     name: parsedTemplate.name,
@@ -70,18 +61,18 @@ export function compileTemplate(
 /**
  * Compiles an array of layout nodes.
  */
-function compileLayoutNodes(
-  nodes: LayoutNode[]
-): readonly CompiledLayoutNode[] {
+function compileLayoutNodes<S extends SourceSpec = SourceSpec>(
+  nodes: LayoutNode<S>[]
+): readonly CompiledLayoutNode<S>[] {
   return Object.freeze(nodes.map(compileLayoutNode));
 }
 
 /**
  * Converts a MessageBlock or array of MessageBlocks to an immutable array of compiled message blocks.
  */
-function toBlockArray(
-  b: MessageBlock | MessageBlock[] | undefined
-): readonly CompiledMessageBlock[] | undefined {
+function toBlockArray<S extends SourceSpec = SourceSpec>(
+  b: MessageBlock<S> | MessageBlock<S>[] | undefined
+): readonly CompiledMessageBlock<S>[] | undefined {
   if (!b) return undefined;
   const arr = Array.isArray(b) ? b : [b];
   return Object.freeze(arr.map(compileMessageBlock));
@@ -90,7 +81,9 @@ function toBlockArray(
 /**
  * Compiles a single layout node.
  */
-function compileLayoutNode(node: LayoutNode): CompiledLayoutNode {
+function compileLayoutNode<S extends SourceSpec = SourceSpec>(
+  node: LayoutNode<S>
+): CompiledLayoutNode<S> {
   const { kind } = node;
   switch (kind) {
     case "message":
@@ -121,9 +114,9 @@ function compileLayoutNode(node: LayoutNode): CompiledLayoutNode {
 /**
  * Compiles a single message block.
  */
-function compileMessageBlock<T extends MessageBlock>(
-  block: T
-): CompiledMessageBlock {
+function compileMessageBlock<S extends SourceSpec = SourceSpec>(
+  block: MessageBlock<S>
+): CompiledMessageBlock<S> {
   return Object.freeze({
     role: block.role,
     content: block.content ? compileLeaf(block.content) : undefined,
@@ -135,10 +128,10 @@ function compileMessageBlock<T extends MessageBlock>(
 /**
  * Compiles slot specifications.
  */
-function compileSlots(
-  slots: Record<string, SlotSpec>
-): Readonly<Record<string, CompiledSlotSpec>> {
-  const compiled: Record<string, CompiledSlotSpec> = {};
+function compileSlots<S extends SourceSpec = SourceSpec>(
+  slots: Record<string, SlotSpec<S>>
+): Readonly<Record<string, CompiledSlotSpec<S>>> {
+  const compiled: Record<string, CompiledSlotSpec<S>> = {};
 
   for (const [name, slot] of Object.entries(slots)) {
     compiled[name] = Object.freeze({
@@ -155,14 +148,18 @@ function compileSlots(
 /**
  * Compiles an array of plan nodes.
  */
-function compilePlanNodes(nodes: PlanNode[]): readonly CompiledPlanNode[] {
+function compilePlanNodes<S extends SourceSpec = SourceSpec>(
+  nodes: PlanNode<S>[]
+): readonly CompiledPlanNode<S>[] {
   return Object.freeze(nodes.map(compilePlanNode));
 }
 
 /**
  * Compiles a single plan node (recursively).
  */
-function compilePlanNode(node: PlanNode): CompiledPlanNode {
+function compilePlanNode<S extends SourceSpec = SourceSpec>(
+  node: PlanNode<S>
+): CompiledPlanNode<S> {
   const kind = node.kind;
   switch (kind) {
     case "message":

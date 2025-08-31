@@ -1,4 +1,4 @@
-import type { DataRef, SourceRegistry, TaskCtx, TaskKind } from "./types";
+import type { DataRef, SourceRegistry, SourceSpec } from "./types";
 
 /**
  * Type guard to check if a value is an array.
@@ -56,11 +56,15 @@ export function isNonEmpty(value: unknown): boolean {
  * @param registry The source registry to use for resolution
  * @returns The resolved value, or undefined if resolution fails
  */
-export function resolveDataRef<K extends TaskKind>(
-  ref: DataRef,
-  ctx: TaskCtx<K>,
-  registry: SourceRegistry<K>
-): unknown {
+export function resolveDataRef<
+  Ctx extends object,
+  S extends SourceSpec,
+  K extends keyof S & string,
+>(
+  ref: DataRef<K, S[K]["args"]>,
+  ctx: Ctx,
+  registry: SourceRegistry<Ctx, S>
+): S[K]["out"] | undefined {
   try {
     return registry.resolve(ref, ctx);
   } catch (error) {
@@ -81,10 +85,14 @@ export function resolveDataRef<K extends TaskKind>(
  * @param registry The source registry to use for resolution
  * @returns The resolved array, or undefined if not an array
  */
-export function resolveAsArray<K extends TaskKind>(
-  ref: DataRef,
-  ctx: TaskCtx<K>,
-  registry: SourceRegistry<K>
+export function resolveAsArray<
+  Ctx extends object,
+  S extends SourceSpec,
+  K extends keyof S & string,
+>(
+  ref: DataRef<K, S[K]["args"]>,
+  ctx: Ctx,
+  registry: SourceRegistry<Ctx, S>
 ): unknown[] | undefined {
   const result = resolveDataRef(ref, ctx, registry);
   return isArray(result) ? result : undefined;
@@ -99,10 +107,14 @@ export function resolveAsArray<K extends TaskKind>(
  * @param registry The source registry to use for resolution
  * @returns The resolved string, or undefined if not a string
  */
-export function resolveAsString<K extends TaskKind>(
-  ref: DataRef,
-  ctx: TaskCtx<K>,
-  registry: SourceRegistry<K>
+export function resolveAsString<
+  Ctx extends object,
+  S extends SourceSpec,
+  K extends keyof S & string,
+>(
+  ref: DataRef<K, S[K]["args"]>,
+  ctx: Ctx,
+  registry: SourceRegistry<Ctx, S>
 ): string | undefined {
   const result = resolveDataRef(ref, ctx, registry);
   return isString(result) ? result : undefined;
@@ -117,10 +129,14 @@ export function resolveAsString<K extends TaskKind>(
  * @param registry The source registry to use for resolution
  * @returns The resolved number, or undefined if not a valid number
  */
-export function resolveAsNumber<K extends TaskKind>(
-  ref: DataRef,
-  ctx: TaskCtx<K>,
-  registry: SourceRegistry<K>
+export function resolveAsNumber<
+  Ctx extends object,
+  S extends SourceSpec,
+  K extends keyof S & string,
+>(
+  ref: DataRef<K, S[K]["args"]>,
+  ctx: Ctx,
+  registry: SourceRegistry<Ctx, S>
 ): number | undefined {
   const result = resolveDataRef(ref, ctx, registry);
   return isValidNumber(result) ? result : undefined;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TurnGenPromptTemplate } from "./types";
+
 import { iterDataRefs, iterMessageBlocks } from "./walkers";
 
 describe("walkers", () => {
@@ -9,9 +9,7 @@ describe("walkers", () => {
   }
 
   // Helper function to create a minimal template
-  function createTemplate(
-    overrides: Partial<TurnGenPromptTemplate> = {}
-  ): TurnGenPromptTemplate {
+  function createTemplate(overrides: any = {}) {
     return {
       id: "test",
       name: "Test Template",

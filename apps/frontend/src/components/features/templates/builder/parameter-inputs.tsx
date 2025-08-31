@@ -6,7 +6,7 @@ import {
 } from "@chakra-ui/react";
 import type { TemplateVariable } from "@/components/features/templates/builder/template-string-editor";
 import { TemplateStringEditor } from "@/components/features/templates/builder/template-string-editor";
-import type { RecipeParamSpec } from "@/components/features/templates/recipes/registry";
+import type { RecipeParamSpec } from "@/components/features/templates/types";
 import {
   Field,
   SelectContent,

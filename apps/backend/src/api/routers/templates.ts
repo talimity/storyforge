@@ -75,12 +75,7 @@ export const templatesRouter = router({
         summary: "Update a prompt template",
       },
     })
-    .input(
-      z.object({
-        id: z.string(),
-        data: updateTemplateSchema,
-      })
-    )
+    .input(z.object({ id: z.string(), data: updateTemplateSchema }))
     .output(templateOperationResponseSchema)
     .mutation(async ({ input, ctx }) => {
       const service = new TemplateService(ctx.db);

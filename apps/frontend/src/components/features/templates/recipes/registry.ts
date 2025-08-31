@@ -1,97 +1,77 @@
-import type { SlotSpec, TaskKind } from "@storyforge/prompt-rendering";
-import { z } from "zod";
+import type { TaskKind } from "@storyforge/gentasks";
 import { charactersRecipe } from "@/components/features/templates/recipes/turngen/characters-recipe";
 import { timelineRecipe } from "@/components/features/templates/recipes/turngen/timeline-recipe";
-import type { SlotRecipeId } from "@/components/features/templates/types";
+import type {
+  AnyRecipe,
+  AnyRecipeId,
+  ChapterSummRecipe,
+  ChapterSummRecipeId,
+  RecipeId,
+  TurnGenRecipe,
+  TurnGenRecipeId,
+  TypedRecipe,
+  WritingAssistantRecipe,
+  WritingAssistantRecipeId,
+} from "@/components/features/templates/types";
 
-// Recipe parameter specification for form generation
-export interface RecipeParamSpec {
-  key: string;
-  label: string;
-  type: "number" | "select" | "toggle" | "template_string";
-  defaultValue?: unknown;
-  help?: string;
-  min?: number;
-  max?: number;
-  options?: Array<{ label: string; value: string | number | boolean }>;
-}
-
-/** Recipe definition interface */
-export interface RecipeDefinition {
-  id: SlotRecipeId;
-  name: string;
-  task: TaskKind;
-  description?: string;
-  parameters: RecipeParamSpec[];
-
-  /**
-   * Transform the user's parameter values into a complete SlotSpec
-   * that can be used by the prompt renderer engine
-   */
-  toSlotSpec(params: Record<string, unknown>): SlotSpec;
-
-  /**
-   * Optional: Available variables that can be used in template_string parameters
-   * These will be shown as hints in the UI
-   */
-  availableVariables?: Array<{
-    name: string;
-    description: string;
-    example?: string;
-  }>;
-}
-
-export const recipeMetaSchema = z
-  .object({
-    recipe: z.object({
-      id: z.string(),
-      params: z.record(z.string(), z.unknown()),
-    }),
-  })
-  .loose();
-// Central registry of all available recipes
+/** Per-task registries */
 export const TURN_GEN_RECIPES = {
   timeline_basic: timelineRecipe,
   characters_basic: charactersRecipe,
-} as const satisfies Record<SlotRecipeId, RecipeDefinition>;
+} as const satisfies Record<TurnGenRecipeId, TurnGenRecipe>;
 
-// All recipe definitions mapped by ID
-export const ALL_RECIPES: Record<SlotRecipeId, RecipeDefinition> = {
-  ...TURN_GEN_RECIPES,
-  // Future task recipes would be added here
+export const CHAPTER_SUMM_RECIPES = {
+  // TODO
+} as const satisfies Record<ChapterSummRecipeId, ChapterSummRecipe>;
+
+export const WRITING_ASSIST_RECIPES = {
+  // TODO
+} as const satisfies Record<WritingAssistantRecipeId, WritingAssistantRecipe>;
+
+/** Recipes-by-task view */
+type ByTask = {
+  [K in TaskKind]: Record<RecipeId<K>, TypedRecipe<K>>;
 };
 
-/**
- * Get all recipes available for a specific task
- */
-export function getRecipesForTask(task: TaskKind): RecipeDefinition[] {
-  return Object.values(ALL_RECIPES).filter((recipe) => recipe.task === task);
+const BY_TASK: ByTask = {
+  turn_generation: TURN_GEN_RECIPES,
+  chapter_summarization: CHAPTER_SUMM_RECIPES,
+  writing_assistant: WRITING_ASSIST_RECIPES,
+};
+
+/** Flat registry across all tasks */
+export const ALL_RECIPES = {
+  ...TURN_GEN_RECIPES,
+  ...CHAPTER_SUMM_RECIPES,
+  ...WRITING_ASSIST_RECIPES,
+} as const;
+
+export function getRecipesForTask<K extends TaskKind>(
+  task: K
+): Array<Extract<AnyRecipe, { task: K }>> {
+  return Object.values(BY_TASK[task]);
 }
 
-/**
- * Get a specific recipe by ID
- */
-export function getRecipeById(id: SlotRecipeId): RecipeDefinition | undefined {
+export function getRecipeIdsForTask<K extends TaskKind>(
+  task: K
+): RecipeId<K>[] {
+  return Object.keys(BY_TASK[task]) as RecipeId<K>[];
+}
+
+export function getRecipeById<I extends keyof typeof ALL_RECIPES>(id: I) {
   return ALL_RECIPES[id];
 }
 
-/**
- * Get all available recipe IDs
- */
-export function getAllRecipeIds(): SlotRecipeId[] {
-  return Object.keys(ALL_RECIPES) as SlotRecipeId[];
+export function getAllRecipeIds(): AnyRecipeId[] {
+  return Object.keys(ALL_RECIPES) as AnyRecipeId[];
 }
 
-/**
- * Get recipe IDs for a specific task
- */
-export function getRecipeIdsForTask(task: TaskKind): SlotRecipeId[] {
-  return getRecipesForTask(task).map((recipe) => recipe.id);
-}
-
-/**
- * Validate that a recipe ID exists
- */
-export function isValidRecipeId(id: string): id is SlotRecipeId {
+export function isValidRecipeId(id: string): id is AnyRecipeId {
   return id in ALL_RECIPES;
+}
+
+export function assertValidRecipeId(id: string): asserts id is AnyRecipeId {
+  if (!isValidRecipeId(id)) {
+    throw new Error(`Invalid recipe ID: ${id}`);
+  }
 }

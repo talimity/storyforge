@@ -4,7 +4,7 @@ import {
   isValidNumber,
   resolveDataRef,
 } from "./data-ref-resolver";
-import type { ConditionRef, SourceRegistry, TaskCtx, TaskKind } from "./types";
+import type { ConditionRef, SourceRegistry, SourceSpec } from "./types";
 
 /**
  * Deep equality check using JSON.stringify for objects and arrays.
@@ -56,10 +56,10 @@ function compareNumbers(a: unknown, b: unknown, op: "gt" | "lt"): boolean {
  * const result = evaluateCondition(condition, ctx, registry);
  * ```
  */
-export function evaluateCondition<K extends TaskKind>(
-  condition: ConditionRef,
-  ctx: TaskCtx<K>,
-  registry: SourceRegistry<K>
+export function evaluateCondition<Ctx extends object, S extends SourceSpec>(
+  condition: ConditionRef<S>,
+  ctx: Ctx,
+  registry: SourceRegistry<Ctx, S>
 ): boolean {
   const { type, ref } = condition;
   const resolvedValue = resolveDataRef(ref, ctx, registry);

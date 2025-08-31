@@ -1,6 +1,6 @@
 import { resolveDataRef } from "./data-ref-resolver";
 import { TemplateStructureError } from "./errors";
-import { createScope } from "./plan-executor";
+import { type CtxWithGlobals, createScope } from "./plan-executor";
 import type { SlotExecutionResult } from "./slot-executor";
 import type {
   BudgetManager,
@@ -9,10 +9,9 @@ import type {
   CompiledLayoutNode,
   CompiledLeafFunction,
   CompiledMessageBlock,
-  DataRef,
+  DataRefOf,
   SourceRegistry,
-  TaskCtx,
-  TaskKind,
+  SourceSpec,
 } from "./types";
 
 /**
@@ -26,12 +25,12 @@ import type {
  * - Handles omitIfEmpty logic for slots
  * - Throws on missing slot references
  */
-export function assembleLayout<K extends TaskKind>(
-  layout: readonly CompiledLayoutNode[],
+export function assembleLayout<Ctx extends object, S extends SourceSpec>(
+  layout: readonly CompiledLayoutNode<S>[],
   slotBuffers: SlotExecutionResult,
-  ctx: TaskCtx<K>,
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>
+  registry: SourceRegistry<Ctx, S>
 ): ChatCompletionMessage[] {
   const result: ChatCompletionMessage[] = [];
 
@@ -65,16 +64,16 @@ type EmitBlockResult = "emitted" | "skip" | "stop";
  * Helper function to emit a message block with budget checking.
  * Handles the common pattern: resolve content → budget check → emit message.
  */
-function emitBlock<K extends TaskKind>(
+function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
   block: {
     role: ChatCompletionMessageRole;
     content?: CompiledLeafFunction;
-    from?: DataRef;
+    from?: DataRefOf<S>;
     prefix?: boolean;
   },
-  ctx: TaskCtx<K>,
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   result: ChatCompletionMessage[]
 ): EmitBlockResult {
   // Early exit if no budget
@@ -131,11 +130,11 @@ function emitBlock<K extends TaskKind>(
  * Process a message node in the layout.
  * Resolves content from DataRef or uses literal content, applies budget checking.
  */
-function processMessageNode<K extends TaskKind>(
-  node: CompiledLayoutNode & { kind: "message" },
-  ctx: TaskCtx<K>,
+function processMessageNode<Ctx extends object, S extends SourceSpec>(
+  node: CompiledLayoutNode<S> & { kind: "message" },
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   result: ChatCompletionMessage[]
 ): void {
   emitBlock(node, ctx, budget, registry, result);
@@ -146,12 +145,12 @@ function processMessageNode<K extends TaskKind>(
  * Inserts slot buffer content with optional headers and footers.
  * Slot content is NOT re-budget-checked (already done in Phase A).
  */
-function processSlotNode<K extends TaskKind>(
-  node: CompiledLayoutNode & { kind: "slot" },
+function processSlotNode<Ctx extends object, S extends SourceSpec>(
+  node: CompiledLayoutNode<S> & { kind: "slot" },
   slotBuffers: SlotExecutionResult,
-  ctx: TaskCtx<K>,
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   result: ChatCompletionMessage[]
 ): void {
   // Check if slot exists in buffers
@@ -189,11 +188,11 @@ function processSlotNode<K extends TaskKind>(
  * Process message blocks (headers/footers) with budget checking.
  * These are always budget-checked in Phase B.
  */
-function processMessageBlocks<K extends TaskKind>(
-  blocks: readonly CompiledMessageBlock[],
-  ctx: TaskCtx<K>,
+function processMessageBlocks<Ctx extends object, S extends SourceSpec>(
+  blocks: readonly CompiledMessageBlock<S>[],
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   result: ChatCompletionMessage[]
 ): void {
   for (const block of blocks) {

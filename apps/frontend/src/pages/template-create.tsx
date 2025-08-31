@@ -1,5 +1,5 @@
 import { Container } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/prompt-rendering";
+import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TemplateForm } from "@/components/features/templates/template-form";
@@ -12,12 +12,6 @@ import { createBlankTemplate } from "@/components/features/templates/utils/templ
 import { trpc } from "@/lib/trpc";
 import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
 
-const validTaskTypes: TaskKind[] = [
-  "turn_generation",
-  "chapter_summarization",
-  "writing_assistant",
-];
-
 export function TemplateCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -26,7 +20,7 @@ export function TemplateCreatePage() {
 
   // Redirect if no task type or invalid task type
   useEffect(() => {
-    if (!taskType || !validTaskTypes.includes(taskType)) {
+    if (!taskType || !taskKindSchema.safeParse(taskType).success) {
       navigate("/templates/select-task", { replace: true });
     }
   }, [taskType, navigate]);
@@ -88,7 +82,7 @@ export function TemplateCreatePage() {
   }, [taskType]);
 
   // Don't render the form until we have a valid task type
-  if (!taskType || !validTaskTypes.includes(taskType)) {
+  if (!taskType || !taskKindSchema.safeParse(taskType).success) {
     return null;
   }
 

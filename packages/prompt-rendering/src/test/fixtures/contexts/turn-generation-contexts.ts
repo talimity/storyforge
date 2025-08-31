@@ -1,12 +1,7 @@
-import type {
-  ChapterSummCtxDTO,
-  CharacterCtxDTO,
-  TurnCtxDTO,
-  TurnGenCtx,
-} from "../../../types";
+import type { FakeTurnGenCtx } from "@/test/fixtures/registries/turn-generation-registry";
 
 /** Enhanced turn data for comprehensive testing */
-export const richTurns: TurnCtxDTO[] = [
+export const richTurnsDTOFixture: FakeTurnGenCtx["turns"] = [
   {
     turnNo: 1,
     authorName: "Alice",
@@ -52,7 +47,7 @@ export const richTurns: TurnCtxDTO[] = [
 ];
 
 /** Rich chapter summaries for testing */
-export const richChapterSummaries: ChapterSummCtxDTO[] = [
+export const richChapterSummariesDTOFixture = [
   {
     chapterNo: 1,
     summary:
@@ -81,7 +76,7 @@ export const richChapterSummaries: ChapterSummCtxDTO[] = [
 ];
 
 /** Detailed character data with examples */
-export const richCharacters: CharacterCtxDTO[] = [
+export const richCharactersDTOFixture = [
   {
     id: "alice",
     name: "Alice",
@@ -121,10 +116,10 @@ export const richCharacters: CharacterCtxDTO[] = [
 ];
 
 /** Standard context for most integration tests */
-export const standardTurnGenCtx: TurnGenCtx = {
-  turns: richTurns,
-  chapterSummaries: richChapterSummaries,
-  characters: richCharacters,
+export const standardTurnGenCtx: FakeTurnGenCtx = {
+  turns: richTurnsDTOFixture,
+  chapterSummaries: richChapterSummariesDTOFixture,
+  characters: richCharactersDTOFixture,
   currentIntent: {
     description:
       "Continue the conversation between Alice and Bob while Charlie observes from the shadows",
@@ -164,9 +159,9 @@ export const standardTurnGenCtx: TurnGenCtx = {
 };
 
 /** Large context for budget testing with many items */
-export const largeTurnGenCtx: TurnGenCtx = {
+export const largeTurnGenCtx: FakeTurnGenCtx = {
   turns: [
-    ...richTurns,
+    ...richTurnsDTOFixture,
     // Add more turns for budget testing
     ...Array.from({ length: 20 }, (_, i) => ({
       turnNo: i + 7,
@@ -176,13 +171,14 @@ export const largeTurnGenCtx: TurnGenCtx = {
     })),
   ],
   chapterSummaries: [
-    ...richChapterSummaries,
+    ...richChapterSummariesDTOFixture,
     ...Array.from({ length: 10 }, (_, i) => ({
       chapterNo: i + 6,
       summary: `Chapter ${i + 6}: Additional chapter summary for testing budget limits and array truncation behavior.`,
     })),
   ],
-  characters: richCharacters,
+  stepInputs: {},
+  characters: richCharactersDTOFixture,
   currentIntent: {
     description: "Test budget limits with large context",
   },
@@ -192,10 +188,10 @@ export const largeTurnGenCtx: TurnGenCtx = {
 };
 
 /** Context with step chaining data for workflow testing */
-export const stepChainedCtx: TurnGenCtx = {
-  turns: richTurns.slice(0, 3), // Smaller set for focused testing
-  chapterSummaries: richChapterSummaries.slice(0, 2),
-  characters: richCharacters.slice(0, 3),
+export const stepChainedCtx = {
+  turns: richTurnsDTOFixture.slice(0, 3), // Smaller set for focused testing
+  chapterSummaries: richChapterSummariesDTOFixture.slice(0, 2),
+  characters: richCharactersDTOFixture.slice(0, 3),
   currentIntent: {
     description:
       "Execute a multi-step workflow with planner -> writer chaining",
@@ -226,7 +222,7 @@ export const stepChainedCtx: TurnGenCtx = {
 };
 
 /** Empty context for conditional testing */
-export const emptyTurnGenCtx: TurnGenCtx = {
+export const emptyTurnGenCtx = {
   turns: [],
   chapterSummaries: [],
   characters: [],
@@ -240,10 +236,10 @@ export const emptyTurnGenCtx: TurnGenCtx = {
 };
 
 /** Context with no turns but has summaries and characters */
-export const noTurnsCtx: TurnGenCtx = {
+export const noTurnsCtx = {
   turns: [],
-  chapterSummaries: richChapterSummaries.slice(0, 2),
-  characters: richCharacters.slice(0, 3),
+  chapterSummaries: richChapterSummariesDTOFixture.slice(0, 2),
+  characters: richCharactersDTOFixture.slice(0, 3),
   currentIntent: {
     description:
       "Test scenario where examples should render due to no current turns",
@@ -255,7 +251,7 @@ export const noTurnsCtx: TurnGenCtx = {
 };
 
 /** Context optimized for determinism testing */
-export const deterministicTurnGenCtx: TurnGenCtx = {
+export const deterministicTurnGenCtx: FakeTurnGenCtx = {
   turns: [
     {
       turnNo: 1,

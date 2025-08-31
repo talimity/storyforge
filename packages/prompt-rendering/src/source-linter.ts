@@ -1,5 +1,5 @@
 import { AuthoringValidationError } from "./errors";
-import type { PromptTemplate } from "./types";
+import type { PromptTemplate, SourceSpec } from "./types";
 import { iterDataRefs } from "./walkers";
 
 /**
@@ -8,9 +8,9 @@ import { iterDataRefs } from "./walkers";
  * @param allowedSources - Set of allowed source names (if undefined, no validation)
  * @throws {AuthoringValidationError} if unknown source names are found
  */
-export function lintSourceNames(
-  template: PromptTemplate,
-  allowedSources?: Set<string>
+export function lintSourceNames<K extends string, S extends SourceSpec>(
+  template: PromptTemplate<K, S>,
+  allowedSources?: Set<keyof S & string> | Set<string>
 ): void {
   if (!allowedSources) {
     return; // No validation if no allowed sources provided
@@ -33,12 +33,12 @@ export function lintSourceNames(
  * @param template - The template to extract from
  * @returns Array of unique source names found in the template
  */
-export function extractAllSourceNames(template: PromptTemplate): string[] {
-  const sources = new Set<string>();
-
+export function extractAllSourceNames<K extends string, S extends SourceSpec>(
+  template: PromptTemplate<K, S>
+): Array<keyof S & string> {
+  const out = new Set<keyof S & string>();
   for (const { ref } of iterDataRefs(template)) {
-    sources.add(ref.source);
+    out.add(ref.source as keyof S & string);
   }
-
-  return Array.from(sources).sort();
+  return [...out].sort();
 }

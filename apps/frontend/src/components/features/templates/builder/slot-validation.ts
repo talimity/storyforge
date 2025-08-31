@@ -1,8 +1,9 @@
 import { z } from "zod";
 import type { TemplateVariable } from "@/components/features/templates/builder/template-string-editor";
-import type { RecipeParamSpec } from "@/components/features/templates/recipes/registry";
+
 import type {
   LayoutNodeDraft,
+  RecipeParamSpec,
   SlotDraft,
 } from "@/components/features/templates/types";
 

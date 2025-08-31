@@ -329,7 +329,7 @@ describe("Slot Executor", () => {
       it("should execute complex plans with multiple node types", () => {
         const budget = createBudget();
 
-        const slots: Record<string, CompiledSlotSpec> = {
+        const slots: Record<string, CompiledSlotSpec<any>> = {
           complexSlot: {
             priority: 0,
             plan: [
@@ -403,7 +403,7 @@ describe("Slot Executor", () => {
 
       it("should handle sources that throw errors gracefully", () => {
         const budget = createBudget();
-        const slots: Record<string, CompiledSlotSpec> = {
+        const slots: Record<string, CompiledSlotSpec<any>> = {
           errorSlot: {
             priority: 0,
             plan: [
@@ -436,7 +436,7 @@ describe("Slot Executor", () => {
       it("should handle slots with negative priorities", () => {
         const budget = createBudget();
 
-        const slots: Record<string, CompiledSlotSpec> = {
+        const slots: Record<string, CompiledSlotSpec<any>> = {
           negativePriority: {
             priority: -1,
             plan: [
@@ -469,7 +469,7 @@ describe("Slot Executor", () => {
       it("should preserve slot names in result", () => {
         const budget = createBudget();
 
-        const slots: Record<string, CompiledSlotSpec> = {
+        const slots: Record<string, CompiledSlotSpec<any>> = {
           "custom-slot-name": {
             priority: 0,
             plan: [
@@ -505,7 +505,7 @@ describe("Slot Executor", () => {
       it("should demonstrate complete slot orchestration", () => {
         const budget = createBudget();
 
-        const slots: Record<string, CompiledSlotSpec> = {
+        const slots: Record<string, CompiledSlotSpec<any>> = {
           summary: {
             priority: 0,
             when: { type: "nonEmpty", ref: { source: "chapterSummaries" } },

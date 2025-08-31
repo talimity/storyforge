@@ -41,6 +41,7 @@
     "@storyforge/config": "workspace:*",
     "@storyforge/db": "workspace:*",
     "@storyforge/inference": "workspace:*",
+    "@storyforge/gentasks": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/schemas": "workspace:*",
     "@storyforge/utils": "workspace:*",

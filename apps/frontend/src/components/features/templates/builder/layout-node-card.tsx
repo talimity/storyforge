@@ -1,5 +1,5 @@
 import { Text } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/prompt-rendering";
+import type { TaskKind } from "@storyforge/gentasks";
 import { forwardRef } from "react";
 import { MessageNodeEdit } from "@/components/features/templates/builder/nodes/message-node-edit";
 import { MessageNodeView } from "@/components/features/templates/builder/nodes/message-node-view";

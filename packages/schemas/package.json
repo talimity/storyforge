@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@storyforge/prompt-rendering": "workspace:*",
+    "@storyforge/gentasks": "workspace:*",
     "@trpc/server": "catalog:",
     "trpc-to-openapi": "catalog:",
     "zod": "catalog:"

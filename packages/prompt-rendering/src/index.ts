@@ -43,7 +43,6 @@ export {
   promptTemplateSchema,
   roleSchema,
   slotSpecSchema,
-  taskKindSchema,
 } from "./schemas";
 export type { SlotExecutionResult } from "./slot-executor";
 export { executeSlots } from "./slot-executor";
@@ -54,9 +53,6 @@ export { makeRegistry } from "./source-registry";
 export type {
   Budget,
   BudgetManager,
-  ChapterSummCtx,
-  ChapterSummCtxDTO,
-  CharacterCtxDTO,
   ChatCompletionMessage,
   ChatCompletionMessageRole,
   CompiledLayoutNode,
@@ -73,13 +69,17 @@ export type {
   PlanNode,
   PromptTemplate,
   SlotSpec,
+  SourceHandler,
+  SourceHandlerMap,
   SourceRegistry,
-  TaskBoundTemplate,
-  TaskCtx,
-  TaskKind,
-  TurnCtxDTO,
-  TurnGenCtx,
-  WritingAssistantCtx,
+  SourceSpec,
+  UnboundConditionRef,
+  UnboundDataRef,
+  UnboundLayoutNode,
+  UnboundPlanNode,
+  UnboundSlotSpec,
+  UnboundSources,
+  UnboundTemplate,
 } from "./types";
 
 export { validateTemplateStructure } from "./validator";

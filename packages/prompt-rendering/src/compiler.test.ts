@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { compileTemplate } from "./compiler";
 import { AuthoringValidationError, TemplateStructureError } from "./errors";
-import type { CompiledMessageBlock, TurnGenPromptTemplate } from "./types";
+import type { CompiledMessageBlock } from "./types";
 
 describe("compileTemplate", () => {
-  const sampleTemplate: TurnGenPromptTemplate = {
+  const sampleTemplate = {
     id: "test_template",
     name: "Test Template",
     task: "turn_generation",
@@ -198,7 +198,7 @@ describe("compileTemplate", () => {
         allowedSources: ["items", "condition"],
       };
 
-      const simpleTemplate: TurnGenPromptTemplate = {
+      const simpleTemplate = {
         id: "simple",
         name: "Simple",
         task: "turn_generation",
@@ -224,14 +224,11 @@ describe("compileTemplate", () => {
 
     it("should use task-specific source validation", () => {
       const options = {
-        taskKindSources: {
-          turn_generation: ["items", "condition"],
-          chapter_summarization: ["chapters"],
-          writing_assistant: ["documents"],
-        },
+        kind: "turn_generation",
+        allowedSources: ["items", "condition"],
       };
 
-      const simpleTemplate: TurnGenPromptTemplate = {
+      const simpleTemplate = {
         id: "simple",
         name: "Simple",
         task: "turn_generation",
@@ -255,7 +252,7 @@ describe("compileTemplate", () => {
       expect(() => compileTemplate(simpleTemplate, options)).not.toThrow();
 
       // Should fail if using wrong source for task
-      const invalidTemplate: TurnGenPromptTemplate = {
+      const invalidTemplate = {
         ...simpleTemplate,
         slots: {
           test: {
@@ -280,7 +277,7 @@ describe("compileTemplate", () => {
 
   describe("edge cases", () => {
     it("should handle templates with no content strings", () => {
-      const noContentTemplate: TurnGenPromptTemplate = {
+      const noContentTemplate = {
         id: "no_content",
         name: "No Content",
         task: "turn_generation",
@@ -308,7 +305,7 @@ describe("compileTemplate", () => {
     });
 
     it("should handle message blocks in headers/footers", () => {
-      const headerFooterTemplate: TurnGenPromptTemplate = {
+      const headerFooterTemplate = {
         id: "header_footer",
         name: "Header Footer",
         task: "turn_generation",
@@ -363,7 +360,7 @@ describe("compileTemplate", () => {
     });
 
     it("should handle templates without optional fields", () => {
-      const minimalTemplate: TurnGenPromptTemplate = {
+      const minimalTemplate = {
         id: "minimal",
         name: "Minimal",
         task: "turn_generation",

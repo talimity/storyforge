@@ -2,20 +2,23 @@ import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "../../budget-manager";
 import { compileTemplate } from "../../compiler";
 import { render } from "../../renderer";
-import { parseTemplate } from "../../schemas";
 import {
   largeTurnGenCtx,
   standardTurnGenCtx,
 } from "../fixtures/contexts/turn-generation-contexts";
-import { makeSpecTurnGenerationRegistry } from "../fixtures/registries/turn-generation-registry";
+import {
+  type FakeTurnGenSourceSpec,
+  makeSpecTurnGenerationRegistry,
+} from "../fixtures/registries/turn-generation-registry";
 import turnWriterV2Json from "../fixtures/templates/spec/tpl_turn_writer_v2.json";
 
 describe("Budget Cut-off Behavior", () => {
   const registry = makeSpecTurnGenerationRegistry();
 
   it("should terminate forEach loops early when global budget exhausted", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Use constrained budget vs generous budget
     const smallBudget = new DefaultBudgetManager({ maxTokens: 800 });
@@ -53,8 +56,9 @@ describe("Budget Cut-off Behavior", () => {
   });
 
   it("should respect slot-level budget limits", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // The template has slot budgets:
     // turns: 900 tokens, summaries: 700 tokens, examples: 500 tokens
@@ -83,8 +87,9 @@ describe("Budget Cut-off Behavior", () => {
   });
 
   it("should produce stable output with budget constraints", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Render multiple times with same budget constraint
     const budget1 = new DefaultBudgetManager({ maxTokens: 800 });
@@ -140,8 +145,9 @@ describe("Budget Cut-off Behavior", () => {
       },
     };
 
-    const template = parseTemplate(customTemplate);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      customTemplate
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 10000 });
     const result = render(compiled, largeTurnGenCtx, budget, registry);
@@ -155,8 +161,9 @@ describe("Budget Cut-off Behavior", () => {
   });
 
   it("should handle zero budget gracefully", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Budget that's already exhausted
     const zeroBudget = new DefaultBudgetManager({ maxTokens: 0 });

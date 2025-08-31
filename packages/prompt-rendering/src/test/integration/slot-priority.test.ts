@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "../../budget-manager";
 import { compileTemplate } from "../../compiler";
 import { render } from "../../renderer";
-import { parseTemplate } from "../../schemas";
 import {
   noTurnsCtx,
   standardTurnGenCtx,
 } from "../fixtures/contexts/turn-generation-contexts";
-import { makeSpecTurnGenerationRegistry } from "../fixtures/registries/turn-generation-registry";
+import {
+  type FakeTurnGenSourceSpec,
+  makeSpecTurnGenerationRegistry,
+} from "../fixtures/registries/turn-generation-registry";
 import turnWriterV2Json from "../fixtures/templates/spec/tpl_turn_writer_v2.json";
 
 describe("Slot Priority vs Layout Order", () => {
@@ -15,8 +17,9 @@ describe("Slot Priority vs Layout Order", () => {
 
   it("should fill slots in priority order but display in layout order", () => {
     // Parse and compile the template
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Create budget manager with enough tokens for all content
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
@@ -80,8 +83,9 @@ describe("Slot Priority vs Layout Order", () => {
   });
 
   it("should respect fill priority with limited budget", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Create a budget that allows turns (priority 0) but not summaries (priority 1)
     const budget = new DefaultBudgetManager({ maxTokens: 1200 });
@@ -101,8 +105,9 @@ describe("Slot Priority vs Layout Order", () => {
   });
 
   it("should maintain deterministic order with identical inputs", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Render twice with identical inputs
     const budget1 = new DefaultBudgetManager({ maxTokens: 3000 });

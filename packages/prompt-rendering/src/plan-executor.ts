@@ -5,8 +5,7 @@ import type {
   ChatCompletionMessage,
   CompiledPlanNode,
   SourceRegistry,
-  TaskCtx,
-  TaskKind,
+  SourceSpec,
 } from "./types";
 
 /**
@@ -17,35 +16,33 @@ export type PlanExecutionResult = ChatCompletionMessage[];
 /**
  * Scope object for leaf templating that merges context, item, and globals
  */
-export type ExecutionScope<K extends TaskKind> = {
-  ctx: TaskCtx<K>;
+export type ExecutionScope<Ctx extends CtxWithGlobals> = {
+  ctx: Ctx;
   item?: unknown;
   globals?: Record<string, unknown>;
 };
 
+export type CtxWithGlobals = { globals?: Record<string, unknown> };
+
 /**
  * Create a merged scope for leaf templating
  */
-export function createScope<K extends TaskKind>(
-  ctx: TaskCtx<K>,
+export function createScope<Ctx extends CtxWithGlobals>(
+  ctx: Ctx,
   item?: unknown
-): ExecutionScope<K> {
-  return {
-    ctx,
-    item,
-    globals: ctx.globals,
-  };
+): ExecutionScope<Ctx> {
+  return { ctx, item, globals: ctx.globals };
 }
 
 /**
  * Execute a plan node and return the resulting messages.
  * This is the main dispatcher that routes to specific node type executors.
  */
-export function executePlanNode<K extends TaskKind>(
-  node: CompiledPlanNode,
-  ctx: TaskCtx<K>,
+export function executePlanNode<Ctx extends object, S extends SourceSpec>(
+  node: CompiledPlanNode<S>,
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   itemScope?: unknown
 ): PlanExecutionResult {
   const nodeKind = node.kind;
@@ -71,11 +68,14 @@ export function executePlanNode<K extends TaskKind>(
  * Execute a message node to produce a single chat message.
  * Resolves `from` via registry or uses literal `content`, applies leaf templating.
  */
-export function executeMessageNode<K extends TaskKind>(
-  node: CompiledPlanNode & { kind: "message" },
-  ctx: TaskCtx<K>,
+export function executeMessageNode<
+  Ctx extends CtxWithGlobals,
+  S extends SourceSpec,
+>(
+  node: CompiledPlanNode<S> & { kind: "message" },
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   itemScope?: unknown
 ): PlanExecutionResult {
   // Early exit if no budget is available
@@ -139,11 +139,11 @@ export function executeMessageNode<K extends TaskKind>(
  * Execute a forEach node to iterate over an array and apply child nodes.
  * Supports ordering, limits, interleaving, and budget controls.
  */
-export function executeForEachNode<K extends TaskKind>(
-  node: CompiledPlanNode & { kind: "forEach" },
-  ctx: TaskCtx<K>,
+export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
+  node: CompiledPlanNode<S> & { kind: "forEach" },
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   _itemScope?: unknown
 ): PlanExecutionResult {
   // Only check budget at the start if we have a specific node budget
@@ -250,11 +250,11 @@ export function executeForEachNode<K extends TaskKind>(
  * Execute an if node to conditionally execute child nodes.
  * Evaluates condition and executes `then` or `else` branch.
  */
-export function executeIfNode<K extends TaskKind>(
-  node: CompiledPlanNode & { kind: "if" },
-  ctx: TaskCtx<K>,
+export function executeIfNode<Ctx extends object, S extends SourceSpec>(
+  node: CompiledPlanNode<S> & { kind: "if" },
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   itemScope?: unknown
 ): PlanExecutionResult {
   // Evaluate the condition
@@ -274,11 +274,11 @@ export function executeIfNode<K extends TaskKind>(
 /**
  * Execute multiple plan nodes in sequence
  */
-export function executePlanNodes<K extends TaskKind>(
-  nodes: readonly CompiledPlanNode[],
-  ctx: TaskCtx<K>,
+export function executePlanNodes<Ctx extends object, S extends SourceSpec>(
+  nodes: readonly CompiledPlanNode<S>[],
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>,
+  registry: SourceRegistry<Ctx, S>,
   itemScope?: unknown
 ): PlanExecutionResult {
   const results: ChatCompletionMessage[] = [];

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { evaluateCondition } from "./condition-evaluator";
 import { makeRegistry } from "./source-registry";
-import type { ConditionRef, TurnGenCtx } from "./types";
+import type { ConditionRef } from "./types";
 
 describe("evaluateCondition", () => {
-  const mockCtx: TurnGenCtx = {
+  const mockCtx = {
     turns: [
       {
         turnNo: 1,
@@ -21,7 +21,7 @@ describe("evaluateCondition", () => {
     globals: { worldName: "Fantasyland" },
   };
 
-  const registry = makeRegistry<"turn_generation">({
+  const registry = makeRegistry<typeof mockCtx, any>({
     turns: (_ref, ctx) => ctx.turns,
     emptyArray: () => [],
     characters: (_ref, ctx) => ctx.characters,
@@ -406,7 +406,7 @@ describe("evaluateCondition", () => {
 
   describe("edge cases", () => {
     it("should handle registry resolution errors gracefully", () => {
-      const errorRegistry = makeRegistry<"turn_generation">({
+      const errorRegistry = makeRegistry<typeof mockCtx, any>({
         errorSource: () => {
           throw new Error("Registry error");
         },
@@ -427,7 +427,7 @@ describe("evaluateCondition", () => {
     });
 
     it("should handle circular object references in eq/neq", () => {
-      const circularRegistry = makeRegistry<"turn_generation">({
+      const circularRegistry = makeRegistry<typeof mockCtx, any>({
         circular: () => {
           const obj: any = { name: "test" };
           obj.self = obj; // circular reference
@@ -462,7 +462,7 @@ describe("evaluateCondition", () => {
 
   describe("integration tests", () => {
     it("should work with complex nested data", () => {
-      const complexRegistry = makeRegistry<"turn_generation">({
+      const complexRegistry = makeRegistry<typeof mockCtx, any>({
         turnCount: (_ref, ctx) => ctx.turns.length,
         firstCharacterName: (_ref, ctx) => ctx.characters[0]?.name,
         hasStepInputs: (_ref, ctx) => Boolean(ctx.stepInputs),

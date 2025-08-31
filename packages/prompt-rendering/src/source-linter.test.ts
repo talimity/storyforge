@@ -4,10 +4,19 @@ import { extractAllSourceNames, lintSourceNames } from "./source-linter";
 import type { PromptTemplate } from "./types";
 
 describe("source-linter", () => {
-  const sampleTemplate: PromptTemplate = {
+  const sampleTemplate: PromptTemplate<
+    "test_turn_generation",
+    {
+      turns: { args: { order?: "asc" | "desc"; limit?: number }; out: any[] };
+      characters: { args: undefined; out: any[] };
+      chapterSummaries: { args: undefined; out: any[] };
+      intent: { args: undefined; out: string | null };
+      stepOutput: { args: { key: string }; out: string };
+    }
+  > = {
     id: "test_template",
     name: "Test Template",
-    task: "turn_generation",
+    task: "test_turn_generation",
     version: 1,
     layout: [
       { kind: "message", role: "system", content: "System message" },
@@ -67,7 +76,7 @@ describe("source-linter", () => {
     });
 
     it("should handle template with no DataRefs", () => {
-      const emptyTemplate: PromptTemplate = {
+      const emptyTemplate: PromptTemplate<any, any> = {
         id: "empty",
         name: "Empty Template",
         task: "turn_generation",
@@ -83,7 +92,7 @@ describe("source-linter", () => {
     });
 
     it("should handle duplicates correctly", () => {
-      const duplicateTemplate: PromptTemplate = {
+      const duplicateTemplate: PromptTemplate<any, any> = {
         id: "dup",
         name: "Duplicate Template",
         task: "turn_generation",
@@ -111,7 +120,7 @@ describe("source-linter", () => {
     });
 
     it("should extract from slot conditions", () => {
-      const conditionTemplate: PromptTemplate = {
+      const conditionTemplate: PromptTemplate<any, any> = {
         id: "cond",
         name: "Condition Template",
         task: "turn_generation",
@@ -132,7 +141,7 @@ describe("source-linter", () => {
     });
 
     it("should extract from nested if/else blocks", () => {
-      const nestedTemplate: PromptTemplate = {
+      const nestedTemplate: PromptTemplate<any, any> = {
         id: "nested",
         name: "Nested Template",
         task: "turn_generation",
@@ -209,7 +218,7 @@ describe("source-linter", () => {
     ]);
 
     it("should pass when all sources are allowed", () => {
-      const validTemplate: PromptTemplate = {
+      const validTemplate: PromptTemplate<any, any> = {
         ...sampleTemplate,
         slots: {
           content: {
@@ -238,7 +247,7 @@ describe("source-linter", () => {
     });
 
     it("should throw for unknown source names", () => {
-      const invalidTemplate: PromptTemplate = {
+      const invalidTemplate: PromptTemplate<any, any> = {
         id: "invalid",
         name: "Invalid Template",
         task: "turn_generation",
@@ -258,7 +267,7 @@ describe("source-linter", () => {
     });
 
     it("should throw for multiple unknown source names", () => {
-      const multiInvalidTemplate: PromptTemplate = {
+      const multiInvalidTemplate: PromptTemplate<any, any> = {
         id: "multi-invalid",
         name: "Multi Invalid Template",
         task: "turn_generation",
@@ -291,7 +300,7 @@ describe("source-linter", () => {
     });
 
     it("should not validate when allowedSources is undefined", () => {
-      const invalidTemplate: PromptTemplate = {
+      const invalidTemplate: PromptTemplate<any, any> = {
         id: "no-validation",
         name: "No Validation Template",
         task: "turn_generation",
@@ -313,7 +322,7 @@ describe("source-linter", () => {
 
     it("should handle empty allowed sources set", () => {
       const emptySources = new Set<string>();
-      const templateWithSources: PromptTemplate = {
+      const templateWithSources: PromptTemplate<any, any> = {
         ...sampleTemplate,
         layout: [
           { kind: "message", role: "user", from: { source: "anySource" } },
@@ -329,7 +338,7 @@ describe("source-linter", () => {
     });
 
     it("should handle template with no sources against allowed sources", () => {
-      const noSourcesTemplate: PromptTemplate = {
+      const noSourcesTemplate: PromptTemplate<any, any> = {
         id: "empty",
         name: "Empty Template",
         task: "turn_generation",

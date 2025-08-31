@@ -10,7 +10,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/prompt-rendering";
+import type { TaskKind } from "@storyforge/gentasks";
 import {
   LuCopy,
   LuDownload,

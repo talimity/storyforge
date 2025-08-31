@@ -1,10 +1,10 @@
 import {
-  type LayoutNode,
   type MessageBlock,
   PROMPT_TEMPLATE_SPEC_VERSION,
-  type PromptTemplate,
-  type SlotSpec,
   slotSpecSchema,
+  type UnboundLayoutNode,
+  type UnboundSlotSpec,
+  type UnboundTemplate,
 } from "@storyforge/prompt-rendering";
 import { getRecipeById } from "@/components/features/templates/recipes/registry";
 import type {
@@ -17,7 +17,7 @@ import type {
 /**
  * Compile a UI template draft into an engine-compatible PromptTemplate
  */
-export function compileDraft(draft: TemplateDraft): PromptTemplate {
+export function compileDraft(draft: TemplateDraft): UnboundTemplate {
   return {
     id: draft.id,
     task: draft.task,
@@ -32,11 +32,11 @@ export function compileDraft(draft: TemplateDraft): PromptTemplate {
 /**
  * Convert layout draft nodes to engine layout nodes
  */
-function compileLayout(layoutDraft: LayoutNodeDraft[]): LayoutNode[] {
+function compileLayout(layoutDraft: LayoutNodeDraft[]): UnboundLayoutNode[] {
   return layoutDraft.map(compileLayoutNode);
 }
 
-function compileLayoutNode(node: LayoutNodeDraft): LayoutNode {
+function compileLayoutNode(node: LayoutNodeDraft): UnboundLayoutNode {
   const nodeKind = node.kind;
   switch (nodeKind) {
     case "message":
@@ -81,8 +81,8 @@ function compileLayoutNode(node: LayoutNodeDraft): LayoutNode {
  */
 function compileSlots(
   slotsDraft: Record<string, SlotDraft>
-): Record<string, SlotSpec> {
-  const slots: Record<string, SlotSpec> = {};
+): Record<string, UnboundSlotSpec> {
+  const slots: Record<string, UnboundSlotSpec> = {};
 
   for (const [name, slotDraft] of Object.entries(slotsDraft)) {
     slots[name] = compileSlot(slotDraft);
@@ -91,7 +91,7 @@ function compileSlots(
   return slots;
 }
 
-function compileSlot(slotDraft: SlotDraft): SlotSpec {
+function compileSlot(slotDraft: SlotDraft): UnboundSlotSpec {
   if (slotDraft.recipeId === "custom") {
     // 1) Safe parse with a valid default
     let custom: unknown = { plan: [] };

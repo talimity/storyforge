@@ -7,9 +7,9 @@ export {
   emptyTurnGenCtx,
   largeTurnGenCtx,
   noTurnsCtx,
-  richChapterSummaries,
-  richCharacters,
-  richTurns,
+  richChapterSummariesDTOFixture,
+  richCharactersDTOFixture,
+  richTurnsDTOFixture,
   standardTurnGenCtx,
   stepChainedCtx,
 } from "./turn-generation-contexts";

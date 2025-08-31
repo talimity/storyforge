@@ -1,10 +1,14 @@
+import type { TurnGenSources } from "@storyforge/gentasks";
 import {
   coerceNumber,
   coerceString,
 } from "@/components/features/templates/recipes/param-coercion";
-import type { RecipeDefinition } from "@/components/features/templates/recipes/registry";
+import type { RecipeDefinition } from "@/components/features/templates/types";
 
-export const timelineRecipe: RecipeDefinition = {
+export const timelineRecipe: RecipeDefinition<
+  "turn_generation",
+  TurnGenSources
+> = {
   id: "timeline_basic",
   name: "Timeline",
   task: "turn_generation",

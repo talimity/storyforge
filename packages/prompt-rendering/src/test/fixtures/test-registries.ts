@@ -2,10 +2,10 @@ import { makeRegistry } from "../../source-registry";
 import type { SourceRegistry } from "../../types";
 
 /**
- * Test registry for turn generation contexts with common data sources
+ * Test registry for turn generation-like contexts
  */
-export function makeTurnGenTestRegistry(): SourceRegistry<"turn_generation"> {
-  return makeRegistry<"turn_generation">({
+export function makeTurnGenTestRegistry(): SourceRegistry<any, any> {
+  return makeRegistry<any, any>({
     // Array sources
     turns: (_ref, ctx) => ctx.turns,
     recentTurns: (_ref, ctx) => ctx.turns, // Alias for turns for testing
@@ -13,17 +13,19 @@ export function makeTurnGenTestRegistry(): SourceRegistry<"turn_generation"> {
     chapterSummaries: (_ref, ctx) => ctx.chapterSummaries,
 
     // Array sources with args
-    firstNTurns: (ref, ctx) => {
-      const args = ref.args as { count: number };
+    firstNTurns: (ref: any, ctx) => {
+      const args = ref.args;
       return ctx.turns.slice(0, args.count);
     },
-    lastNTurns: (ref, ctx) => {
-      const args = ref.args as { count: number };
+    lastNTurns: (ref: any, ctx) => {
+      const args = ref.args;
       return ctx.turns.slice(-args.count);
     },
-    charactersByIds: (ref, ctx) => {
-      const args = ref.args as { ids: string[] };
-      return ctx.characters.filter((c) => args.ids.includes(c.id));
+    charactersByIds: (ref: any, ctx) => {
+      const args = ref.args;
+      return ctx.characters.filter((c: { id: string }) =>
+        args.ids.includes(c.id)
+      );
     },
 
     // Simple value sources
@@ -34,8 +36,8 @@ export function makeTurnGenTestRegistry(): SourceRegistry<"turn_generation"> {
     intentConstraint: (_ref, ctx) => ctx.currentIntent.constraint,
 
     // Step inputs
-    stepOutput: (ref, ctx) => {
-      const args = ref.args as { key: string };
+    stepOutput: (ref: any, ctx) => {
+      const args = ref.args;
       return ctx.stepInputs?.[args.key];
     },
     plannerPlan: (_ref, ctx) => (ctx.stepInputs?.planner as any)?.plan,
@@ -53,12 +55,12 @@ export function makeTurnGenTestRegistry(): SourceRegistry<"turn_generation"> {
     simpleObject: () => ({ name: "test", value: 123 }),
 
     // Dynamic content generators
-    greeting: (ref, _ctx) => {
-      const args = ref.args as { name?: string } | undefined;
+    greeting: (ref: any, _ctx) => {
+      const args = ref.args;
       return args?.name ? `Hello, ${args.name}!` : "Hello!";
     },
-    repeat: (ref, _ctx) => {
-      const args = ref.args as { text: string; times: number };
+    repeat: (ref: any, _ctx) => {
+      const args = ref.args;
       return args.text.repeat(args.times);
     },
 
@@ -72,8 +74,8 @@ export function makeTurnGenTestRegistry(): SourceRegistry<"turn_generation"> {
 /**
  * Registry that provides various array ordering test data
  */
-export function makeOrderingTestRegistry(): SourceRegistry<"turn_generation"> {
-  return makeRegistry<"turn_generation">({
+export function makeOrderingTestRegistry(): SourceRegistry<any, any> {
+  return makeRegistry<any, any>({
     numbers: () => [3, 1, 4, 1, 5, 9, 2, 6],
     strings: () => ["charlie", "alice", "bob", "david"],
     objects: () => [
@@ -85,8 +87,8 @@ export function makeOrderingTestRegistry(): SourceRegistry<"turn_generation"> {
     turns: (_ref, ctx) => ctx.turns,
     emptyArray: () => [],
     singleItem: () => ["only"],
-    limitedNumbers: (ref, _ctx) => {
-      const args = ref.args as { limit?: number } | undefined;
+    limitedNumbers: (ref: any, _ctx) => {
+      const args = ref.args;
       const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       return args?.limit ? nums.slice(0, args.limit) : nums;
     },
@@ -96,8 +98,8 @@ export function makeOrderingTestRegistry(): SourceRegistry<"turn_generation"> {
 /**
  * Registry for testing conditional execution
  */
-export function makeConditionTestRegistry(): SourceRegistry<"turn_generation"> {
-  return makeRegistry<"turn_generation">({
+export function makeConditionTestRegistry(): SourceRegistry<any, any> {
+  return makeRegistry<any, any>({
     // Existence tests
     existsValue: () => "I exist",
     nullValue: () => null,

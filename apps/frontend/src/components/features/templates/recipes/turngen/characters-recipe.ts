@@ -1,9 +1,10 @@
+import type { TurnGenSources } from "@storyforge/gentasks";
 import {
   coerceNumber,
   coerceOrder,
   coerceString,
 } from "@/components/features/templates/recipes/param-coercion";
-import type { RecipeDefinition } from "@/components/features/templates/recipes/registry";
+import type { RecipeDefinition } from "@/components/features/templates/types";
 
 /**
  * Coerce format parameter for character display
@@ -12,7 +13,10 @@ export function coerceFormat(v: unknown): "prose" | "bullets" {
   return v === "prose" || v === "bullets" ? v : "prose";
 }
 
-export const charactersRecipe: RecipeDefinition = {
+export const charactersRecipe: RecipeDefinition<
+  "turn_generation",
+  TurnGenSources
+> = {
   id: "characters_basic",
   name: "Character Descriptions",
   task: "turn_generation",

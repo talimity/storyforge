@@ -10,8 +10,7 @@ import type {
   ChatCompletionMessage,
   CompiledTemplate,
   SourceRegistry,
-  TaskCtx,
-  TaskKind,
+  SourceSpec,
 } from "./types";
 
 /**
@@ -28,11 +27,15 @@ import type {
  * @returns Array of chat completion messages ready for LLM consumption
  * @throws RenderError for unexpected runtime errors during rendering
  */
-export function render<K extends TaskKind>(
-  template: CompiledTemplate<K>,
-  ctx: TaskCtx<K>,
+export function render<
+  K extends string,
+  Ctx extends object,
+  S extends SourceSpec,
+>(
+  template: CompiledTemplate<K, S>,
+  ctx: Ctx,
   budget: BudgetManager,
-  registry: SourceRegistry<K>
+  registry: SourceRegistry<Ctx, S>
 ): ChatCompletionMessage[] {
   try {
     // Phase A: Execute all slots to generate message buffers

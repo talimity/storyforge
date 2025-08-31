@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "../../budget-manager";
 import { compileTemplate } from "../../compiler";
 import { render } from "../../renderer";
-import { parseTemplate } from "../../schemas";
 import {
   standardTurnGenCtx,
   stepChainedCtx,
 } from "../fixtures/contexts/turn-generation-contexts";
-import { makeSpecTurnGenerationRegistry } from "../fixtures/registries/turn-generation-registry";
+import {
+  type FakeTurnGenSourceSpec,
+  makeSpecTurnGenerationRegistry,
+} from "../fixtures/registries/turn-generation-registry";
 import turnPlannerV1Json from "../fixtures/templates/spec/tpl_turn_planner_v1.json";
 import turnWriterFromPlanV1Json from "../fixtures/templates/spec/tpl_turn_writer_from_plan_v1.json";
 
@@ -16,8 +18,10 @@ describe("Step Chaining via stepOutput", () => {
 
   it("should chain planner output to writer input", () => {
     // Step 1: Render planner template
-    const plannerTemplate = parseTemplate(turnPlannerV1Json);
-    const compiledPlanner = compileTemplate(plannerTemplate);
+    const compiledPlanner = compileTemplate<
+      "fake_turn_gen",
+      FakeTurnGenSourceSpec
+    >(turnPlannerV1Json);
 
     const plannerBudget = new DefaultBudgetManager({ maxTokens: 3000 });
     const plannerMessages = render(
@@ -54,8 +58,10 @@ describe("Step Chaining via stepOutput", () => {
     };
 
     // Step 4: Render writer template with injected plan
-    const writerTemplate = parseTemplate(turnWriterFromPlanV1Json);
-    const compiledWriter = compileTemplate(writerTemplate);
+    const compiledWriter = compileTemplate<
+      "fake_turn_gen",
+      FakeTurnGenSourceSpec
+    >(turnWriterFromPlanV1Json);
 
     const writerBudget = new DefaultBudgetManager({ maxTokens: 3000 });
     const writerMessages = render(
@@ -148,8 +154,10 @@ describe("Step Chaining via stepOutput", () => {
       },
     };
 
-    const writerTemplate = parseTemplate(turnWriterFromPlanV1Json);
-    const compiledWriter = compileTemplate(writerTemplate);
+    const compiledWriter = compileTemplate<
+      "fake_turn_gen",
+      FakeTurnGenSourceSpec
+    >(turnWriterFromPlanV1Json);
 
     const budget = new DefaultBudgetManager({ maxTokens: 3000 });
     const messages = render(
@@ -221,8 +229,10 @@ describe("Step Chaining via stepOutput", () => {
 
   it("should work with pre-configured step chained context", () => {
     // Use the stepChainedCtx fixture which already has step data
-    const writerTemplate = parseTemplate(turnWriterFromPlanV1Json);
-    const compiledWriter = compileTemplate(writerTemplate);
+    const compiledWriter = compileTemplate<
+      "fake_turn_gen",
+      FakeTurnGenSourceSpec
+    >(turnWriterFromPlanV1Json);
 
     const budget = new DefaultBudgetManager({ maxTokens: 3000 });
     const messages = render(compiledWriter, stepChainedCtx, budget, registry);
@@ -286,8 +296,10 @@ describe("Step Chaining via stepOutput", () => {
     expect(plannerOutput).toMatch(/Build on analyzer insights/);
 
     // Render writer with multi-step inputs
-    const writerTemplate = parseTemplate(turnWriterFromPlanV1Json);
-    const compiledWriter = compileTemplate(writerTemplate);
+    const compiledWriter = compileTemplate<
+      "fake_turn_gen",
+      FakeTurnGenSourceSpec
+    >(turnWriterFromPlanV1Json);
 
     const budget = new DefaultBudgetManager({ maxTokens: 3000 });
     const messages = render(compiledWriter, multiStepContext, budget, registry);

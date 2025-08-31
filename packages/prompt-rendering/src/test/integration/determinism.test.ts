@@ -7,7 +7,10 @@ import {
   deterministicTurnGenCtx,
   standardTurnGenCtx,
 } from "../fixtures/contexts/turn-generation-contexts";
-import { makeSpecTurnGenerationRegistry } from "../fixtures/registries/turn-generation-registry";
+import {
+  type FakeTurnGenSourceSpec,
+  makeSpecTurnGenerationRegistry,
+} from "../fixtures/registries/turn-generation-registry";
 import turnPlannerV1Json from "../fixtures/templates/spec/tpl_turn_planner_v1.json";
 import turnWriterV2Json from "../fixtures/templates/spec/tpl_turn_writer_v2.json";
 
@@ -15,8 +18,9 @@ describe("Determinism & Immutability", () => {
   const registry = makeSpecTurnGenerationRegistry();
 
   it("should produce identical output with identical inputs", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Create separate budget managers with identical settings
     const budget1 = new DefaultBudgetManager({ maxTokens: 2000 });
@@ -60,11 +64,14 @@ describe("Determinism & Immutability", () => {
 
   it("should maintain determinism across different template types", () => {
     // Test both writer and planner templates for determinism
-    const writerTemplate = parseTemplate(turnWriterV2Json);
-    const plannerTemplate = parseTemplate(turnPlannerV1Json);
-
-    const compiledWriter = compileTemplate(writerTemplate);
-    const compiledPlanner = compileTemplate(plannerTemplate);
+    const compiledWriter = compileTemplate<
+      "fake_turn_gen",
+      FakeTurnGenSourceSpec
+    >(turnWriterV2Json);
+    const compiledPlanner = compileTemplate<
+      "fake_turn_gen",
+      FakeTurnGenSourceSpec
+    >(turnPlannerV1Json);
 
     // Multiple renders of each
     const writerResults = Array.from({ length: 3 }, () => {
@@ -87,8 +94,9 @@ describe("Determinism & Immutability", () => {
 
   it("should be deterministic with complex slot interactions", () => {
     // Use context that triggers all slots with various conditions
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     const complexContext = {
       turns: [], // Triggers examples slot
@@ -199,8 +207,9 @@ describe("Determinism & Immutability", () => {
   });
 
   it("should not have side effects between renders", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Create contexts with different turn counts to ensure different output
     const ctx1 = {
@@ -233,8 +242,9 @@ describe("Determinism & Immutability", () => {
   });
 
   it("should maintain determinism with budget constraints", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // Test with the same budget constraint multiple times
     const budgetLimit = 800;
@@ -254,8 +264,9 @@ describe("Determinism & Immutability", () => {
 
   it("should handle concurrent rendering safely", () => {
     // Simulate concurrent rendering (though JS is single-threaded, this tests for shared state issues)
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     const contexts = [
       deterministicTurnGenCtx,
@@ -288,12 +299,15 @@ describe("Determinism & Immutability", () => {
   });
 
   it("should preserve determinism after template compilation", () => {
-    // Compile the same template multiple times
-    const template = parseTemplate(turnWriterV2Json);
-
-    const compiled1 = compileTemplate(template);
-    const compiled2 = compileTemplate(template);
-    const compiled3 = compileTemplate(template);
+    const compiled1 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
+    const compiled2 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
+    const compiled3 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     // All compilations should produce equivalent results
     const budget1 = new DefaultBudgetManager({ maxTokens: 2000 });

@@ -1,5 +1,14 @@
 import { z } from "zod";
-import type { PlanNode, PromptTemplate } from "./types";
+import { lintSourceNames } from "./source-linter";
+import type {
+  PromptTemplate,
+  SourceSpec,
+  UnboundConditionRef,
+  UnboundLayoutNode,
+  UnboundPlanNode,
+  UnboundSlotSpec,
+  UnboundTemplate,
+} from "./types";
 
 /** ---------- Core schemas ---------- */
 
@@ -12,26 +21,20 @@ export const dataRefSchema = z.object({
 
 export const budgetSchema = z.object({
   maxTokens: z.number().int().positive().optional(),
-  softTokens: z.number().int().positive().optional(),
 });
 
 /** ---------- Condition schemas ---------- */
 
-export const conditionRefSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("exists"),
-    ref: dataRefSchema,
-  }),
-  z.object({
-    type: z.literal("nonEmpty"),
-    ref: dataRefSchema,
-  }),
-  z.object({
-    type: z.enum(["eq", "neq", "gt", "lt"]),
-    ref: dataRefSchema,
-    value: z.unknown(),
-  }),
-]);
+export const conditionRefSchema: z.ZodType<UnboundConditionRef> =
+  z.discriminatedUnion("type", [
+    z.object({ type: z.literal("exists"), ref: dataRefSchema }),
+    z.object({ type: z.literal("nonEmpty"), ref: dataRefSchema }),
+    z.object({
+      type: z.enum(["eq", "neq", "gt", "lt"]),
+      ref: dataRefSchema,
+      value: z.unknown(),
+    }),
+  ]);
 
 /** ---------- Message and layout schemas ---------- */
 
@@ -42,31 +45,32 @@ export const messageBlockSchema = z.object({
   prefix: z.boolean().optional(),
 });
 
-export const layoutNodeSchema = z.discriminatedUnion("kind", [
-  z.object({
-    kind: z.literal("message"),
-    name: z.string().optional(),
-    role: roleSchema,
-    content: z.string().optional(),
-    from: dataRefSchema.optional(),
-    prefix: z.boolean().optional(),
-  }),
-  z.object({
-    kind: z.literal("slot"),
-    name: z.string(),
-    header: z
-      .union([messageBlockSchema, z.array(messageBlockSchema)])
-      .optional(),
-    footer: z
-      .union([messageBlockSchema, z.array(messageBlockSchema)])
-      .optional(),
-    omitIfEmpty: z.boolean().optional(),
-  }),
-]);
+export const layoutNodeSchema: z.ZodType<UnboundLayoutNode> =
+  z.discriminatedUnion("kind", [
+    z.object({
+      kind: z.literal("message"),
+      name: z.string().optional(),
+      role: roleSchema,
+      content: z.string().optional(),
+      from: dataRefSchema.optional(),
+      prefix: z.boolean().optional(),
+    }),
+    z.object({
+      kind: z.literal("slot"),
+      name: z.string(),
+      header: z
+        .union([messageBlockSchema, z.array(messageBlockSchema)])
+        .optional(),
+      footer: z
+        .union([messageBlockSchema, z.array(messageBlockSchema)])
+        .optional(),
+      omitIfEmpty: z.boolean().optional(),
+    }),
+  ]);
 
 /** ---------- Plan node schemas (recursive) ---------- */
 
-export const planNodeSchema: z.ZodType<PlanNode> = z.lazy(() =>
+export const planNodeSchema: z.ZodType<UnboundPlanNode> = z.lazy(() =>
   z.discriminatedUnion("kind", [
     z.object({
       kind: z.literal("message"),
@@ -102,7 +106,7 @@ export const planNodeSchema: z.ZodType<PlanNode> = z.lazy(() =>
 
 /** ---------- Slot specification schema ---------- */
 
-export const slotSpecSchema = z.object({
+export const slotSpecSchema: z.ZodType<UnboundSlotSpec> = z.object({
   priority: z.number().int().nonnegative(),
   when: conditionRefSchema.optional(),
   budget: budgetSchema.optional(),
@@ -112,37 +116,53 @@ export const slotSpecSchema = z.object({
 
 /** ---------- Top-level template schema ---------- */
 
-export const taskKindSchema = z.enum([
-  "turn_generation",
-  "chapter_summarization",
-  "writing_assistant",
-]);
-
 export const promptTemplateSchema = z.object({
   id: z.string(),
-  task: taskKindSchema,
+  task: z.string(),
   name: z.string(),
   description: z.string().optional(),
   version: z.literal(1),
   layout: z.array(layoutNodeSchema),
   slots: z.record(z.string(), slotSpecSchema),
-});
-
-type AssertEqual<T, U extends T> = T extends U ? true : never;
-// @ts-ignore - suppress unused type error
-type __PromptTemplateZodDriftCheck = AssertEqual<
-  z.infer<typeof promptTemplateSchema>,
-  PromptTemplate
->;
+}) satisfies z.ZodType<UnboundTemplate>;
 
 /** ---------- Parse function ---------- */
 
 /**
  * Parse and validate a template JSON object.
  * @param json - The JSON object to parse
+ * @param kind - Optional task kind to assert the template's task against
+ * @param allowedSources - Optional array of allowed source names to validate the template's datarefs against
  * @returns Parsed and validated PromptTemplate
  * @throws ZodError if validation fails
  */
-export function parseTemplate(json: unknown): PromptTemplate {
-  return promptTemplateSchema.parse(json);
+export function parseTemplate<K extends string, S extends SourceSpec>(
+  json: unknown,
+  kind?: string,
+  allowedSources?: ReadonlyArray<keyof S & string>
+): PromptTemplate<K, S> {
+  // This can technically be unsound but we trust the caller to bind K and S
+  // correctly based on the context, and we only use this function at the
+  // boundaries where we parse an untyped template retrieved from the database
+  // or from a user import, in both cases with a known task kind and source spec
+  // provided by the gentasks package.
+  let schema = promptTemplateSchema;
+
+  if (kind) {
+    // Narrow the task kind if provided
+    schema = schema.extend({
+      task: z.string().refine((val) => val === kind, {
+        message: `Task kind must be "${kind}"`,
+      }),
+    });
+  }
+
+  const tpl = schema.parse(json) as PromptTemplate<K, S>;
+
+  if (allowedSources) {
+    const allowed = new Set<keyof S & string>(allowedSources);
+    lintSourceNames(tpl, allowed);
+  }
+
+  return tpl;
 }

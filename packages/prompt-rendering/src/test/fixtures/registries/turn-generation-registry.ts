@@ -1,12 +1,78 @@
 import { makeRegistry } from "@/source-registry";
 import type { SourceRegistry } from "@/types";
 
+export type FakeTurnGenCtx = {
+  turns: {
+    turnNo: number;
+    authorName: string;
+    authorType: "character" | "narrator";
+    content: string;
+  }[];
+  chapterSummaries: { chapterNo: number; summary: string }[];
+  characters: { id: string; name: string; description: string }[];
+  currentIntent: { description: string; constraint?: string };
+  stepInputs: Record<string, unknown>;
+  globals?: Record<string, unknown>;
+};
+
+export type FakeTurnGenSourceSpec = {
+  turns: {
+    args:
+      | {
+          order?: "asc" | "desc";
+          limit?: number;
+          start?: number;
+          end?: number;
+        }
+      | undefined;
+    out: {
+      turnNo: number;
+      authorName: string;
+      authorType: "character" | "narrator";
+      content: string;
+    }[];
+  };
+  chapterSummaries: {
+    args: { order?: "asc" | "desc"; limit?: number } | undefined;
+    out: { chapterNo: number; summary: string }[];
+  };
+  characters: {
+    args:
+      | { order?: "asc" | "desc"; limit?: number; ids?: string[] }
+      | undefined;
+    out: { id: string; name: string; description: string }[];
+  };
+  stepOutput: { args: { key: string }; out: unknown };
+  // Global value accessors
+  globals: { args: undefined; out: Record<string, unknown> | undefined };
+  worldName: { args: undefined; out: string | undefined };
+  setting: { args: undefined; out: string | undefined };
+  timeOfDay: { args: undefined; out: string | undefined };
+  // Utility sources for testing conditions and examples
+  intent: {
+    args: undefined;
+    out: { description: string; constraint?: string };
+  };
+  currentIntent: {
+    args: undefined;
+    out: { description: string; constraint?: string };
+  };
+  // Test data sources for edge cases
+  emptyArray: { args: undefined; out: [] };
+  emptyString: { args: undefined; out: "" };
+  nullValue: { args: undefined; out: null };
+  undefinedValue: { args: undefined; out: undefined };
+};
+
 /**
  * Spec-compliant registry for turn generation contexts that matches
  * the examples in the prompt template specification
  */
-export function makeSpecTurnGenerationRegistry(): SourceRegistry<"turn_generation"> {
-  return makeRegistry<"turn_generation">({
+export function makeSpecTurnGenerationRegistry(): SourceRegistry<
+  FakeTurnGenCtx,
+  FakeTurnGenSourceSpec
+> {
+  return makeRegistry<FakeTurnGenCtx, FakeTurnGenSourceSpec>({
     // Core array sources with ordering and limiting
     turns: (ref, ctx) => {
       const args = ref.args as
@@ -105,9 +171,9 @@ export function makeSpecTurnGenerationRegistry(): SourceRegistry<"turn_generatio
 
     // Global value accessors
     globals: (_ref, ctx) => ctx.globals,
-    worldName: (_ref, ctx) => ctx.globals?.worldName,
-    setting: (_ref, ctx) => ctx.globals?.setting,
-    timeOfDay: (_ref, ctx) => ctx.globals?.timeOfDay,
+    worldName: (_ref, ctx) => String(ctx.globals?.worldName),
+    setting: (_ref, ctx) => String(ctx.globals?.setting),
+    timeOfDay: (_ref, ctx) => String(ctx.globals?.timeOfDay),
 
     // Test data sources for edge cases
     emptyArray: () => [],
@@ -117,11 +183,25 @@ export function makeSpecTurnGenerationRegistry(): SourceRegistry<"turn_generatio
   });
 }
 
+type FakeOrderTestSourceSpec = {
+  numbers: {
+    args: { order?: "asc" | "desc"; limit?: number } | undefined;
+    out: number[];
+  };
+  strings: {
+    args: { order?: "asc" | "desc"; limit?: number } | undefined;
+    out: string[];
+  };
+};
+
 /**
  * Registry specifically for testing array ordering behaviors
  */
-export function makeOrderTestRegistry(): SourceRegistry<"turn_generation"> {
-  return makeRegistry<"turn_generation">({
+export function makeOrderTestRegistry(): SourceRegistry<
+  unknown,
+  FakeOrderTestSourceSpec
+> {
+  return makeRegistry<unknown, FakeOrderTestSourceSpec>({
     // Test arrays for ordering validation
     numbers: (ref, _ctx) => {
       const args = ref.args as

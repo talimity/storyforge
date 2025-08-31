@@ -1,167 +1,123 @@
-/** ---------- Task binding ---------- */
+/** ---------- Generic source specification ---------- */
 
-export type TaskKind =
-  | "turn_generation"
-  | "chapter_summarization"
-  | "writing_assistant";
+export type SourceSpec = Record<string, { args: unknown; out: unknown }>;
 
-export type TurnCtxDTO = {
-  turnNo: number;
-  authorName: string;
-  authorType: "character" | "narrator";
-  content: string;
-};
-
-export type ChapterSummCtxDTO = {
-  chapterNo: number;
-  summary: string;
-};
-
-export type CharacterCtxDTO = {
-  id: string;
-  name: string;
-  description: string;
-};
-
-// TODO: Once implemented in main app, CharacterExamples DTO for few-shot examples
-// TODO: Maybe replace `turns` with `timeline: TimelineCtxDTO[]` to include past intents
-
-/** Task-specific render contexts */
-export type TurnGenCtx = {
-  turns: TurnCtxDTO[];
-  chapterSummaries: ChapterSummCtxDTO[];
-  characters: CharacterCtxDTO[];
-  currentIntent: { description: string; constraint?: string };
-  stepInputs?: Record<string, unknown>;
-  globals?: Record<string, unknown>;
-};
-
-export type WritingAssistantCtx = {
-  userText: string;
-  examples?: string[];
-  stylePrefs?: Record<string, unknown>;
-  stepInputs?: Record<string, unknown>;
-  globals?: Record<string, unknown>;
-};
-
-export type ChapterSummCtx = {
-  turns: TurnCtxDTO[];
-  chapterSummaries: ChapterSummCtxDTO[];
-  globals?: Record<string, unknown>;
-};
-
-export type TaskCtx<K extends TaskKind> = K extends "turn_generation"
-  ? TurnGenCtx
-  : K extends "chapter_summarization"
-    ? ChapterSummCtx
-    : K extends "writing_assistant"
-      ? WritingAssistantCtx
-      : never;
-
-export type TaskBoundTemplate<K extends TaskKind> = PromptTemplate & {
-  task: K;
-};
-
-export type TurnGenPromptTemplate = TaskBoundTemplate<"turn_generation">;
-export type ChapterSummPromptTemplate =
-  TaskBoundTemplate<"chapter_summarization">;
-export type WritingAssistantPromptTemplate =
-  TaskBoundTemplate<"writing_assistant">;
+export type SourceNames<S extends SourceSpec> = keyof S & string;
 
 /** ---------- Template & Layout ---------- */
 
 export type ChatCompletionMessageRole = "system" | "user" | "assistant";
 
-export type MessageBlock = {
+export type MessageBlock<S extends SourceSpec = SourceSpec> = {
   role: ChatCompletionMessageRole;
   content?: string;
-  from?: DataRef;
+  from?: DataRefOf<S>;
   prefix?: boolean;
 };
 
-export type LayoutNode =
+export type LayoutNode<S extends SourceSpec = SourceSpec> =
   | {
       kind: "message";
       role: ChatCompletionMessageRole;
       content?: string;
-      from?: DataRef;
+      from?: DataRefOf<S>;
       prefix?: boolean;
     }
   | {
       kind: "slot";
       name: string;
-      header?: MessageBlock | MessageBlock[];
-      footer?: MessageBlock | MessageBlock[];
+      header?: MessageBlock<S> | MessageBlock<S>[];
+      footer?: MessageBlock<S> | MessageBlock<S>[];
       omitIfEmpty?: boolean;
     };
 
-export type PromptTemplate = {
+export type PromptTemplate<
+  K extends string,
+  S extends SourceSpec = SourceSpec,
+> = {
   id: string;
   name: string;
   description?: string;
-  task: TaskKind;
+  task: K;
   version: 1;
-  layout: LayoutNode[];
-  slots: Record<string, SlotSpec>;
+  layout: LayoutNode<S>[];
+  slots: Record<string, SlotSpec<S>>;
 };
 
 /** ---------- DataRef via Source Registry ---------- */
 
-export type DataRef = {
-  source: string;
-  args?: unknown;
-};
+export type DataRef<K extends string, A> = A extends never
+  ? { source: K } // args disallowed
+  : [undefined] extends [A]
+    ? { source: K; args?: A }
+    : { source: K; args: A };
+
+export type DataRefOf<S extends SourceSpec> = {
+  [K in SourceNames<S>]: DataRef<K, S[K]["args"]>;
+}[SourceNames<S>];
+
+export type ArrayDataRefOf<S extends SourceSpec> = {
+  [K in SourceNames<S>]: S[K]["out"] extends ReadonlyArray<unknown>
+    ? DataRef<K, S[K]["args"]>
+    : never;
+}[SourceNames<S>];
 
 /** ---------- Slots & Plans ---------- */
 
 export type Budget = {
   /** Hard ceiling for this node/slot; renderer will stop before exceeding it. */
   maxTokens?: number;
-  /** Soft target; renderer may stop around this value. (Advisory only.) */
-  softTokens?: number;
 };
 
-export type SlotSpec = {
+export type SlotSpec<S extends SourceSpec = SourceSpec> = {
   /** Lower number = higher priority (0 fills before 1). */
   priority: number;
   /** Optional condition to decide whether the slot should render at all. */
-  when?: ConditionRef;
+  when?: ConditionRef<S>;
   /** Per-slot ceiling (in addition to the global budget). */
   budget?: Budget;
   /** Emits the slot's candidate messages, evaluated under the slot+global budget. */
-  plan: PlanNode[];
+  plan: PlanNode<S>[];
   /** Arbitrary metadata for authoring-time use (e.g., UI hints). */
   meta: Record<string, unknown>;
 };
 
-export type PlanNode =
+export type PlanNode<S extends SourceSpec = SourceSpec> =
   | {
       kind: "message";
       role: ChatCompletionMessageRole;
       content?: string;
-      from?: DataRef;
+      from?: DataRefOf<S>;
       prefix?: boolean;
       budget?: Budget;
     }
   | {
       kind: "forEach";
-      source: DataRef; // must resolve to an array
+      source: ArrayDataRefOf<S>;
       order?: "asc" | "desc";
       limit?: number;
-      map: PlanNode[]; // evaluated with {item} in scope
+      map: PlanNode<S>[]; // evaluated with {item} in scope
       interleave?: { kind: "separator"; text?: string };
       budget?: Budget;
-      stopWhenOutOfBudget?: boolean;
-    } // default: true
-  | { kind: "if"; when: ConditionRef; then: PlanNode[]; else?: PlanNode[] };
+      stopWhenOutOfBudget?: boolean; // default: true
+    }
+  | {
+      kind: "if";
+      when: ConditionRef<S>;
+      then: PlanNode<S>[];
+      else?: PlanNode<S>[];
+    };
 
 /** ---------- Conditions ---------- */
 
-export type ConditionRef =
-  | { type: "exists"; ref: DataRef }
-  | { type: "nonEmpty"; ref: DataRef }
-  // biome-ignore lint/suspicious/noExplicitAny: dunno how one would type this
-  | { type: "eq" | "neq" | "gt" | "lt"; ref: DataRef; value: any };
+export type ConditionRef<S extends SourceSpec = SourceSpec> =
+  | { type: "exists"; ref: DataRefOf<S> }
+  | { type: "nonEmpty"; ref: DataRefOf<S> }
+  | {
+      type: "eq" | "neq" | "gt" | "lt";
+      ref: DataRefOf<S>;
+      value: unknown;
+    };
 
 /** ---------- Render Inputs & Outputs ---------- */
 
@@ -185,89 +141,122 @@ export interface BudgetManager {
 
 /** ---------- Source Registry ---------- */
 
-export interface SourceRegistry<K extends TaskKind> {
+export interface SourceRegistry<Ctx, S extends SourceSpec> {
   /** Resolve a DataRef for a given task context. Must be pure & synchronous. */
-  resolve(ref: DataRef, ctx: TaskCtx<K>): unknown;
+  resolve<K extends keyof S & string>(
+    ref: DataRef<K, S[K]["args"]>,
+    ctx: Ctx
+  ): S[K]["out"] | undefined;
   /** Optional: enumerate valid source names for authoring-time validation. */
-  list?(): string[];
+  list?(): Array<keyof S & string>;
 }
+
+/**
+ * Source handler function type - receives a DataRef and task context,
+ * returns any value that the source provides.
+ */
+export type SourceHandler<
+  Ctx,
+  S extends SourceSpec,
+  K extends keyof S & string,
+> = (ref: DataRef<K, S[K]["args"]>, ctx: Ctx) => S[K]["out"];
+
+export type SourceHandlerMap<Ctx, S extends SourceSpec> = {
+  [K in keyof S & string]: SourceHandler<Ctx, S, K & string>;
+};
 
 /** ---------- Compiled Template Types ---------- */
 
 export type CompiledLeafFunction = (scope: unknown) => string;
 
 export type CompileOptions = {
-  /** List of allowed source names for validation */
-  allowedSources?: string[];
-  /** Task-specific source validation */
-  taskKindSources?: Record<TaskKind, string[]>;
+  kind?: string;
+  /**
+   * List of allowed source names for validation, to more strictly enforce that
+   * a template only uses the correct sources for its task type.
+   */
+  allowedSources?: readonly string[];
 };
 
 /** A prompt template where all leaf strings have been compiled to functions */
-export type CompiledTemplate<K extends TaskKind = TaskKind> = Readonly<{
+export type CompiledTemplate<
+  K extends string = string,
+  S extends SourceSpec = SourceSpec,
+> = Readonly<{
   id: string;
   task: K;
   name: string;
   version: number;
-  layout: readonly CompiledLayoutNode[];
-  slots: Readonly<Record<string, CompiledSlotSpec>>;
+  layout: readonly CompiledLayoutNode<S>[];
+  slots: Readonly<Record<string, CompiledSlotSpec<S>>>;
 }>;
 
-export type CompiledLayoutNode = Readonly<
+export type CompiledLayoutNode<S extends SourceSpec = SourceSpec> = Readonly<
   | {
       kind: "message";
       name?: string;
       role: ChatCompletionMessageRole;
       content?: CompiledLeafFunction;
-      from?: DataRef;
+      from?: DataRefOf<S>;
       prefix?: boolean;
     }
   | {
       kind: "slot";
       name: string;
-      header?: readonly CompiledMessageBlock[];
-      footer?: readonly CompiledMessageBlock[];
+      header?: readonly CompiledMessageBlock<S>[];
+      footer?: readonly CompiledMessageBlock<S>[];
       omitIfEmpty?: boolean;
     }
 >;
 
-export type CompiledSlotSpec = Readonly<{
+export type CompiledSlotSpec<S extends SourceSpec = SourceSpec> = Readonly<{
   priority: number;
-  when?: ConditionRef;
+  when?: ConditionRef<S>;
   budget?: Budget;
-  plan: readonly CompiledPlanNode[];
+  plan: readonly CompiledPlanNode<S>[];
 }>;
 
-export type CompiledPlanNode = Readonly<
+export type CompiledPlanNode<S extends SourceSpec = SourceSpec> = Readonly<
   | {
       kind: "message";
       role: ChatCompletionMessageRole;
       content?: CompiledLeafFunction;
-      from?: DataRef;
+      from?: DataRefOf<S>;
       prefix?: boolean;
       budget?: Budget;
     }
   | {
       kind: "forEach";
-      source: DataRef;
+      source: ArrayDataRefOf<S>;
       order?: "asc" | "desc";
       limit?: number;
-      map: readonly CompiledPlanNode[];
+      map: readonly CompiledPlanNode<S>[];
       interleave?: { kind: "separator"; text?: CompiledLeafFunction };
       budget?: Budget;
       stopWhenOutOfBudget?: boolean;
     }
   | {
       kind: "if";
-      when: ConditionRef;
-      then: readonly CompiledPlanNode[];
-      else?: readonly CompiledPlanNode[];
+      when: ConditionRef<S>;
+      then: readonly CompiledPlanNode<S>[];
+      else?: readonly CompiledPlanNode<S>[];
     }
 >;
 
-export type CompiledMessageBlock = Readonly<{
+export type CompiledMessageBlock<S extends SourceSpec = SourceSpec> = Readonly<{
   role: ChatCompletionMessageRole;
   content?: CompiledLeafFunction;
-  from?: DataRef;
+  from?: DataRefOf<S>;
   prefix?: boolean;
 }>;
+
+/** ---------- Unbound types for API/DB boundaries ---------- */
+// biome-ignore-start lint/suspicious/noExplicitAny: erasing SourceSpec
+export type UnboundTemplate = PromptTemplate<string, any>;
+export type UnboundSources = any;
+export type UnboundLayoutNode = LayoutNode<any>;
+export type UnboundSlotSpec = SlotSpec<any>;
+export type UnboundPlanNode = PlanNode<any>;
+export type UnboundConditionRef = ConditionRef<any>;
+export type UnboundDataRef = DataRefOf<any>;
+// biome-ignore-end lint/suspicious/noExplicitAny: erasing SourceSpec

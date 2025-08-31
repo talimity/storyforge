@@ -2,21 +2,24 @@ import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "../../budget-manager";
 import { compileTemplate } from "../../compiler";
 import { render } from "../../renderer";
-import { parseTemplate } from "../../schemas";
 import {
   emptyTurnGenCtx,
   noTurnsCtx,
   standardTurnGenCtx,
 } from "../fixtures/contexts/turn-generation-contexts";
-import { makeSpecTurnGenerationRegistry } from "../fixtures/registries/turn-generation-registry";
+import {
+  type FakeTurnGenSourceSpec,
+  makeSpecTurnGenerationRegistry,
+} from "../fixtures/registries/turn-generation-registry";
 import turnWriterV2Json from "../fixtures/templates/spec/tpl_turn_writer_v2.json";
 
 describe("Conditional Slot Omission", () => {
   const registry = makeSpecTurnGenerationRegistry();
 
   it("should omit examples slot when turns exist", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
 
@@ -50,9 +53,9 @@ describe("Conditional Slot Omission", () => {
   });
 
   it("should include examples slot when no turns exist", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
-
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
 
     // Context without turns - examples should be included
@@ -88,8 +91,9 @@ describe("Conditional Slot Omission", () => {
   });
 
   it("should handle completely empty context appropriately", () => {
-    const template = parseTemplate(turnWriterV2Json);
-    const compiled = compileTemplate(template);
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
 
@@ -148,9 +152,9 @@ describe("Conditional Slot Omission", () => {
       ],
     };
 
-    const template = parseTemplate(customTemplate);
-    const compiled = compileTemplate(template);
-
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      customTemplate
+    );
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
     const messages = render(compiled, standardTurnGenCtx, budget, registry);
 
@@ -201,8 +205,9 @@ describe("Conditional Slot Omission", () => {
         },
       };
 
-      const template = parseTemplate(customTemplate);
-      const compiled = compileTemplate(template);
+      const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+        customTemplate
+      );
       const budget = new DefaultBudgetManager({ maxTokens: 5000 });
 
       // Test with context that has turns
