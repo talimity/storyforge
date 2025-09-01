@@ -194,7 +194,7 @@ export interface ChatCompletionRequest {
    * The adapter is responsible for clamping this value to the provider's
    * maximum token limit, if applicable.
    */
-  maxTokens: number;
+  maxOutputTokens: number;
   /**
    * A list of stop sequences that will cause the model to stop generating
    * tokens.

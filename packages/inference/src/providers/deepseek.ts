@@ -1,3 +1,4 @@
+import { safeJson } from "@storyforge/utils";
 import { bubbleProviderError, InferenceProviderError } from "@/errors";
 import { ProviderAdapter } from "@/providers/base";
 import { mergeConsecutiveRoles } from "@/transforms";
@@ -11,7 +12,6 @@ import type {
   TextInferenceCapabilities,
   TextInferenceGenParams,
 } from "@/types";
-import { safeJson } from "@/utils/safe-json";
 import { iterateSSE } from "@/utils/sse";
 
 // Deepseek-specific types based on the OpenAPI spec
@@ -352,7 +352,7 @@ export class DeepseekAdapter extends ProviderAdapter {
     stream: boolean,
     prefillMode: "prefill" | "no-prefill"
   ): DeepseekRequest {
-    const { model, maxTokens, genParams, stop } = request;
+    const { model, maxOutputTokens, genParams, stop } = request;
 
     // Transform messages to Deepseek format
     const mergedMessages = mergeConsecutiveRoles(request.messages);
@@ -409,8 +409,8 @@ export class DeepseekAdapter extends ProviderAdapter {
     }
 
     // Set max tokens
-    if (maxTokens !== undefined) {
-      payload.max_tokens = Math.min(8192, maxTokens);
+    if (maxOutputTokens !== undefined) {
+      payload.max_tokens = Math.min(8192, maxOutputTokens);
     }
 
     // Set stop sequences (Deepseek supports up to 16)

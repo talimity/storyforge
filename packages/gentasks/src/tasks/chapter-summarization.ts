@@ -4,6 +4,7 @@ import type {
   SourceRegistry,
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
+import { exactKeys } from "@storyforge/utils";
 import type { ChapterSummCtxDTO, TurnCtxDTO } from "../types";
 
 // Chapter summarization context
@@ -41,7 +42,7 @@ export const chapterSummarizationRegistry = makeChapterSummarizationRegistry({
   currentChapterTurns: (_ref, ctx) => ctx.turns,
 });
 
-export const CHAPTER_SUMM_SOURCE_NAMES = [
+export const CHAPTER_SUMM_SOURCE_NAMES = exactKeys<ChapterSummSources>()(
   "previousSummaries",
-  "currentChapterTurns",
-] as const satisfies ReadonlyArray<keyof ChapterSummSources>;
+  "currentChapterTurns"
+);

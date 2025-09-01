@@ -3,7 +3,6 @@ import { isDefined } from "@storyforge/utils";
 import { sql } from "drizzle-orm";
 import { ServiceError } from "@/service-error";
 import { getCharaAssetPaths } from "@/services/character/utils/chara-asset-helpers";
-import { scenarioCharaSummaryColumns } from "@/services/selectors";
 
 export type ScenarioOverview = Awaited<ReturnType<typeof listScenarios>>[0];
 
@@ -193,3 +192,16 @@ export async function getScenarioCharacterStarters(
       starters: character.starters,
     }));
 }
+
+const scenarioCharaSummaryColumns = {
+  columns: {
+    id: true,
+    name: true,
+    createdAt: true,
+    updatedAt: true,
+    cardType: true,
+    tags: true,
+    creatorNotes: true,
+  },
+  extras: { hasPortrait: sql<number>`portrait IS NOT NULL` },
+} as const;

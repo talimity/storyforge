@@ -4,6 +4,7 @@ import type {
   SourceRegistry,
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
+import { exactKeys } from "@storyforge/utils";
 
 // Writing assistant context
 export type WritingAssistantCtx = {
@@ -76,12 +77,12 @@ export const writingAssistRegistry = makeWritingAssistRegistry({
   tone: (_ref, ctx) => (ctx.stylePrefs ? ctx.stylePrefs.tone : undefined),
 });
 
-export const WRITING_ASSIST_SOURCE_NAMES = [
+export const WRITING_ASSIST_SOURCE_NAMES = exactKeys<WritingAssistantSources>()(
   "userText",
   "context",
   "stylePrefs",
   "stepOutput",
   "globals",
   "styleGuide",
-  "tone",
-] as const satisfies ReadonlyArray<keyof WritingAssistantSources>;
+  "tone"
+);

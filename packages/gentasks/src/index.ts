@@ -1,4 +1,5 @@
-export { SourcesFor, TaskKind, taskKindSchema } from "./schemas";
+export * from "./runner";
+export { taskKindSchema } from "./schemas";
 export {
   CHAPTER_SUMM_SOURCE_NAMES,
   type ChapterSummCtx,
@@ -23,4 +24,4 @@ export {
   type WritingAssistantTemplate,
   writingAssistRegistry,
 } from "./tasks/writing-assistant";
-export type { TaskSourcesMap } from "./types";
+export { ContextFor, SourcesFor, TaskKind } from "./types";

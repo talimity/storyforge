@@ -1,4 +1,4 @@
-export function safeJson<T>(data: string): T | null {
+export function safeJson<T = unknown>(data: string): T | null {
   try {
     return JSON.parse(data) as T;
   } catch {

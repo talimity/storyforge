@@ -254,41 +254,26 @@ The prompt templating and rendering system is handled by a separate package (`pr
 
 ### 4.1 Workflow Model (multi‑step, model‑per‑step)
 
-A *Generative Task Workflow* (gentask) is an ordered list of Steps. Gentasks have a task kind (e.g., "turn_generation", "chapter_summarization", "writing_assistant") that determines the base schema of inputs (task context) that all steps receive.
+A *Generative Task Workflow* (gentask) is an ordered list of Steps. Such workflows have a task kind (e.g., "turn_generation", "chapter_summarization", "writing_assistant") that determines the base schema of inputs (task context) that all steps receive.
 
-The application uses a *gentask binding* to bind a particular feature (e.g., "turn generation for character X") to a gentask. The binding can have a `scope` that allows overriding the default gentask for that feature in certain contexts (e.g., a specific character or participant).
+The application uses a *gentask_binding* to bind a particular feature at a particular scope (e.g., "turn generation for character X") to a workflow. The binding can have a `scope` that allows overriding the default gentask workflow for that feature in certain contexts (e.g., a specific character or participant).
 
-The *Task* defines the *base schema* of inputs (task context) that all workflows for that task will receive. Each Step can consume any subset of those inputs, plus outputs from previous steps in the same workflow.
-
-```ts
-export type GenTaskStep = {
-  id: string;
-  name: string; // e.g., Draft, Refine, Critique, Tool‑use
-  modelProfileId: string; // which model/profile to use
-  promptTemplateId: string; // which template to render
-  genParams?: Partial<TextInferenceGenParams>; // optional overrides to the model's default params for this step (ie. to increase temperature for a creative step)
-  globalMaxTokens?: number; // if set, sets the template's global token budget to this value
-  // (transformations might need to be extracted, since they'll likely often be reused across workflows and steps to handle model quirks or apply user style preferences)
-  transformations: {
-    applyTo: "input" | "output";
-    regex?: { pattern: RegExp; substitution: string; };
-    trim?: "start" | "end" | "both";
-  }[];
-  outputs: {
-    key: string; // used for both the TurnContent layer key and as the `stepOutputs` key, allowing subsequent steps' prompt templates to consume it
-    capture: 'assistantText' | 'jsonParsed' | 'toolResults';
-  }[];
-};
-```
+The task defines the base schema of inputs (the task context) that all workflows for that task will receive. Each Step can consume any subset of those inputs, plus outputs from previous steps in the same workflow.
 
 * **Context vs Prompt**:
-    * *GenTaskCtx* is *loaded* by the feature executing an LLM task (ie., a chapter's turn history for "summarization" task, textarea input for "writing assistant" task, scenario timeline for "turn generation" task).
+    * The task context is loaded by the feature executing an LLM task (ie., a chapter's turn history for "summarization" task, textarea input for "writing assistant" task, scenario timeline for "turn generation" task).
       * Prompt templates are pure, so ALL data must be loaded up front. For lore info, this may mean running a lore matching step (either regex or possibly embedding-based) to find relevant lore entries and include them in the context.
     * `makeRegistry<K extends TaskKind>(handlers: Record<string, SourceHandler<K>>): SourceRegistry<K>` in `prompt-rendering` package knows how to extract the right fields from the task context for a given task kind, so that prompt templates can declare what inputs they need and get them from the task context.
-    * Source registry handlers can take parameters, such as `start` and `end` indices so that a template can include arbitrary slices of a long text input (possibly multiple different slices, to format recent vs older turns differently).
+    * Source registries provide an interface for templates to get data out a task context using a consistent API, without needing to know the exact shape of the context object.
+      * Registry handlers can take arguments (e.g., `loreEntries({tags: ['magic', 'location']})`).
+      * Registry handlers can access any field in the task context, so they can provide a composite view (e.g., `recentTurns({characterId: 'xyz', limit: 5})`).'
+
+See `docs/workflow-runner-architecture.md` for more details on the workflow execution model.
+
+Workflows and tasks are owned by the `gentasks` package.
 
 ### 4.2 Generative Task Scopes
-*Gentask scopes* are hierarchical:
+*Task scopes* are hierarchical:
 1. `default` (no scope) is the global default for that task kind.
 2. `scenario` scope overrides the default for all characters in that scenario.
 3. `character` scope overrides the scenario and default for a specific character.

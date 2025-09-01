@@ -62,9 +62,9 @@ export class MockAdapter extends ProviderAdapter {
     this.config = {
       defaultResponse: config.defaultResponse ?? {
         text: "This is a mock response from the MockProvider. The request was processed successfully.",
-        delay: 100,
-        chunkDelay: 50,
-        wordsPerChunk: 3,
+        delay: 10,
+        chunkDelay: 1,
+        wordsPerChunk: 2,
       },
       patterns: config.patterns ?? [],
       modelResponses: config.modelResponses ?? {
@@ -173,10 +173,10 @@ export class MockAdapter extends ProviderAdapter {
 
     // Apply maxTokens if specified
     let responseText = mockResponse.text;
-    if (request.maxTokens) {
+    if (request.maxOutputTokens) {
       const words = responseText.split(" ");
-      if (words.length > request.maxTokens) {
-        responseText = `${words.slice(0, request.maxTokens).join(" ")}...`;
+      if (words.length > request.maxOutputTokens) {
+        responseText = `${words.slice(0, request.maxOutputTokens).join(" ")}...`;
       }
     }
 
@@ -215,10 +215,10 @@ export class MockAdapter extends ProviderAdapter {
     let responseText = mockResponse.text;
 
     // Apply maxTokens if specified
-    if (request.maxTokens) {
+    if (request.maxOutputTokens) {
       const words = responseText.split(" ");
-      if (words.length > request.maxTokens) {
-        responseText = `${words.slice(0, request.maxTokens).join(" ")}...`;
+      if (words.length > request.maxOutputTokens) {
+        responseText = `${words.slice(0, request.maxOutputTokens).join(" ")}...`;
       }
     }
 
@@ -234,6 +234,11 @@ export class MockAdapter extends ProviderAdapter {
     yield { delta: { role: "assistant" as const } };
 
     for (let i = 0; i < words.length; i += wordsPerChunk) {
+      // Check abort signal
+      if (request.signal?.aborted) {
+        throw new Error("Request aborted");
+      }
+
       const chunk = words.slice(i, i + wordsPerChunk).join(" ");
       const chunkText = i + wordsPerChunk >= words.length ? chunk : `${chunk} `;
 

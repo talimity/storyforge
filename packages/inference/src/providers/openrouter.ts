@@ -1,4 +1,4 @@
-import { safeJson } from "@/utils/safe-json";
+import { safeJson } from "@storyforge/utils";
 import { bubbleProviderError, InferenceProviderError } from "../errors";
 import { mergeConsecutiveRoles } from "../transforms";
 import type {
@@ -416,7 +416,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
     stream: boolean,
     _prefillMode: "prefill" | "no-prefill"
   ): OpenRouterRequest {
-    const { model, maxTokens, genParams, stop } = request;
+    const { model, maxOutputTokens, genParams, stop } = request;
 
     // Transform messages to OpenRouter format
     // OpenRouter handles assistant prefill implicitly, so we don't need special handling
@@ -473,8 +473,8 @@ export class OpenRouterAdapter extends ProviderAdapter {
     }
 
     // Set max tokens
-    if (maxTokens !== undefined) {
-      payload.max_tokens = maxTokens;
+    if (maxOutputTokens !== undefined) {
+      payload.max_tokens = maxOutputTokens;
     }
 
     // Set stop sequences

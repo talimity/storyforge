@@ -13,7 +13,9 @@
     "lint": "biome check --diagnostic-level error --write --unsafe .",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@storyforge/utils": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "catalog:",
     "resolve-tspaths": "catalog:"

@@ -3,6 +3,7 @@ import type {
   SourceHandlerMap,
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
+import { exactKeys } from "@storyforge/utils";
 import type { ChapterSummCtxDTO, CharacterCtxDTO, TurnCtxDTO } from "../types";
 
 type TurnGenGlobals = {
@@ -121,14 +122,17 @@ export const turnGenRegistry = makeTurnGenRegistry({
   scenario: (_ref, ctx) => stringOrUndefined(ctx.globals.scenarioDescription),
 });
 
-export const TURN_GEN_SOURCE_NAMES = [
+export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
   "turns",
   "chapterSummaries",
   "characters",
   "currentIntent",
   "stepOutput",
   "globals",
-] as const satisfies ReadonlyArray<keyof TurnGenSources>;
+  "char",
+  "user",
+  "scenario"
+);
 
 // Convenience type aliases
 export type TurnGenTemplate = PromptTemplate<"turn_generation", TurnGenSources>;
