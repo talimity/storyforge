@@ -2,7 +2,7 @@
 
 import path from "node:path";
 import sharp from "sharp";
-import { detectFaceFocalPoint, focalPointToBox } from "./index";
+import { detectFaceFocalPoint, focalPointToBox } from "./index.js";
 
 const args = process.argv.slice(2);
 if (args.length < 1) {

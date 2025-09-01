@@ -1,4 +1,4 @@
-import type { FakeTurnGenCtx } from "@/test/fixtures/registries/turn-generation-registry";
+import type { FakeTurnGenCtx } from "../registries/turn-generation-registry.js";
 
 /** Enhanced turn data for comprehensive testing */
 export const richTurnsDTOFixture: FakeTurnGenCtx["turns"] = [

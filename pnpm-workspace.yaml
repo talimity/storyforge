@@ -9,7 +9,6 @@ catalog:
   '@types/node': ^24.1.0
   drizzle-kit: beta
   drizzle-orm: 1.0.0-beta.1-40d80bd
-  resolve-tspaths: ^0.8.23
   sharp: ^0.34.3
   superjson: ^2.2.2
   trpc-to-openapi: ^3.0.0

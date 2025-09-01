@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { lintSourceNames } from "./source-linter";
+import { lintSourceNames } from "./source-linter.js";
 import type {
   PromptTemplate,
   SourceSpec,
@@ -8,7 +8,7 @@ import type {
   UnboundPlanNode,
   UnboundSlotSpec,
   UnboundTemplate,
-} from "./types";
+} from "./types.js";
 
 /** ---------- Core schemas ---------- */
 

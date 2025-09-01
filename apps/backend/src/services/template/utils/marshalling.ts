@@ -12,7 +12,7 @@ import {
   parseTemplate,
   type UnboundTemplate,
 } from "@storyforge/prompt-rendering";
-import { ServiceError } from "@/service-error";
+import { ServiceError } from "../../../service-error.js";
 
 /**
  * Given an unknown database prompt template, parse and validate it into a

@@ -14,16 +14,16 @@ import {
 } from "@storyforge/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, router } from "@/api/index";
 import {
   getCharacterDetail,
   getCharacters,
   listCharacters,
   searchCharacters,
-} from "@/services/character/character.queries";
-import { transformCharacter } from "@/services/character/character.transforms";
-import { CharacterService } from "@/services/character/character-service";
-import { maybeProcessCharaImage } from "@/services/character/utils/face-detection";
+} from "../../services/character/character.queries.js";
+import { transformCharacter } from "../../services/character/character.transforms.js";
+import { CharacterService } from "../../services/character/character-service.js";
+import { maybeProcessCharaImage } from "../../services/character/utils/face-detection.js";
+import { publicProcedure, router } from "../index.js";
 
 // Note: this router is old, don't use it as a reference
 

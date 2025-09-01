@@ -1,5 +1,5 @@
-import { InferenceProviderCompatibilityError } from "@/errors";
-import { preflightPrefill } from "@/preflights";
+import { InferenceProviderCompatibilityError } from "../errors.js";
+import { preflightPrefill } from "../preflights.js";
 import type {
   ChatCompletionChunk,
   ChatCompletionRequest,
@@ -8,7 +8,7 @@ import type {
   ProviderModelSearchResult,
   TextInferenceCapabilities,
   TextInferenceGenParams,
-} from "@/types";
+} from "../types.js";
 
 export abstract class ProviderAdapter {
   abstract readonly kind: string;

@@ -1,11 +1,11 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import type { OpenApiMeta } from "trpc-to-openapi";
-import { engineErrorToTRPC } from "@/api/engine-error-to-trpc";
-import { serviceErrorToTRPC } from "@/api/service-error-to-trpc";
-import type { TRPCContext } from "@/api/trpc-context";
-import { EngineError } from "@/engine/engine-error";
-import { ServiceError } from "@/service-error";
+import { EngineError } from "../engine-error.js";
+import { ServiceError } from "../service-error.js";
+import { engineErrorToTRPC } from "./engine-error-to-trpc.js";
+import { serviceErrorToTRPC } from "./service-error-to-trpc.js";
+import type { TRPCContext } from "./trpc-context.js";
 
 const t = initTRPC
   .context<TRPCContext>()

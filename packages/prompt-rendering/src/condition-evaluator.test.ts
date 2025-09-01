@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { evaluateCondition } from "./condition-evaluator";
-import { makeRegistry } from "./source-registry";
-import type { ConditionRef } from "./types";
+import { evaluateCondition } from "./condition-evaluator.js";
+import { makeRegistry } from "./source-registry.js";
+import type { ConditionRef } from "./types.js";
 
 describe("evaluateCondition", () => {
   const mockCtx = {

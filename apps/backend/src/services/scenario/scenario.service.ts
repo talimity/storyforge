@@ -6,7 +6,7 @@ import {
   schema,
 } from "@storyforge/db";
 import { eq, inArray, sql } from "drizzle-orm";
-import { ServiceError } from "@/service-error";
+import { ServiceError } from "../../service-error.js";
 
 interface CreateScenarioData extends NewScenario {
   characterIds?: string[];

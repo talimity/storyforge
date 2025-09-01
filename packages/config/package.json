@@ -1,9 +1,9 @@
 {
   "name": "@storyforge/config",
+  "description": "Storyforge configuration library",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
     "check": "run-p --continue-on-error lint typecheck",

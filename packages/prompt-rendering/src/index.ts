@@ -1,8 +1,8 @@
 // Schemas and parsing
 
-export { DefaultBudgetManager } from "./budget-manager";
-export { compileTemplate } from "./compiler";
-export { evaluateCondition } from "./condition-evaluator";
+export { DefaultBudgetManager } from "./budget-manager.js";
+export { compileTemplate } from "./compiler.js";
+export { evaluateCondition } from "./condition-evaluator.js";
 export {
   exists,
   isArray,
@@ -14,15 +14,15 @@ export {
   resolveAsNumber,
   resolveAsString,
   resolveDataRef,
-} from "./data-ref-resolver";
+} from "./data-ref-resolver.js";
 export {
   AuthoringValidationError,
   RenderError,
   TemplateStructureError,
-} from "./errors";
-export { assembleLayout } from "./layout-assembler";
-export { compileLeaf } from "./leaf-compiler";
-export type { ExecutionScope, PlanExecutionResult } from "./plan-executor";
+} from "./errors.js";
+export { assembleLayout } from "./layout-assembler.js";
+export { compileLeaf } from "./leaf-compiler.js";
+export type { ExecutionScope, PlanExecutionResult } from "./plan-executor.js";
 export {
   createScope,
   executeForEachNode,
@@ -30,8 +30,8 @@ export {
   executeMessageNode,
   executePlanNode,
   executePlanNodes,
-} from "./plan-executor";
-export { render } from "./renderer";
+} from "./plan-executor.js";
+export { render } from "./renderer.js";
 export {
   budgetSchema,
   conditionRefSchema,
@@ -43,11 +43,11 @@ export {
   promptTemplateSchema,
   roleSchema,
   slotSpecSchema,
-} from "./schemas";
-export type { SlotExecutionResult } from "./slot-executor";
-export { executeSlots } from "./slot-executor";
-export { extractAllSourceNames, lintSourceNames } from "./source-linter";
-export { makeRegistry } from "./source-registry";
+} from "./schemas.js";
+export type { SlotExecutionResult } from "./slot-executor.js";
+export { executeSlots } from "./slot-executor.js";
+export { extractAllSourceNames, lintSourceNames } from "./source-linter.js";
+export { makeRegistry } from "./source-registry.js";
 
 // Type exports
 export type {
@@ -80,8 +80,8 @@ export type {
   UnboundSlotSpec,
   UnboundSources,
   UnboundTemplate,
-} from "./types";
+} from "./types.js";
 
-export { validateTemplateStructure } from "./validator";
+export { validateTemplateStructure } from "./validator.js";
 
-export { PROMPT_TEMPLATE_SPEC_VERSION } from "./version";
+export { PROMPT_TEMPLATE_SPEC_VERSION } from "./version.js";

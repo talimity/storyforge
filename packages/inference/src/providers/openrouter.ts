@@ -1,6 +1,6 @@
 import { safeJson } from "@storyforge/utils";
-import { bubbleProviderError, InferenceProviderError } from "../errors";
-import { mergeConsecutiveRoles } from "../transforms";
+import { bubbleProviderError, InferenceProviderError } from "../errors.js";
+import { mergeConsecutiveRoles } from "../transforms.js";
 import type {
   ChatCompletionChunk,
   ChatCompletionFinishReason,
@@ -11,9 +11,9 @@ import type {
   ProviderModelSearchResult,
   TextInferenceCapabilities,
   TextInferenceGenParams,
-} from "../types";
-import { iterateSSE } from "../utils/sse";
-import { ProviderAdapter } from "./base";
+} from "../types.js";
+import { iterateSSE } from "../utils/sse.js";
+import { ProviderAdapter } from "./base.js";
 
 // OpenRouter-specific types based on their API documentation
 interface OpenRouterTextContent {

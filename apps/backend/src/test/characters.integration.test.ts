@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { registerAssetsRoutes } from "../api/assets";
+import { registerAssetsRoutes } from "../api/assets.js";
 import {
   getFixtureCount,
   loadCharacterFixtures,
   seedCharacterFixtures,
-} from "./fixtures";
+} from "./fixtures.js";
 import {
   cleanupTestDatabase,
   createFreshTestCaller,
   createTestFastifyServer,
-} from "./setup";
+} from "./setup.js";
 
 vi.mock("@storyforge/yolo-onnx");
 vi.mock(
@@ -127,8 +127,8 @@ describe("characters router integration", () => {
         name: "ali",
       });
       expect(result.characters).toHaveLength(2);
-      expect(result.characters.map((c) => c.name)).toContain("Alice");
-      expect(result.characters.map((c) => c.name)).toContain("Alicia");
+      expect(result.characters.map((c: any) => c.name)).toContain("Alice");
+      expect(result.characters.map((c: any) => c.name)).toContain("Alicia");
 
       const result2 = await caller.characters.search({
         name: "ALIC",
@@ -174,7 +174,7 @@ describe("characters router integration", () => {
         name: "",
       });
 
-      const names = result.characters.map((c) => c.name);
+      const names = result.characters.map((c: any) => c.name);
       const sortedNames = [...names].sort();
       expect(names).toEqual(sortedNames);
     });
@@ -203,10 +203,10 @@ describe("characters router integration", () => {
       });
 
       const withImage = result.characters.find(
-        (c) => c.id === charWithImage.id
+        (c: any) => c.id === charWithImage.id
       );
       const withoutImage = result.characters.find(
-        (c) => c.id === charWithoutImage.id
+        (c: any) => c.id === charWithoutImage.id
       );
 
       expect(withImage).toBeDefined();
@@ -254,7 +254,7 @@ describe("characters router integration", () => {
         scenarioId: scenario.id,
       });
       expect(scenarioResults.characters).toHaveLength(2);
-      const scenarioCharIds = scenarioResults.characters.map((c) => c.id);
+      const scenarioCharIds = scenarioResults.characters.map((c: any) => c.id);
       expect(scenarioCharIds).toContain(char1.id);
       expect(scenarioCharIds).toContain(char2.id);
       expect(scenarioCharIds).not.toContain(char3.id);
@@ -307,7 +307,7 @@ describe("characters router integration", () => {
         name: "",
         filterMode: "all",
       });
-      const allIds = allResults.characters.map((c) => c.id);
+      const allIds = allResults.characters.map((c: any) => c.id);
       expect(allIds).toContain(char1.id);
       expect(allIds).toContain(char2.id);
       expect(allIds).toContain(char3.id);
@@ -319,7 +319,7 @@ describe("characters router integration", () => {
         filterMode: "inScenario",
         scenarioId: scenario.id,
       });
-      const inScenarioIds = inScenarioResults.characters.map((c) => c.id);
+      const inScenarioIds = inScenarioResults.characters.map((c: any) => c.id);
       expect(inScenarioIds).toHaveLength(2);
       expect(inScenarioIds).toContain(char1.id);
       expect(inScenarioIds).toContain(char2.id);
@@ -332,7 +332,9 @@ describe("characters router integration", () => {
         filterMode: "notInScenario",
         scenarioId: scenario.id,
       });
-      const notInScenarioIds = notInScenarioResults.characters.map((c) => c.id);
+      const notInScenarioIds = notInScenarioResults.characters.map(
+        (c: any) => c.id
+      );
       expect(notInScenarioIds).not.toContain(char1.id);
       expect(notInScenarioIds).not.toContain(char2.id);
       expect(notInScenarioIds).toContain(char3.id);

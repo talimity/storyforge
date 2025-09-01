@@ -9,17 +9,17 @@ import {
 } from "@storyforge/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, router } from "@/api/index";
 import {
   getScenarioCharacterStarters,
   getScenarioDetail,
   listScenarios,
-} from "@/services/scenario/scenario.queries";
-import { ScenarioService } from "@/services/scenario/scenario.service";
+} from "../../services/scenario/scenario.queries.js";
+import { ScenarioService } from "../../services/scenario/scenario.service.js";
 import {
   transformScenarioDetail,
   transformScenarioOverview,
-} from "@/services/scenario/scenario.transforms";
+} from "../../services/scenario/scenario.transforms.js";
+import { publicProcedure, router } from "../index.js";
 
 export const scenariosRouter = router({
   list: publicProcedure

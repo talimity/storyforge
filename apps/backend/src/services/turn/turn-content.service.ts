@@ -4,7 +4,7 @@ import {
   schema,
 } from "@storyforge/db";
 import { and, eq } from "drizzle-orm";
-import { ServiceError } from "@/service-error";
+import { ServiceError } from "../../service-error.js";
 
 const { turnLayers: tTurnLayers, turns: tTurns } = schema;
 

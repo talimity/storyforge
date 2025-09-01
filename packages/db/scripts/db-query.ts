@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { sql } from "drizzle-orm";
-import { db } from "../src/index";
-import * as schema from "../src/schema/index";
+import { db } from "../src/index.js";
+import * as schema from "../src/schema/index.js";
 
 async function executeQuery() {
   const args = process.argv.slice(2);

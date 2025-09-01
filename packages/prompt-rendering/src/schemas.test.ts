@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseTemplate } from "./schemas";
+import { parseTemplate } from "./schemas.js";
 
 describe("schema validation", () => {
   describe("parseTemplate", () => {

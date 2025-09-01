@@ -1,6 +1,6 @@
-import { AuthoringValidationError } from "./errors";
-import type { PromptTemplate, SourceSpec } from "./types";
-import { iterDataRefs } from "./walkers";
+import { AuthoringValidationError } from "./errors.js";
+import type { PromptTemplate, SourceSpec } from "./types.js";
+import { iterDataRefs } from "./walkers.js";
 
 /**
  * Validates that all DataRef source names in a template are in the allowed list.

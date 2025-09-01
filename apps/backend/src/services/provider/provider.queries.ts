@@ -1,7 +1,7 @@
 import type { SqliteDatabase } from "@storyforge/db";
 import { modelProfiles, providerConfigs } from "@storyforge/db";
 import { eq } from "drizzle-orm";
-import { ServiceError } from "@/service-error";
+import { ServiceError } from "../../service-error.js";
 
 export async function listProviders(db: SqliteDatabase) {
   return db.select().from(providerConfigs).orderBy(providerConfigs.name);

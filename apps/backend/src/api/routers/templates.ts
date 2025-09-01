@@ -11,12 +11,12 @@ import {
   updateTemplateSchema,
 } from "@storyforge/schemas";
 import { z } from "zod";
-import { publicProcedure, router } from "@/api/index";
 import {
   getTemplateById,
   listTemplates,
-} from "@/services/template/template.queries";
-import { TemplateService } from "@/services/template/template.service";
+} from "../../services/template/template.queries.js";
+import { TemplateService } from "../../services/template/template.service.js";
+import { publicProcedure, router } from "../index.js";
 
 export const templatesRouter = router({
   list: publicProcedure

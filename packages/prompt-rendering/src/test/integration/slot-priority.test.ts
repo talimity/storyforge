@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { DefaultBudgetManager } from "../../budget-manager";
-import { compileTemplate } from "../../compiler";
-import { render } from "../../renderer";
+import { DefaultBudgetManager } from "../../budget-manager.js";
+import { compileTemplate } from "../../compiler.js";
+import { render } from "../../renderer.js";
 import {
   noTurnsCtx,
   standardTurnGenCtx,
-} from "../fixtures/contexts/turn-generation-contexts";
+} from "../fixtures/contexts/turn-generation-contexts.js";
 import {
   type FakeTurnGenSourceSpec,
   makeSpecTurnGenerationRegistry,
-} from "../fixtures/registries/turn-generation-registry";
-import turnWriterV2Json from "../fixtures/templates/spec/tpl_turn_writer_v2.json";
+} from "../fixtures/registries/turn-generation-registry.js";
+import turnWriterV2Json from "../fixtures/templates/spec/tpl_turn_writer_v2.json" with {
+  type: "json",
+};
 
 describe("Slot Priority vs Layout Order", () => {
   const registry = makeSpecTurnGenerationRegistry();

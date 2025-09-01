@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import type { ServiceError } from "@/service-error";
+import type { ServiceError } from "../service-error.js";
 
 /**
  * Maps an ServiceError to a TRPCError.

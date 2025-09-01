@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { AuthoringValidationError } from "./errors";
-import { extractAllSourceNames, lintSourceNames } from "./source-linter";
-import type { PromptTemplate } from "./types";
+import { AuthoringValidationError } from "./errors.js";
+import { extractAllSourceNames, lintSourceNames } from "./source-linter.js";
+import type { PromptTemplate } from "./types.js";
 
 describe("source-linter", () => {
   const sampleTemplate: PromptTemplate<

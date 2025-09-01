@@ -1,4 +1,4 @@
-import type { ChatCompletionMessage } from "@/types";
+import type { ChatCompletionMessage } from "./types.js";
 
 /**
  * Merge consecutive messages with the same role into a single message,

@@ -4,12 +4,16 @@ import type {
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
-import type { ChapterSummCtxDTO, CharacterCtxDTO, TurnCtxDTO } from "../types";
+import type {
+  ChapterSummCtxDTO,
+  CharacterCtxDTO,
+  TurnCtxDTO,
+} from "../types.js";
 
 type TurnGenGlobals = {
   stCurrentCharName: string; // SillyTavern macro {{char}}
   stPersonaName: string; // SillyTavern macro {{user}}
-  scenarioDescription: string; // SillyTavern macro {{scenario}}
+  scenarioDescription?: string; // SillyTavern macro {{scenario}}
 };
 
 // Turn generation context

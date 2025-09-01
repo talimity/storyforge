@@ -2,8 +2,8 @@ import { type SqliteDatabase, schema, type Turn } from "@storyforge/db";
 import { ranksBetween } from "@storyforge/utils";
 import { eq, isNull } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
-import { createTestDatabase } from "../../test/setup";
-import { TimelineService } from "./timeline.service";
+import { createTestDatabase } from "../../test/setup.js";
+import { TimelineService } from "./timeline.service.js";
 
 const TEST_SCENARIO_ID = "test-scenario";
 const TEST_CHAPTER_ID = "test-chapter";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { compileTemplate } from "./compiler";
-import { AuthoringValidationError, TemplateStructureError } from "./errors";
-import type { CompiledMessageBlock } from "./types";
+import { compileTemplate } from "./compiler.js";
+import { AuthoringValidationError, TemplateStructureError } from "./errors.js";
+import type { CompiledMessageBlock } from "./types.js";
 
 describe("compileTemplate", () => {
   const sampleTemplate = {

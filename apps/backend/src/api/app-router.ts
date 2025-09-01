@@ -1,10 +1,10 @@
-import { router } from "@/api/index";
-import { charactersRouter } from "@/api/routers/characters";
-import { chatImportRouter } from "@/api/routers/chat-import";
-import { playRouter } from "@/api/routers/play";
-import { providersRouter } from "@/api/routers/providers";
-import { scenariosRouter } from "@/api/routers/scenarios";
-import { templatesRouter } from "@/api/routers/templates";
+import { router } from "./index.js";
+import { charactersRouter } from "./routers/characters.js";
+import { chatImportRouter } from "./routers/chat-import.js";
+import { playRouter } from "./routers/play.js";
+import { providersRouter } from "./routers/providers.js";
+import { scenariosRouter } from "./routers/scenarios.js";
+import { templatesRouter } from "./routers/templates.js";
 
 export const allRouters = {
   characters: charactersRouter,

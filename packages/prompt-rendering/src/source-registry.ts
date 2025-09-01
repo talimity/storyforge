@@ -3,7 +3,7 @@ import type {
   SourceHandler,
   SourceRegistry,
   SourceSpec,
-} from "./types";
+} from "./types.js";
 
 /**
  * Registry implementation that delegates to a map of source handlers.

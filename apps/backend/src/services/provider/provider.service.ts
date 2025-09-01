@@ -14,7 +14,7 @@ import type {
   UpdateProviderConfig,
 } from "@storyforge/schemas";
 import { eq } from "drizzle-orm";
-import { ServiceError } from "@/service-error";
+import { ServiceError } from "../../service-error.js";
 
 export class ProviderService {
   constructor(private db: SqliteDatabase) {}

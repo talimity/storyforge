@@ -2,11 +2,8 @@ import type {
   ScenarioParticipant as ApiScenarioParticipant,
   ScenarioWithCharacters as ApiScenarioWithCharacters,
 } from "@storyforge/schemas";
-import { transformCharacterSummary } from "@/services/character/character.transforms";
-import type {
-  ScenarioDetail,
-  ScenarioOverview,
-} from "@/services/scenario/scenario.queries";
+import { transformCharacterSummary } from "../character/character.transforms.js";
+import type { ScenarioDetail, ScenarioOverview } from "./scenario.queries.js";
 
 export function transformScenarioParticipant(
   p: ScenarioOverview["participants"][number]

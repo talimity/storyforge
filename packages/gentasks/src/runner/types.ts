@@ -13,8 +13,8 @@ import type {
   SourceRegistry,
 } from "@storyforge/prompt-rendering";
 import type { z } from "zod";
-import type { ContextFor, SourcesFor, TaskKind } from "../types";
-import type { outputCaptureSchema, transformSpecSchema } from "./schemas";
+import type { ContextFor, SourcesFor, TaskKind } from "../types.js";
+import type { outputCaptureSchema, transformSpecSchema } from "./schemas.js";
 
 export type TransformSpec = z.infer<typeof transformSpecSchema>;
 export type OutputCapture = z.infer<typeof outputCaptureSchema>;

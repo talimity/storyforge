@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { TemplateStructureError } from "./errors";
-import type { PromptTemplate } from "./types";
-import { validateTemplateStructure } from "./validator";
+import { TemplateStructureError } from "./errors.js";
+import type { PromptTemplate } from "./types.js";
+import { validateTemplateStructure } from "./validator.js";
 
 describe("validateTemplateStructure", () => {
   const validTemplate: PromptTemplate<any, any> = {

@@ -6,7 +6,7 @@ import type {
   Character as ApiCharacter,
   CharacterSummary as ApiCharacterSummary,
 } from "@storyforge/schemas";
-import { getCharaAssetPaths } from "./utils/chara-asset-helpers";
+import { getCharaAssetPaths } from "./utils/chara-asset-helpers.js";
 
 // TODO: don't use this file. queries should select exactly what they need to
 // satisfy whatever procedure they're used in and return that directly. no more

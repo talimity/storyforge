@@ -1,14 +1,14 @@
 import type { z } from "zod";
-import type { taskKindSchema } from "./schemas";
+import type { taskKindSchema } from "./schemas.js";
 import type {
   ChapterSummCtx,
   ChapterSummSources,
-} from "./tasks/chapter-summarization";
-import type { TurnGenCtx, TurnGenSources } from "./tasks/turn-generation";
+} from "./tasks/chapter-summarization.js";
+import type { TurnGenCtx, TurnGenSources } from "./tasks/turn-generation.js";
 import type {
   WritingAssistantCtx,
   WritingAssistantSources,
-} from "./tasks/writing-assistant";
+} from "./tasks/writing-assistant.js";
 
 // DTOs for turn generation task
 export type TurnCtxDTO = {

@@ -1,18 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { DefaultBudgetManager } from "../../budget-manager";
-import { compileTemplate } from "../../compiler";
-import { render } from "../../renderer";
-import { parseTemplate } from "../../schemas";
+import { DefaultBudgetManager } from "../../budget-manager.js";
+import { compileTemplate } from "../../compiler.js";
+import { render } from "../../renderer.js";
+import { parseTemplate } from "../../schemas.js";
 import {
   deterministicTurnGenCtx,
   standardTurnGenCtx,
-} from "../fixtures/contexts/turn-generation-contexts";
+} from "../fixtures/contexts/turn-generation-contexts.js";
 import {
   type FakeTurnGenSourceSpec,
   makeSpecTurnGenerationRegistry,
-} from "../fixtures/registries/turn-generation-registry";
-import turnPlannerV1Json from "../fixtures/templates/spec/tpl_turn_planner_v1.json";
-import turnWriterV2Json from "../fixtures/templates/spec/tpl_turn_writer_v2.json";
+} from "../fixtures/registries/turn-generation-registry.js";
+import turnPlannerV1Json from "../fixtures/templates/spec/tpl_turn_planner_v1.json" with {
+  type: "json",
+};
+import turnWriterV2Json from "../fixtures/templates/spec/tpl_turn_writer_v2.json" with {
+  type: "json",
+};
 
 describe("Determinism & Immutability", () => {
   const registry = makeSpecTurnGenerationRegistry();

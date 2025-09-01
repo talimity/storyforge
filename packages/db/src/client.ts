@@ -1,9 +1,9 @@
 import path from "node:path";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import { createDatabaseConfig } from "./config";
-import { relations } from "./relations";
-import * as schema from "./schema/index";
+import { createDatabaseConfig } from "./config.js";
+import { relations } from "./relations.js";
+import * as schema from "./schema/index.js";
 
 async function getDbClient() {
   const config = createDatabaseConfig();

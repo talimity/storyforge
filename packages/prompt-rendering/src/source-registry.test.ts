@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeRegistry } from "./source-registry";
+import { makeRegistry } from "./source-registry.js";
 
 describe("makeRegistry", () => {
   const mockTurnGenCtx = {

@@ -4,7 +4,7 @@ import {
   cropByFocalPoint,
   detectFaceFocalPoint,
 } from "@storyforge/yolo-onnx";
-import { createChildLogger } from "@/logging";
+import { createChildLogger } from "../../../logging.js";
 
 const log = createChildLogger("character-image-service");
 let sharp: typeof import("sharp") | undefined;

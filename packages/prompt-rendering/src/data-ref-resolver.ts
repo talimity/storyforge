@@ -1,4 +1,4 @@
-import type { DataRef, SourceRegistry, SourceSpec } from "./types";
+import type { DataRef, SourceRegistry, SourceSpec } from "./types.js";
 
 /**
  * Type guard to check if a value is an array.

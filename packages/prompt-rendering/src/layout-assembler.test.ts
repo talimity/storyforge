@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { sampleTurnGenCtx } from "@/test/fixtures/test-contexts";
-import { makeTurnGenTestRegistry } from "@/test/fixtures/test-registries";
-import { DefaultBudgetManager } from "./budget-manager";
-import { assembleLayout } from "./layout-assembler";
-import { compileLeaf } from "./leaf-compiler";
-import type { SlotExecutionResult } from "./slot-executor";
-import type { CompiledLayoutNode, CompiledMessageBlock } from "./types";
+import { DefaultBudgetManager } from "./budget-manager.js";
+import { assembleLayout } from "./layout-assembler.js";
+import { compileLeaf } from "./leaf-compiler.js";
+import type { SlotExecutionResult } from "./slot-executor.js";
+import { sampleTurnGenCtx } from "./test/fixtures/test-contexts.js";
+import { makeTurnGenTestRegistry } from "./test/fixtures/test-registries.js";
+import type { CompiledLayoutNode, CompiledMessageBlock } from "./types.js";
 
 describe("Layout Assembler", () => {
   const ctx = sampleTurnGenCtx;

@@ -5,7 +5,7 @@ import type {
   PlanNode,
   PromptTemplate,
   SourceSpec,
-} from "./types";
+} from "./types.js";
 
 /** A breadcrumb path to be displayed in errors, e.g. "layout[0]" or "slots.content.if.then[1]" */
 export type NodePath = string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compileLeaf } from "./leaf-compiler";
+import { compileLeaf } from "./leaf-compiler.js";
 
 describe("compileLeaf", () => {
   describe("basic functionality", () => {

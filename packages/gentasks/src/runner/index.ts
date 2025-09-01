@@ -1,16 +1,16 @@
 // Main runner factory
 
 // Queue for async event streaming (useful for testing)
-export { AsyncQueue } from "./async-queue";
+export { AsyncQueue } from "./async-queue.js";
 // Registry utilities
 export {
   createExtendedRegistry,
   type ExtendedContext,
   ensureExtendedContext,
-} from "./registry-factory";
+} from "./registry-factory.js";
 // Store for managing runs (useful for testing)
-export { RunStore } from "./run-store";
-export { makeWorkflowRunner } from "./runner";
+export { RunStore } from "./run-store.js";
+export { makeWorkflowRunner } from "./runner.js";
 // Schemas and validation
 export {
   genStepSchema,
@@ -19,7 +19,7 @@ export {
   transformSpecSchema,
   validateStep,
   validateWorkflow,
-} from "./schemas";
+} from "./schemas.js";
 // Types
 export type {
   GenStep,
@@ -34,4 +34,4 @@ export type {
   StepResult,
   TransformSpec,
   WorkflowRunner,
-} from "./types";
+} from "./types.js";

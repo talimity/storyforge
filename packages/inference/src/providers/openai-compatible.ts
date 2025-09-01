@@ -1,11 +1,11 @@
-import { ProviderAdapter } from "@/providers/base";
 import type {
   ChatCompletionRequest,
   ChatCompletionResponse,
   ProviderAuth,
   TextInferenceCapabilities,
   TextInferenceGenParams,
-} from "@/types";
+} from "../types.js";
+import { ProviderAdapter } from "./base.js";
 
 interface OpenAICompatibleMessage {
   role: "system" | "user" | "assistant";

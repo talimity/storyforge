@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { taskKindSchema } from "../schemas";
-import type { TaskKind } from "../types";
-import type { GenStep, GenWorkflow } from "./types";
+import { taskKindSchema } from "../schemas.js";
+import type { TaskKind } from "../types.js";
+import type { GenStep, GenWorkflow } from "./types.js";
 
 // Transform specification schemas
 const trimTransformSchema = z.object({

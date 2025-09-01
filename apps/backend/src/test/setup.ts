@@ -52,7 +52,7 @@ export function cleanupTestDatabase(db: TestDatabase) {
  * Create a fresh tRPC caller with a new test AppContext and database.
  */
 export async function createFreshTestCaller(db?: TestDatabase) {
-  const { appRouter } = await import("@/api/app-router");
+  const { appRouter } = await import("../api/app-router.js");
 
   const testDb = db || (await createTestDatabase());
   const mockLogger = {
@@ -80,7 +80,7 @@ export async function createTestFastifyServer(db?: TestDatabase) {
   const Fastify = (await import("fastify")).default;
   const sensible = (await import("@fastify/sensible")).default;
   const multipart = (await import("@fastify/multipart")).default;
-  const { resources } = await import("@/resources");
+  const { resources } = await import("../resources.js");
 
   const testDb = db || (await createTestDatabase());
   const fastify = Fastify({ logger: false });

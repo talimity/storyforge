@@ -1,21 +1,21 @@
 # StoryForge Backend – Architecture Cheat Sheet
 
-## Layering (one-liners)
+## Layering
 
 * **services/** - **impure application layer**. Transactional writes (UoW), screen/workflow-shaped reads, service orchestration, SQL/CTEs, file parsing, etc.
 * **api/** - **transport**. tRPC procedures only: I/O validation, OpenAPI metadata, error mapping; no business logic.
 * **@storyforge/inference** package - **ports/adapters** to external LLM providers.
-* **engine/** - pure domain core; invariants, rules, and planners; no db/network/filesystem.
-  * Migrate domain logic here from services as it stabilizes.
-  * Should be side-effect free.
-  * Gradually moving to separate package (see `packages/prompt-rendering`)
 
 ```
 apps/backend/src/
-  engine/                        # PURE domain logic (no side effects)
-    invariants/                  # Checks that enforce correctness of story engine
-    ...
-  services/                      # IMPURE application layer (DB, files, tx)
+  api/
+    routers/                     # tRPC/REST API by feature
+      characters.ts
+      characters.ts
+      play.ts
+      chat-import.ts
+      ...
+  services/                      # Application layer by domain
     character/
       utils/                     # Feature-local helpers
       character.service.ts       # Unit-of-Work pattern transactional writes
@@ -25,23 +25,11 @@ apps/backend/src/
     turn/
       ...
     ...
-  api/
-    routers/
-      characters.ts
-      play.ts
-      chat-import.ts
-      ...
 ```
 
 Reusable cross-feature helpers go in **`packages/utils`**.
 
 ## Golden rules
-
-### Purity boundary
-
-* **engine/** stays pure. Input/Output are plain data (`Result` or simple objects).
-    - Inject data, never fetch in engine. Engine functions accept either plain DTOs or a loaders interface of callbacks (provided by a `service`) for on-demand reads.
-* **services/** perform all side effects. Services call engine invariants or orchestrate multi-step processes, plans or workflows.
 
 ### Transactions
 
@@ -94,7 +82,6 @@ Reusable cross-feature helpers go in **`packages/utils`**.
 | Question                                                           | YES →                             | NO →                                        |
 |--------------------------------------------------------------------|-----------------------------------|---------------------------------------------|
 | Does it mutate state / need a transaction?                         | `services/<feature>/*.service.ts` | next                                        |
-| Is it a domain rule/logic whose correctness the engine depends on? | `engine/**` or separate package   | next                                        |
 | Is it a UI/workflow-shaped read?                                   | `services/<feature>/*.queries.ts` | next                                        |
 | Is it a helper used only by one feature?                           | `services/<feature>/utils/`       | Put it in `packages/utils` if cross-feature |
 
@@ -179,6 +166,5 @@ export const featureRouter = router({
 3. **Implement**:
     * **Query** in `services/<feature>/*.queries.ts` (if read/preview), or
     * **Service** in `services/<feature>/*.service.ts` (if write/UoW).
-      Use/extend **engine** only if you add or change domain rules.
 4. **(Optional)** Add `services/<feature>/utils/*` for feature-local helpers.
 5. **Frontend** consumes the query/service contract directly. See the frontend CLAUDE.md for its own architecture guidelines.

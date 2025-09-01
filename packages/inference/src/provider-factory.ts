@@ -1,10 +1,10 @@
-import type { ProviderAdapter } from "@/providers/base";
+import type { ProviderAdapter } from "./providers/base.js";
 
-import { DeepseekAdapter } from "@/providers/deepseek";
-import { MockAdapter } from "@/providers/mock";
-import { OpenAICompatibleAdapter } from "@/providers/openai-compatible";
-import { OpenRouterAdapter } from "@/providers/openrouter";
-import type { ProviderConfig, TextInferenceCapabilities } from "@/types";
+import { DeepseekAdapter } from "./providers/deepseek.js";
+import { MockAdapter } from "./providers/mock.js";
+import { OpenAICompatibleAdapter } from "./providers/openai-compatible.js";
+import { OpenRouterAdapter } from "./providers/openrouter.js";
+import type { ProviderConfig, TextInferenceCapabilities } from "./types.js";
 
 export function createAdapter(config: ProviderConfig): ProviderAdapter {
   switch (config.kind) {

@@ -1,5 +1,5 @@
 import { generateOpenApiDocument } from "trpc-to-openapi";
-import { allRouters, appRouter } from "@/api/app-router";
+import { allRouters, appRouter } from "./app-router.js";
 
 export const openApiDocument = generateOpenApiDocument(appRouter, {
   title: "StoryForge API",

@@ -17,14 +17,14 @@ import {
 } from "@storyforge/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, router } from "@/api/index";
 import {
   getModelProfileById,
   getProviderById,
   listModelProfiles,
   listProviders,
-} from "@/services/provider/provider.queries";
-import { ProviderService } from "@/services/provider/provider.service";
+} from "../../services/provider/provider.queries.js";
+import { ProviderService } from "../../services/provider/provider.service.js";
+import { publicProcedure, router } from "../index.js";
 
 function mapProvider(provider: DbProviderConfig): ApiProviderConfig {
   return {

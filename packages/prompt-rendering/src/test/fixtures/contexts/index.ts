@@ -12,4 +12,4 @@ export {
   richTurnsDTOFixture,
   standardTurnGenCtx,
   stepChainedCtx,
-} from "./turn-generation-contexts";
+} from "./turn-generation-contexts.js";

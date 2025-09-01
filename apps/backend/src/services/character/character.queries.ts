@@ -1,7 +1,7 @@
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { ServiceError } from "@/service-error";
-import { getCharaAssetPaths } from "./utils/chara-asset-helpers";
+import { ServiceError } from "../../service-error.js";
+import { getCharaAssetPaths } from "./utils/chara-asset-helpers.js";
 
 const {
   characters: tCharacters,

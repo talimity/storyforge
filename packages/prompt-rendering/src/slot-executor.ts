@@ -1,12 +1,12 @@
-import { evaluateCondition } from "./condition-evaluator";
-import { executePlanNodes } from "./plan-executor";
+import { evaluateCondition } from "./condition-evaluator.js";
+import { executePlanNodes } from "./plan-executor.js";
 import type {
   BudgetManager,
   ChatCompletionMessage,
   CompiledSlotSpec,
   SourceRegistry,
   SourceSpec,
-} from "./types";
+} from "./types.js";
 
 /**
  * Result of executing slots - map of slot names to their generated messages

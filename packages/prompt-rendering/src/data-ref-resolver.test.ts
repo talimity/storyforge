@@ -10,8 +10,8 @@ import {
   resolveAsNumber,
   resolveAsString,
   resolveDataRef,
-} from "./data-ref-resolver";
-import { makeRegistry } from "./source-registry";
+} from "./data-ref-resolver.js";
+import { makeRegistry } from "./source-registry.js";
 
 describe("Type Guards", () => {
   describe("isArray", () => {

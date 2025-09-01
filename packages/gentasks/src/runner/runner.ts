@@ -9,14 +9,14 @@ import {
   render,
 } from "@storyforge/prompt-rendering";
 import { safeJson } from "@storyforge/utils";
-import type { ContextFor, SourcesFor, TaskKind } from "../types";
+import type { ContextFor, SourcesFor, TaskKind } from "../types.js";
 import {
   createExtendedRegistry,
   type ExtendedContext,
   ensureExtendedContext,
-} from "./registry-factory";
-import { RunStore } from "./run-store";
-import { validateWorkflow } from "./schemas";
+} from "./registry-factory.js";
+import { RunStore } from "./run-store.js";
+import { validateWorkflow } from "./schemas.js";
 import type {
   GenStep,
   GenWorkflow,
@@ -27,7 +27,7 @@ import type {
   StepResult,
   TransformSpec,
   WorkflowRunner,
-} from "./types";
+} from "./types.js";
 
 /**
  * Creates a workflow runner for a specific task kind

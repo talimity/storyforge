@@ -1,4 +1,3 @@
-import { ProviderAdapter } from "@/providers/base";
 import type {
   ChatCompletionChunk,
   ChatCompletionRequest,
@@ -7,7 +6,8 @@ import type {
   ProviderModelSearchResult,
   TextInferenceCapabilities,
   TextInferenceGenParams,
-} from "@/types";
+} from "../types.js";
+import { ProviderAdapter } from "./base.js";
 
 interface MockResponse {
   /** Response text to return */

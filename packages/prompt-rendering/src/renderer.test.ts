@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { DefaultBudgetManager } from "./budget-manager";
-import { compileTemplate } from "./compiler";
-import { RenderError } from "./errors";
-import { render } from "./renderer";
-import { parseTemplate } from "./schemas";
-import complexTemplateJson from "./test/fixtures/templates/complex-template.json";
-import minimalTemplateJson from "./test/fixtures/templates/minimal-template.json";
-import multiSlotTemplateJson from "./test/fixtures/templates/multi-slot-template.json";
-import { makeTurnGenTestRegistry } from "./test/fixtures/test-registries";
-import type { BudgetManager } from "./types";
+import { DefaultBudgetManager } from "./budget-manager.js";
+import { compileTemplate } from "./compiler.js";
+import { RenderError } from "./errors.js";
+import { render } from "./renderer.js";
+import { parseTemplate } from "./schemas.js";
+import complexTemplateJson from "./test/fixtures/templates/complex-template.json" with {
+  type: "json",
+};
+import minimalTemplateJson from "./test/fixtures/templates/minimal-template.json" with {
+  type: "json",
+};
+import multiSlotTemplateJson from "./test/fixtures/templates/multi-slot-template.json" with {
+  type: "json",
+};
+import { makeTurnGenTestRegistry } from "./test/fixtures/test-registries.js";
+import type { BudgetManager } from "./types.js";
 
 describe("render function", () => {
   const budget = new DefaultBudgetManager({ maxTokens: 10000 });

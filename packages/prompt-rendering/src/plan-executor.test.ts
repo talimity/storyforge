@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { sampleTurnGenCtx } from "@/test/fixtures/test-contexts";
-import {
-  makeConditionTestRegistry,
-  makeOrderingTestRegistry,
-  makeTurnGenTestRegistry,
-} from "@/test/fixtures/test-registries";
-import { DefaultBudgetManager } from "./budget-manager";
-import { compileLeaf } from "./leaf-compiler";
+import { DefaultBudgetManager } from "./budget-manager.js";
+import { compileLeaf } from "./leaf-compiler.js";
 import {
   createScope,
   executeForEachNode,
@@ -14,8 +8,14 @@ import {
   executeMessageNode,
   executePlanNode,
   executePlanNodes,
-} from "./plan-executor";
-import type { Budget, CompiledPlanNode } from "./types";
+} from "./plan-executor.js";
+import { sampleTurnGenCtx } from "./test/fixtures/test-contexts.js";
+import {
+  makeConditionTestRegistry,
+  makeOrderingTestRegistry,
+  makeTurnGenTestRegistry,
+} from "./test/fixtures/test-registries.js";
+import type { Budget, CompiledPlanNode } from "./types.js";
 
 describe("Plan Executor", () => {
   const ctx = sampleTurnGenCtx;

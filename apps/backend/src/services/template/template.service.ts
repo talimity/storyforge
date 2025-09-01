@@ -6,11 +6,11 @@ import {
 } from "@storyforge/db";
 import type { UnboundTemplate } from "@storyforge/prompt-rendering";
 import { eq } from "drizzle-orm";
-import { ServiceError } from "@/service-error";
+import { ServiceError } from "../../service-error.js";
 import {
   fromDbPromptTemplate,
   tryCompileUnboundTemplate,
-} from "@/services/template/utils/marshalling";
+} from "./utils/marshalling.js";
 
 type CreateTemplateData = Omit<UnboundTemplate, "id" | "version">;
 type UpdateTemplateData = Partial<Omit<UnboundTemplate, "id" | "version">>;

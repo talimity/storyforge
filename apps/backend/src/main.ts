@@ -5,9 +5,9 @@ import websocket from "@fastify/websocket";
 import { config } from "@storyforge/config";
 import Fastify from "fastify";
 import { FastifySSEPlugin } from "fastify-sse-v2";
-import { registerAPI } from "@/api/register";
-import { logger } from "@/logging";
-import { resources } from "@/resources";
+import { registerAPI } from "./api/register.js";
+import { logger } from "./logging.js";
+import { resources } from "./resources.js";
 
 const fastify = Fastify({
   bodyLimit: 1024 * 1024 * 15, // 15MB
@@ -58,4 +58,4 @@ try {
   process.exit(1);
 }
 
-export type { AppRouter } from "@/api/app-router";
+export type { AppRouter } from "./api/app-router.js";

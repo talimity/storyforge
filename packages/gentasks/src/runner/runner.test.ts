@@ -3,15 +3,15 @@ import { MockAdapter } from "@storyforge/inference";
 import type { PromptTemplate } from "@storyforge/prompt-rendering";
 import { DefaultBudgetManager } from "@storyforge/prompt-rendering";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { turnGenRegistry } from "@/tasks/turn-generation";
 import type {
   GenWorkflow,
   ModelProfileResolved,
   RunnerDeps,
   RunnerEvent,
   TurnGenCtx,
-} from "../index";
-import { makeWorkflowRunner } from "./runner";
+} from "../index.js";
+import { turnGenRegistry } from "../tasks/turn-generation.js";
+import { makeWorkflowRunner } from "./runner.js";
 
 describe("Workflow Runner", () => {
   let mockDeps: RunnerDeps<"turn_generation">;
@@ -111,7 +111,7 @@ describe("Workflow Runner", () => {
       turns: [],
       chapterSummaries: [],
       characters: [],
-      currentIntent: { description: "Test intent" },
+      currentIntent: { kind: "turn_generation", description: "Test intent" },
       stepInputs: {},
       globals: {
         stCurrentCharName: "Alice",
@@ -200,7 +200,10 @@ describe("Workflow Runner", () => {
       turns: [],
       chapterSummaries: [],
       characters: [],
-      currentIntent: { description: "Multi-step test" },
+      currentIntent: {
+        description: "Multi-step test",
+        kind: "turn_generation",
+      },
       stepInputs: {},
       globals: {
         stCurrentCharName: "Alice",
@@ -259,7 +262,7 @@ describe("Workflow Runner", () => {
       turns: [],
       chapterSummaries: [],
       characters: [],
-      currentIntent: { description: "Transform test" },
+      currentIntent: { description: "Transform test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
         stCurrentCharName: "Alice",
@@ -350,7 +353,7 @@ describe("Workflow Runner", () => {
       turns: [],
       chapterSummaries: [],
       characters: [],
-      currentIntent: { description: "Cancel test" },
+      currentIntent: { description: "Cancel test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
         stCurrentCharName: "Alice",
@@ -431,7 +434,7 @@ describe("Workflow Runner", () => {
       turns: [],
       chapterSummaries: [],
       characters: [],
-      currentIntent: { description: "JSON test" },
+      currentIntent: { description: "JSON test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
         stCurrentCharName: "Alice",
@@ -478,7 +481,7 @@ describe("Workflow Runner", () => {
       turns: [],
       chapterSummaries: [],
       characters: [],
-      currentIntent: { description: "Snapshot test" },
+      currentIntent: { description: "Snapshot test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
         stCurrentCharName: "Alice",
@@ -547,7 +550,10 @@ describe("Workflow Runner", () => {
       turns: [],
       chapterSummaries: [],
       characters: [],
-      currentIntent: { description: "Stream return test" },
+      currentIntent: {
+        description: "Stream return test",
+        kind: "turn_generation",
+      },
       stepInputs: {},
       globals: {
         stCurrentCharName: "Alice",
@@ -601,7 +607,10 @@ describe("Workflow Runner", () => {
       turns: [],
       chapterSummaries: [],
       characters: [],
-      currentIntent: { description: "Transform event test" },
+      currentIntent: {
+        description: "Transform event test",
+        kind: "turn_generation",
+      },
       stepInputs: {},
       globals: {
         stCurrentCharName: "Alice",

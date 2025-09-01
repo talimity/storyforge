@@ -1,10 +1,10 @@
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import type { FastifyInstance } from "fastify";
 import { createOpenApiHttpHandler } from "trpc-to-openapi";
-import { appRouter } from "@/api/app-router";
-import { registerAssetsRoutes } from "@/api/assets";
-import { openApiDocument } from "@/api/openapi";
-import { createContext } from "./trpc-context";
+import { appRouter } from "./app-router.js";
+import { registerAssetsRoutes } from "./assets.js";
+import { openApiDocument } from "./openapi.js";
+import { createContext } from "./trpc-context.js";
 
 /**
  * Register all tRPC and REST (via trpc-to-openapi) routes given a Fastify

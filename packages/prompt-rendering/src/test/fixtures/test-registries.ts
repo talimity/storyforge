@@ -1,5 +1,5 @@
-import { makeRegistry } from "../../source-registry";
-import type { SourceRegistry } from "../../types";
+import { makeRegistry } from "../../source-registry.js";
+import type { SourceRegistry } from "../../types.js";
 
 /**
  * Test registry for turn generation-like contexts

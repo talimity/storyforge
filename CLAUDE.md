@@ -13,7 +13,7 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 pnpm check # lint/format/fix imports with biome + typecheck
 # Run tests (backend, integration-only)
 pnpm test
-# Remember to rebuild types after changing shared packages
+# Remember to rebuild after changing shared packages
 pnpm build
 
 # Remember to generate migrations when changing database schema in packages/db
@@ -40,13 +40,13 @@ devctl stop       # Stop both dev servers
 
 - **Single-user desktop application** - Not a hosted web service or commercial product, stack runs locally
 - **Bring your own API key** - Players provide cloud inference API keys or local models
-- **TypeScript/Node.js focused** - Nothing exotic, shared code for easier consistency
+- **TypeScript/Node.js focused** - For type safety and fast iteration 
 - **Monorepo with pnpm** - To facilitate shared code and possible multiple frontends
 
 ## Stack
 
 - **Frontend**: Vite + React + Chakra UI v3
-- **Backend**: Fastify + tRPC + Drizzle ORM + SQLite
+- **Backend**: Fastify + tRPC + Drizzle ORM via libsql SQLite driver
 - **Shared Packages**: Configuration, Database layer, API contracts
 - **Monorepo**: pnpm workspaces
 

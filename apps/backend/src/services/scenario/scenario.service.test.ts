@@ -1,8 +1,8 @@
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
-import { createTestDatabase } from "../../test/setup";
-import { ScenarioService } from "./scenario.service";
+import { createTestDatabase } from "../../test/setup.js";
+import { ScenarioService } from "./scenario.service.js";
 
 describe("ScenarioService", () => {
   let db: SqliteDatabase;

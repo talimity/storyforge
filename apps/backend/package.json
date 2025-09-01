@@ -1,23 +1,10 @@
 {
   "name": "@storyforge/backend",
   "version": "1.0.0",
-  "private": true,
   "type": "module",
   "main": "./dist/main.js",
-  "types": "./dist/types.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/main.js",
-      "types": "./dist/main.d.ts"
-    },
-    "./types": {
-      "import": "./dist/types.js",
-      "types": "./dist/types.d.ts"
-    }
-  },
   "scripts": {
-    "build": "tsc -b tsconfig.build.json && pnpm run build:tspaths",
-    "build:tspaths": "resolve-tspaths --out ./dist",
+    "build": "tsc -b tsconfig.build.json",
     "check": "run-p --continue-on-error lint typecheck",
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "dev": "pnpm tsx watch src/main.ts",
@@ -69,7 +56,6 @@
     "@types/png-chunks-extract": "^1.0.2",
     "drizzle-orm": "catalog:",
     "form-data": "^4.0.4",
-    "resolve-tspaths": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

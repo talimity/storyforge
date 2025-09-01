@@ -7,9 +7,9 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
-import { chapters } from "./chapters";
-import { scenarioParticipants } from "./scenario-participants";
-import { scenarios } from "./scenarios";
+import { chapters } from "./chapters.js";
+import { scenarioParticipants } from "./scenario-participants.js";
+import { scenarios } from "./scenarios.js";
 
 export const turns = sqliteTable(
   "turns",

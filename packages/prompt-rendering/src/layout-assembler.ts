@@ -1,7 +1,7 @@
-import { resolveDataRef } from "./data-ref-resolver";
-import { TemplateStructureError } from "./errors";
-import { type CtxWithGlobals, createScope } from "./plan-executor";
-import type { SlotExecutionResult } from "./slot-executor";
+import { resolveDataRef } from "./data-ref-resolver.js";
+import { TemplateStructureError } from "./errors.js";
+import { type CtxWithGlobals, createScope } from "./plan-executor.js";
+import type { SlotExecutionResult } from "./slot-executor.js";
 import type {
   BudgetManager,
   ChatCompletionMessage,
@@ -12,7 +12,7 @@ import type {
   DataRefOf,
   SourceRegistry,
   SourceSpec,
-} from "./types";
+} from "./types.js";
 
 /**
  * Phase B: Assemble the final message array by walking the layout structure

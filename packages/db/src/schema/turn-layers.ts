@@ -6,7 +6,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
-import { turns } from "./turns";
+import { turns } from "./turns.js";
 
 export const turnLayers = sqliteTable(
   "turn_layers",

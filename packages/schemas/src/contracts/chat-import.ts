@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fileDataUriSchema } from "../utils/data-uri-validation";
+import { fileDataUriSchema } from "../utils/data-uri-validation.js";
 
 export const sillyTavernMessageSchema = z
   .object({

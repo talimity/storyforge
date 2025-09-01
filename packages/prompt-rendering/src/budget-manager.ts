@@ -1,4 +1,4 @@
-import type { Budget, BudgetManager } from "./types";
+import type { Budget, BudgetManager } from "./types.js";
 
 /** Default naive estimator: ~4 chars per token. */
 export type TokenEstimator = (text: string) => number;

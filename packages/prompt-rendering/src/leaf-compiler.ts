@@ -3,7 +3,7 @@
  * Only supports variable substitution with dotted paths, no control flow.
  */
 
-import type { CompiledLeafFunction } from "./types";
+import type { CompiledLeafFunction } from "./types.js";
 
 /**
  * Compiles a template string with {{variable}} patterns into a function.

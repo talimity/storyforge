@@ -1,5 +1,5 @@
 import { config } from "@storyforge/config";
-import pino from "pino";
+import { pino } from "pino";
 
 export const logger = pino(
   config.logging.pretty

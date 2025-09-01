@@ -11,12 +11,12 @@ import {
   loadTimelineOutputSchema,
 } from "@storyforge/schemas";
 import { z } from "zod";
-import { ServiceError } from "@/service-error";
-import { getScenarioEnvironment } from "@/services/scenario/scenario.queries";
-import { getTimelineWindow } from "@/services/timeline/timeline.queries";
-import { TimelineService } from "@/services/timeline/timeline.service";
-import { TurnContentService } from "@/services/turn/turn-content.service";
-import { publicProcedure, router } from "../index";
+import { ServiceError } from "../../service-error.js";
+import { getScenarioEnvironment } from "../../services/scenario/scenario.queries.js";
+import { getTimelineWindow } from "../../services/timeline/timeline.queries.js";
+import { TimelineService } from "../../services/timeline/timeline.service.js";
+import { TurnContentService } from "../../services/turn/turn-content.service.js";
+import { publicProcedure, router } from "../index.js";
 
 export const playRouter = router({
   environment: publicProcedure

@@ -6,7 +6,7 @@ import {
   sqliteTable,
   text,
 } from "drizzle-orm/sqlite-core";
-import { turns } from "./turns";
+import { turns } from "./turns.js";
 
 export const scenarios = sqliteTable("scenarios", {
   id: text("id")

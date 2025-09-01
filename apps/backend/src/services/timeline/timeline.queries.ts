@@ -1,7 +1,7 @@
 import type { SqliteDatabase } from "@storyforge/db";
 import { sql } from "drizzle-orm";
 
-export type TimelineRow = {
+type TimelineRow = {
   id: string;
   scenario_id: string;
   chapter_id: string;
@@ -25,15 +25,13 @@ export type TimelineRow = {
   timeline_depth: number; // Depth from root to anchor, 1-based
 };
 
-export type TurnTimelineWindowParams = {
-  leafTurnId: string | null; // starting point for the timeline window, null for anchor
-  windowSize: number; // number of turns to include in the window
-  scenarioId: string;
-};
-
 export async function getTimelineWindow(
   db: SqliteDatabase,
-  args: TurnTimelineWindowParams
+  args: {
+    leafTurnId: string | null; // starting point for the timeline window, null for anchor
+    windowSize: number; // number of turns to include in the window
+    scenarioId: string;
+  }
 ): Promise<TimelineRow[]> {
   const { leafTurnId, windowSize, scenarioId } = args;
 

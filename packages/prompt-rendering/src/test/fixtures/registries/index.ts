@@ -5,4 +5,4 @@
 export {
   makeOrderTestRegistry,
   makeSpecTurnGenerationRegistry,
-} from "./turn-generation-registry";
+} from "./turn-generation-registry.js";

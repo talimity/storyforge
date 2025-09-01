@@ -1,7 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { intents } from "./intents";
-import { turns } from "./turns";
+import { intents } from "./intents.js";
+import { turns } from "./turns.js";
 
 export const intentEffects = sqliteTable("intent_effects", {
   id: text("id")

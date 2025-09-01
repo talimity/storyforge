@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyTransforms,
   type ResponseTransform,
-} from "./response-transformer";
+} from "./response-transformer.js";
 
 describe("Response Transformer", () => {
   describe("applyTransforms", () => {

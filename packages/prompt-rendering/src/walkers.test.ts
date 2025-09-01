@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { iterDataRefs, iterMessageBlocks } from "./walkers";
+import { iterDataRefs, iterMessageBlocks } from "./walkers.js";
 
 describe("walkers", () => {
   // Helper function to collect all items from a generator

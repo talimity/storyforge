@@ -1,12 +1,12 @@
-import { evaluateCondition } from "./condition-evaluator";
-import { resolveAsArray, resolveDataRef } from "./data-ref-resolver";
+import { evaluateCondition } from "./condition-evaluator.js";
+import { resolveAsArray, resolveDataRef } from "./data-ref-resolver.js";
 import type {
   BudgetManager,
   ChatCompletionMessage,
   CompiledPlanNode,
   SourceRegistry,
   SourceSpec,
-} from "./types";
+} from "./types.js";
 
 /**
  * Execution result for plan nodes - array of messages to be included in output

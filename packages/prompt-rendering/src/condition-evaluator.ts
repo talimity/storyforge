@@ -3,8 +3,8 @@ import {
   isNonEmpty,
   isValidNumber,
   resolveDataRef,
-} from "./data-ref-resolver";
-import type { ConditionRef, SourceRegistry, SourceSpec } from "./types";
+} from "./data-ref-resolver.js";
+import type { ConditionRef, SourceRegistry, SourceSpec } from "./types.js";
 
 /**
  * Deep equality check using JSON.stringify for objects and arrays.

@@ -1,6 +1,6 @@
-import { TemplateStructureError } from "./errors";
-import type { PromptTemplate, SourceSpec } from "./types";
-import { iterMessageBlocks } from "./walkers";
+import { TemplateStructureError } from "./errors.js";
+import type { PromptTemplate, SourceSpec } from "./types.js";
+import { iterMessageBlocks } from "./walkers.js";
 
 /**
  * Validates the structural consistency of a prompt template.

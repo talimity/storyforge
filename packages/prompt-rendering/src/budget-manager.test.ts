@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DefaultBudgetManager } from "./budget-manager";
-import type { Budget } from "./types";
+import { DefaultBudgetManager } from "./budget-manager.js";
+import type { Budget } from "./types.js";
 
 describe("DefaultBudgetManager", () => {
   describe("token estimation", () => {

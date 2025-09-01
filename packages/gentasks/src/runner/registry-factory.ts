@@ -1,5 +1,5 @@
 import type { SourceRegistry } from "@storyforge/prompt-rendering";
-import type { ContextFor, SourcesFor, TaskKind } from "../types";
+import type { ContextFor, SourcesFor, TaskKind } from "../types.js";
 
 /**
  * Extends a task context with `stepInputs` so it can be used in source handlers

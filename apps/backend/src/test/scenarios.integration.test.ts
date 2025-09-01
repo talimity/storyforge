@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { CharacterService } from "../services/character/character-service";
-import { cleanupTestDatabase, createFreshTestCaller } from "./setup";
+import { CharacterService } from "../services/character/character-service.js";
+import { cleanupTestDatabase, createFreshTestCaller } from "./setup.js";
 
 describe("scenarios router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];

@@ -2,16 +2,16 @@ import {
   AuthoringValidationError,
   RenderError,
   TemplateStructureError,
-} from "./errors";
-import { assembleLayout } from "./layout-assembler";
-import { executeSlots } from "./slot-executor";
+} from "./errors.js";
+import { assembleLayout } from "./layout-assembler.js";
+import { executeSlots } from "./slot-executor.js";
 import type {
   BudgetManager,
   ChatCompletionMessage,
   CompiledTemplate,
   SourceRegistry,
   SourceSpec,
-} from "./types";
+} from "./types.js";
 
 /**
  * Render a compiled template into an array of chat completion messages.

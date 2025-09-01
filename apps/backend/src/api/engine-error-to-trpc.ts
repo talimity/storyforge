@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import type { EngineError } from "@/engine/engine-error";
+import type { EngineError } from "../engine-error.js";
 
 /**
  * Maps an EngineError to a TRPCError.

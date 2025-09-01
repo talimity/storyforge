@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { migrate } from "drizzle-orm/libsql/migrator";
-import type { SqliteDatabase } from "./client";
+import type { SqliteDatabase } from "./client.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,7 +39,7 @@ export async function runMigrations(db: SqliteDatabase) {
 // If this file is run directly, execute migrations
 if (import.meta.url === `file://${process.argv[1]}`) {
   console.log("Running migrations...");
-  runMigrations(await import("./client").then((m) => m.getDbClient()))
+  runMigrations(await import("./client.js").then((m) => m.getDbClient()))
     .then(() => {
       console.log("✅ Migrations completed successfully");
       return process.exit(0);

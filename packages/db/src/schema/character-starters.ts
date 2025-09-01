@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { characters } from "./characters";
+import { characters } from "./characters.js";
 
 export const characterStarters = sqliteTable("character_starters", {
   id: text("id")

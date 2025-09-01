@@ -4,10 +4,10 @@ import {
   chatImportExecuteInputSchema,
   chatImportExecuteOutputSchema,
 } from "@storyforge/schemas";
-import { publicProcedure, router } from "@/api/index";
-import { ChatImportService } from "@/services/chat-import/chat-import.service";
-import { ScenarioService } from "@/services/scenario/scenario.service";
-import { TimelineService } from "@/services/timeline/timeline.service";
+import { ChatImportService } from "../../services/chat-import/chat-import.service.js";
+import { ScenarioService } from "../../services/scenario/scenario.service.js";
+import { TimelineService } from "../../services/timeline/timeline.service.js";
+import { publicProcedure, router } from "../index.js";
 
 export const chatImportRouter = router({
   analyzeChat: publicProcedure

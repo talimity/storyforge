@@ -1,8 +1,8 @@
 import type { ChatCompletionResponse } from "@storyforge/inference";
 import { nanoid } from "nanoid";
-import type { TaskKind } from "../types";
-import { AsyncQueue } from "./async-queue";
-import type { RunId, RunnerEvent, RunSnapshot } from "./types";
+import type { TaskKind } from "../types.js";
+import { AsyncQueue } from "./async-queue.js";
+import type { RunId, RunnerEvent, RunSnapshot } from "./types.js";
 
 interface RunData {
   /** Buffered event log */

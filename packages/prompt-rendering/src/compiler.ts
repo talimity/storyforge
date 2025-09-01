@@ -1,5 +1,5 @@
-import { compileLeaf } from "./leaf-compiler";
-import { parseTemplate } from "./schemas";
+import { compileLeaf } from "./leaf-compiler.js";
+import { parseTemplate } from "./schemas.js";
 import type {
   CompiledLayoutNode,
   CompiledMessageBlock,
@@ -13,8 +13,8 @@ import type {
   PromptTemplate,
   SlotSpec,
   SourceSpec,
-} from "./types";
-import { validateTemplateStructure } from "./validator";
+} from "./types.js";
+import { validateTemplateStructure } from "./validator.js";
 
 /**
  * Compiles a template, applying validation and preprocessing all leaf strings.

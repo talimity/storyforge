@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import { sampleTurnGenCtx } from "@/test/fixtures/test-contexts";
+import { DefaultBudgetManager } from "./budget-manager.js";
+import { compileLeaf } from "./leaf-compiler.js";
+import { executeSlots } from "./slot-executor.js";
+import { sampleTurnGenCtx } from "./test/fixtures/test-contexts.js";
 import {
   makeConditionTestRegistry,
   makeTurnGenTestRegistry,
-} from "@/test/fixtures/test-registries";
-import { DefaultBudgetManager } from "./budget-manager";
-import { compileLeaf } from "./leaf-compiler";
-import { executeSlots } from "./slot-executor";
-import type { CompiledSlotSpec } from "./types";
+} from "./test/fixtures/test-registries.js";
+import type { CompiledSlotSpec } from "./types.js";
 
 describe("Slot Executor", () => {
   const ctx = sampleTurnGenCtx;

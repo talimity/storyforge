@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { providerConfigs } from "./provider-config";
+import { providerConfigs } from "./provider-config.js";
 
 export const modelProfiles = sqliteTable("model_profiles", {
   id: text("id")

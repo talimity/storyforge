@@ -1,5 +1,5 @@
 import { defineConfig } from "drizzle-kit";
-import { createDatabaseConfig } from "./src/config";
+import { createDatabaseConfig } from "./src/config.js";
 
 // does not work
 const dbConfig = createDatabaseConfig();

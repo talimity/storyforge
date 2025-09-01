@@ -2,7 +2,6 @@
 ├── apps
 │ ├── backend
 │ │ ├── package.json
-│ │ ├── scripts
 │ │ ├── src
 │ │ │ ├── api
 │ │ │ │ ├── app-router.ts
@@ -21,14 +20,7 @@
 │ │ │ │ ├── service-error-to-trpc.ts
 │ │ │ │ └── trpc-context.ts
 │ │ │ ├── config.ts
-│ │ │ ├── engine
-│ │ │ │ ├── context
-│ │ │ │ │ └── macro-replacement.ts
-│ │ │ │ ├── engine-error.ts
-│ │ │ │ └── invariants
-│ │ │ │   ├── turn-content.ts
-│ │ │ │   ├── turn-progression.ts
-│ │ │ │   └── turn.ts
+│ │ │ ├── engine-error.ts
 │ │ │ ├── logging.ts
 │ │ │ ├── main.ts
 │ │ │ ├── resources.ts
@@ -44,6 +36,9 @@
 │ │ │ │ │   └── parse-tavern-card.ts
 │ │ │ │ ├── chat-import
 │ │ │ │ │ └── chat-import.service.ts
+│ │ │ │ ├── intent
+│ │ │ │ │ └── turngen-context-builder.ts
+│ │ │ │ ├── macro-replacement.ts
 │ │ │ │ ├── provider
 │ │ │ │ │ ├── provider.queries.ts
 │ │ │ │ │ └── provider.service.ts
@@ -57,13 +52,18 @@
 │ │ │ │ │ ├── template.service.ts
 │ │ │ │ │ └── utils
 │ │ │ │ │   └── marshalling.ts
+│ │ │ │ ├── timeline
+│ │ │ │ │ ├── invariants
+│ │ │ │ │ │ ├── turn-content.ts
+│ │ │ │ │ │ ├── turn-progression.ts
+│ │ │ │ │ │ └── turn.ts
+│ │ │ │ │ ├── timeline.queries.ts
+│ │ │ │ │ ├── timeline.service.test.ts
+│ │ │ │ │ ├── timeline.service.ts
+│ │ │ │ │ └── utils
+│ │ │ │ │   └── mutation-planner.ts
 │ │ │ │ └── turn
-│ │ │ │   ├── timeline.service.test.ts
-│ │ │ │   ├── timeline.service.ts
-│ │ │ │   ├── turn-content.service.ts
-│ │ │ │   ├── timeline.queries.ts
-│ │ │ │   └── utils
-│ │ │ │       └── mutation-planner.ts
+│ │ │ │   └── turn-content.service.ts
 │ │ │ ├── test
 │ │ │ │ ├── characters.integration.test.ts
 │ │ │ │ ├── fixtures.ts
@@ -294,15 +294,17 @@
 │ │ │ │ ├── character-examples.ts
 │ │ │ │ ├── character-starters.ts
 │ │ │ │ ├── characters.ts
-│ │ │ │ ├── workflows.ts
 │ │ │ │ ├── index.ts
+│ │ │ │ ├── intent-effects.ts
+│ │ │ │ ├── intents.ts
 │ │ │ │ ├── model-profiles.ts
 │ │ │ │ ├── prompt-templates.ts
 │ │ │ │ ├── provider-config.ts
 │ │ │ │ ├── scenario-participants.ts
 │ │ │ │ ├── scenarios.ts
 │ │ │ │ ├── turn-layers.ts
-│ │ │ │ └── turns.ts
+│ │ │ │ ├── turns.ts
+│ │ │ │ └── workflows.ts
 │ │ │ └── utils.ts
 │ │ ├── tsconfig.build.json
 │ │ └── tsconfig.json
@@ -467,4 +469,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
 
-92 directories, 376 files
+91 directories, 379 files

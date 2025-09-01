@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { imageDataUriSchema } from "../utils/data-uri-validation";
+import { imageDataUriSchema } from "../utils/data-uri-validation.js";
 
 export const cardTypeSchema = z.enum([
   "character",
