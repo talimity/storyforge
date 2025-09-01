@@ -36,7 +36,7 @@ export const relations = defineRelations(schema, (r) => ({
     turns: r.many.turns(),
   },
   turns: {
-    scenarioParticipant: r.one.scenarioParticipants({
+    authorParticipant: r.one.scenarioParticipants({
       from: r.turns.authorParticipantId,
       to: r.scenarioParticipants.id,
     }),
@@ -64,6 +64,23 @@ export const relations = defineRelations(schema, (r) => ({
   turnLayers: {
     turn: r.one.turns({
       from: r.turnLayers.turnId,
+      to: r.turns.id,
+    }),
+  },
+  intents: {
+    scenario: r.one.scenarios({
+      from: r.intents.scenarioId,
+      to: r.scenarios.id,
+    }),
+    effects: r.many.intentEffects(),
+  },
+  intentEffects: {
+    intent: r.one.intents({
+      from: r.intentEffects.intentId,
+      to: r.intents.id,
+    }),
+    turn: r.one.turns({
+      from: r.intentEffects.turnId,
       to: r.turns.id,
     }),
   },

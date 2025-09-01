@@ -13,38 +13,12 @@ import {
 import { z } from "zod";
 import { ServiceError } from "@/service-error";
 import { getScenarioEnvironment } from "@/services/scenario/scenario.queries";
-import { TimelineService } from "@/services/turn/timeline.service";
-import { getTimelineWindow } from "@/services/turn/turn.queries";
+import { getTimelineWindow } from "@/services/timeline/timeline.queries";
+import { TimelineService } from "@/services/timeline/timeline.service";
 import { TurnContentService } from "@/services/turn/turn-content.service";
 import { publicProcedure, router } from "../index";
 
 export const playRouter = router({
-  /**
-   * Creates a new turn in the scenario's timeline without triggering any
-   * intent effects.
-   */
-  addTurn: publicProcedure
-    .input(
-      z.object({
-        scenarioId: z.string(),
-        text: z.string(),
-        authorParticipantId: z.string(),
-        chapterId: z.string(),
-        parentTurnId: z.string().optional(),
-      })
-    )
-    .output(z.object({ newTurnId: z.string() }))
-    .mutation(async ({ input, ctx }) => {
-      const turnGraph = new TimelineService(ctx.db);
-      const turn = await turnGraph.advanceTurn({
-        scenarioId: input.scenarioId,
-        authorParticipantId: input.authorParticipantId,
-        chapterId: input.chapterId,
-        layers: [{ key: "presentation", content: input.text }],
-      });
-      return { newTurnId: turn.id };
-    }),
-
   environment: publicProcedure
     .meta({
       openapi: {
@@ -61,6 +35,7 @@ export const playRouter = router({
       const { scenarioId } = input;
       return getScenarioEnvironment(ctx.db, scenarioId);
     }),
+
   timeline: publicProcedure
     .meta({
       openapi: {
@@ -149,6 +124,7 @@ export const playRouter = router({
         cursors: { nextLeafTurnId },
       };
     }),
+
   createIntent: publicProcedure
     .meta({
       openapi: {
@@ -164,6 +140,7 @@ export const playRouter = router({
       // biome-ignore lint/suspicious/noExplicitAny: todo
       return {} as any;
     }),
+
   intentProgress: publicProcedure
     .meta({
       openapi: {
@@ -180,6 +157,7 @@ export const playRouter = router({
       // biome-ignore lint/suspicious/noExplicitAny: todo
       return {} as any;
     }),
+
   intentResult: publicProcedure
     .meta({
       openapi: {
@@ -194,6 +172,37 @@ export const playRouter = router({
     .query(async ({ input, ctx }) => {
       // biome-ignore lint/suspicious/noExplicitAny: todo
       return {} as any;
+    }),
+
+  addTurn: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/play/turn",
+        tags: ["play"],
+        summary:
+          "Creates a new turn in the scenario without triggering a generation workflow or creating an intent.",
+      },
+    })
+    .input(
+      z.object({
+        scenarioId: z.string(),
+        text: z.string(),
+        authorParticipantId: z.string(),
+        chapterId: z.string(),
+        parentTurnId: z.string().optional(),
+      })
+    )
+    .output(z.object({ newTurnId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const turnGraph = new TimelineService(ctx.db);
+      const turn = await turnGraph.advanceTurn({
+        scenarioId: input.scenarioId,
+        authorParticipantId: input.authorParticipantId,
+        chapterId: input.chapterId,
+        layers: [{ key: "presentation", content: input.text }],
+      });
+      return { newTurnId: turn.id };
     }),
 
   deleteTurn: publicProcedure
@@ -227,7 +236,7 @@ export const playRouter = router({
         method: "PATCH",
         path: "/api/play/turn/{turnId}/content",
         tags: ["play"],
-        summary: "Update the content of a turn",
+        summary: "Updates a turn's content by layer",
       },
     })
     .input(

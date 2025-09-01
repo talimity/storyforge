@@ -376,9 +376,6 @@ importers:
         specifier: 'catalog:'
         version: 4.0.17
     devDependencies:
-      resolve-tspaths:
-        specifier: 'catalog:'
-        version: 0.8.23(typescript@5.9.2)
       typescript:
         specifier: 'catalog:'
         version: 5.9.2

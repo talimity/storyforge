@@ -15,7 +15,7 @@ import {
   executeDeletionPlan,
   planDeletion,
   type TurnGraphDeleteMode,
-} from "@/services/turn/utils/mutation-planner";
+} from "@/services/timeline/utils/mutation-planner";
 
 const {
   chapters: tChapters,

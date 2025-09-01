@@ -4,9 +4,6 @@
     "rootDir": "./src",
     "noEmit": true,
     "lib": ["ES2022", "DOM"],
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "types": ["vitest/globals"]
   },
   "include": ["src/**/*"]

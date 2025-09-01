@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -b tsconfig.build.json && resolve-tspaths --out dist",
+    "build": "tsc -b tsconfig.build.json",
     "check": "run-p --continue-on-error lint typecheck",
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "fmt": "biome format --write .",
@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "typescript": "catalog:",
-    "resolve-tspaths": "catalog:",
     "vitest": "catalog:"
   }
 }

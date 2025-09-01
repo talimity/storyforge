@@ -10,7 +10,7 @@ import { eq } from "drizzle-orm";
 import { logger } from "@/logging";
 import { ServiceError } from "@/service-error";
 import type { ScenarioService } from "@/services/scenario/scenario.service";
-import type { TimelineService } from "@/services/turn/timeline.service";
+import type { TimelineService } from "@/services/timeline/timeline.service";
 
 const { characters: tCharacters, scenarioParticipants: tParticipants } = schema;
 

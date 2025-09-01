@@ -60,11 +60,7 @@ export class TurnContentService {
           );
       } else {
         // Create new layer
-        await tx.insert(tTurnLayers).values({
-          turnId,
-          key: layer,
-          content,
-        });
+        await tx.insert(tTurnLayers).values({ turnId, key: layer, content });
       }
 
       const [updatedTurn] = await tx
@@ -87,22 +83,9 @@ export class TurnContentService {
         .where(and(eq(tTurnLayers.turnId, turnId), eq(tTurnLayers.key, layer)))
         .limit(1);
 
-      return {
-        turn: updatedTurn,
-        layer: updatedLayer,
-      };
+      return { turn: updatedTurn, layer: updatedLayer };
     };
 
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
-  }
-
-  /**
-   * Retrieves all layers for a turn.
-   */
-  async getTurnLayers(turnId: string) {
-    return this.db
-      .select()
-      .from(tTurnLayers)
-      .where(eq(tTurnLayers.turnId, turnId));
   }
 }

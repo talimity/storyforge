@@ -17,7 +17,7 @@ export type TurnGenCtx = {
   turns: TurnCtxDTO[];
   chapterSummaries: ChapterSummCtxDTO[];
   characters: CharacterCtxDTO[];
-  currentIntent: { description: string; constraint?: string };
+  currentIntent: { kind: string; description: string; constraint?: string };
   stepInputs: Record<string, unknown>;
   globals: TurnGenGlobals;
 };
