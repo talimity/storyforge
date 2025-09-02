@@ -1,7 +1,6 @@
-import { createId } from "@paralleldrive/cuid2";
 import type { ChatCompletionResponse } from "@storyforge/inference";
+import { AsyncQueue, createId } from "@storyforge/utils";
 import type { TaskKind } from "../types.js";
-import { AsyncQueue } from "./async-queue.js";
 import type { RunId, RunnerEvent, RunSnapshot } from "./types.js";
 
 interface RunData {

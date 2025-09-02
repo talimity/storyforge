@@ -84,4 +84,28 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.turns.id,
     }),
   },
+  workflows: {
+    scopes: r.many.workflowScopes(),
+  },
+  workflowScopes: {
+    workflow: r.one.workflows({
+      from: r.workflowScopes.workflowId,
+      to: r.workflows.id,
+    }),
+    scenario: r.one.scenarios({
+      from: r.workflowScopes.scenarioId,
+      to: r.scenarios.id,
+      optional: true,
+    }),
+    character: r.one.characters({
+      from: r.workflowScopes.characterId,
+      to: r.characters.id,
+      optional: true,
+    }),
+    participant: r.one.scenarioParticipants({
+      from: r.workflowScopes.participantId,
+      to: r.scenarioParticipants.id,
+      optional: true,
+    }),
+  },
 }));

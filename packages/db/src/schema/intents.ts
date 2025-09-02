@@ -1,4 +1,4 @@
-import { createId } from "@paralleldrive/cuid2";
+import { createId } from "@storyforge/utils";
 import { sql } from "drizzle-orm";
 import {
   integer,
@@ -9,6 +9,13 @@ import {
 import { scenarioParticipants } from "./scenario-participants.js";
 import { scenarios } from "./scenarios.js";
 
+type IntentKind =
+  | "manual_control"
+  | "guided_control"
+  | "narrative_constraint"
+  | "continue_story";
+type IntentStatus = "pending" | "running" | "finished" | "failed" | "cancelled";
+
 export const intents = sqliteTable(
   "intents",
   {
@@ -18,8 +25,8 @@ export const intents = sqliteTable(
     scenarioId: text("scenario_id")
       .notNull()
       .references(() => scenarios.id, { onDelete: "cascade" }),
-    kind: text("kind").notNull().$type<"direct_control" | "story_constraint">(),
-    status: text("status").notNull().$type<"pending" | "finished" | "failed">(),
+    kind: text("kind").notNull().$type<IntentKind>(),
+    status: text("status").notNull().$type<IntentStatus>(),
     targetParticipantId: text("target_participant_id").references(
       () => scenarioParticipants.id,
       { onDelete: "restrict" }

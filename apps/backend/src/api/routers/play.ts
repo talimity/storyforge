@@ -12,10 +12,12 @@ import {
 } from "@storyforge/schemas";
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
+import { IntentService } from "../../services/intent/intent.service.js";
 import { getScenarioEnvironment } from "../../services/scenario/scenario.queries.js";
 import { getTimelineWindow } from "../../services/timeline/timeline.queries.js";
 import { TimelineService } from "../../services/timeline/timeline.service.js";
 import { TurnContentService } from "../../services/turn/turn-content.service.js";
+import { WorkflowRunnerManager } from "../../services/workflows/workflow-runner-manager.js";
 import { publicProcedure, router } from "../index.js";
 
 export const playRouter = router({
@@ -137,8 +139,17 @@ export const playRouter = router({
     .input(createIntentInputSchema)
     .output(createIntentOutputSchema)
     .mutation(async ({ input, ctx }) => {
-      // biome-ignore lint/suspicious/noExplicitAny: todo
-      return {} as any;
+      const timeline = new TimelineService(ctx.db);
+      const runnerManager = WorkflowRunnerManager.getInstance(ctx.db);
+      const runner = runnerManager.getRunner("turn_generation");
+      const service = new IntentService(ctx.db, timeline, runner);
+      const result = await service.createAndStart({
+        scenarioId: input.scenarioId,
+        ...input.parameters,
+      });
+      // TODO: The output schema expects a full intent object, not just the ID
+      // This needs to be fixed to match the schema or the schema needs to be updated
+      return { intentId: result.id };
     }),
 
   intentProgress: publicProcedure

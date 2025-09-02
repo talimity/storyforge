@@ -1,6 +1,5 @@
 {
   "name": "@storyforge/frontend",
-  "private": true,
   "version": "1.0.0",
   "scripts": {
     "build": "vite build",
@@ -22,8 +21,8 @@
     "@storyforge/gentasks": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/schemas": "workspace:*",
+    "@storyforge/utils": "workspace:*",
     "@tanstack/react-query": "^5.83.0",
-    "@paralleldrive/cuid2": "catalog:",
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
     "immer": "^10.1.1",

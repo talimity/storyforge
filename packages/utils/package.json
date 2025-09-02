@@ -12,7 +12,9 @@
     "lint": "biome check --diagnostic-level error --write --unsafe .",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "ulid": "^3.0.1"
+  },
   "devDependencies": {
     "typescript": "catalog:"
   }

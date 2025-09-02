@@ -1,5 +1,6 @@
 import { getDbClient, type SqliteDatabase } from "@storyforge/db";
 import fp from "fastify-plugin";
+import { initApp } from "./init-app.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -27,6 +28,6 @@ type Options = {
 
 export const resources = fp<Options>(async function resources(fastify, opts) {
   const db = opts.db ?? (await getDatabaseClient());
-
+  await initApp(db);
   fastify.decorate("db", db);
 });

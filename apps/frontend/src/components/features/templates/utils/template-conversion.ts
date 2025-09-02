@@ -1,4 +1,3 @@
-import { createId } from "@paralleldrive/cuid2";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import type {
   LayoutNode,
@@ -6,6 +5,7 @@ import type {
   SlotSpec,
   UnboundTemplate,
 } from "@storyforge/prompt-rendering";
+import { createId } from "@storyforge/utils";
 import { z } from "zod";
 import { isValidRecipeId } from "@/components/features/templates/recipes/registry";
 import type {

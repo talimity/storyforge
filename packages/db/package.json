@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@libsql/client": "catalog:",
-    "@paralleldrive/cuid2": "catalog:",
     "@storyforge/config": "workspace:*",
+    "@storyforge/utils": "workspace:*",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {

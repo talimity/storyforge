@@ -1,4 +1,4 @@
-import { createId } from "@paralleldrive/cuid2";
+import { createId } from "@storyforge/utils";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const providerConfigs = sqliteTable("provider_configs", {

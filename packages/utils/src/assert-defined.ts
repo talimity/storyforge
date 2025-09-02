@@ -1,8 +1,9 @@
 export function assertDefined<T>(
   value: T,
-  message?: string
+  error?: string | Error
 ): asserts value is NonNullable<T> {
   if (value === null || value === undefined) {
-    throw new Error(message ?? "Value is not defined");
+    if (error instanceof Error) throw error;
+    throw new Error(error ?? "Value is not defined");
   }
 }

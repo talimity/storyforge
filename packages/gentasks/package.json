@@ -18,7 +18,6 @@
     "@storyforge/inference": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/utils": "workspace:*",
-    "@paralleldrive/cuid2": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

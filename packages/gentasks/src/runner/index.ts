@@ -1,7 +1,5 @@
 // Main runner factory
 
-// Queue for async event streaming (useful for testing)
-export { AsyncQueue } from "./async-queue.js";
 // Registry utilities
 export {
   createExtendedRegistry,

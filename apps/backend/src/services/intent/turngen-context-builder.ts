@@ -53,12 +53,18 @@ export class TurngenContextBuilder {
     };
   }
 
+  // TODO: Don't use intent parameters directly in the turngen context., leaks
+  // too much implementation detail into the model prompt
   private mapIntentDescription(kind: NewIntent["kind"]): string {
     switch (kind) {
-      case "direct_control":
-        return "Direct Control";
-      case "story_constraint":
-        return "Story Constraint";
+      case "manual_control":
+        return "Manual Control";
+      case "guided_control":
+        return "Guided Control";
+      case "narrative_constraint":
+        return "Narrative Constraint";
+      case "continue_story":
+        return "Continue Story";
       default:
         assertNever(kind);
     }

@@ -11,4 +11,5 @@ export * from "./scenario-participants.js";
 export * from "./scenarios.js";
 export * from "./turn-layers.js";
 export * from "./turns.js";
+export * from "./workflow-scopes.js";
 export * from "./workflows.js";

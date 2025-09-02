@@ -1,4 +1,4 @@
-import { createId } from "@paralleldrive/cuid2";
+import { createId } from "@storyforge/utils";
 import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { characters } from "./characters.js";
 import { scenarios } from "./scenarios.js";

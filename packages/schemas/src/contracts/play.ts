@@ -1,9 +1,34 @@
 import z from "zod";
 
+export const intentKindSchema = z.enum([
+  "manual_control",
+  "guided_control",
+  "narrative_constraint",
+  "continue_story",
+]);
+
+export const intentInputSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("manual_control"),
+    text: z.string().min(1).max(50000),
+    targetParticipantId: z.string(),
+  }),
+  z.object({
+    kind: z.literal("guided_control"),
+    text: z.string().min(1).max(50000),
+    targetParticipantId: z.string(),
+  }),
+  z.object({
+    kind: z.literal("narrative_constraint"),
+    text: z.string().min(1).max(50000),
+  }),
+  z.object({
+    kind: z.literal("continue_story"),
+  }),
+]);
+
 // Play Environment API schemas
-export const environmentInputSchema = z.object({
-  scenarioId: z.string(),
-});
+export const environmentInputSchema = z.object({ scenarioId: z.string() });
 
 export const environmentOutputSchema = z.object({
   scenario: z
@@ -129,20 +154,7 @@ export const loadTimelineOutputSchema = z.object({
 // Intent API schemas
 export const createIntentInputSchema = z.object({
   scenarioId: z.string(),
-  // todo: maybe this should be object union instead of mode with dependent fields
-  mode: z
-    .enum(["direct_control", "story_constraint", "quick_action"])
-    .default("direct_control")
-    .describe("Player's chosen mode of interaction"),
-  text: z
-    .string()
-    .min(1)
-    .max(20000)
-    .optional()
-    .describe(
-      "Player's input or prompt (required for direct_control and quick_action modes"
-    ),
-  selectedParticipantId: z.string().optional(),
+  parameters: intentInputSchema,
   // TODO: still need to think through these modes more
   // constraint: z
   //   .object({
@@ -157,6 +169,7 @@ export const createIntentInputSchema = z.object({
   //   })
   //   .optional(),
 });
+export const createIntentOutputSchema = z.object({ intentId: z.string() });
 
 export const intentEffectSchema = z
   .object({
@@ -183,8 +196,6 @@ export const intentSchema = z
   })
   .describe("Representation of a player's intent to influence the story");
 
-export const createIntentOutputSchema = z.object({ intent: intentSchema });
-
 // Intent progress schemas
 export const intentProgressInputSchema = z.object({ intentId: z.string() });
 
@@ -192,6 +203,8 @@ export const intentResultInputSchema = z.object({ intentId: z.string() });
 export const intentResultOutputSchema = intentSchema;
 
 // Type exports
+export type IntentKind = z.infer<typeof intentKindSchema>;
+export type IntentInput = z.infer<typeof intentInputSchema>;
 export type EnvironmentInput = z.infer<typeof environmentInputSchema>;
 export type EnvironmentOutput = z.infer<typeof environmentOutputSchema>;
 export type LoadTimelineInput = z.infer<typeof loadTimelineInputSchema>;

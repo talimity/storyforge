@@ -1,4 +1,4 @@
-import { createId } from "@paralleldrive/cuid2";
+import { createId } from "@storyforge/utils";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { intents } from "./intents.js";
 import { turns } from "./turns.js";
@@ -7,7 +7,7 @@ export const intentEffects = sqliteTable("intent_effects", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  intentId: text("scenario_id")
+  intentId: text("intent_id")
     .notNull()
     .references(() => intents.id, { onDelete: "cascade" }),
   kind: text("kind")

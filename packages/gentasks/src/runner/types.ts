@@ -9,8 +9,8 @@ import type {
 import type {
   BudgetManager,
   ChatCompletionMessage,
-  PromptTemplate,
   SourceRegistry,
+  UnboundTemplate,
 } from "@storyforge/prompt-rendering";
 import type { z } from "zod";
 import type { ContextFor, SourcesFor, TaskKind } from "../types.js";
@@ -54,7 +54,7 @@ export type ModelProfileResolved = {
 
 // Runner dependencies with proper typing
 export type RunnerDeps<K extends TaskKind> = {
-  loadTemplate: (id: string) => Promise<PromptTemplate<K, SourcesFor<K>>>;
+  loadTemplate: (id: string) => Promise<UnboundTemplate>;
   loadModelProfile: (id: string) => Promise<ModelProfileResolved>;
   makeAdapter: (cfg: ProviderConfig) => ProviderAdapter;
   registry: SourceRegistry<ContextFor<K>, SourcesFor<K>>;

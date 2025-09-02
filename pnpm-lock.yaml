@@ -9,9 +9,6 @@ catalogs:
     '@libsql/client':
       specifier: ^0.15.10
       version: 0.15.10
-    '@paralleldrive/cuid2':
-      specifier: ^2.2.2
-      version: 2.2.2
     '@trpc/client':
       specifier: 11.3.1
       version: 11.3.1
@@ -26,7 +23,7 @@ catalogs:
       version: 24.1.0
     drizzle-kit:
       specifier: beta
-      version: 1.0.0-beta.1-578e9fd
+      version: 1.0.0-beta.1-2acab7f
     drizzle-orm:
       specifier: 1.0.0-beta.1-578e9fd
       version: 1.0.0-beta.1-578e9fd
@@ -210,9 +207,6 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.1
         version: 5.2.1(react-hook-form@7.62.0(react@19.1.0))
-      '@paralleldrive/cuid2':
-        specifier: 'catalog:'
-        version: 2.2.2
       '@storyforge/gentasks':
         specifier: workspace:*
         version: link:../../packages/gentasks
@@ -222,6 +216,9 @@ importers:
       '@storyforge/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@storyforge/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@tanstack/react-query':
         specifier: ^5.83.0
         version: 5.83.0(react@19.1.0)
@@ -335,12 +332,12 @@ importers:
       '@libsql/client':
         specifier: 'catalog:'
         version: 0.15.10
-      '@paralleldrive/cuid2':
-        specifier: 'catalog:'
-        version: 2.2.2
       '@storyforge/config':
         specifier: workspace:*
         version: link:../config
+      '@storyforge/utils':
+        specifier: workspace:*
+        version: link:../utils
       drizzle-orm:
         specifier: 'catalog:'
         version: 1.0.0-beta.1-578e9fd(@libsql/client@0.15.10)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.2.0)
@@ -350,16 +347,13 @@ importers:
         version: 24.1.0
       drizzle-kit:
         specifier: 'catalog:'
-        version: 1.0.0-beta.1-578e9fd
+        version: 1.0.0-beta.1-2acab7f
       typescript:
         specifier: 'catalog:'
         version: 5.9.2
 
   packages/gentasks:
     dependencies:
-      '@paralleldrive/cuid2':
-        specifier: 'catalog:'
-        version: 2.2.2
       '@storyforge/inference':
         specifier: workspace:*
         version: link:../inference
@@ -432,6 +426,10 @@ importers:
         version: 5.9.2
 
   packages/utils:
+    dependencies:
+      ulid:
+        specifier: ^3.0.1
+        version: 3.0.1
     devDependencies:
       typescript:
         specifier: 'catalog:'
@@ -1325,10 +1323,6 @@ packages:
   '@neon-rs/load@0.0.4':
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
 
-  '@noble/hashes@1.8.0':
-    resolution: {integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==}
-    engines: {node: ^14.21.3 || >=16}
-
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -1343,9 +1337,6 @@ packages:
 
   '@pandacss/is-valid-prop@0.54.0':
     resolution: {integrity: sha512-UhRgg1k9VKRCBAHl+XUK3lvN0k9bYifzYGZOqajDid4L1DyU813A1L0ZwN4iV9WX5TX3PfUugqtgG9LnIeFGBQ==}
-
-  '@paralleldrive/cuid2@2.2.2':
-    resolution: {integrity: sha512-ZOBkgDwEdoYVlSeRbYYXs0S9MejQofiVYoTbKzy/6GQa39/q5tQU2IX46+shYnUkpEl3wc+J6wRlar7r2EK2xA==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -2304,8 +2295,8 @@ packages:
     resolution: {integrity: sha512-kQhDYKZecqnM0fCnzI5eIv5L4cAe/iRI+HqMbO/hbRdTAeXDG+M9FjipUxNfbARuEg4iHIbhnhs78BCHNbSxEQ==}
     engines: {node: '>=12'}
 
-  drizzle-kit@1.0.0-beta.1-578e9fd:
-    resolution: {integrity: sha512-Baq98/Qx+HN5JrEGzYFhFW6DUcHU7YqAEuiDe1juYuLPD3EI7k5hHj2GXJ0Jwq5ojBTJ2+7zkwwplAvh40qB7A==}
+  drizzle-kit@1.0.0-beta.1-2acab7f:
+    resolution: {integrity: sha512-w6eEJXGwFeW6HZlPf0Q6Gy2S5Rd39Rssb76gcHUjOu9okrgQk7T2hXVrfBm5t9uAKFaZscLohr1aCR7KE8OBvQ==}
     hasBin: true
 
   drizzle-orm@1.0.0-beta.1-578e9fd:
@@ -4136,6 +4127,10 @@ packages:
   ufo@1.6.1:
     resolution: {integrity: sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA==}
 
+  ulid@3.0.1:
+    resolution: {integrity: sha512-dPJyqPzx8preQhqq24bBG1YNkvigm87K8kVEHCD+ruZg24t6IFEFv00xMWfxcC4djmFtiTLdFuADn4+DOz6R7Q==}
+    hasBin: true
+
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
     engines: {node: '>= 0.4'}
@@ -5298,8 +5293,6 @@ snapshots:
 
   '@neon-rs/load@0.0.4': {}
 
-  '@noble/hashes@1.8.0': {}
-
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -5313,10 +5306,6 @@ snapshots:
       fastq: 1.19.1
 
   '@pandacss/is-valid-prop@0.54.0': {}
-
-  '@paralleldrive/cuid2@2.2.2':
-    dependencies:
-      '@noble/hashes': 1.8.0
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -6536,7 +6525,7 @@ snapshots:
 
   dotenv@17.2.1: {}
 
-  drizzle-kit@1.0.0-beta.1-578e9fd:
+  drizzle-kit@1.0.0-beta.1-2acab7f:
     dependencies:
       '@drizzle-team/brocli': 0.10.2
       '@esbuild-kit/esm-loader': 2.6.5
@@ -8682,6 +8671,8 @@ snapshots:
   typescript@5.9.2: {}
 
   ufo@1.6.1: {}
+
+  ulid@3.0.1: {}
 
   unbox-primitive@1.1.0:
     dependencies:

@@ -1,6 +1,5 @@
 /**
  * A queue that allows async iteration over items as they are pushed.
- * Supports buffering items before iteration starts and proper closure.
  */
 export class AsyncQueue<T> {
   private queue: T[] = [];
