@@ -23,6 +23,7 @@
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/schemas": "workspace:*",
     "@tanstack/react-query": "^5.83.0",
+    "@paralleldrive/cuid2": "catalog:",
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
     "immer": "^10.1.1",

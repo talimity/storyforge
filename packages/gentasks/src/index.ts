@@ -24,4 +24,10 @@ export {
   type WritingAssistantTemplate,
   writingAssistRegistry,
 } from "./tasks/writing-assistant.js";
-export { ContextFor, SourcesFor, TaskKind } from "./types.js";
+export {
+  CharacterCtxDTO,
+  ContextFor,
+  SourcesFor,
+  TaskKind,
+  TurnCtxDTO,
+} from "./types.js";

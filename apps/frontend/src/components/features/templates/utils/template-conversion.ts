@@ -1,3 +1,4 @@
+import { createId } from "@paralleldrive/cuid2";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import type {
   LayoutNode,
@@ -5,7 +6,6 @@ import type {
   SlotSpec,
   UnboundTemplate,
 } from "@storyforge/prompt-rendering";
-import { nanoid } from "nanoid";
 import { z } from "zod";
 import { isValidRecipeId } from "@/components/features/templates/recipes/registry";
 import type {
@@ -33,7 +33,7 @@ export function templateToDraft(template: UnboundTemplate): TemplateDraft {
  * Convert layout nodes from engine format to draft format
  */
 function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
-  const id = nanoid(8); // Generate UI tracking ID
+  const id = createId();
 
   switch (node.kind) {
     case "message":
@@ -147,13 +147,13 @@ function convertSlotsToDraft(
  */
 export function createBlankTemplate(task: TaskKind): TemplateDraft {
   return {
-    id: nanoid(12),
+    id: createId(),
     name: "",
     description: "",
     task,
     layoutDraft: [
       {
-        id: nanoid(8),
+        id: createId(),
         kind: "message",
         role: "system",
         content: "You are a storyteller.",

@@ -290,8 +290,7 @@ async function nextSiblingOrder(tx: SqliteTransaction, parent: string | null) {
         ? eq(schema.turns.parentTurnId, parent)
         : isNull(schema.turns.parentTurnId)
     )
-    .orderBy(schema.turns.siblingOrder)
-    .all();
+    .orderBy(schema.turns.siblingOrder);
 
   const last = rows.at(-1)?.order ?? "";
   return after(last);

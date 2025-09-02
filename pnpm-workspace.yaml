@@ -7,8 +7,10 @@ catalog:
   '@trpc/react-query': 11.3.1
   '@trpc/server': 11.3.1
   '@types/node': ^24.1.0
+  '@paralleldrive/cuid2': ^2.2.2
+  '@libsql/client': ^0.15.10
   drizzle-kit: beta
-  drizzle-orm: 1.0.0-beta.1-40d80bd
+  drizzle-orm: 1.0.0-beta.1-578e9fd
   sharp: ^0.34.3
   superjson: ^2.2.2
   trpc-to-openapi: ^3.0.0

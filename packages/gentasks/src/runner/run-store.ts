@@ -1,5 +1,5 @@
+import { createId } from "@paralleldrive/cuid2";
 import type { ChatCompletionResponse } from "@storyforge/inference";
-import { nanoid } from "nanoid";
 import type { TaskKind } from "../types.js";
 import { AsyncQueue } from "./async-queue.js";
 import type { RunId, RunnerEvent, RunSnapshot } from "./types.js";
@@ -44,7 +44,7 @@ export class RunStore {
       stepResponses: Record<string, ChatCompletionResponse>;
     }>;
   } {
-    const id = nanoid();
+    const id = createId();
     const aborted = new AbortController();
 
     let resultResolve:

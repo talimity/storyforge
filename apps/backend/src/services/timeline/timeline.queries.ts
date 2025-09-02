@@ -1,4 +1,5 @@
-import type { SqliteDatabase } from "@storyforge/db";
+import type { SqliteDatabase, SqliteTxLike } from "@storyforge/db";
+import type { TurnCtxDTO } from "@storyforge/gentasks";
 import { sql } from "drizzle-orm";
 
 type TimelineRow = {
@@ -25,6 +26,13 @@ type TimelineRow = {
   timeline_depth: number; // Depth from root to anchor, 1-based
 };
 
+/**
+ * Fetches a sliced timeline window from the database, using the path specified
+ * by leafTurnId. If leafTurnId is null, uses the scenario's anchor_turn_id.
+ * Response is ordered by depth (root->leaf) within the page. The content of
+ * the `presentation` layer is included in the response, along with whether each
+ * turn has a sibling.
+ */
 export async function getTimelineWindow(
   db: SqliteDatabase,
   args: {
@@ -133,6 +141,9 @@ ORDER BY e.depth DESC;
   );
 }
 
+/**
+ * Get the content of all layers for the given turn IDs.
+ */
 export async function getTurnContentLayers(
   db: SqliteDatabase,
   turnIds: string[]
@@ -157,5 +168,101 @@ export async function getTurnContentLayers(
     contentLayers: Object.fromEntries(
       turn.layers.map(({ key, content }) => [key, content])
     ),
+  }));
+}
+
+/**
+ * Return the full timeline path (root -> selected leaf) with all content
+ * layers, mapped to TurnCtxDTO. If leafTurnId is null, uses the scenario's
+ * anchor_turn_id.
+ */
+export async function getFullTimelineTurnCtx(
+  db: SqliteTxLike,
+  args: {
+    leafTurnId: string | null;
+    scenarioId: string;
+  }
+): Promise<TurnCtxDTO[]> {
+  const { leafTurnId, scenarioId } = args;
+
+  // We build the entire parent chain from leaf to root (depth 0..N), compute
+  // the total depth, and then derive 1-based turn numbers as (total_depth -
+  // depth). All layers are aggregated in-SQL via json_group_object;
+  // presentation content is extracted via a conditional aggregate for direct
+  // access.
+  const rows = await db.all<{
+    turn_no: number;
+    author_name: string;
+    author_type: "character" | "narrator";
+    presentation: string | null;
+    layers_json: string | null;
+  }>(sql`
+    WITH RECURSIVE
+      scenario_anchor AS (
+        SELECT anchor_turn_id AS id
+        FROM scenarios
+        WHERE id = ${scenarioId}
+      ),
+      -- starting leaf (explicit leaf or scenario anchor)
+      start_leaf AS (
+        SELECT COALESCE(${leafTurnId}, (SELECT id FROM scenario_anchor)) AS id
+      ),
+      -- walk from selected leaf up to root
+      path AS (
+        SELECT t.id, t.parent_turn_id, 0 AS depth
+        FROM turns t
+        WHERE t.id = (SELECT id FROM start_leaf) AND t.scenario_id = ${scenarioId}
+        UNION ALL
+        SELECT p.id, p.parent_turn_id, path.depth + 1
+        FROM turns p
+        JOIN path ON path.parent_turn_id = p.id
+        WHERE p.scenario_id = ${scenarioId}
+      ),
+      meta AS (
+        SELECT MAX(depth) AS max_depth FROM path
+      ),
+      -- enrich with author info and layer aggregates
+      enriched AS (
+        SELECT
+          t.id,
+          -- 1-based turn number where root=1 .. leaf=max_depth+1
+          ((SELECT max_depth FROM meta) - p.depth + 1) AS turn_no,
+          -- author display (Narrator vs Character name)
+          CASE sp.type
+            WHEN 'narrator' THEN 'Narrator'
+            ELSE COALESCE(c.name, 'Unknown')
+          END AS author_name,
+          CASE sp.type
+            WHEN 'narrator' THEN 'narrator'
+            ELSE 'character'
+          END AS author_type,
+          -- presentation layer content
+          MAX(CASE WHEN tl.key = 'presentation' THEN tl.content END) AS presentation,
+          -- aggregate all layers into a single JSON object
+          json_group_object(tl.key, tl.content)                      AS layers_json
+        FROM path p
+        JOIN turns t ON t.id = p.id
+        JOIN scenario_participants sp ON sp.id = t.author_participant_id
+        LEFT JOIN characters c ON c.id = sp.character_id
+        LEFT JOIN turn_layers tl ON tl.turn_id = t.id
+        GROUP BY t.id, p.depth, sp.type, c.name
+      )
+    SELECT
+      turn_no,
+      author_name,
+      author_type,
+      presentation AS presentation,
+      layers_json
+    FROM enriched
+    ORDER BY turn_no ASC;
+  `);
+
+  // Shape to TurnCtxDTO
+  return rows.map((r) => ({
+    turnNo: r.turn_no,
+    authorName: r.author_name,
+    authorType: r.author_type,
+    content: r.presentation ?? "",
+    layers: r.layers_json ? JSON.parse(r.layers_json) : {},
   }));
 }

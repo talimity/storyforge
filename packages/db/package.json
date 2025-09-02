@@ -19,10 +19,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@libsql/client": "^0.15.10",
-    "@paralleldrive/cuid2": "^2.2.2",
+    "@libsql/client": "catalog:",
+    "@paralleldrive/cuid2": "catalog:",
     "@storyforge/config": "workspace:*",
-    "chalk": "^5.5.0",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {
