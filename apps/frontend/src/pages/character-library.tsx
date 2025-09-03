@@ -132,13 +132,7 @@ export function CharacterLibraryPage() {
             )}
           </Grid>
         ) : (
-          <Grid
-            templateColumns={{
-              base: "1fr",
-              sm: "repeat(2, 1fr)",
-            }}
-            gap={3}
-          >
+          <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)" }} gap={3}>
             {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map(
               (skeletonId) => (
                 <CompactCharacterCardSkeleton key={skeletonId} />

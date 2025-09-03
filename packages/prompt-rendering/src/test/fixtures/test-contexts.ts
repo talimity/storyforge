@@ -74,7 +74,6 @@ export const sampleTurnGenCtx = {
   globals: {
     worldName: "Fantasyland",
     setting: "Medieval market square",
-    timeOfDay: "afternoon",
   },
 };
 

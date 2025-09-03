@@ -40,8 +40,7 @@ function getRegistryForTask<K extends TaskKind>(
 }
 
 /**
- * Singleton manager for workflow runners. Lazily instantiates runners for each
- * task kind as needed and provides all required dependencies.
+ * Singleton to manage workflow runners for different task kinds.
  */
 export class WorkflowRunnerManager {
   private static instance: WorkflowRunnerManager | null = null;
@@ -71,12 +70,12 @@ export class WorkflowRunnerManager {
     const runner = makeWorkflowRunner<K>({
       loadTemplate: (id) => this.loadTemplate(id),
       loadModelProfile: (id) => this.loadModelProfile(id),
+      budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
       makeAdapter: createAdapter,
       registry: registry as unknown as SourceRegistry<
         ContextFor<K>,
         SourcesFor<K>
       >,
-      budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
     });
 
     this.runners.set(taskKind, runner);

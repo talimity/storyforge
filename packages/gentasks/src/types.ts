@@ -25,10 +25,7 @@ export type TurnCtxDTO = {
   /** Map of other layers of the turn, keyed by layer name. */
   layers: Record<string, string>;
 };
-export type ChapterSummCtxDTO = {
-  chapterNo: number;
-  summary: string;
-};
+
 export type CharacterCtxDTO = {
   id: string;
   name: string;

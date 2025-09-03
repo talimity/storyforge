@@ -109,7 +109,6 @@ describe("Workflow Runner", () => {
 
     const context: TurnGenCtx = {
       turns: [],
-      chapterSummaries: [],
       characters: [],
       currentIntent: { kind: "turn_generation", description: "Test intent" },
       stepInputs: {},
@@ -198,7 +197,6 @@ describe("Workflow Runner", () => {
 
     const context: TurnGenCtx = {
       turns: [],
-      chapterSummaries: [],
       characters: [],
       currentIntent: {
         description: "Multi-step test",
@@ -260,7 +258,6 @@ describe("Workflow Runner", () => {
 
     const context: TurnGenCtx = {
       turns: [],
-      chapterSummaries: [],
       characters: [],
       currentIntent: { description: "Transform test", kind: "turn_generation" },
       stepInputs: {},
@@ -351,7 +348,6 @@ describe("Workflow Runner", () => {
 
     const context: TurnGenCtx = {
       turns: [],
-      chapterSummaries: [],
       characters: [],
       currentIntent: { description: "Cancel test", kind: "turn_generation" },
       stepInputs: {},
@@ -432,7 +428,6 @@ describe("Workflow Runner", () => {
 
     const context: TurnGenCtx = {
       turns: [],
-      chapterSummaries: [],
       characters: [],
       currentIntent: { description: "JSON test", kind: "turn_generation" },
       stepInputs: {},
@@ -479,7 +474,6 @@ describe("Workflow Runner", () => {
 
     const context: TurnGenCtx = {
       turns: [],
-      chapterSummaries: [],
       characters: [],
       currentIntent: { description: "Snapshot test", kind: "turn_generation" },
       stepInputs: {},
@@ -548,7 +542,6 @@ describe("Workflow Runner", () => {
 
     const context: TurnGenCtx = {
       turns: [],
-      chapterSummaries: [],
       characters: [],
       currentIntent: {
         description: "Stream return test",
@@ -605,7 +598,6 @@ describe("Workflow Runner", () => {
 
     const context: TurnGenCtx = {
       turns: [],
-      chapterSummaries: [],
       characters: [],
       currentIntent: {
         description: "Transform event test",

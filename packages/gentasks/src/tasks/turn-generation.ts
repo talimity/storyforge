@@ -4,11 +4,7 @@ import type {
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
-import type {
-  ChapterSummCtxDTO,
-  CharacterCtxDTO,
-  TurnCtxDTO,
-} from "../types.js";
+import type { CharacterCtxDTO, TurnCtxDTO } from "../types.js";
 
 type TurnGenGlobals = {
   stCurrentCharName: string; // SillyTavern macro {{char}}
@@ -19,7 +15,6 @@ type TurnGenGlobals = {
 // Turn generation context
 export type TurnGenCtx = {
   turns: TurnCtxDTO[];
-  chapterSummaries: ChapterSummCtxDTO[];
   characters: CharacterCtxDTO[];
   currentIntent: { kind: string; description: string; constraint?: string };
   stepInputs: Record<string, unknown>;
@@ -33,10 +28,6 @@ export type TurnGenSources = {
       | { order?: "asc" | "desc"; limit?: number; start?: number; end?: number }
       | undefined;
     out: TurnCtxDTO[];
-  };
-  chapterSummaries: {
-    args: { order?: "asc" | "desc"; limit?: number } | undefined;
-    out: ChapterSummCtxDTO[];
   };
   characters: {
     args:
@@ -100,14 +91,6 @@ export const turnGenRegistry = makeTurnGenRegistry({
     if (order === "desc") arr = [...arr].reverse();
     return typeof limit === "number" ? arr.slice(0, limit) : arr;
   },
-  chapterSummaries: (ref, ctx) => {
-    const { order = "desc", limit } = ref.args ?? {};
-    const arr =
-      order === "desc"
-        ? [...ctx.chapterSummaries].reverse()
-        : ctx.chapterSummaries;
-    return typeof limit === "number" ? arr.slice(0, limit) : arr;
-  },
   characters: (ref, ctx) => {
     const { order = "asc", limit, ids } = ref.args ?? {};
     let arr = ctx.characters;
@@ -128,7 +111,6 @@ export const turnGenRegistry = makeTurnGenRegistry({
 
 export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
   "turns",
-  "chapterSummaries",
   "characters",
   "currentIntent",
   "stepOutput",

@@ -152,7 +152,6 @@ export const standardTurnGenCtx: FakeTurnGenCtx = {
   globals: {
     worldName: "Aethermoor Academy",
     setting: "Ancient courtyard with mystical fountain",
-    timeOfDay: "early morning",
     season: "autumn",
     weather: "crisp and clear",
   },

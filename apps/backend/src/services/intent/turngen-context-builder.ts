@@ -2,15 +2,14 @@ import {
   type Character,
   type NewIntent,
   type SqliteTxLike,
-  schema,
+  characters as tCharacters,
+  scenarioParticipants as tScenarioParticipants,
+  scenarios as tScenarios,
 } from "@storyforge/db";
 import type { CharacterCtxDTO, TurnGenCtx } from "@storyforge/gentasks";
 import { assertDefined, assertNever } from "@storyforge/utils";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { getFullTimelineTurnCtx } from "../timeline/timeline.queries.js";
-
-const tCharacters = schema.characters;
-const tScenarioParticipants = schema.scenarioParticipants;
 
 interface BuildContextArgs {
   actorParticipantId: string;
@@ -26,12 +25,13 @@ export class TurngenContextBuilder {
   async buildContext(args: BuildContextArgs): Promise<TurnGenCtx> {
     const { actorParticipantId, intent } = args;
 
-    const [charaData, turns] = await Promise.all([
+    const [charaData, turns, scenario] = await Promise.all([
       this.loadParticipantCharaData(actorParticipantId),
       getFullTimelineTurnCtx(this.db, {
         leafTurnId: null,
         scenarioId: this.scenarioId,
       }),
+      this.loadScenarioData(),
     ]);
     const { characters, userProxyName, currentActorName } = charaData;
 
@@ -43,12 +43,11 @@ export class TurngenContextBuilder {
         description: this.mapIntentDescription(intent.kind),
         constraint: intent.constraint,
       },
-      chapterSummaries: [], // TODO: load chapter summaries when implemented
       stepInputs: {},
       globals: {
         stCurrentCharName: currentActorName,
         stPersonaName: userProxyName,
-        scenarioDescription: "", // TODO: load scenario description when implemented
+        scenarioDescription: scenario.description,
       },
     };
   }
@@ -141,5 +140,14 @@ export class TurngenContextBuilder {
     }));
 
     return { characters, userProxyName, currentActorName };
+  }
+
+  private async loadScenarioData() {
+    const [scenario] = await this.db
+      .select({ name: tScenarios.name, description: tScenarios.description })
+      .from(tScenarios)
+      .where(eq(tScenarios.id, this.scenarioId))
+      .limit(1);
+    return scenario;
   }
 }

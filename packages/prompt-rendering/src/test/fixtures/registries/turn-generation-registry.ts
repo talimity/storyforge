@@ -47,7 +47,6 @@ export type FakeTurnGenSourceSpec = {
   globals: { args: undefined; out: Record<string, unknown> | undefined };
   worldName: { args: undefined; out: string | undefined };
   setting: { args: undefined; out: string | undefined };
-  timeOfDay: { args: undefined; out: string | undefined };
   // Utility sources for testing conditions and examples
   intent: {
     args: undefined;
@@ -173,7 +172,6 @@ export function makeSpecTurnGenerationRegistry(): SourceRegistry<
     globals: (_ref, ctx) => ctx.globals,
     worldName: (_ref, ctx) => String(ctx.globals?.worldName),
     setting: (_ref, ctx) => String(ctx.globals?.setting),
-    timeOfDay: (_ref, ctx) => String(ctx.globals?.timeOfDay),
 
     // Test data sources for edge cases
     emptyArray: () => [],

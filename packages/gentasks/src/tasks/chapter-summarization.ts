@@ -5,19 +5,19 @@ import type {
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
-import type { ChapterSummCtxDTO, TurnCtxDTO } from "../types.js";
+import type { TurnCtxDTO } from "../types.js";
 
 // Chapter summarization context
 export type ChapterSummCtx = {
   turns: TurnCtxDTO[];
-  chapterSummaries: ChapterSummCtxDTO[];
+  chapterSummaries: Record<string, unknown>[]; // TODO: implement chapter summaries
 };
 
 // Source specification for chapter summarization
 export type ChapterSummSources = {
   previousSummaries: {
     args: { limit?: number } | undefined;
-    out: ChapterSummCtxDTO[];
+    out: Record<string, unknown>[];
   };
   currentChapterTurns: { args: never; out: TurnCtxDTO[] };
 };

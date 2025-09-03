@@ -43,6 +43,13 @@
       "when": 1756691888211,
       "tag": "0005_intents",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1756867067773,
+      "tag": "0006_intent-effects",
+      "breakpoints": true
     }
   ]
 }
