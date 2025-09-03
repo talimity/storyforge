@@ -1,7 +1,6 @@
 import type { TurnGenSources } from "@storyforge/gentasks";
 import {
   coerceNumber,
-  coerceOrder,
   coerceString,
 } from "@/components/features/templates/recipes/param-coercion";
 import type { RecipeDefinition } from "@/components/features/templates/types";
@@ -21,7 +20,7 @@ export const charactersRecipe: RecipeDefinition<
   name: "Character Descriptions",
   task: "turn_generation",
   description:
-    "Includes character descriptions and optionally examples for context",
+    "This block lists each active character in the scenario, their description, and optionally their writing examples.",
 
   parameters: [
     {
@@ -34,45 +33,36 @@ export const charactersRecipe: RecipeDefinition<
       help: "Maximum number of characters to include",
     },
     {
-      key: "order",
-      label: "Order",
+      key: "role",
+      label: "Message Role",
       type: "select",
-      defaultValue: "asc",
+      defaultValue: "user",
       options: [
-        { label: "Alphabetical (A-Z)", value: "asc" },
-        { label: "Reverse Alphabetical (Z-A)", value: "desc" },
+        { label: "User", value: "user" },
+        { label: "Assistant", value: "assistant" },
+        { label: "System", value: "system" },
       ],
-      help: "Order of characters by name",
-    },
-    {
-      key: "format",
-      label: "Format",
-      type: "select",
-      defaultValue: "prose",
-      options: [
-        { label: "Prose Description", value: "prose" },
-        { label: "Bullet Points", value: "bullets" },
-      ],
-      help: "How to format each character entry",
+      help: "Message role used for each character entry",
     },
     {
       key: "characterTemplate",
       label: "Character Format",
       type: "template_string",
-      defaultValue: "{{item.name}} — {{item.description}}",
-      help: "Template for how each character should be formatted",
+      defaultValue: "## {{item.name}}\n\n{{item.description}}",
+      help: "Template for how each character entry should be formatted",
     },
     {
       key: "budget",
-      label: "Token Budget",
+      label: "Max Tokens",
       type: "number",
-      defaultValue: 600,
+      defaultValue: 5000,
       min: 100,
-      max: 2000,
-      help: "Maximum tokens to allocate for this slot",
+      help: "Block will stop adding character entries when this limit is reached",
     },
   ],
 
+  // TODO: Can we get runtime type information for the referenced datasource so
+  // these variables can be auto-generated?
   availableVariables: [
     {
       name: "item.id",
@@ -82,51 +72,34 @@ export const charactersRecipe: RecipeDefinition<
     {
       name: "item.name",
       description: "The character's name",
-      example: "Aria Windwhisper",
+      example: "Elaina",
     },
     {
       name: "item.description",
       description: "The character's full description and personality",
-      example: "A wise elven mage with a mysterious past...",
+      example:
+        "A prodigal young witch who travels the world while keeping a riveting log of her own adventures...",
     },
   ],
 
   toSlotSpec(params) {
+    // TODO: Draft compiler should automatically coerce parameters and clamp to
+    // the defaults/ranges specified in the recipe definition
     const maxChars = coerceNumber(params.maxChars, 6, 1, 20);
-    const order = coerceOrder(params.order, "asc");
-    const format = coerceFormat(params.format);
     const characterTemplate = coerceString(
       params.characterTemplate,
-      "{{item.name}} — {{item.description}}"
+      "{{item.name}}: {{item.description}}"
     );
-    const budget = coerceNumber(params.budget, 600, 100, 2000);
-
-    // Build the content template based on format preference
-    let contentTemplate = characterTemplate;
-    if (format === "bullets") {
-      contentTemplate = `• ${characterTemplate}`;
-    }
+    const budget = coerceNumber(params.budget, 5000, 100);
 
     return {
-      priority: 1, // Characters usually come after timeline
       budget: { maxTokens: budget },
       meta: {},
       plan: [
         {
           kind: "forEach",
-          source: {
-            source: "characters",
-            args: { order, limit: maxChars },
-          },
-          map: [
-            {
-              kind: "message",
-              role: "user",
-              content: contentTemplate,
-            },
-          ],
-          budget: { maxTokens: budget },
-          stopWhenOutOfBudget: true,
+          source: { source: "characters", args: { limit: maxChars } },
+          map: [{ kind: "message", role: "user", content: characterTemplate }],
         },
       ],
     };

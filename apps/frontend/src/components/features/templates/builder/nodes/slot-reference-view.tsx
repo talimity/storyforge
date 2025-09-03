@@ -1,8 +1,10 @@
 import {
   Badge,
+  Flex,
   HStack,
   Icon,
   IconButton,
+  Span,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -43,7 +45,11 @@ export const SlotReferenceView = forwardRef<
   ) => {
     const NodeIcon = getNodeIcon(node);
     if (!slot) {
-      return <Text color="red.500">Slot not found for ID: {node.id}</Text>;
+      return (
+        <Text color="red.500">
+          Cannot resolve slot reference from node ID: {node.id}
+        </Text>
+      );
     }
 
     return (
@@ -59,7 +65,7 @@ export const SlotReferenceView = forwardRef<
             <Icon as={NodeIcon} />
 
             {/* Node Type Badge */}
-            <Badge size="sm">Content Slot</Badge>
+            <Badge size="sm">Content Block</Badge>
 
             {/* Node Name/Title */}
             <Text fontSize="sm" fontWeight="medium" flex={1}>
@@ -75,7 +81,7 @@ export const SlotReferenceView = forwardRef<
                   e.stopPropagation();
                   onEdit?.(node);
                 }}
-                aria-label="Edit slot reference"
+                aria-label="Edit block"
               >
                 <LuPencil />
               </IconButton>
@@ -88,7 +94,7 @@ export const SlotReferenceView = forwardRef<
                     e.stopPropagation();
                     onDelete(node.id);
                   }}
-                  aria-label="Delete node"
+                  aria-label="Delete block"
                 >
                   <LuTrash2 />
                 </IconButton>
@@ -98,8 +104,17 @@ export const SlotReferenceView = forwardRef<
 
           {/* Slot Info */}
           <Text fontSize="xs" color="content.muted">
-            Priority: {slot.priority} • Type: {slot.recipeId}
-            {slot.budget && ` • Budget: ${slot.budget} tokens`}
+            <Flex gap="2">
+              <Span>Token Priority: {slot.priority}</Span>
+              <Span>•</Span>
+              <Span>Content Block Type: {slot.recipeId}</Span>
+              {slot.budget && (
+                <>
+                  <Span>•</Span>
+                  <Span>Budget: {slot.budget} tokens</Span>
+                </>
+              )}
+            </Flex>
           </Text>
 
           {/* Reference-specific info */}

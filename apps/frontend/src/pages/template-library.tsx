@@ -3,13 +3,13 @@ import {
   createListCollection,
   HStack,
   Input,
+  InputGroup,
   SegmentGroup,
   SimpleGrid,
   Skeleton,
   Stack,
   VStack,
 } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/gentasks";
 import { useState } from "react";
 import {
   LuFileText,
@@ -39,24 +39,36 @@ import { trpc } from "@/lib/trpc";
 type ViewMode = "grid" | "list";
 
 const taskTypeOptions = [
-  { value: "", label: "All Types" },
+  { value: "", label: "All Prompt Types" },
   { value: "turn_generation", label: "Turn Generation" },
-  { value: "chapter_summarization", label: "Chapter Summary" },
+  { value: "chapter_summarization", label: "Chapter Summarization" },
   { value: "writing_assistant", label: "Writing Assistant" },
-];
+] as const;
+type TaskFilter = (typeof taskTypeOptions)[number]["value"];
 
 const viewModeOptions = [
   { value: "grid", label: <LuGrid3X3 /> },
   { value: "list", label: <LuList /> },
 ];
 
+function toViewMode(mode: string | null): ViewMode {
+  switch (mode) {
+    case "grid":
+      return "grid";
+    case "list":
+      return "list";
+    default:
+      return "grid";
+  }
+}
+
 export function TemplatesPage() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    return (localStorage.getItem("template-view-mode") as ViewMode) || "grid";
+    return toViewMode(localStorage.getItem("template-view-mode"));
   });
   const [searchQuery, setSearchQuery] = useState("");
-  const [taskFilter, setTaskFilter] = useState<TaskKind | "">("");
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>("");
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const {
@@ -114,20 +126,14 @@ export function TemplatesPage() {
           >
             <Field flex="1" minW="200px">
               <HStack position="relative">
-                <LuSearch
-                  style={{
-                    position: "absolute",
-                    left: "12px",
-                    zIndex: 1,
-                    opacity: 0.6,
-                  }}
-                />
-                <Input
-                  placeholder="Search templates..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  pl="40px"
-                />
+                <InputGroup startElement={<LuSearch />}>
+                  <Input
+                    placeholder="Search templates..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    pl="40px"
+                  />
+                </InputGroup>
               </HStack>
             </Field>
 
@@ -136,7 +142,7 @@ export function TemplatesPage() {
                 collection={createListCollection({ items: taskTypeOptions })}
                 value={[taskFilter]}
                 onValueChange={(details) =>
-                  setTaskFilter(details.value[0] as TaskKind | "")
+                  setTaskFilter(details.value[0] as TaskFilter)
                 }
                 size="md"
               >
@@ -161,7 +167,7 @@ export function TemplatesPage() {
               hideBelow="md"
               defaultValue={viewMode}
               onValueChange={(details) =>
-                details.value && handleViewModeChange(details.value as ViewMode)
+                handleViewModeChange(toViewMode(details.value))
               }
             >
               <SegmentGroup.Indicator />
@@ -259,9 +265,6 @@ export function TemplatesPage() {
       <TemplateImportDialog
         isOpen={isImportDialogOpen}
         onOpenChange={({ open }) => setIsImportDialogOpen(open)}
-        onImportSuccess={() => {
-          // Templates list will be invalidated automatically by the mutation
-        }}
       />
     </Container>
   );

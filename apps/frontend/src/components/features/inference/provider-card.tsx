@@ -7,6 +7,7 @@ import {
   MenuItem,
   MenuRoot,
   MenuTrigger,
+  Skeleton,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -141,5 +142,28 @@ export function ProviderCard({ provider }: ProviderCardProps) {
         onOpenChange={setIsDeleteDialogOpen}
       />
     </>
+  );
+}
+
+export function ProviderCardSkeleton() {
+  return (
+    <Card.Root layerStyle="surface">
+      <Card.Body p={4}>
+        <VStack align="stretch" gap={3}>
+          <HStack justify="space-between">
+            <Skeleton height="5" width="60%" />
+            <Skeleton height="8" width="8" borderRadius="md" />
+          </HStack>
+          <VStack align="stretch" gap={2}>
+            <Skeleton height="5" width="80px" borderRadius="sm" />
+            <Skeleton height="3" width="70%" />
+            <HStack justify="space-between">
+              <Skeleton height="3" width="100px" />
+              <Skeleton height="6" width="60px" borderRadius="sm" />
+            </HStack>
+          </VStack>
+        </VStack>
+      </Card.Body>
+    </Card.Root>
   );
 }

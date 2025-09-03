@@ -7,13 +7,11 @@ import { trpc } from "@/lib/trpc";
 interface TemplateImportDialogProps {
   isOpen: boolean;
   onOpenChange: (details: { open: boolean }) => void;
-  onImportSuccess?: () => void;
 }
 
 export function TemplateImportDialog({
   isOpen,
   onOpenChange,
-  onImportSuccess,
 }: TemplateImportDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -24,7 +22,6 @@ export function TemplateImportDialog({
     onSuccess: () => {
       utils.templates.list.invalidate();
       handleClose();
-      onImportSuccess?.();
     },
     onError: (error) => {
       setImportError(error.message || "Failed to import template");

@@ -2,7 +2,7 @@ import type { createProviderConfigSchema } from "@storyforge/schemas";
 import type { z } from "zod";
 import { Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 import { ProviderForm } from "./provider-form";
 
 type CreateProviderFormData = z.infer<typeof createProviderConfigSchema>;
@@ -26,12 +26,6 @@ export function CreateProviderDialog({
       });
       utils.providers.listProviders.invalidate();
       onOpenChange(false);
-    },
-    onError: (error) => {
-      showErrorToast({
-        title: "Failed to create provider",
-        error: error.message,
-      });
     },
   });
 

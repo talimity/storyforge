@@ -2,7 +2,7 @@ import type { createModelProfileSchema } from "@storyforge/schemas";
 import type { z } from "zod";
 import { Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 import { ModelProfileForm } from "./model-profile-form";
 
 type CreateModelProfileFormData = z.infer<typeof createModelProfileSchema>;
@@ -27,12 +27,6 @@ export function CreateModelProfileDialog({
         });
         utils.providers.listModelProfiles.invalidate();
         onOpenChange(false);
-      },
-      onError: (error) => {
-        showErrorToast({
-          title: "Failed to create model profile",
-          error: error.message,
-        });
       },
     });
 

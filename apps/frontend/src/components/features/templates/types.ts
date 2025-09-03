@@ -67,7 +67,7 @@ export interface RecipeDefinition<K extends TaskKind, S extends SourceSpec> {
    * Transform the user's parameter values into a complete SlotSpec
    * that can be used by the prompt renderer engine
    */
-  toSlotSpec(params: Record<string, unknown>): SlotSpec<S>;
+  toSlotSpec(params: Record<string, unknown>): Omit<SlotSpec<S>, "priority">;
 
   /**
    * Optional: Available variables that can be used in template_string parameters

@@ -5,7 +5,7 @@ import type {
 import type { z } from "zod";
 import { Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 import { ProviderForm } from "./provider-form";
 
 type UpdateProviderFormData = z.infer<typeof updateProviderConfigSchema>;
@@ -31,12 +31,6 @@ export function EditProviderDialog({
       });
       utils.providers.listProviders.invalidate();
       onOpenChange(false);
-    },
-    onError: (error) => {
-      showErrorToast({
-        title: "Failed to update provider",
-        error: error.message,
-      });
     },
   });
 

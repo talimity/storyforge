@@ -6,6 +6,7 @@ import {
   IconButton,
   Input,
   NumberInput,
+  Span,
   Stack,
   Text,
   Textarea,
@@ -156,7 +157,7 @@ export const SlotReferenceEdit = forwardRef<
           {/* Header */}
           <HStack gap={2} align="center">
             <Icon as={NodeIcon} />
-            <Badge size="sm">Content Slot</Badge>
+            <Badge size="sm">Content Block</Badge>
             <Text fontSize="sm" fontWeight="medium" flex={1}>
               Editing '{node.name}'
             </Text>
@@ -184,7 +185,7 @@ export const SlotReferenceEdit = forwardRef<
           <VStack align="stretch" gap={4}>
             {recipe?.name && recipe?.description && (
               <Text fontSize="xs" color="content.muted">
-                '{recipe.name}' content slot. {recipe.description}
+                '{recipe.name}' content block. {recipe.description}
               </Text>
             )}
 
@@ -209,7 +210,7 @@ export const SlotReferenceEdit = forwardRef<
 
               {recipe && (
                 <Field
-                  label="Budget Priority"
+                  label="Token Priority"
                   helperText="Lower numbers take from token budget first"
                   flex={1}
                 >
@@ -240,7 +241,8 @@ export const SlotReferenceEdit = forwardRef<
                   >
                     <Accordion.Item value="recipe-params">
                       <Accordion.ItemTrigger>
-                        Content Parameters
+                        <Span flex="1">Content Parameters</Span>
+                        <Accordion.ItemIndicator />
                       </Accordion.ItemTrigger>
                       <Accordion.ItemContent>
                         <Accordion.ItemBody px={0}>
@@ -268,8 +270,8 @@ export const SlotReferenceEdit = forwardRef<
             {!recipe && (
               <>
                 <Text fontSize="xs" color="content.muted">
-                  This content slot does not use a predefined recipe. You can
-                  define custom parameters manually.
+                  This content block does not use a predefined recipe. You can
+                  manually write the slot definition below.
                 </Text>
 
                 <Field label="Content JSON">
@@ -288,7 +290,7 @@ export const SlotReferenceEdit = forwardRef<
                     rows={2}
                     autoresize
                     fontFamily="mono"
-                    placeholder="Enter custom slot JSON here"
+                    placeholder="Enter custom block JSON here"
                     onChange={(e) => {
                       setValue("customSpec", e.target.value);
                     }}
@@ -300,7 +302,10 @@ export const SlotReferenceEdit = forwardRef<
 
             <Accordion.Root collapsible width="full">
               <Accordion.Item value="headers-footers">
-                <Accordion.ItemTrigger>Headers & Footers</Accordion.ItemTrigger>
+                <Accordion.ItemTrigger>
+                  <Span flex="1">Headers & Footers</Span>
+                  <Accordion.ItemIndicator />
+                </Accordion.ItemTrigger>
                 <Accordion.ItemContent>
                   <Accordion.ItemBody px={0}>
                     <VStack align="stretch" gap={4} width="full">
@@ -344,8 +349,7 @@ export const SlotReferenceEdit = forwardRef<
                               handleOmitIfEmptyChange(checked);
                             }}
                           >
-                            Skip header and footer if slot does not produce any
-                            content
+                            Skip header/footer if block has no content
                           </Switch>
                         )}
                       />

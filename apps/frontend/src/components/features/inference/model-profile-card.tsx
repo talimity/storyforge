@@ -7,6 +7,7 @@ import {
   MenuItem,
   MenuRoot,
   MenuTrigger,
+  Skeleton,
   Stack,
   Text,
   VStack,
@@ -148,5 +149,28 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
         onOpenChange={setIsDeleteDialogOpen}
       />
     </>
+  );
+}
+
+export function ModelProfileCardSkeleton() {
+  return (
+    <Card.Root layerStyle="surface">
+      <Card.Body p={4}>
+        <VStack align="stretch" gap={3}>
+          <HStack justify="space-between">
+            <Skeleton height="5" width="60%" />
+            <Skeleton height="8" width="8" borderRadius="md" />
+          </HStack>
+          <VStack align="stretch" gap={2}>
+            <Skeleton height="4" width="80%" />
+            <Skeleton height="3" width="50%" />
+            <HStack gap={1}>
+              <Skeleton height="4" width="60px" borderRadius="sm" />
+              <Skeleton height="4" width="50px" borderRadius="sm" />
+            </HStack>
+          </VStack>
+        </VStack>
+      </Card.Body>
+    </Card.Root>
   );
 }

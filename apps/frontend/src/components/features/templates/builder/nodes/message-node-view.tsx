@@ -90,7 +90,7 @@ export const MessageNodeView = forwardRef<HTMLDivElement, MessageNodeViewProps>(
               fontSize="sm"
               color="content.muted"
               w="full"
-              lineClamp={3}
+              lineClamp={10}
               whiteSpace="pre-wrap"
               wordBreak="break-word"
             >

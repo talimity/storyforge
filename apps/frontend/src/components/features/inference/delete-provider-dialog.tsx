@@ -3,7 +3,7 @@ import type { ProviderConfig } from "@storyforge/schemas";
 import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 interface DeleteProviderDialogProps {
   provider: ProviderConfig;
@@ -27,12 +27,6 @@ export function DeleteProviderDialog({
       });
       utils.providers.listProviders.invalidate();
       onOpenChange(false);
-    },
-    onError: (error) => {
-      showErrorToast({
-        title: "Failed to delete provider",
-        error: error.message,
-      });
     },
   });
 

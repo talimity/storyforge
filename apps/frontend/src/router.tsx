@@ -10,7 +10,6 @@ import { PlayerPage } from "./pages/player";
 import { ScenarioCreatePage } from "./pages/scenario-create";
 import { ScenarioEditPage } from "./pages/scenario-edit";
 import { ScenarioLibraryPage } from "./pages/scenario-library";
-import { SettingsPage } from "./pages/settings";
 import { TemplateCreatePage } from "./pages/template-create";
 import { TemplateEditPage } from "./pages/template-edit";
 import { TemplatesPage } from "./pages/template-library";
@@ -77,10 +76,6 @@ export const router = createBrowserRouter([
       {
         path: "theme-demo",
         element: <ThemeDemoPage />,
-      },
-      {
-        path: "settings",
-        element: <SettingsPage />,
       },
     ],
   },

@@ -7,7 +7,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { LuFileText, LuPlay } from "react-icons/lu";
+import { LuBookOpen, LuFileText } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { ChatImportDialog } from "@/components/dialogs/chat-import";
 import { ScenarioCard } from "@/components/features/scenario/scenario-card";
@@ -78,9 +78,9 @@ export function ScenarioLibraryPage() {
 
       {scenariosQuery.data?.scenarios.length === 0 && (
         <EmptyState
-          icon={<LuPlay />}
+          icon={<LuBookOpen />}
           title="No scenarios yet"
-          description="Create your first scenario by selecting characters and clicking 'Start New Scenario'"
+          description="Add characters to a new scenario to get started."
           actionLabel="Browse Characters"
           onActionClick={() => navigate("/characters")}
         />

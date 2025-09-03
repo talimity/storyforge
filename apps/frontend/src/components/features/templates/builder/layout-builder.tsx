@@ -107,8 +107,8 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
           <VStack align="stretch" gap={2}>
             {layout.length === 0 ? (
               <EmptyState
-                title="No layout elements"
-                description="Add messages, slot references, or separators to build your template structure."
+                title="No layout elements yet"
+                description="Add blocks to your prompt layout using the menu below."
                 icon={<LuLayers />}
               />
             ) : (
@@ -177,7 +177,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
               onClick={() => handleCreateSlotFromRecipe(recipe.id)}
             >
               <LuLayers />
-              {recipe.name}
+              Content Block: {recipe.name}
             </MenuItem>
           ))}
           <Separator />
@@ -188,7 +188,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
             onClick={() => handleCreateSlotFromRecipe("custom")}
           >
             <LuLayers />
-            Custom Content Slot
+            (Advanced) Custom Content Block
           </MenuItem>
         </MenuContent>
       </MenuRoot>

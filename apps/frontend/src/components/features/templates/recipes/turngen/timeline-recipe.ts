@@ -76,24 +76,13 @@ export const timelineRecipe: RecipeDefinition<
     const budget = coerceNumber(params.budget, 32000);
 
     return {
-      priority: 0, // Timeline usually has high priority
       budget: { maxTokens: budget },
       meta: {},
       plan: [
         {
           kind: "forEach",
-          source: {
-            source: "turns",
-            args: { order: "asc", limit: maxTurns },
-          },
-          map: [
-            {
-              kind: "message",
-              role: "user",
-              content: turnTemplate,
-            },
-          ],
-          stopWhenOutOfBudget: true,
+          source: { source: "turns", args: { order: "asc", limit: maxTurns } },
+          map: [{ kind: "message", role: "user", content: turnTemplate }],
         },
       ],
     };

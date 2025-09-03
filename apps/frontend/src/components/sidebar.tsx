@@ -16,7 +16,6 @@ import {
   LuPaintBucket,
   LuPlay,
   LuScrollText,
-  LuSettings,
   LuUsersRound,
   LuWorkflow,
 } from "react-icons/lu";
@@ -122,13 +121,6 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         />
 
         <SidebarLink
-          to="/models"
-          icon={<TbCubeSpark />}
-          label="Models"
-          collapsed={collapsed}
-        />
-
-        <SidebarLink
           to="/agents"
           icon={<LuWorkflow />}
           label="Agents"
@@ -139,6 +131,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           to="/templates"
           icon={<LuScrollText />}
           label="Prompts"
+          collapsed={collapsed}
+        />
+
+        <SidebarLink
+          to="/models"
+          icon={<TbCubeSpark />}
+          label="Models"
           collapsed={collapsed}
         />
 
@@ -157,21 +156,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         />
       </Stack>
 
-      {/* Settings at Bottom */}
+      {/* Bottom Actions */}
       <Box px="3" py="4" borderTopWidth="1px">
-        <Stack gap="1">
-          {/* Color Mode Toggle */}
-          <ClientOnly fallback={<Skeleton w="10" h="10" rounded="md" />}>
-            <ColorModeToggle collapsed={collapsed} />
-          </ClientOnly>
-
-          <SidebarLink
-            to="/settings"
-            icon={<LuSettings />}
-            label="Settings"
-            collapsed={collapsed}
-          />
-        </Stack>
+        {/* Color Mode Toggle */}
+        <ClientOnly fallback={<Skeleton w="10" h="10" rounded="md" />}>
+          <ColorModeToggle collapsed={collapsed} />
+        </ClientOnly>
       </Box>
     </Stack>
   );

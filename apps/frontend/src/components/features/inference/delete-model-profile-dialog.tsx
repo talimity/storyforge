@@ -3,7 +3,7 @@ import type { ModelProfile } from "@storyforge/schemas";
 import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
+import { showSuccessToast } from "@/lib/utils/error-handling";
 
 interface DeleteModelProfileDialogProps {
   modelProfile: ModelProfile;
@@ -28,12 +28,6 @@ export function DeleteModelProfileDialog({
         });
         utils.providers.listModelProfiles.invalidate();
         onOpenChange(false);
-      },
-      onError: (error) => {
-        showErrorToast({
-          title: "Failed to delete model profile",
-          error: error.message,
-        });
       },
     });
 
