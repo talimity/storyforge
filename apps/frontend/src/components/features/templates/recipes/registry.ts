@@ -58,8 +58,12 @@ export function getRecipeIdsForTask<K extends TaskKind>(
   return Object.keys(BY_TASK[task]) as RecipeId<K>[];
 }
 
-export function getRecipeById<I extends keyof typeof ALL_RECIPES>(id: I) {
-  return ALL_RECIPES[id];
+export function getRecipeById<I extends keyof typeof ALL_RECIPES>(
+  id: I
+): (typeof ALL_RECIPES)[I];
+export function getRecipeById(id: string): AnyRecipe | undefined;
+export function getRecipeById(id: string): AnyRecipe | undefined {
+  return ALL_RECIPES[id as keyof typeof ALL_RECIPES] as AnyRecipe | undefined;
 }
 
 export function getAllRecipeIds(): AnyRecipeId[] {

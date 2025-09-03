@@ -2,9 +2,11 @@ import {
   Box,
   MenuContent,
   MenuItem,
+  MenuItemGroup,
+  MenuItemGroupLabel,
   MenuRoot,
+  MenuSeparator,
   MenuTrigger,
-  Separator,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -13,7 +15,15 @@ import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { TaskKind } from "@storyforge/gentasks";
 import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
-import { LuLayers, LuMessageSquare, LuPlus } from "react-icons/lu";
+import { useCallback } from "react";
+import {
+  LuBotMessageSquare,
+  LuLayers,
+  LuMessageSquareCode,
+  LuMessageSquareMore,
+  LuPlus,
+} from "react-icons/lu";
+import { useShallow } from "zustand/react/shallow";
 import { LayoutNodeCard } from "@/components/features/templates/builder/layout-node-card";
 import { useLayoutDnd } from "@/components/features/templates/builder/use-layout-dnd";
 import { getRecipesForTask } from "@/components/features/templates/recipes/registry";
@@ -32,16 +42,20 @@ interface LayoutBuilderProps {
 }
 
 export function LayoutBuilder({ task }: LayoutBuilderProps) {
-  const {
-    layoutDraft: layout,
-    addMessageNode,
-    createSlotFromRecipe,
-    reorderNodes,
-    deleteNode,
-  } = useTemplateBuilderStore();
+  const { addMessageNode, createSlotFromRecipe, reorderNodes, deleteNode } =
+    useTemplateBuilderStore(
+      useShallow((s) => ({
+        addMessageNode: s.addMessageNode,
+        createSlotFromRecipe: s.createSlotFromRecipe,
+        reorderNodes: s.reorderNodes,
+        deleteNode: s.deleteNode,
+      }))
+    );
+  const layout = useTemplateBuilderStore(useShallow((s) => s.layoutDraft));
+  const missingSlots = useTemplateBuilderStore(
+    useShallow((s) => getMissingSlots(s))
+  );
 
-  const store = useTemplateBuilderStore();
-  const missingSlots = getMissingSlots(store);
   const {
     activeNode,
     dndContextProps,
@@ -66,18 +80,18 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
     },
   });
 
-  const handleAddMessage = (role: ChatCompletionMessageRole) => {
-    addMessageNode(role);
-  };
-
-  const handleCreateSlotFromRecipe = (recipeId: AnyRecipeId | "custom") => {
-    if (!task) return;
-    createSlotFromRecipe(recipeId);
-  };
-
-  const handleDeleteNode = (nodeId: string) => {
-    deleteNode(nodeId, true); // true = cleanup orphaned slots
-  };
+  const handleDeleteNode = useCallback(
+    (id: string) => deleteNode(id, true),
+    [deleteNode]
+  );
+  const handleAddMessage = useCallback(
+    (role: ChatCompletionMessageRole) => addMessageNode(role),
+    [addMessageNode]
+  );
+  const handleCreateSlotFromRecipe = useCallback(
+    (id: AnyRecipeId | "custom") => task && createSlotFromRecipe(id),
+    [task, createSlotFromRecipe]
+  );
 
   const taskRecipes = task ? getRecipesForTask(task) : [];
 
@@ -116,7 +130,6 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
                 <SortableLayoutNode
                   key={node.id}
                   node={node}
-                  task={task}
                   onDelete={handleDeleteNode}
                 />
               ))
@@ -145,51 +158,55 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
         </MenuTrigger>
         <MenuContent>
           {/* Message Options */}
-          <MenuItem
-            value="system-message"
-            onClick={() => handleAddMessage("system")}
-          >
-            <LuMessageSquare />
-            System Message
-          </MenuItem>
-          <MenuItem
-            value="user-message"
-            onClick={() => handleAddMessage("user")}
-          >
-            <LuMessageSquare />
-            User Message
-          </MenuItem>
-          <MenuItem
-            value="assistant-message"
-            onClick={() => handleAddMessage("assistant")}
-          >
-            <LuMessageSquare />
-            Assistant Message
-          </MenuItem>
-
-          <Separator />
-
-          {/* Recipes */}
-          {taskRecipes.map((recipe) => (
+          <MenuItemGroup>
+            <MenuItemGroupLabel>Messages</MenuItemGroupLabel>
             <MenuItem
-              key={recipe.id}
-              value={`recipe-${recipe.id}`}
-              onClick={() => handleCreateSlotFromRecipe(recipe.id)}
+              value="system-message"
+              onClick={() => handleAddMessage("system")}
+            >
+              <LuMessageSquareCode />
+              System Message
+            </MenuItem>
+            <MenuItem
+              value="user-message"
+              onClick={() => handleAddMessage("user")}
+            >
+              <LuMessageSquareMore />
+              User Message
+            </MenuItem>
+            <MenuItem
+              value="assistant-message"
+              onClick={() => handleAddMessage("assistant")}
+            >
+              <LuBotMessageSquare />
+              Assistant Message
+            </MenuItem>
+          </MenuItemGroup>
+          <MenuSeparator />
+          {/* Recipes */}
+          <MenuItemGroup>
+            <MenuItemGroupLabel>Content Blocks</MenuItemGroupLabel>
+            {taskRecipes.map((recipe) => (
+              <MenuItem
+                key={recipe.id}
+                value={`recipe-${recipe.id}`}
+                onClick={() => handleCreateSlotFromRecipe(recipe.id)}
+              >
+                <LuLayers />
+                {recipe.name}
+              </MenuItem>
+            ))}
+            <MenuSeparator />
+
+            <MenuItem
+              key="custom-slot"
+              value="custom-slot"
+              onClick={() => handleCreateSlotFromRecipe("custom")}
             >
               <LuLayers />
-              Content Block: {recipe.name}
+              Custom Block (Advanced)
             </MenuItem>
-          ))}
-          <Separator />
-
-          <MenuItem
-            key="custom-slot"
-            value="custom-slot"
-            onClick={() => handleCreateSlotFromRecipe("custom")}
-          >
-            <LuLayers />
-            (Advanced) Custom Content Block
-          </MenuItem>
+          </MenuItemGroup>
         </MenuContent>
       </MenuRoot>
     </VStack>
@@ -201,11 +218,10 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
  */
 interface SortableLayoutNodeProps {
   node: LayoutNodeDraft;
-  task?: TaskKind;
   onDelete: (nodeId: string) => void;
 }
 
-function SortableLayoutNode({ node, task, onDelete }: SortableLayoutNodeProps) {
+function SortableLayoutNode({ node, onDelete }: SortableLayoutNodeProps) {
   const {
     attributes,
     listeners,
@@ -225,7 +241,6 @@ function SortableLayoutNode({ node, task, onDelete }: SortableLayoutNodeProps) {
       ref={setNodeRef}
       style={style}
       node={node}
-      task={task}
       isDragging={isDragging}
       onDelete={onDelete}
       dragHandleProps={{ ...attributes, ...listeners }}

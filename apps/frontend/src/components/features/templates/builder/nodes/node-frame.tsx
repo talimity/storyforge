@@ -1,7 +1,6 @@
 import { Box, Card, HStack, Icon, VStack } from "@chakra-ui/react";
 import { forwardRef } from "react";
 import { LuGripVertical } from "react-icons/lu";
-import { getNodeColor } from "@/components/features/templates/builder/index";
 import type { LayoutNodeDraft } from "@/components/features/templates/types";
 
 interface NodeFrameProps {
@@ -13,24 +12,20 @@ interface NodeFrameProps {
 }
 
 export const NodeFrame = forwardRef<HTMLDivElement, NodeFrameProps>(
-  ({ node, isDragging = false, dragHandleProps, style, children }, ref) => {
-    const { borderColor } = getNodeColor(node);
-
+  (props, ref) => {
+    const { isDragging = false, dragHandleProps, style, children } = props;
     return (
       <Card.Root
         ref={ref}
         style={style}
         layerStyle="surface"
         borderLeft="4px solid"
-        borderLeftColor={borderColor}
+        borderLeftColor="border"
         bg="surface"
         opacity={isDragging ? 0.5 : 1}
         transition="all 0.2s"
         overflow="hidden"
-        _hover={{
-          borderLeftColor: `${borderColor.split(".")[0]}.700`,
-          shadow: "md",
-        }}
+        _hover={{ borderLeftColor: `border.700`, shadow: "md" }}
       >
         <HStack gap={0} align="stretch" h="full">
           {/* Full-height draggable area */}

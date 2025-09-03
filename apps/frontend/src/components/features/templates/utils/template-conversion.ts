@@ -52,10 +52,14 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
         kind: "slot",
         name: node.name,
         ...(node.header && {
-          header: convertMessageBlocksToDraft(node.header),
+          header: convertMessageBlockToDraft(
+            Array.isArray(node.header) ? node.header[0] : node.header
+          ),
         }),
         ...(node.footer && {
-          footer: convertMessageBlocksToDraft(node.footer),
+          footer: convertMessageBlockToDraft(
+            Array.isArray(node.footer) ? node.footer[0] : node.footer
+          ),
         }),
         ...(node.omitIfEmpty !== undefined && {
           omitIfEmpty: node.omitIfEmpty,
@@ -68,19 +72,6 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
         `Unknown layout node kind: ${JSON.stringify(exhaustive)}`
       );
     }
-  }
-}
-
-/**
- * Convert message blocks from engine format to draft format
- */
-function convertMessageBlocksToDraft(
-  blocks: MessageBlock | MessageBlock[]
-): MessageBlockDraft | MessageBlockDraft[] {
-  if (Array.isArray(blocks)) {
-    return blocks.map(convertMessageBlockToDraft);
-  } else {
-    return convertMessageBlockToDraft(blocks);
   }
 }
 

@@ -46,8 +46,6 @@ export interface TemplateBuilderState {
     params?: Record<string, unknown>
   ) => string; // Returns the slot name
   updateSlot: (slotName: string, updates: Partial<SlotDraft>) => void;
-  renameSlot: (oldName: string, newName: string) => void;
-  deleteSlot: (slotName: string) => void;
 
   // Edit Mode Actions
   startEditingNode: (nodeId: string) => void;
@@ -215,49 +213,11 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
       set((state) => {
         const slot = state.slotsDraft[slotName];
         if (slot) {
-          // Don't allow changing the name through updateSlot - use renameSlot instead
+          // Don't allow changing the name through updateSlot
           const { name: _, ...safeUpdates } = updates;
           Object.assign(slot, safeUpdates);
           state.isDirty = true;
         }
-      }),
-
-    renameSlot: (oldName, newName) =>
-      set((state) => {
-        // Check if new name is already taken
-        if (state.slotsDraft[newName] && newName !== oldName) {
-          console.error(`Slot name "${newName}" is already in use`);
-          return;
-        }
-
-        const slot = state.slotsDraft[oldName];
-        if (!slot) return;
-
-        // Update the slot in slotsDraft
-        delete state.slotsDraft[oldName];
-        state.slotsDraft[newName] = { ...slot, name: newName };
-
-        // Update all references in the layout
-        state.layoutDraft.forEach((node) => {
-          if (node.kind === "slot" && node.name === oldName) {
-            node.name = newName;
-          }
-        });
-
-        state.isDirty = true;
-      }),
-
-    deleteSlot: (slotName) =>
-      set((state) => {
-        // Remove the slot
-        delete state.slotsDraft[slotName];
-
-        // Remove all references from layout
-        state.layoutDraft = state.layoutDraft.filter(
-          (node) => !(node.kind === "slot" && node.name === slotName)
-        );
-
-        state.isDirty = true;
       }),
 
     // Edit Mode Actions

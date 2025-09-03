@@ -1,6 +1,6 @@
 import { Text } from "@chakra-ui/react";
-import type { TaskKind } from "@storyforge/gentasks";
 import { forwardRef } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { MessageNodeEdit } from "@/components/features/templates/builder/nodes/message-node-edit";
 import { MessageNodeView } from "@/components/features/templates/builder/nodes/message-node-view";
 import { SlotReferenceEdit } from "@/components/features/templates/builder/nodes/slot-reference-edit";
@@ -13,7 +13,6 @@ import { useTemplateBuilderStore } from "@/stores/template-builder-store";
 
 interface LayoutNodeCardProps {
   node: LayoutNodeDraft;
-  task?: TaskKind;
   isDragging?: boolean;
   onDelete?: (nodeId: string) => void;
   dragHandleProps?: Record<string, unknown>;
@@ -21,17 +20,29 @@ interface LayoutNodeCardProps {
 }
 
 export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>(
-  (
-    { node, task, isDragging = false, onDelete, dragHandleProps, style },
-    ref
-  ) => {
+  (props, ref) => {
     const {
-      slotsDraft: slots,
+      node,
+      isDragging = false,
+      onDelete,
+      dragHandleProps,
+      style,
+    } = props;
+    const {
+      slots,
       editingNodeId,
       startEditingNode,
       saveNodeEdit,
       cancelNodeEdit,
-    } = useTemplateBuilderStore();
+    } = useTemplateBuilderStore(
+      useShallow((s) => ({
+        slots: s.slotsDraft,
+        editingNodeId: s.editingNodeId,
+        startEditingNode: s.startEditingNode,
+        saveNodeEdit: s.saveNodeEdit,
+        cancelNodeEdit: s.cancelNodeEdit,
+      }))
+    );
 
     const isEditing = editingNodeId === node.id;
 

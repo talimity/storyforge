@@ -48,26 +48,57 @@ export interface RecipeParamSpec {
   help?: string;
   min?: number;
   max?: number;
-  options?: Array<{ label: string; value: string | number | boolean }>;
+  options?: readonly { label: string; value: string | number | boolean }[];
 }
+
+/**
+ * Extracts the TypeScript type for a single RecipeParamSpec
+ */
+export type InferParamType<T extends RecipeParamSpec> =
+  T["type"] extends "select"
+    ? T extends { options: readonly { value: infer V }[] }
+      ? V
+      : string
+    : T["type"] extends "number"
+      ? number
+      : T["type"] extends "toggle"
+        ? boolean
+        : T["type"] extends "template_string"
+          ? string
+          : unknown;
+
+/**
+ * Infers the parameter types from an array of RecipeParamSpec
+ * Returns a record mapping parameter keys to their inferred types
+ */
+export type InferRecipeParams<T extends readonly RecipeParamSpec[]> = {
+  [K in T[number] as K["key"]]: InferParamType<K>;
+};
 
 /**
  * Definition of a recipe for generating a prompt template slot. Includes
  * metadata, parameter specifications, and a function to convert user parameters
  * into valid DSL SlotSpec.
  */
-export interface RecipeDefinition<K extends TaskKind, S extends SourceSpec> {
+export interface RecipeDefinition<
+  K extends TaskKind,
+  S extends SourceSpec,
+  P extends readonly RecipeParamSpec[] = readonly RecipeParamSpec[],
+> {
   id: RecipeId<K>;
   name: string;
   task: K;
   description?: string;
-  parameters: RecipeParamSpec[];
+  parameters: P;
 
   /**
    * Transform the user's parameter values into a complete SlotSpec
-   * that can be used by the prompt renderer engine
+   * that can be used by the prompt renderer engine.
+   *
+   * Parameters are automatically coerced/clamped using the type constraints
+   * and min/max/default values specified in the RecipeParamSpec.
    */
-  toSlotSpec(params: Record<string, unknown>): Omit<SlotSpec<S>, "priority">;
+  toSlotSpec(params: InferRecipeParams<P>): Omit<SlotSpec<S>, "priority">;
 
   /**
    * Optional: Available variables that can be used in template_string parameters
@@ -107,8 +138,8 @@ export interface MessageLayoutDraft extends BaseLayoutNodeDraft {
 export interface SlotLayoutDraft extends BaseLayoutNodeDraft {
   kind: "slot";
   name: string;
-  header?: MessageBlockDraft | MessageBlockDraft[];
-  footer?: MessageBlockDraft | MessageBlockDraft[];
+  header?: MessageBlockDraft;
+  footer?: MessageBlockDraft;
   omitIfEmpty?: boolean;
 }
 

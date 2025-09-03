@@ -6,6 +6,7 @@ import {
   type UnboundSlotSpec,
   type UnboundTemplate,
 } from "@storyforge/prompt-rendering";
+import { coerceRecipeParams } from "@/components/features/templates/recipes/param-coercion";
 import { getRecipeById } from "@/components/features/templates/recipes/registry";
 import type {
   LayoutNodeDraft,
@@ -129,14 +130,16 @@ function compileSlot(slotDraft: SlotDraft): UnboundSlotSpec {
     throw new Error(`Unknown recipe ID: ${slotDraft.recipeId}`);
   }
 
-  // Start with the base slot spec from the recipe
-  // Then override priority and budget if specified
+  // Coerce parameters based on the recipe's parameter definitions
+  const coercedParams = coerceRecipeParams(recipe.parameters, slotDraft.params);
+
+  // Start with the base slot spec from the recipe with coerced params
   // Deep clone to avoid mutating the recipe's internal structures
-  const baseSlotSpec = recipe.toSlotSpec(slotDraft.params);
+  const baseSlotSpec = recipe.toSlotSpec(coercedParams);
 
   // Add recipe metadata so we can recreate a draft from this slot spec later
   const recipeMeta = {
-    recipe: { id: slotDraft.recipeId, params: slotDraft.params },
+    recipe: { id: slotDraft.recipeId, params: coercedParams },
     ...baseSlotSpec.meta,
   };
 

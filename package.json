@@ -12,7 +12,7 @@
     "dev": "pnpm -r --parallel run dev",
     "fmt": "pnpm -r --parallel run fmt",
     "lint": "pnpm -r --parallel run lint",
-    "typecheck": "pnpm -r run typecheck",
+    "typecheck": "pnpm --parallel run typecheck",
     "usage": "ccusage blocks",
     "test": "pnpm -r run test"
   },

@@ -11,12 +11,13 @@ import {
 } from "@chakra-ui/react";
 import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
 import { forwardRef, useCallback } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { LuCheck, LuX } from "react-icons/lu";
 import {
   getMessageBlockPlaceholder,
   getNodeIcon,
   getRoleLabel,
+  MESSAGE_ROLE_SELECT_OPTIONS,
 } from "@/components/features/templates/builder/index";
 import { NodeFrame } from "@/components/features/templates/builder/nodes/node-frame";
 import type { MessageLayoutDraft } from "@/components/features/templates/types";
@@ -39,19 +40,16 @@ interface MessageNodeEditProps {
   style?: React.CSSProperties;
 }
 
-const roleOptions = [
-  { label: "System", value: "system" },
-  { label: "User", value: "user" },
-  { label: "Assistant", value: "assistant" },
-];
-
 export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
-  (
-    { node, isDragging = false, onSave, onCancel, dragHandleProps, style },
-    ref
-  ) => {
-    const NodeIcon = getNodeIcon(node);
-
+  (props, ref) => {
+    const {
+      node,
+      isDragging = false,
+      onSave,
+      onCancel,
+      dragHandleProps,
+      style,
+    } = props;
     const { register, control, setValue, getValues } = useForm({
       defaultValues: {
         role: node.role,
@@ -59,7 +57,11 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
         content: node.content || "",
         prefix: node.prefix || false,
       },
+      shouldUnregister: true,
     });
+    // subscribe to role to update the icon live
+    const role = useWatch({ control, name: "role" });
+    const NodeIcon = getNodeIcon({ kind: "message", role });
 
     const handleSave = useCallback(() => {
       const values = getValues();
@@ -87,16 +89,6 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
       [setValue]
     );
 
-    const handleKeyDown = (event: React.KeyboardEvent) => {
-      if (event.key === "Enter" && event.shiftKey) {
-        event.preventDefault();
-        handleSave();
-      } else if (event.key === "Escape") {
-        event.preventDefault();
-        onCancel?.();
-      }
-    };
-
     return (
       <NodeFrame
         ref={ref}
@@ -109,7 +101,7 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
           {/* Header */}
           <HStack gap={2} align="center">
             <Icon as={NodeIcon} />
-            <Badge size="sm">{getRoleLabel(getValues().role)}</Badge>
+            <Badge size="sm">{getRoleLabel(role)}</Badge>
             <Text fontSize="sm" fontWeight="medium" flex={1}>
               Editing Message
             </Text>
@@ -143,10 +135,6 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
                 {...register("name")}
                 placeholder={getMessageBlockPlaceholder(node.role)}
                 autoComplete="off"
-                onChange={(e) => {
-                  setValue("name", e.target.value);
-                }}
-                onKeyDown={handleKeyDown}
               />
             </Field>
 
@@ -156,7 +144,9 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
                 control={control}
                 render={({ field }) => (
                   <SelectRoot
-                    collection={createListCollection({ items: roleOptions })}
+                    collection={createListCollection({
+                      items: MESSAGE_ROLE_SELECT_OPTIONS,
+                    })}
                     value={[field.value]}
                     onValueChange={(details) => {
                       const newRole = details
@@ -169,7 +159,7 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
                       <SelectValueText placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      {roleOptions.map((option) => (
+                      {MESSAGE_ROLE_SELECT_OPTIONS.map((option) => (
                         <SelectItem key={option.value} item={option}>
                           {option.label}
                         </SelectItem>
@@ -190,14 +180,10 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
                 rows={4}
                 autoresize
                 fontFamily="mono"
-                onChange={(e) => {
-                  setValue("content", e.target.value);
-                }}
-                onKeyDown={handleKeyDown}
               />
             </Field>
 
-            {getValues().role === "assistant" && (
+            {role === "assistant" && (
               <Field
                 label="Assistant Prefill"
                 helperText="If enabled for the final message, this will prefill the assistant's response with the provided content. Requires provider support."

@@ -66,7 +66,12 @@ export function NumberParameterInput({
       <HStack gap={3}>
         <NumberInput.Root
           value={String(numericValue)}
-          onValueChange={(details) => onChange(details.valueAsNumber)}
+          onValueChange={({ valueAsNumber }) => {
+            const n = Number.isFinite(valueAsNumber)
+              ? valueAsNumber
+              : (param.min ?? 0);
+            onChange(n);
+          }}
           min={param.min}
           max={param.max}
           step={getStepForParam(param)}
@@ -112,7 +117,13 @@ export function SelectParameterInput({
     >
       <SelectRoot
         value={[stringValue]}
-        onValueChange={(details) => onChange(details.value[0])}
+        onValueChange={(details) => {
+          const selected = details.value[0];
+          const typed = param.options?.find(
+            (o) => o.value.toString() === selected
+          )?.value;
+          onChange(typed ?? selected);
+        }}
         invalid={isInvalid}
         collection={createListCollection({
           items:
@@ -199,8 +210,6 @@ export function TemplateStringParameterInput({
       placeholder="Enter template string..."
       isInvalid={isInvalid}
       errorText={errorText}
-      rows={2}
-      maxRows={6}
     />
   );
 }

@@ -25,10 +25,15 @@ interface MessageNodeViewProps {
 }
 
 export const MessageNodeView = forwardRef<HTMLDivElement, MessageNodeViewProps>(
-  (
-    { node, isDragging = false, onEdit, onDelete, dragHandleProps, style },
-    ref
-  ) => {
+  (props, ref) => {
+    const {
+      node,
+      isDragging = false,
+      onEdit,
+      onDelete,
+      dragHandleProps,
+      style,
+    } = props;
     const NodeIcon = getNodeIcon(node);
     const hasContent = node.content || node.from;
 

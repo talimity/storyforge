@@ -45,43 +45,65 @@ export function createParameterSchema(
 ): z.ZodSchema<unknown> {
   switch (param.type) {
     case "number": {
-      let numberSchema = z.number();
+      let schema = z.number();
 
       if (param.min !== undefined) {
-        numberSchema = numberSchema.min(
+        schema = schema.min(
           param.min,
           `${param.label} must be at least ${param.min}`
         );
       }
 
       if (param.max !== undefined) {
-        numberSchema = numberSchema.max(
+        schema = schema.max(
           param.max,
           `${param.label} must be at most ${param.max}`
         );
       }
 
-      return numberSchema;
+      return param.defaultValue !== undefined
+        ? schema.default(param.defaultValue as number)
+        : schema;
     }
 
     case "select": {
-      if (!param.options || param.options.length === 0) {
-        return z.string();
+      const values = (param.options ?? []).map((o) => o.value);
+
+      let base: z.ZodTypeAny;
+      if (values.length === 0) {
+        // fallback: accept any primitive
+        base = z.union([z.string(), z.number(), z.boolean()]);
+      } else if (values.length === 1) {
+        base = z.literal(values[0]);
+      } else {
+        base = z.union(values.map((v) => z.literal(v)));
       }
 
-      const validValues = param.options.map((opt) => opt.value);
-      return z
-        .union([z.string(), z.number(), z.boolean()])
-        .refine((value) => validValues.includes(value), {
-          message: `${param.label} must be one of: ${validValues.join(", ")}`,
-        });
+      const schema =
+        values.length > 0
+          ? base.refine((v) => (values as unknown[]).includes(v), {
+              message: `${param.label} must be one of: ${values.join(", ")}`,
+            })
+          : base;
+
+      return param.defaultValue !== undefined
+        ? schema.default(param.defaultValue)
+        : schema;
     }
 
-    case "toggle":
-      return z.boolean();
+    case "toggle": {
+      const schema = z.boolean();
+      return param.defaultValue !== undefined
+        ? schema.default(Boolean(param.defaultValue))
+        : schema;
+    }
 
-    case "template_string":
-      return z.string().min(1, `${param.label} cannot be empty`);
+    case "template_string": {
+      const schema = z.string().min(1, `${param.label} cannot be empty`);
+      return param.defaultValue !== undefined
+        ? schema.default(String(param.defaultValue))
+        : schema;
+    }
 
     default:
       return z.unknown();
@@ -92,8 +114,8 @@ export function createParameterSchema(
  * Create a validation schema for all parameters of a recipe
  */
 export function createRecipeParametersSchema(
-  parameters: RecipeParamSpec[]
-): z.ZodSchema<Record<string, unknown>> {
+  parameters: readonly RecipeParamSpec[]
+) {
   const schemaShape: Record<string, z.ZodSchema<unknown>> = {};
 
   for (const param of parameters) {

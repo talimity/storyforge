@@ -1,6 +1,7 @@
 import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
 import {
   LuBotMessageSquare,
+  LuCog,
   LuLayers,
   LuMessageSquare,
   LuMessageSquareCode,
@@ -11,36 +12,16 @@ import type {
   SlotDraft,
 } from "@/components/features/templates/types";
 
-/**
- * Get the color scheme for a layout node based on its type and role
- * TODO: Decide whether we want different colors at all
- */
-export function getNodeColor(node: LayoutNodeDraft): {
-  borderColor: string;
-} {
-  switch (node.kind) {
-    case "message":
-      switch (node.role) {
-        case "system":
-          return { borderColor: "border" };
-        case "user":
-          return { borderColor: "border" };
-        case "assistant":
-          return { borderColor: "border" };
-        default:
-          return { borderColor: "border" };
-      }
-    case "slot":
-      return { borderColor: "border" };
-    default:
-      return { borderColor: "border" };
-  }
-}
+export const MESSAGE_ROLE_SELECT_OPTIONS = [
+  { label: "System", value: "system" },
+  { label: "User", value: "user" },
+  { label: "Assistant", value: "assistant" },
+] as const;
 
 /**
  * Get the appropriate icon for a layout node
  */
-export function getNodeIcon(node: LayoutNodeDraft) {
+export function getNodeIcon(node: { kind: string; role?: string }) {
   switch (node.kind) {
     case "message":
       switch (node.role) {
@@ -56,7 +37,7 @@ export function getNodeIcon(node: LayoutNodeDraft) {
     case "slot":
       return LuLayers;
     default:
-      return LuMessageSquare;
+      return LuCog;
   }
 }
 

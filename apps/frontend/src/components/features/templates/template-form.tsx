@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LuEye, LuInfo, LuRows3 } from "react-icons/lu";
+import { useShallow } from "zustand/react/shallow";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes";
 import { LayoutBuilder } from "@/components/features/templates/builder/layout-builder";
 import { TemplateMetadata } from "@/components/features/templates/builder/template-metadata";
@@ -12,12 +13,10 @@ import {
   templateFormSchema,
 } from "@/components/features/templates/template-form-schema";
 import type { TemplateDraft } from "@/components/features/templates/types";
+import { validateDraft } from "@/components/features/templates/utils/compile-draft";
 import { Button, PageHeader } from "@/components/ui";
 import { useUnsavedChangesProtection } from "@/lib/hooks/use-unsaved-changes-protection";
-import {
-  getValidationErrors,
-  useTemplateBuilderStore,
-} from "@/stores/template-builder-store";
+import { useTemplateBuilderStore } from "@/stores/template-builder-store";
 
 interface TemplateFormProps {
   initialDraft: TemplateDraft;
@@ -45,13 +44,16 @@ export function TemplateForm({
   const [activeTab, setActiveTab] = useState("metadata");
 
   // Store state
-  const {
-    layoutDraft,
-    slotsDraft,
-    isDirty: builderIsDirty,
-    initialize,
-    markClean,
-  } = useTemplateBuilderStore();
+  const { layoutDraft, slotsDraft, builderIsDirty, initialize, markClean } =
+    useTemplateBuilderStore(
+      useShallow((s) => ({
+        layoutDraft: s.layoutDraft,
+        slotsDraft: s.slotsDraft,
+        builderIsDirty: s.isDirty,
+        initialize: s.initialize,
+        markClean: s.markClean,
+      }))
+    );
 
   // Form state for metadata
   const {
@@ -132,10 +134,9 @@ export function TemplateForm({
     ]
   );
 
-  const builderStore = useTemplateBuilderStore();
   const structureErrors = useMemo(
-    () => getValidationErrors(builderStore, metadata.task),
-    [builderStore, metadata.task]
+    () => validateDraft({ task: metadata.task, layoutDraft, slotsDraft }),
+    [layoutDraft, slotsDraft, metadata.task]
   );
   const hasStructureErrors = structureErrors.length > 0;
   const metadataErrorCount = Object.keys(errors).length;

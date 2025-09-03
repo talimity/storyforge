@@ -34,11 +34,11 @@ describe("compileDraft", () => {
             order: "desc",
             turnTemplate:
               "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
-            budget: 800,
+            budget: 2000,
           },
           name: "timeline",
           priority: 0,
-          budget: 800,
+          budget: 2000,
         },
       },
     };
@@ -61,7 +61,7 @@ describe("compileDraft", () => {
     });
     expect(compiled.slots.timeline).toBeDefined();
     expect(compiled.slots.timeline.priority).toBe(0);
-    expect(compiled.slots.timeline.budget?.maxTokens).toBe(800);
+    expect(compiled.slots.timeline.budget?.maxTokens).toBe(2000);
   });
 });
 
