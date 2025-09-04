@@ -20,7 +20,8 @@ export const workflows = sqliteTable(
       .notNull()
       .default(false),
     steps: text("steps", { mode: "json" })
-      .$type<Record<string, unknown>>()
+      // JSON array of workflow steps
+      .$type<unknown[]>()
       .notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()

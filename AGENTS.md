@@ -10,11 +10,12 @@ StoryForge is an LLM-powered character roleplaying application that reimagines A
 
 ```bash
 # Code quality
-pnpm check # lint/format/fix imports with biome + typecheck
-# Run tests (backend, integration-only)
-pnpm test
 # Remember to rebuild after changing shared packages
 pnpm build
+# Lint, fix imports, and check for type errors
+pnpm check
+# Run tests (backend, integration-only)
+pnpm test
 
 # Remember to generate migrations when changing database schema in packages/db
 pnpm db:generate # Drizzle migration generation
@@ -61,6 +62,7 @@ storyforge
 └── packages                   # Shared packages
     ├── config                 # Configuration management
     │── db                     # Drizzle ORM database layer
+    │── gentasks               # Generative task and workflow runner implementations
     ├── inference              # Adapters for inference APIs
     ├── prompt-rendering       # Prompt template rendering engine
     ├── schemas                # Zod runtime schemas and types
@@ -74,20 +76,19 @@ storyforge
   - Strict mode enabled
   - Explicit `any` usage is forbidden
   - Casting via `as` is strongly discouraged
-    - Instead: assertion guard functions (e.g. `assertIsCharacter(obj: unknown): asserts obj is Character`)
+    - Alternative: assertion guard functions (e.g. `assertIsCharacter(obj: unknown): asserts obj is Character`)
       - Use `assertDefined` from utils instead of `!` operator
-    - Instead: write a Zod schema and use `parse`/`safeParse`
+    - Alternative: write a Zod schema and use `parse`/`safeParse`
   - Minimize nested structures
     - Use intermediate variables to make expressions clearer
     - Return early to avoid deep nesting in functions
 - **Classes and Interfaces**:
-    - Prefer modules/functions over classes
+    - Prefer modules and functions over classes
     - Polymorphism: use TS interfaces
     - Use classes only when you need to share state/behavior
     - Never write a class that only contains static members
 - **Imports**:
   - Run `pnpm check` to auto-sort imports
-  - Use `@/` for absolute imports within apps
   - Never deep import from other packages
 - **Naming conventions**:
   - Files: kebab-case
@@ -102,13 +103,16 @@ When in doubt, skip the comment.
 - **Use JSDoc for public APIs** - Document functions, classes, and interfaces that are at the boundary of your module
   - Skip parameter/return type JSDoc if the name and type make it obvious
 
-## Tools
-Several MCP utilities are available to help you with conducting research, troubleshooting, or testing.
+---
 
-- **context7** - Retrieves docs from any GitHub repository
-  - We're using new versions of many libraries so use this often instead of relying on outdated memory.
-- **chakra-ui** - Docs and examples for specific Chakra UI components
-- **react-icons-mcp** - Search for icons from the react-icons library
-- **GlobTool/GrepTool**: Fast code analysis and pattern detection
+## Other Reminders
 
-IMPORTANT: Always delegate research tasks to an agent using dispatch_agent. Avoid invoking the tools directly. Similarly, if you need to analyze many files in the codebase to understand some architecture or broad structure, ask an agent to do this for you and return a summary.
+### Before starting a task
+- Examine files from adjacent features to get a sense of the overall project structure.
+- Review the files in the `docs/` folder to understand the architecture and design decisions around the feature you are working on.
+
+### During development
+- Run `pnpm build` any time you are making changes across packages.
+- Prefer following existing conventions and patterns over introducing new abstractions.
+- While working on a large task, regularly run code quality checks and address issues incrementally rather than trying to fix everything at the end.
+- Always run code quality checks before considering the task complete.

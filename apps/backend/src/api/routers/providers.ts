@@ -8,6 +8,8 @@ import {
   listProvidersOutputSchema,
   modelProfileSchema,
   providerConfigSchema,
+  searchModelProfilesInputSchema,
+  searchModelProfilesOutputSchema,
   searchModelsInputSchema,
   searchModelsOutputSchema,
   testProviderConnectionInputSchema,
@@ -22,6 +24,7 @@ import {
   getProviderById,
   listModelProfiles,
   listProviders,
+  searchModelProfiles,
 } from "../../services/provider/provider.queries.js";
 import { ProviderService } from "../../services/provider/provider.service.js";
 import { publicProcedure, router } from "../index.js";
@@ -171,6 +174,21 @@ export const providersRouter = router({
     }),
 
   // Model Profile CRUD operations
+  searchModelProfiles: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/model-profiles/search",
+        tags: ["model-profiles"],
+        summary: "Search model profiles by name or model ID",
+      },
+    })
+    .input(searchModelProfilesInputSchema)
+    .output(searchModelProfilesOutputSchema)
+    .query(async ({ input, ctx }) => {
+      const items = await searchModelProfiles(ctx.db, input);
+      return { modelProfiles: items };
+    }),
   listModelProfiles: publicProcedure
     .meta({
       openapi: {

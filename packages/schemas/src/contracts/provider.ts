@@ -138,6 +138,21 @@ export type UpdateModelProfile = z.infer<typeof updateModelProfileSchema>;
 export type ListModelProfilesOutput = z.infer<
   typeof listModelProfilesOutputSchema
 >;
+
+// Model Profile search (server-side)
+export const searchModelProfilesInputSchema = z.object({
+  q: z.string().optional().default(""),
+  limit: z.number().int().min(1).max(50).optional().default(25),
+});
+
+export const searchModelProfilesOutputSchema = listModelProfilesOutputSchema;
+
+export type SearchModelProfilesInput = z.infer<
+  typeof searchModelProfilesInputSchema
+>;
+export type SearchModelProfilesOutput = z.infer<
+  typeof searchModelProfilesOutputSchema
+>;
 export type ModelSearchResult = z.infer<typeof modelSearchResultSchema>;
 export type SearchModelsInput = z.infer<typeof searchModelsInputSchema>;
 export type SearchModelsOutput = z.infer<typeof searchModelsOutputSchema>;

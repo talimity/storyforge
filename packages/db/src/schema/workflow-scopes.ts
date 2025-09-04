@@ -76,6 +76,8 @@ export const workflowScopes = sqliteTable(
     check(
       "chk_consistent_scope_kind",
       sql`
+      (scope_kind = 'default')
+      OR
       (scope_kind = 'scenario' AND scenario_id IS NOT NULL)
       OR
       (scope_kind = 'character' AND character_id IS NOT NULL)

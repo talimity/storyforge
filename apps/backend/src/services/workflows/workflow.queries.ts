@@ -83,6 +83,6 @@ export async function getTurngenWorkflowForScope(
     description: workflow.description ?? undefined,
     task: "turn_generation",
     version: 1,
-    steps: workflow.steps as unknown as GenStep[],
+    steps: workflow.steps as GenStep[],
   };
 }

@@ -1,6 +1,6 @@
 import type { SqliteDatabase } from "@storyforge/db";
 import { modelProfiles, providerConfigs } from "@storyforge/db";
-import { eq } from "drizzle-orm";
+import { desc, eq, like, or } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 
 export async function listProviders(db: SqliteDatabase) {
@@ -41,4 +41,24 @@ export async function getModelProfileById(db: SqliteDatabase, id: string) {
   }
 
   return results;
+}
+
+export async function searchModelProfiles(
+  db: SqliteDatabase,
+  args: { q?: string; limit?: number }
+) {
+  const { q, limit = 25 } = args;
+  const where = q?.length
+    ? or(
+        like(modelProfiles.displayName, `%${q}%`),
+        like(modelProfiles.modelId, `%${q}%`)
+      )
+    : undefined;
+  const rows = await db
+    .select()
+    .from(modelProfiles)
+    .where(where)
+    .orderBy(desc(modelProfiles.updatedAt))
+    .limit(limit);
+  return rows;
 }

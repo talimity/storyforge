@@ -3,6 +3,8 @@ import {
   scenarioCharacterStartersResponseSchema,
   scenarioIdSchema,
   scenarioSchema,
+  scenarioSearchQuerySchema,
+  scenarioSearchResponseSchema,
   scenariosWithCharactersListResponseSchema,
   scenarioWithCharactersSchema,
   updateScenarioSchema,
@@ -13,6 +15,7 @@ import {
   getScenarioCharacterStarters,
   getScenarioDetail,
   listScenarios,
+  searchScenarios,
 } from "../../services/scenario/scenario.queries.js";
 import { ScenarioService } from "../../services/scenario/scenario.service.js";
 import {
@@ -22,6 +25,21 @@ import {
 import { publicProcedure, router } from "../index.js";
 
 export const scenariosRouter = router({
+  search: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/scenarios/search",
+        tags: ["scenarios"],
+        summary: "Search scenarios by name",
+      },
+    })
+    .input(scenarioSearchQuerySchema)
+    .output(scenarioSearchResponseSchema)
+    .query(async ({ input, ctx }) => {
+      const rows = await searchScenarios(ctx.db, input);
+      return { scenarios: rows };
+    }),
   list: publicProcedure
     .meta({
       openapi: {

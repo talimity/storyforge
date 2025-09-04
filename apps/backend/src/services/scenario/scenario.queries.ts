@@ -1,6 +1,7 @@
 import type { SqliteDatabase } from "@storyforge/db";
+import { schema as dbschema } from "@storyforge/db";
 import { isDefined } from "@storyforge/utils";
-import { sql } from "drizzle-orm";
+import { and, desc, eq, like, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { getCharaAssetPaths } from "../character/utils/chara-asset-helpers.js";
 
@@ -205,3 +206,26 @@ const scenarioCharaSummaryColumns = {
   },
   extras: { hasPortrait: sql<number>`portrait IS NOT NULL` },
 } as const;
+
+export async function searchScenarios(
+  db: SqliteDatabase,
+  args: { q?: string; status?: "active" | "archived"; limit?: number }
+) {
+  const { q, status, limit = 25 } = args;
+  const where = and(
+    q?.length ? like(dbschema.scenarios.name, `%${q}%`) : undefined,
+    status ? eq(dbschema.scenarios.status, status) : undefined
+  );
+  const rows = await db
+    .select({
+      id: dbschema.scenarios.id,
+      name: dbschema.scenarios.name,
+      status: dbschema.scenarios.status,
+      updatedAt: dbschema.scenarios.updatedAt,
+    })
+    .from(dbschema.scenarios)
+    .where(where)
+    .orderBy(desc(dbschema.scenarios.updatedAt))
+    .limit(limit);
+  return rows;
+}

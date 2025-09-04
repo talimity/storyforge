@@ -1,5 +1,6 @@
 import {
   type NewScenario,
+  type Scenario,
   type ScenarioParticipant,
   type SqliteDatabase,
   type SqliteTransaction,
@@ -89,7 +90,7 @@ export class ScenarioService {
     const { participants, ...scenarioData } = data;
 
     const operation = async (tx: SqliteTransaction) => {
-      let updatedScenario: typeof schema.scenarios.$inferSelect | undefined;
+      let updatedScenario: Scenario | undefined;
 
       // Only update scenario fields if there are any to update
       if (Object.keys(scenarioData).length > 0) {

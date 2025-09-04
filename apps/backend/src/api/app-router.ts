@@ -5,6 +5,7 @@ import { playRouter } from "./routers/play.js";
 import { providersRouter } from "./routers/providers.js";
 import { scenariosRouter } from "./routers/scenarios.js";
 import { templatesRouter } from "./routers/templates.js";
+import { workflowsRouter } from "./routers/workflows.js";
 
 export const allRouters = {
   characters: charactersRouter,
@@ -13,6 +14,7 @@ export const allRouters = {
   play: playRouter,
   providers: providersRouter,
   templates: templatesRouter,
+  workflows: workflowsRouter,
 };
 
 export const appRouter = router(allRouters);

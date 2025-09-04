@@ -18,13 +18,7 @@ export function registerAPI(fastify: FastifyInstance) {
   fastify.register(fastifyTRPCPlugin, {
     prefix: "/trpc",
     useWSS: true,
-    trpcOptions: {
-      router: appRouter,
-      createContext,
-      onError({ error }: { error: Error }) {
-        fastify.log.error({ error }, "tRPC error");
-      },
-    },
+    trpcOptions: { router: appRouter, createContext },
   });
 
   // Set up trpc-to-openapi for RESTful API endpoints

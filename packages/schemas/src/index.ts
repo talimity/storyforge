@@ -4,3 +4,4 @@ export * from "./contracts/play.js";
 export * from "./contracts/provider.js";
 export * from "./contracts/scenario.js";
 export * from "./contracts/templates.js";
+export * from "./contracts/workflows.js";

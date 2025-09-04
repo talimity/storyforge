@@ -72,5 +72,5 @@ export function validateWorkflow<K extends TaskKind>(
 }
 
 export function validateStep(step: GenStep): GenStep {
-  return genStepSchema.parse(step) as GenStep;
+  return genStepSchema.parse(step);
 }

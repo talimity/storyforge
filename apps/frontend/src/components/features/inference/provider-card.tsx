@@ -3,10 +3,8 @@ import {
   Card,
   HStack,
   IconButton,
-  MenuContent,
-  MenuItem,
-  MenuRoot,
-  MenuTrigger,
+  Menu,
+  Portal,
   Skeleton,
   Text,
   VStack,
@@ -14,15 +12,15 @@ import {
 import type { ProviderConfig } from "@storyforge/schemas";
 import { useState } from "react";
 import {
-  FaCloud,
-  FaEllipsisVertical,
-  FaGear,
-  FaKey,
-  FaPenToSquare,
-  FaPlug,
-  FaServer,
-  FaTrash,
-} from "react-icons/fa6";
+  LuCloud,
+  LuCog,
+  LuEllipsisVertical,
+  LuKey,
+  LuPencilLine,
+  LuPlug,
+  LuServer,
+  LuTrash,
+} from "react-icons/lu";
 import { DeleteProviderDialog } from "./delete-provider-dialog";
 import { EditProviderDialog } from "./edit-provider-dialog";
 import { TestConnectionButton } from "./test-connection-button";
@@ -34,13 +32,13 @@ interface ProviderCardProps {
 function getProviderIcon(kind: string) {
   switch (kind) {
     case "openrouter":
-      return <FaCloud />;
+      return <LuCloud />;
     case "deepseek":
-      return <FaServer />;
+      return <LuServer />;
     case "openai-compatible":
-      return <FaPlug />;
+      return <LuPlug />;
     default:
-      return <FaGear />;
+      return <LuCog />;
   }
 }
 
@@ -73,30 +71,34 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                   {provider.name}
                 </Text>
               </HStack>
-              <MenuRoot>
-                <MenuTrigger asChild>
+              <Menu.Root positioning={{ placement: "bottom-end" }}>
+                <Menu.Trigger asChild>
                   <IconButton variant="ghost" size="sm">
-                    <FaEllipsisVertical />
+                    <LuEllipsisVertical />
                   </IconButton>
-                </MenuTrigger>
-                <MenuContent>
-                  <MenuItem
-                    value="edit"
-                    onClick={() => setIsEditDialogOpen(true)}
-                  >
-                    <FaPenToSquare />
-                    Edit
-                  </MenuItem>
-                  <MenuItem
-                    value="delete"
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                    color="red.500"
-                  >
-                    <FaTrash />
-                    Delete
-                  </MenuItem>
-                </MenuContent>
-              </MenuRoot>
+                </Menu.Trigger>
+                <Portal>
+                  <Menu.Positioner>
+                    <Menu.Content>
+                      <Menu.Item
+                        value="edit"
+                        onClick={() => setIsEditDialogOpen(true)}
+                      >
+                        <LuPencilLine />
+                        Edit
+                      </Menu.Item>
+                      <Menu.Item
+                        value="delete"
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                        color="red.500"
+                      >
+                        <LuTrash />
+                        Delete
+                      </Menu.Item>
+                    </Menu.Content>
+                  </Menu.Positioner>
+                </Portal>
+              </Menu.Root>
             </HStack>
 
             <VStack align="stretch" gap={2}>
@@ -116,7 +118,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
 
               <HStack justify="space-between" align="center">
                 <HStack gap={1} align="center">
-                  <FaKey size={12} />
+                  <LuKey size={12} />
                   <Text fontSize="xs" color="content.muted">
                     {provider.auth.hasApiKey
                       ? "API key configured"

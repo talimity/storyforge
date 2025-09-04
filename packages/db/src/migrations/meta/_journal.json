@@ -50,6 +50,13 @@
       "when": 1756867067773,
       "tag": "0006_intent-effects",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1757125131071,
+      "tag": "0007_fix-scopes-check",
+      "breakpoints": true
     }
   ]
 }

@@ -92,6 +92,24 @@ export const scenariosWithCharactersListResponseSchema = z.object({
   scenarios: z.array(scenarioWithCharactersSchema),
 });
 
+// Search/autocomplete schemas (lightweight results)
+export const scenarioSearchQuerySchema = z.object({
+  q: z.string().optional().default(""),
+  limit: z.number().int().min(1).max(50).optional().default(25),
+  status: z.enum(["active", "archived"]).optional(),
+});
+
+export const scenarioSearchResultSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  status: z.enum(["active", "archived"]),
+  updatedAt: z.date(),
+});
+
+export const scenarioSearchResponseSchema = z.object({
+  scenarios: z.array(scenarioSearchResultSchema),
+});
+
 export const characterWithStartersSchema = z.object({
   character: characterSummarySchema,
   starters: z.array(characterStarterSchema),
@@ -116,4 +134,9 @@ export type ScenariosListResponse = z.infer<typeof scenariosListResponseSchema>;
 export type CharacterWithStarters = z.infer<typeof characterWithStartersSchema>;
 export type ScenarioCharacterStartersResponse = z.infer<
   typeof scenarioCharacterStartersResponseSchema
+>;
+export type ScenarioSearchQuery = z.infer<typeof scenarioSearchQuerySchema>;
+export type ScenarioSearchResult = z.infer<typeof scenarioSearchResultSchema>;
+export type ScenarioSearchResponse = z.infer<
+  typeof scenarioSearchResponseSchema
 >;

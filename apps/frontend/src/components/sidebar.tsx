@@ -121,9 +121,9 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         />
 
         <SidebarLink
-          to="/agents"
+          to="/workflows"
           icon={<LuWorkflow />}
-          label="Agents"
+          label="Workflows"
           collapsed={collapsed}
         />
 

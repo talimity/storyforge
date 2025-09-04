@@ -15,6 +15,9 @@ import { TemplateEditPage } from "./pages/template-edit";
 import { TemplatesPage } from "./pages/template-library";
 import { TemplateTaskSelectPage } from "./pages/template-task-select";
 import { ThemeDemoPage } from "./pages/theme-demo";
+import { WorkflowCreatePage } from "./pages/workflow-create";
+import { WorkflowEditPage } from "./pages/workflow-edit";
+import { WorkflowsPage } from "./pages/workflows";
 
 export const router = createBrowserRouter([
   {
@@ -52,6 +55,18 @@ export const router = createBrowserRouter([
       {
         path: "models",
         element: <ModelsPage />,
+      },
+      {
+        path: "workflows",
+        element: <WorkflowsPage />,
+      },
+      {
+        path: "workflows/create",
+        element: <WorkflowCreatePage />,
+      },
+      {
+        path: "workflows/:id/edit",
+        element: <WorkflowEditPage />,
       },
       {
         path: "agents",

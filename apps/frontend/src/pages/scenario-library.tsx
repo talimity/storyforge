@@ -7,7 +7,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { LuBookOpen, LuFileText } from "react-icons/lu";
+import { LuBookOpen, LuFileText, LuPlus } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { ChatImportDialog } from "@/components/dialogs/chat-import";
 import { ScenarioCard } from "@/components/features/scenario/scenario-card";
@@ -38,6 +38,7 @@ export function ScenarioLibraryPage() {
               colorPalette="primary"
               onClick={() => navigate("/scenarios/create")}
             >
+              <LuPlus />
               Create Scenario
             </Button>
           </HStack>

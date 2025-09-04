@@ -3,10 +3,8 @@ import {
   Card,
   HStack,
   IconButton,
-  MenuContent,
-  MenuItem,
-  MenuRoot,
-  MenuTrigger,
+  Menu,
+  Portal,
   Skeleton,
   Stack,
   Text,
@@ -15,12 +13,12 @@ import {
 import type { ModelProfile } from "@storyforge/schemas";
 import { useState } from "react";
 import {
-  FaBrain,
-  FaEllipsisVertical,
-  FaGear,
-  FaPenToSquare,
-  FaTrash,
-} from "react-icons/fa6";
+  LuCog,
+  LuEllipsisVertical,
+  LuPencilLine,
+  LuTrash,
+} from "react-icons/lu";
+import { TbCube } from "react-icons/tb";
 import { trpc } from "@/lib/trpc";
 import { DeleteModelProfileDialog } from "./delete-model-profile-dialog";
 import { EditModelProfileDialog } from "./edit-model-profile-dialog";
@@ -74,35 +72,39 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
           <VStack align="stretch" gap={3}>
             <HStack justify="space-between">
               <HStack gap={2}>
-                <FaBrain />
+                <TbCube />
                 <Text fontWeight="medium" truncate>
                   {modelProfile.displayName}
                 </Text>
               </HStack>
-              <MenuRoot>
-                <MenuTrigger asChild>
+              <Menu.Root positioning={{ placement: "bottom-end" }}>
+                <Menu.Trigger asChild>
                   <IconButton variant="ghost" size="sm">
-                    <FaEllipsisVertical />
+                    <LuEllipsisVertical />
                   </IconButton>
-                </MenuTrigger>
-                <MenuContent>
-                  <MenuItem
-                    value="edit"
-                    onClick={() => setIsEditDialogOpen(true)}
-                  >
-                    <FaPenToSquare />
-                    Edit
-                  </MenuItem>
-                  <MenuItem
-                    value="delete"
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                    color="red.500"
-                  >
-                    <FaTrash />
-                    Delete
-                  </MenuItem>
-                </MenuContent>
-              </MenuRoot>
+                </Menu.Trigger>
+                <Portal>
+                  <Menu.Positioner>
+                    <Menu.Content>
+                      <Menu.Item
+                        value="edit"
+                        onClick={() => setIsEditDialogOpen(true)}
+                      >
+                        <LuPencilLine />
+                        Edit
+                      </Menu.Item>
+                      <Menu.Item
+                        value="delete"
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                        color="red.500"
+                      >
+                        <LuTrash />
+                        Delete
+                      </Menu.Item>
+                    </Menu.Content>
+                  </Menu.Positioner>
+                </Portal>
+              </Menu.Root>
             </HStack>
 
             <VStack align="stretch" gap={2}>
@@ -112,7 +114,7 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
 
               {provider && (
                 <HStack gap={2} align="center">
-                  <FaGear size={12} />
+                  <LuCog size={12} />
                   <Text fontSize="xs" color="content.muted" truncate>
                     {provider.name}
                   </Text>
