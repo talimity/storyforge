@@ -14,6 +14,7 @@ import {
   createAdapter,
   type ProviderAuth,
   type ProviderConfig,
+  textInferenceCapabilitiesSchema,
 } from "@storyforge/inference";
 import {
   type BudgetManager,
@@ -134,12 +135,17 @@ export class WorkflowRunnerManager {
       // TODO: Add capabilities and genParams when schema supports them
     };
 
+    // Parse overrides using canonical schema (partial)
+    const parsed = textInferenceCapabilitiesSchema
+      .partial()
+      .safeParse(row.profile.capabilityOverrides);
+    const overrides = parsed.success ? parsed.data : undefined;
+
     return {
       id: row.profile.id,
       provider: providerConfig,
       modelId: row.profile.modelId,
-      // TODO: Add capability overrides and default gen params when schema supports them
-      capabilityOverrides: undefined,
+      capabilityOverrides: overrides,
       defaultGenParams: undefined,
     };
   }

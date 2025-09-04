@@ -11,9 +11,9 @@ import {
 } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import {
-  LuDownload,
   LuEllipsisVertical,
   LuPencilLine,
+  LuShare,
   LuTrash,
 } from "react-icons/lu";
 import { DeleteWorkflowDialog } from "./delete-workflow-dialog";
@@ -62,7 +62,7 @@ export function WorkflowCard({ workflow }: { workflow: WorkflowSummaryView }) {
                         Edit
                       </Menu.Item>
                       <Menu.Item value="export" onClick={actions.handleExport}>
-                        <LuDownload />
+                        <LuShare />
                         Export
                       </Menu.Item>
                       <Menu.Item

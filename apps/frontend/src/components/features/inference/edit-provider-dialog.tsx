@@ -1,14 +1,8 @@
-import type {
-  ProviderConfig,
-  updateProviderConfigSchema,
-} from "@storyforge/schemas";
-import type { z } from "zod";
+import type { ProviderConfig } from "@storyforge/schemas";
 import { Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
 import { showSuccessToast } from "@/lib/utils/error-handling";
-import { ProviderForm } from "./provider-form";
-
-type UpdateProviderFormData = z.infer<typeof updateProviderConfigSchema>;
+import { ProviderForm, type ProviderFormData } from "./provider-form";
 
 interface EditProviderDialogProps {
   provider: ProviderConfig;
@@ -34,30 +28,12 @@ export function EditProviderDialog({
     },
   });
 
-  const handleSubmit = (data: UpdateProviderFormData) => {
-    updateProviderMutation.mutate({
-      id: provider.id,
-      data,
-    });
+  const handleSubmit = (data: ProviderFormData) => {
+    updateProviderMutation.mutate({ id: provider.id, data });
   };
 
   const handleCancel = () => {
     onOpenChange(false);
-  };
-
-  const initialData = {
-    kind: provider.kind,
-    name: provider.name,
-    auth: { apiKey: "" }, // Don't pre-fill the API key for security
-    baseUrl: provider.baseUrl || "",
-    capabilities: provider.capabilities || {
-      streaming: true,
-      assistantPrefill: false,
-      logprobs: false,
-      tools: false,
-      fim: false,
-    },
-    hasApiKey: provider.auth.hasApiKey,
   };
 
   return (
@@ -73,7 +49,7 @@ export function EditProviderDialog({
         </Dialog.Header>
         <Dialog.Body>
           <ProviderForm
-            initialData={initialData}
+            initialData={provider}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isSubmitting={updateProviderMutation.isPending}

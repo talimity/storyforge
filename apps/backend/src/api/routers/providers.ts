@@ -1,6 +1,14 @@
-import type { ProviderConfig as DbProviderConfig } from "@storyforge/db";
-import { createAdapter } from "@storyforge/inference";
+import type {
+  ModelProfile as DbModelProfile,
+  ProviderConfig as DbProviderConfig,
+} from "@storyforge/db";
 import {
+  createAdapter,
+  getDefaultCapabilities,
+  textInferenceCapabilitiesSchema,
+} from "@storyforge/inference";
+import {
+  type ModelProfile as ApiModelProfile,
   type ProviderConfig as ApiProviderConfig,
   createModelProfileSchema,
   createProviderConfigSchema,
@@ -30,9 +38,30 @@ import { ProviderService } from "../../services/provider/provider.service.js";
 import { publicProcedure, router } from "../index.js";
 
 function mapProvider(provider: DbProviderConfig): ApiProviderConfig {
+  const parsed = textInferenceCapabilitiesSchema.safeParse(
+    provider.capabilities
+  );
   return {
     ...provider,
     auth: { hasApiKey: Boolean(provider.auth?.apiKey) },
+    capabilities: parsed.success
+      ? parsed.data
+      : getDefaultCapabilities(provider.kind),
+  };
+}
+
+function mapModelProfile(model: DbModelProfile): ApiModelProfile {
+  const parsed = textInferenceCapabilitiesSchema
+    .partial()
+    .safeParse(model.capabilityOverrides);
+  return {
+    id: model.id,
+    providerId: model.providerId,
+    displayName: model.displayName,
+    modelId: model.modelId,
+    capabilityOverrides: parsed.success ? parsed.data : null,
+    createdAt: model.createdAt,
+    updatedAt: model.updatedAt,
   };
 }
 
@@ -95,19 +124,12 @@ export const providersRouter = router({
         summary: "Update a provider configuration",
       },
     })
-    .input(
-      z.object({
-        id: z.string(),
-        data: updateProviderConfigSchema,
-      })
-    )
+    .input(updateProviderConfigSchema)
     .output(providerConfigSchema)
     .mutation(async ({ input, ctx }) => {
+      const { id, data } = input;
       const service = new ProviderService(ctx.db);
-      const updatedProvider = await service.updateProvider(
-        input.id,
-        input.data
-      );
+      const updatedProvider = await service.updateProvider(id, data);
       return mapProvider(updatedProvider);
     }),
 
@@ -133,14 +155,15 @@ export const providersRouter = router({
         method: "POST",
         path: "/api/providers/{providerId}/test",
         tags: ["providers"],
-        summary: "Test a provider's connection",
+        summary: "Test a provider's connection with the provided model ID",
       },
     })
     .input(testProviderConnectionInputSchema)
     .output(testProviderConnectionOutputSchema)
     .mutation(async ({ input, ctx }) => {
+      const { providerId, modelProfileId } = input;
       const service = new ProviderService(ctx.db);
-      return await service.testProviderConnection(input.providerId);
+      return await service.testProviderConnection(providerId, modelProfileId);
     }),
 
   searchModels: publicProcedure
@@ -170,7 +193,15 @@ export const providersRouter = router({
       });
 
       const models = await adapter.searchModels(input.query);
-      return { models };
+      return {
+        models: models.map((m) => ({
+          id: m.id,
+          name: m.name,
+          description: m.description,
+          tags: [],
+          contextLength: null,
+        })),
+      };
     }),
 
   // Model Profile CRUD operations
@@ -187,7 +218,7 @@ export const providersRouter = router({
     .output(searchModelProfilesOutputSchema)
     .query(async ({ input, ctx }) => {
       const items = await searchModelProfiles(ctx.db, input);
-      return { modelProfiles: items };
+      return { modelProfiles: items.map(mapModelProfile) };
     }),
   listModelProfiles: publicProcedure
     .meta({
@@ -202,7 +233,7 @@ export const providersRouter = router({
     .output(listModelProfilesOutputSchema)
     .query(async ({ ctx }) => {
       const modelProfiles = await listModelProfiles(ctx.db);
-      return { modelProfiles };
+      return { modelProfiles: modelProfiles.map(mapModelProfile) };
     }),
 
   getModelProfile: publicProcedure
@@ -217,7 +248,8 @@ export const providersRouter = router({
     .input(z.object({ id: z.string() }))
     .output(modelProfileSchema)
     .query(async ({ input, ctx }) => {
-      return await getModelProfileById(ctx.db, input.id);
+      const mp = await getModelProfileById(ctx.db, input.id);
+      return mapModelProfile(mp);
     }),
 
   createModelProfile: publicProcedure
@@ -233,7 +265,8 @@ export const providersRouter = router({
     .output(modelProfileSchema)
     .mutation(async ({ input, ctx }) => {
       const service = new ProviderService(ctx.db);
-      return await service.createModelProfile(input);
+      const created = await service.createModelProfile(input);
+      return mapModelProfile(created);
     }),
 
   updateModelProfile: publicProcedure
@@ -254,7 +287,8 @@ export const providersRouter = router({
     .output(modelProfileSchema)
     .mutation(async ({ input, ctx }) => {
       const service = new ProviderService(ctx.db);
-      return await service.updateModelProfile(input.id, input.data);
+      const updated = await service.updateModelProfile(input.id, input.data);
+      return mapModelProfile(updated);
     }),
 
   deleteModelProfile: publicProcedure

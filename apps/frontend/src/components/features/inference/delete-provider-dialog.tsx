@@ -26,6 +26,7 @@ export function DeleteProviderDialog({
         description: "Provider configuration has been removed",
       });
       utils.providers.listProviders.invalidate();
+      utils.providers.listModelProfiles.invalidate();
       onOpenChange(false);
     },
   });
@@ -49,10 +50,11 @@ export function DeleteProviderDialog({
         <Dialog.Body>
           <Text>
             Are you sure you want to delete "{provider.name}"? This action
-            cannot be undone and will remove the provider configuration.
+            cannot be undone.
           </Text>
           <Text mt={2} fontSize="sm" color="content.muted">
-            Any model profiles using this provider will also be affected.
+            Any model profiles using this provider will also be deleted, which
+            may break workflows that were relying on them.
           </Text>
         </Dialog.Body>
         <Dialog.Footer>

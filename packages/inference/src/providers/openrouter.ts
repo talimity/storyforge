@@ -214,12 +214,12 @@ export class OpenRouterAdapter extends ProviderAdapter {
   }
 
   defaultCapabilities(): TextInferenceCapabilities {
-    return {
+    return this.applyOverrides({
       streaming: true,
       assistantPrefill: "implicit", // OpenRouter handles this automatically
       tools: true,
       fim: false,
-    };
+    });
   }
 
   supportedParams(): Array<keyof TextInferenceGenParams> {
@@ -390,8 +390,8 @@ export class OpenRouterAdapter extends ProviderAdapter {
 
       let models = data.data.map((model) => ({
         id: model.id,
-        name: model.name,
-        description: model.description,
+        name: model.name || null,
+        description: model.description || null,
       }));
 
       if (query) {

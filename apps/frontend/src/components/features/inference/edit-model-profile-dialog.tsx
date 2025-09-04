@@ -1,14 +1,11 @@
-import type {
-  ModelProfile,
-  updateModelProfileSchema,
-} from "@storyforge/schemas";
-import type { z } from "zod";
+import type { ModelProfile } from "@storyforge/schemas";
 import { Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
 import { showSuccessToast } from "@/lib/utils/error-handling";
-import { ModelProfileForm } from "./model-profile-form";
-
-type UpdateModelProfileFormData = z.infer<typeof updateModelProfileSchema>;
+import {
+  ModelProfileForm,
+  type ModelProfileFormData,
+} from "./model-profile-form";
 
 interface EditModelProfileDialogProps {
   modelProfile: ModelProfile;
@@ -35,28 +32,12 @@ export function EditModelProfileDialog({
       },
     });
 
-  const handleSubmit = (data: UpdateModelProfileFormData) => {
-    updateModelProfileMutation.mutate({
-      id: modelProfile.id,
-      data,
-    });
+  const handleSubmit = (data: ModelProfileFormData) => {
+    updateModelProfileMutation.mutate({ id: modelProfile.id, data });
   };
 
   const handleCancel = () => {
     onOpenChange(false);
-  };
-
-  const initialData = {
-    providerId: modelProfile.providerId,
-    displayName: modelProfile.displayName,
-    modelId: modelProfile.modelId,
-    capabilityOverrides: modelProfile.capabilityOverrides || {
-      streaming: false,
-      assistantPrefill: false,
-      logprobs: false,
-      tools: false,
-      fim: false,
-    },
   };
 
   return (
@@ -72,7 +53,7 @@ export function EditModelProfileDialog({
         </Dialog.Header>
         <Dialog.Body>
           <ModelProfileForm
-            initialData={initialData}
+            initialData={modelProfile}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isSubmitting={updateModelProfileMutation.isPending}

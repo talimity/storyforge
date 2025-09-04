@@ -13,10 +13,10 @@ import {
 import type { TaskKind } from "@storyforge/gentasks";
 import {
   LuCopy,
-  LuDownload,
   LuEllipsisVertical,
   LuFileText,
   LuPencilLine,
+  LuShare,
   LuTrash,
 } from "react-icons/lu";
 import { TemplateDeleteDialog } from "@/components/dialogs/template-delete";
@@ -156,7 +156,7 @@ export function TemplateCard({
                         handleExport();
                       }}
                     >
-                      <LuDownload />
+                      <LuShare />
                       <Box flex="1">Export</Box>
                     </Menu.Item>
                     <Menu.Item

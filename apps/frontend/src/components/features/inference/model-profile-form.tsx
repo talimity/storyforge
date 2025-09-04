@@ -3,21 +3,16 @@ import {
   HStack,
   Input,
   Spinner,
-  Stack,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  createModelProfileSchema,
-  updateModelProfileSchema,
-} from "@storyforge/schemas";
+import { createModelProfileSchema } from "@storyforge/schemas";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import {
   Button,
-  Checkbox,
   Field,
   SelectContent,
   SelectItem,
@@ -26,17 +21,19 @@ import {
   SelectValueText,
 } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
+import { CapabilitiesSelector } from "./capabilities-selector";
 
-type CreateModelProfileFormData = z.infer<typeof createModelProfileSchema>;
-type UpdateModelProfileFormData = z.infer<typeof updateModelProfileSchema>;
-type ModelProfileFormData =
-  | CreateModelProfileFormData
-  | UpdateModelProfileFormData;
+const modelProfileFormSchema = createModelProfileSchema.pick({
+  providerId: true,
+  displayName: true,
+  modelId: true,
+  capabilityOverrides: true,
+});
+export type ModelProfileFormData = z.infer<typeof modelProfileFormSchema>;
 
 interface ModelProfileFormProps {
   initialData?: Partial<ModelProfileFormData>;
-  // biome-ignore lint/suspicious/noExplicitAny: Union types between create/update schemas make proper typing complex
-  onSubmit: (data: any) => void;
+  onSubmit: (data: ModelProfileFormData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
   submitLabel?: string;
@@ -44,8 +41,7 @@ interface ModelProfileFormProps {
 
 const defaultCapabilityOverrides = {
   streaming: false,
-  assistantPrefill: false,
-  logprobs: false,
+  assistantPrefill: "unsupported" as const,
   tools: false,
   fim: false,
 };
@@ -57,24 +53,18 @@ export function ModelProfileForm({
   isSubmitting = false,
   submitLabel = "Save Model Profile",
 }: ModelProfileFormProps) {
-  const [selectedProviderId, setSelectedProviderId] = useState<string>(
+  const [selectedProviderId, setSelectedProviderId] = useState(
     initialData?.providerId || ""
   );
   const [modelSearchQuery, setModelSearchQuery] = useState("");
 
-  // Get list of providers
   const providersQuery = trpc.providers.listProviders.useQuery();
   const providers = providersQuery.data?.providers || [];
 
   // Search models when provider is selected
   const searchModelsQuery = trpc.providers.searchModels.useQuery(
-    {
-      providerId: selectedProviderId,
-      query: modelSearchQuery,
-    },
-    {
-      enabled: !!selectedProviderId,
-    }
+    { providerId: selectedProviderId, query: modelSearchQuery },
+    { enabled: !!selectedProviderId }
   );
 
   const {
@@ -85,12 +75,9 @@ export function ModelProfileForm({
     setValue,
     formState: { errors, isValid },
   } = useForm<ModelProfileFormData>({
-    resolver: zodResolver(
-      initialData?.providerId
-        ? updateModelProfileSchema
-        : createModelProfileSchema
-    ),
-    mode: "onBlur",
+    resolver: zodResolver(modelProfileFormSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       providerId: initialData?.providerId || "",
       displayName: initialData?.displayName || "",
@@ -133,6 +120,7 @@ export function ModelProfileForm({
     items: (searchModelsQuery.data?.models || []).map((model) => ({
       label: model.name || model.id,
       value: model.id,
+      description: model.description,
     })),
   });
 
@@ -186,7 +174,6 @@ export function ModelProfileForm({
                   value={modelSearchQuery}
                   onChange={(e) => setModelSearchQuery(e.target.value)}
                   placeholder="Search models..."
-                  disabled={searchModelsQuery.isLoading}
                 />
                 {searchModelsQuery.isLoading && <Spinner size="sm" />}
               </HStack>
@@ -211,7 +198,18 @@ export function ModelProfileForm({
                       <SelectContent portalled={false}>
                         {modelOptions.items.map((item) => (
                           <SelectItem key={item.value} item={item}>
-                            {item.label}
+                            <VStack align="start" gap={1}>
+                              <Text>{item.label}</Text>
+                              {item.description && (
+                                <Text
+                                  fontSize="xs"
+                                  color="content.muted"
+                                  lineClamp={2}
+                                >
+                                  {item.description}
+                                </Text>
+                              )}
+                            </VStack>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -227,82 +225,37 @@ export function ModelProfileForm({
               errorText={errors.modelId?.message}
               helperText="Enter model ID manually if not found in search above"
             >
-              <Input
-                {...register("modelId")}
-                placeholder="e.g., gpt-4o-mini, deepseek-chat"
+              <Controller
+                name="modelId"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    placeholder="e.g., gpt-4o-mini, deepseek-chat"
+                  />
+                )}
               />
             </Field>
           </>
         )}
 
         <Field label="Capability Overrides">
-          <VStack gap={2} align="stretch">
-            <Text fontSize="sm" color="content.muted">
-              Override provider capabilities for this specific model
-            </Text>
-            <Stack gap={2}>
-              <Controller
-                name="capabilityOverrides.streaming"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={({ checked }) => field.onChange(checked)}
-                  >
-                    Streaming responses
-                  </Checkbox>
-                )}
+          <Controller
+            name="capabilityOverrides"
+            control={control}
+            render={({ field }) => (
+              <CapabilitiesSelector
+                value={field.value || {}}
+                onChange={field.onChange}
+                baseline={
+                  providers.find((p) => p.id === selectedProviderId)
+                    ?.capabilities || undefined
+                }
+                helperText="Override provider capabilities for this specific model"
               />
-              <Controller
-                name="capabilityOverrides.assistantPrefill"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={({ checked }) => field.onChange(checked)}
-                  >
-                    Assistant message prefill
-                  </Checkbox>
-                )}
-              />
-              <Controller
-                name="capabilityOverrides.logprobs"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={({ checked }) => field.onChange(checked)}
-                  >
-                    Log probabilities
-                  </Checkbox>
-                )}
-              />
-              <Controller
-                name="capabilityOverrides.tools"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={({ checked }) => field.onChange(checked)}
-                  >
-                    Tool calling
-                  </Checkbox>
-                )}
-              />
-              <Controller
-                name="capabilityOverrides.fim"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={({ checked }) => field.onChange(checked)}
-                  >
-                    Fill-in-the-middle
-                  </Checkbox>
-                )}
-              />
-            </Stack>
-          </VStack>
+            )}
+          />
         </Field>
       </VStack>
 

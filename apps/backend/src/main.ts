@@ -29,7 +29,9 @@ const fastify = Fastify({
 // Plugins
 fastify.register(cors, {
   origin: ["http://localhost:5173", "http://localhost:8080"],
+  logLevel: "silent",
   credentials: true,
+  maxAge: 86400,
 });
 fastify.register(sensible);
 fastify.register(multipart);

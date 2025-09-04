@@ -10,7 +10,13 @@ import {
 } from "@chakra-ui/react";
 import { taskKindSchema } from "@storyforge/gentasks";
 import { useMemo, useState } from "react";
-import { LuListPlus, LuMapPin, LuPlus, LuWorkflow } from "react-icons/lu";
+import {
+  LuImport,
+  LuListPlus,
+  LuMapPin,
+  LuPlus,
+  LuWorkflow,
+} from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { WorkflowImportDialog } from "@/components/dialogs/workflow-import";
 import { AssignmentDialog } from "@/components/features/workflows/assignment-dialog";
@@ -118,7 +124,7 @@ export function WorkflowsPage() {
                         variant="outline"
                         onClick={() => setImportOpen(true)}
                       >
-                        Import
+                        <LuImport /> Import Workflow
                       </Button>
                       <Button
                         colorPalette="primary"

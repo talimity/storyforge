@@ -7,6 +7,7 @@ import {
   MenuRoot,
   MenuSeparator,
   MenuTrigger,
+  Stack,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -192,8 +193,14 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
                 value={`recipe-${recipe.id}`}
                 onClick={() => handleCreateSlotFromRecipe(recipe.id)}
               >
-                <LuLayers />
-                {recipe.name}
+                <VStack align="start" gap={1}>
+                  <Stack direction="row" align="center" gap={2}>
+                    <LuLayers /> {recipe.name}
+                  </Stack>
+                  <Text fontSize="xs" color="content.muted">
+                    {recipe.description}
+                  </Text>
+                </VStack>
               </MenuItem>
             ))}
             <MenuSeparator />

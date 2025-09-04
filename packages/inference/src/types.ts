@@ -14,8 +14,8 @@ export interface ProviderAuth {
 
 export interface ProviderModelSearchResult {
   id: string;
-  name?: string;
-  description?: string;
+  name: string | null;
+  description: string | null;
   // costs?
 }
 

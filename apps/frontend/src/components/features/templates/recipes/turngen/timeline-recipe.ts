@@ -38,7 +38,7 @@ export const timelineRecipe: RecipeDefinition<
   name: "Timeline",
   task: "turn_generation",
   description:
-    "This block lists turns from the scenario's timeline in chronological order.",
+    "Lists turns from the scenario's timeline in chronological order.",
   parameters,
 
   availableVariables: [

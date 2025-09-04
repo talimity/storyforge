@@ -1,18 +1,28 @@
 # StoryForge - AI Tabletop Roleplay Engine
 
-This file provides guidance to AI agents such as Claude Code when working with code in this repository.
+This file provides guidance to AI agents when working with code in this repository.
 
 ## About
 
-StoryForge is an LLM-powered character roleplaying application that reimagines AI character chat interfaces as a tabletop RPG experience. The player is positioned as a director/dungeon master orchestrating multi-character scenarios rather than being locked into a single character role chatting with one other character. An agentic narrative engine generates turns by passing inputs across multiple stages (Planner -> Screenplay -> Prose, or Dreamer -> Critic -> Writer) to improve the quality of the output.
+StoryForge uses language models to let users play with and direct semi-autonomous characters in a pseudo-tabletop RPG context. It's similar to popular applications like Character.AI and SillyTavern, but moves away from the *chat* paradigm, which gives models too much freedom to make mistakes. Instead, StoryForge tries to provide a more structured and controlled environment for the model to interact with the story.
+
+The vision is something akin a turn-based/text-based version of The Sims, which places AI-driven characters in a scenario together and tries to draw forth entertaining emergent interactions between them. Players can influence the story directly or indirectly by providing narrative constraints, overriding character actions, or injecting chaos. Character agents have access to tool calls to roll dice, modify attributes and inventory, and track long-term goals.
+
+### Key Concepts
+
+- Turn-based timeline (1 turn = 1 character's action); turns are nodes in a rooted tree, and the path from the root to the "anchor" leaf is the "active timeline"
+- Branching as a first-class concept; rewinding or switching timelines to explore alternative paths should be as low-friction as possible
+- Player can interact directly or indirectly; interactions are modeled as "Intent" to influence the story in some way, with each Intent kind generating a different set of "Effects"
+- An Intent can be a story constraint, a vague request for a character to do something, or direct control over a character's actions
+- LLM interface happens via "generative tasks", such as Turn Generation or Chapter Summarization, for which the player can define custom workflows and prompt templates; a workflow can trigger multiple LLM calls, such as using a more strong logical model for a reasoning-focused "Draft" step chained to a simpler but more creative model for a "Prose" step. 
 
 ### Build & Test Commands
 
 ```bash
-# Code quality
-# Remember to rebuild after changing shared packages
+# Rebuild type declarations after changing shared packages
 pnpm build
 # Lint, fix imports, and check for type errors
+# (IMPORTANT: don't use flags aside from `--filter` with this command, so no -w or -s)
 pnpm check
 # Run tests (backend, integration-only)
 pnpm test
@@ -31,25 +41,19 @@ devctl restart    # Restart both dev servers (this should not be necessary in mo
 devctl stop       # Stop both dev servers
 ```
 
-### Vision
-
-- **Agentic narrative engine**: Turns are managed by a narrative engine that handles character actions, scene management, and AI interactions
-- **Flexible role management**: Player can act as any character, all characters, or only the narrator
-- **Event-driven narratives**: Player-prompted events force the narrative engine to generate new turns
-
 ### Technical Choices
 
-- **Single-user desktop application** - Not a hosted web service or commercial product, stack runs locally
-- **Bring your own API key** - Players provide cloud inference API keys or local models
-- **TypeScript/Node.js focused** - For type safety and fast iteration 
-- **Monorepo with pnpm** - To facilitate shared code and possible multiple frontends
+- **Single-user desktop application**: Stack runs locally; NOT a hosted service so no need for auth, scaling, process management, etc. 
+- **Typescript throughout**: For rapid development and shared code reuse while enforcing sound types
+- **Bring-your-own-model**: No built-in text inference; player configures cloud AI providers or their own local models
+- **pnpm Monorepo**: Project is split into multiple packages to encourage code reuse and separation of concerns
 
 ## Stack
 
-- **Frontend**: Vite + React + Chakra UI v3
-- **Backend**: Fastify + tRPC + Drizzle ORM via libsql SQLite driver
-- **Shared Packages**: Configuration, Database layer, API contracts
-- **Monorepo**: pnpm workspaces
+- **Backend**: Fastify, tRPC
+- **Frontend**: React 19/Vite
+- **Database**: Drizzle ORM
+- **Schemas**: Zod v4
 
 ## Monorepo Structure
 
@@ -88,7 +92,7 @@ storyforge
     - Use classes only when you need to share state/behavior
     - Never write a class that only contains static members
 - **Imports**:
-  - Run `pnpm check` to auto-sort imports
+  - Run `pnpm check` (no flags) to automatically sort and remove unused imports
   - Never deep import from other packages
 - **Naming conventions**:
   - Files: kebab-case
@@ -105,14 +109,21 @@ When in doubt, skip the comment.
 
 ---
 
-## Other Reminders
+## Other Important Reminders
 
-### Before starting a task
-- Examine files from adjacent features to get a sense of the overall project structure.
-- Review the files in the `docs/` folder to understand the architecture and design decisions around the feature you are working on.
+### BEFORE starting a task
+- You MUST examine files from adjacent features to get a sense of the overall project structure
+- You SHOULD check the `docs/` folder for anything that seems relevant to your feature, to better understand its architecture and design decisions
+- You SHOULD check for `types.ts` files nearby or in shared packages you'll rely on, to better understand their APIs
+- You MUST refer to package-specific AGENTS.md files for the app you're working in, if applicable:
+  - [Backend](apps/backend/AGENTS.md)
+  - [Frontend](apps/frontend/AGENTS.md)
 
-### During development
-- Run `pnpm build` any time you are making changes across packages.
-- Prefer following existing conventions and patterns over introducing new abstractions.
-- While working on a large task, regularly run code quality checks and address issues incrementally rather than trying to fix everything at the end.
-- Always run code quality checks before considering the task complete.
+### DURING work on a task
+- You MUST `pnpm build` any time you are making changes across packages
+- You MUST follow existing conventions and patterns over introducing new abstractions
+- You SHOULD run checks and address diagnostics incrementally; it will be easier than fixing dozens of errors at the end
+- You MUST run the build and check commands before a task can be considered finished
+
+### At ALL TIMES
+- You MUST NOT run any `pnpm` commands with `-w` or `-s` flags. `-w` will block your readline, and `-s` will not return any output.

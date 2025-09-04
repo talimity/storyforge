@@ -169,12 +169,12 @@ export class DeepseekAdapter extends ProviderAdapter {
   }
 
   defaultCapabilities(): TextInferenceCapabilities {
-    return {
+    return this.applyOverrides({
       streaming: true,
       assistantPrefill: "explicit", // Uses the 'prefix' flag
       tools: true,
       fim: false,
-    };
+    });
   }
 
   supportedParams(): Array<keyof TextInferenceGenParams> {
@@ -333,7 +333,11 @@ export class DeepseekAdapter extends ProviderAdapter {
 
       const data: DeepseekModelsResponse = await response.json();
 
-      let models = data.data.map((model) => ({ id: model.id }));
+      let models = data.data.map((model) => ({
+        id: model.id,
+        name: null,
+        description: null,
+      }));
 
       if (query) {
         const lowerQuery = query.toLowerCase();

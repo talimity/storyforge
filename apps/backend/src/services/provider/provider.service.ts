@@ -1,20 +1,31 @@
-import type {
-  ModelProfile,
-  NewModelProfile,
-  NewProviderConfig,
-  ProviderConfig,
-  SqliteDatabase,
-  SqliteTransaction,
+import {
+  buildSqliteUpdates,
+  type ModelProfile,
+  modelProfiles,
+  type NewProviderConfig,
+  type ProviderConfig,
+  providerConfigs,
+  type SqliteDatabase,
+  type SqliteTransaction,
+  type SqliteTxLike,
 } from "@storyforge/db";
-import { modelProfiles, providerConfigs } from "@storyforge/db";
+import {
+  type ChatCompletionRequest,
+  type ChatCompletionResponse,
+  createAdapter,
+} from "@storyforge/inference";
 import type {
   CreateModelProfile,
   CreateProviderConfig,
   UpdateModelProfile,
   UpdateProviderConfig,
 } from "@storyforge/schemas";
+import { stripNulls } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
+import { createChildLogger } from "../../logging.js";
 import { ServiceError } from "../../service-error.js";
+
+const logger = createChildLogger("provider-service");
 
 export class ProviderService {
   constructor(private db: SqliteDatabase) {}
@@ -24,18 +35,24 @@ export class ProviderService {
     outerTx?: SqliteTransaction
   ) {
     const op = async (tx: SqliteTransaction) => {
-      if (input.kind === "openai-compatible" && !input.baseUrl) {
-        throw new ServiceError("InvalidInput", {
-          message: "Base URL is required for OpenAI-compatible providers",
-        });
+      if (input.kind === "openai-compatible") {
+        if (!input.baseUrl) {
+          throw new ServiceError("InvalidInput", {
+            message: "Base URL is required for OpenAI-compatible provider",
+          });
+        }
+        if (!input.capabilities) {
+          throw new ServiceError("InvalidInput", {
+            message: "Capabilities are required for OpenAI-compatible provider",
+          });
+        }
       }
 
       const newProvider: NewProviderConfig = {
-        kind: input.kind,
-        name: input.name,
-        auth: input.auth,
-        baseUrl: input.baseUrl,
-        // TODO: Add capabilities once we update the schema
+        ...input,
+        ...(input.kind === "openai-compatible"
+          ? { capabilities: input.capabilities }
+          : { capabilities: null }),
       };
 
       const [created] = await tx
@@ -51,7 +68,7 @@ export class ProviderService {
 
   async updateProvider(
     id: string,
-    input: UpdateProviderConfig,
+    input: UpdateProviderConfig["data"],
     outerTx?: SqliteTransaction
   ): Promise<ProviderConfig> {
     const op = async (tx: SqliteTransaction) => {
@@ -62,16 +79,22 @@ export class ProviderService {
         const newBaseUrl = input.baseUrl ?? existing.baseUrl;
         if (!newBaseUrl) {
           throw new ServiceError("InvalidInput", {
-            message: "Base URL is required for OpenAI-compatible providers",
+            message: "Base URL is required for OpenAI-compatible provider",
+          });
+        }
+        const newCapabilities = input.capabilities ?? existing.capabilities;
+        if (!newCapabilities) {
+          throw new ServiceError("InvalidInput", {
+            message: "Capabilities are required for OpenAI-compatible provider",
           });
         }
       }
 
-      const updates: Partial<NewProviderConfig> = {};
-      if (input.kind !== undefined) updates.kind = input.kind;
-      if (input.name !== undefined) updates.name = input.name;
-      if (input.auth !== undefined) updates.auth = input.auth;
-      if (input.baseUrl !== undefined) updates.baseUrl = input.baseUrl;
+      const updates = buildSqliteUpdates({
+        input,
+        table: providerConfigs,
+        jsonKeys: ["auth", "capabilities"],
+      });
 
       const [updated] = await tx
         .update(providerConfigs)
@@ -104,16 +127,9 @@ export class ProviderService {
     const op = async (tx: SqliteTransaction) => {
       await this.getProviderByIdOrFail(tx, input.providerId);
 
-      const newModel: NewModelProfile = {
-        providerId: input.providerId,
-        displayName: input.displayName,
-        modelId: input.modelId,
-        // TODO: Add capability overrides once we update the schema
-      };
-
       const [created] = await tx
         .insert(modelProfiles)
-        .values(newModel)
+        .values(input)
         .returning();
       return created;
     };
@@ -134,11 +150,11 @@ export class ProviderService {
         await this.getProviderByIdOrFail(tx, input.providerId);
       }
 
-      const updates: Partial<NewModelProfile> = {};
-      if (input.providerId !== undefined) updates.providerId = input.providerId;
-      if (input.displayName !== undefined)
-        updates.displayName = input.displayName;
-      if (input.modelId !== undefined) updates.modelId = input.modelId;
+      const updates = buildSqliteUpdates({
+        input,
+        table: modelProfiles,
+        jsonKeys: ["capabilityOverrides"],
+      });
 
       const [updated] = await tx
         .update(modelProfiles)
@@ -157,7 +173,6 @@ export class ProviderService {
     outerTx?: SqliteTransaction
   ): Promise<void> {
     const op = async (tx: SqliteTransaction) => {
-      // Check if model profile exists
       await this.getModelProfileByIdOrFail(tx, id);
 
       await tx.delete(modelProfiles).where(eq(modelProfiles.id, id));
@@ -167,23 +182,51 @@ export class ProviderService {
   }
 
   async testProviderConnection(
-    id: string
-  ): Promise<{ success: boolean; message?: string; error?: string }> {
+    id: string,
+    modelProfileId: string
+  ): Promise<{ success: boolean; payload: unknown }> {
     const provider = await this.getProviderByIdOrFail(this.db, id);
+    const model = await this.getModelProfileByIdOrFail(this.db, modelProfileId);
+    const adapter = createAdapter(stripNulls(provider)).withOverrides(
+      model.capabilityOverrides
+    );
 
-    // TODO: Implement actual connection testing once we have provider adapters
-    // For now, just simulate a successful test
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+    const req: ChatCompletionRequest = {
+      messages: [
+        {
+          role: "user",
+          content:
+            "This is an API connection test. Respond with simply 'success'.",
+        },
+      ],
+      model: model.modelId,
+      maxOutputTokens: 5,
+      stop: [],
+      genParams: { temperature: 0.1, topLogprobs: 5 },
+    };
 
-    const auth = provider.auth;
-    if (!auth.apiKey) {
-      return { success: false, error: "API key is not configured" };
+    let result: ChatCompletionResponse;
+    if (adapter.defaultCapabilities().streaming) {
+      const gen = adapter.completeStream(req);
+      let r = await gen.next();
+      while (!r.done) r = await gen.next();
+      result = r.value;
+    } else {
+      result = await adapter.complete(req);
     }
 
-    return { success: true, message: "Connection successful" };
+    logger.info({ result }, "Provider connection test result");
+
+    if (!result.message.content.length && !result.reasoningContent?.length) {
+      throw new ServiceError("InternalError", {
+        message: "Connected to provider, but model returned an empty response.",
+      });
+    }
+
+    return { success: true, payload: result };
   }
 
-  private async getModelProfileByIdOrFail(tx: SqliteTransaction, id: string) {
+  private async getModelProfileByIdOrFail(tx: SqliteTxLike, id: string) {
     const [model] = await tx
       .select()
       .from(modelProfiles)
@@ -197,10 +240,7 @@ export class ProviderService {
     return model;
   }
 
-  private async getProviderByIdOrFail(
-    tx: SqliteTransaction | SqliteDatabase,
-    id: string
-  ) {
+  private async getProviderByIdOrFail(tx: SqliteTxLike, id: string) {
     const [provider] = await tx
       .select()
       .from(providerConfigs)

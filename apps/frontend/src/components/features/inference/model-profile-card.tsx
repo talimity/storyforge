@@ -10,6 +10,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import type { TextInferenceCapabilities } from "@storyforge/inference";
 import type { ModelProfile } from "@storyforge/schemas";
 import { useState } from "react";
 import {
@@ -18,23 +19,18 @@ import {
   LuPencilLine,
   LuTrash,
 } from "react-icons/lu";
-import { TbCube } from "react-icons/tb";
+
 import { trpc } from "@/lib/trpc";
 import { DeleteModelProfileDialog } from "./delete-model-profile-dialog";
 import { EditModelProfileDialog } from "./edit-model-profile-dialog";
+import { TestConnectionButton } from "./test-connection-button";
 
 interface ModelProfileCardProps {
   modelProfile: ModelProfile;
 }
 
 function getCapabilityBadges(
-  capabilities?: Partial<{
-    streaming: boolean;
-    assistantPrefill: boolean;
-    logprobs: boolean;
-    tools: boolean;
-    fim: boolean;
-  }>
+  capabilities: Partial<TextInferenceCapabilities> | null
 ) {
   if (!capabilities) return [];
 
@@ -43,8 +39,6 @@ function getCapabilityBadges(
     badges.push({ label: "Streaming", color: "blue" });
   if (capabilities.assistantPrefill)
     badges.push({ label: "Prefill", color: "green" });
-  if (capabilities.logprobs)
-    badges.push({ label: "Logprobs", color: "purple" });
   if (capabilities.tools) badges.push({ label: "Tools", color: "orange" });
   if (capabilities.fim) badges.push({ label: "FIM", color: "teal" });
 
@@ -55,7 +49,6 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Get the provider info for display
   const providerQuery = trpc.providers.getProvider.useQuery(
     { id: modelProfile.providerId },
     { enabled: !!modelProfile.providerId }
@@ -72,7 +65,6 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
           <VStack align="stretch" gap={3}>
             <HStack justify="space-between">
               <HStack gap={2}>
-                <TbCube />
                 <Text fontWeight="medium" truncate>
                   {modelProfile.displayName}
                 </Text>
@@ -113,11 +105,17 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
               </Text>
 
               {provider && (
-                <HStack gap={2} align="center">
-                  <LuCog size={12} />
-                  <Text fontSize="xs" color="content.muted" truncate>
-                    {provider.name}
-                  </Text>
+                <HStack gap={2} align="center" justify="space-between">
+                  <HStack gap={2} align="center">
+                    <LuCog size={12} />
+                    <Text fontSize="xs" color="content.muted" truncate>
+                      {provider.name}
+                    </Text>
+                  </HStack>
+                  <TestConnectionButton
+                    providerId={modelProfile.providerId}
+                    modelProfileId={modelProfile.id}
+                  />
                 </HStack>
               )}
 

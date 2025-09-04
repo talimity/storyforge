@@ -1,11 +1,7 @@
-import type { createProviderConfigSchema } from "@storyforge/schemas";
-import type { z } from "zod";
 import { Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
 import { showSuccessToast } from "@/lib/utils/error-handling";
-import { ProviderForm } from "./provider-form";
-
-type CreateProviderFormData = z.infer<typeof createProviderConfigSchema>;
+import { ProviderForm, type ProviderFormData } from "./provider-form";
 
 interface CreateProviderDialogProps {
   isOpen: boolean;
@@ -29,8 +25,13 @@ export function CreateProviderDialog({
     },
   });
 
-  const handleSubmit = (data: CreateProviderFormData) => {
-    createProviderMutation.mutate(data);
+  const handleSubmit = (data: ProviderFormData) => {
+    // Undefined is not allowed in create operations
+    const createData = {
+      ...data,
+      auth: { ...data.auth, apiKey: data.auth.apiKey ?? null },
+    };
+    createProviderMutation.mutate(createData);
   };
 
   const handleCancel = () => {

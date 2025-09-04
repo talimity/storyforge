@@ -12,13 +12,14 @@ export const modelProfiles = sqliteTable("model_profiles", {
   displayName: text("name").notNull(),
   // This is the model ID as used by the provider, e.g. "deepseek/deepseek-r1-0528"
   modelId: text("model_id").notNull(),
-
-  // TODO: support per-model capability overrides
-
-  createdAt: integer("created_at", { mode: "timestamp" })
+  // Per-model capability overrides (JSON)
+  capabilityOverrides: text("capability_overrides", { mode: "json" }).$type<
+    Record<string, unknown>
+  >(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
     .notNull()
     .$onUpdate(() => new Date()),
 });

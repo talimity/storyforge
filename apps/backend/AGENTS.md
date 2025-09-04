@@ -168,3 +168,16 @@ export const featureRouter = router({
     * **Service** in `services/<feature>/*.service.ts` (if write/UoW).
 4. **(Optional)** Add `services/<feature>/utils/*` for feature-local helpers.
 5. **Frontend** consumes the query/service contract directly. See the frontend AGENTS.md for its own architecture guidelines.
+
+## Defining API contracts
+Take special care to mind the distinction between optional/nullable/nullish when defining Zod contracts.
+
+- `nullable()`: Adds ` | null` to the type.
+  - Use for fields returned from the API to a client. Makes it explicit when a field is missing.
+  - Use for optional fields when accepting inputs for a *create* operation. Requires clients to provide a value or explicitly request `null`.
+- `nullish()`: Adds ` | null | undefined` to the type.
+  - Use for optional fields when accepting inputs for an *update* operation. Allows clients to leave the field unchanged (`undefined`) or clear it (`null`).
+- `optional()`: Adds ` | undefined` to the type.
+  - Generally, don't use this for entity fields, since the database driver never returns `undefined`. You can use it for computed or derived fields.
+  - You can use this for inputs to GET requests, where `null` doesn't make sense. Example: search filters, pagination, etc.
+  - You can use `.partial()` on a "create" schema to derive an "update" schema.

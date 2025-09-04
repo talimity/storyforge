@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@storyforge/inference": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/gentasks": "workspace:*",
     "@trpc/server": "catalog:",

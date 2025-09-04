@@ -174,11 +174,12 @@ export function ScenarioForm({
               />
             </Stack>
 
+            <Separator />
+
             {/* Form Actions */}
-            <HStack justify="end" pt={4}>
+            <HStack justify="space-between" width="full">
               <Button
-                variant="outline"
-                colorPalette="neutral"
+                variant="ghost"
                 onClick={() => confirmNavigation(onCancel)}
                 disabled={isSubmitting}
               >
@@ -188,8 +189,8 @@ export function ScenarioForm({
                 type="submit"
                 variant="solid"
                 colorPalette="primary"
-                loading={isSubmitting}
                 disabled={!canSubmit}
+                loading={isSubmitting}
               >
                 {submitLabel}
               </Button>

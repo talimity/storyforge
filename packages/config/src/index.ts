@@ -11,17 +11,6 @@ if (envPath) {
 }
 
 export interface Config {
-  llm: {
-    openrouter?: {
-      apiKey: string;
-    };
-    deepseek?: {
-      apiKey: string;
-    };
-    openai?: {
-      apiKey: string;
-    };
-  };
   server: {
     port: number;
     host: string;
@@ -36,16 +25,7 @@ export interface Config {
 }
 
 function validateConfig(): Config {
-  const openrouterApiKey = process.env.OPENROUTER_API_KEY;
-  const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
-  const openaiApiKey = process.env.OPENAI_API_KEY;
-
   return {
-    llm: {
-      ...(openrouterApiKey && { openrouter: { apiKey: openrouterApiKey } }),
-      ...(deepseekApiKey && { deepseek: { apiKey: deepseekApiKey } }),
-      ...(openaiApiKey && { openai: { apiKey: openaiApiKey } }),
-    },
     server: {
       port: Number.parseInt(process.env.PORT || "3001", 10),
       host: process.env.HOST || "localhost",

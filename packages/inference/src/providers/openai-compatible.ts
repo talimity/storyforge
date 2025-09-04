@@ -82,7 +82,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
   }
 
   defaultCapabilities(): TextInferenceCapabilities {
-    return this.capabilities;
+    return this.applyOverrides(this.capabilities);
   }
 
   supportedParams(): Array<keyof TextInferenceGenParams> {

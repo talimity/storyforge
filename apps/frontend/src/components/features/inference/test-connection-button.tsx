@@ -7,10 +7,12 @@ import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
 
 interface TestConnectionButtonProps {
   providerId: string;
+  modelProfileId: string;
 }
 
 export function TestConnectionButton({
   providerId,
+  modelProfileId,
 }: TestConnectionButtonProps) {
   const [testResult, setTestResult] = useState<"success" | "error" | null>(
     null
@@ -26,20 +28,14 @@ export function TestConnectionButton({
         });
       } else {
         setTestResult("error");
-        showErrorToast({
-          title: "Connection failed",
-          error: result.error || result.message || "Unknown error",
-        });
+        showErrorToast({ title: "Connection failed", error: "Unknown error" });
       }
       // Reset the status after 3 seconds
       setTimeout(() => setTestResult(null), 3000);
     },
     onError: (error) => {
       setTestResult("error");
-      showErrorToast({
-        title: "Connection test failed",
-        error: error.message,
-      });
+      showErrorToast({ title: "Connection test failed", error: error.message });
       // Reset the status after 3 seconds
       setTimeout(() => setTestResult(null), 3000);
     },
@@ -72,7 +68,9 @@ export function TestConnectionButton({
         size="xs"
         colorPalette={getColorPalette()}
         loading={testConnectionMutation.isPending}
-        onClick={() => testConnectionMutation.mutate({ providerId })}
+        onClick={() =>
+          testConnectionMutation.mutate({ providerId, modelProfileId })
+        }
       >
         {getIcon()}
       </IconButton>

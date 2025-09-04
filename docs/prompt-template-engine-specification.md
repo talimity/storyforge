@@ -29,7 +29,7 @@
 
   ```ts
   export type TurnGenCtx = {
-    turns: TurnLite[];                 // already scoped (e.g., current chapter), normalized
+    turns: TurnLite[]; // not scoped (contains everything from the entire scenario)
     chapterSummaries: ChapterSummaryLite[];
     characters: CharacterLite[];
     currentIntent: { description: string; constraint?: string };
@@ -53,6 +53,7 @@
   ```
 
 * **Source Registry (per TaskKind):** A resolver used by the renderer to fulfill **DataRefs**. Each task defines which sources exist and how to resolve them from that task’s context.
+  * Resolvers can receive parameters from the template and use them to apply arbitrary scoping, transformation, or filters to the raw data.
 
 * **Message:** `{ role: 'system'|'user'|'assistant', content: string, prefix?: boolean }`. 
   * ~~If the final assistant message sets `prefix: true`, the caller must route to a model that supports assistant prefixing (enforced upstream).~~
@@ -62,7 +63,7 @@
 
 * **Plan:** A small sequence of nodes that, when evaluated, emits 0..N messages into a slot.
 
-Note: TaskKind, render contexts, and source registries are only used generically in the prompt-rendering package.
+Note: TaskKind, render contexts, and source registries are only used generically in the prompt-rendering package. The gentasks package defines concrete task types, registry implementations, and context shapes.
 
 ---
 

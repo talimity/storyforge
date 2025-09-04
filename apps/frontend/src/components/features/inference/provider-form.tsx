@@ -1,21 +1,13 @@
-import {
-  createListCollection,
-  HStack,
-  Input,
-  Stack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { createListCollection, HStack, Input, VStack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createProviderConfigSchema,
-  updateProviderConfigSchema,
+  providerAuthInputSchema,
 } from "@storyforge/schemas";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import {
   Button,
-  Checkbox,
   Field,
   SelectContent,
   SelectItem,
@@ -23,21 +15,27 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui";
+import { emptyToNull, emptyToUndefined } from "@/lib/utils/empty-to-null";
+import { CapabilitiesSelector } from "./capabilities-selector";
 
-type CreateProviderFormData = z.infer<typeof createProviderConfigSchema>;
-type UpdateProviderFormData = z.infer<typeof updateProviderConfigSchema>;
-type ProviderFormData = CreateProviderFormData | UpdateProviderFormData;
+const providerFormAuthInputSchema = providerAuthInputSchema.extend({
+  apiKey: providerAuthInputSchema.shape.apiKey.optional(), // let user keep existing key
+});
+const providerFormSchema = createProviderConfigSchema
+  .pick({ kind: true, name: true, baseUrl: true, capabilities: true })
+  .extend({ auth: providerFormAuthInputSchema });
 
-interface ProviderFormProps {
-  initialData?: Partial<ProviderFormData> & {
-    hasApiKey?: boolean;
+export type ProviderFormData = z.infer<typeof providerFormSchema>;
+
+type ProviderFormProps = {
+  initialData?: Partial<Omit<ProviderFormData, "auth">> & {
+    auth: { hasApiKey: boolean };
   };
-  // biome-ignore lint/suspicious/noExplicitAny: Union types between create/update schemas make proper typing complex
-  onSubmit: (data: any) => void;
+  onSubmit: (data: ProviderFormData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
   submitLabel?: string;
-}
+};
 
 const providerKindOptions = createListCollection({
   items: [
@@ -49,8 +47,7 @@ const providerKindOptions = createListCollection({
 
 const defaultCapabilities = {
   streaming: true,
-  assistantPrefill: false,
-  logprobs: false,
+  assistantPrefill: "explicit" as const,
   tools: false,
   fim: false,
 };
@@ -69,17 +66,15 @@ export function ProviderForm({
     handleSubmit,
     control,
     watch,
-    formState: { errors, isValid },
+    formState: { errors },
   } = useForm<ProviderFormData>({
-    resolver: zodResolver(
-      isEditMode ? updateProviderConfigSchema : createProviderConfigSchema
-    ),
-    mode: "onBlur",
+    resolver: zodResolver(providerFormSchema),
+    mode: "onChange",
     defaultValues: {
       kind: initialData?.kind || "openrouter",
       name: initialData?.name || "",
-      auth: { apiKey: initialData?.auth?.apiKey || "" },
-      baseUrl: initialData?.baseUrl || "",
+      auth: undefined,
+      baseUrl: initialData?.baseUrl || null,
       capabilities: initialData?.capabilities || defaultCapabilities,
     },
   });
@@ -88,21 +83,15 @@ export function ProviderForm({
   const isOpenAICompatible = watchedKind === "openai-compatible";
 
   const handleFormSubmit = (data: ProviderFormData) => {
-    // For edit mode, don't send empty API key
-    if (isEditMode && "auth" in data && !data.auth?.apiKey) {
-      const { auth, ...rest } = data;
-      onSubmit({
-        ...rest,
-        capabilities: isOpenAICompatible ? data.capabilities : undefined,
-        baseUrl: data.baseUrl || undefined,
-      });
-    } else {
-      onSubmit({
-        ...data,
-        capabilities: isOpenAICompatible ? data.capabilities : undefined,
-        baseUrl: data.baseUrl || undefined,
-      });
-    }
+    // Normalize api key (empty string treated as undefined)
+    const key = data.auth?.apiKey || undefined;
+    // TODO: We need a button for user to clear an API key.
+    onSubmit({
+      ...data,
+      auth: { ...data.auth, apiKey: key },
+      capabilities: isOpenAICompatible ? data.capabilities : null,
+      baseUrl: data.baseUrl,
+    });
   };
 
   return (
@@ -135,7 +124,12 @@ export function ProviderForm({
           />
         </Field>
 
-        <Field label="Display Name" required errorText={errors.name?.message}>
+        <Field
+          label="Display Name"
+          required
+          invalid={!!errors.name?.message}
+          errorText={errors.name?.message}
+        >
           <Input
             {...register("name")}
             placeholder="e.g., OpenRouter (Personal), Local vLLM"
@@ -144,10 +138,10 @@ export function ProviderForm({
 
         <Field
           label="API Key"
-          required={!isEditMode}
+          invalid={!!errors.auth?.apiKey?.message}
           errorText={errors.auth?.apiKey?.message}
           helperText={
-            isEditMode && initialData?.hasApiKey
+            isEditMode && initialData?.auth.hasApiKey
               ? "Leave empty to keep existing API key"
               : isEditMode
                 ? "Enter a new API key"
@@ -155,10 +149,10 @@ export function ProviderForm({
           }
         >
           <Input
-            {...register("auth.apiKey")}
+            {...register("auth.apiKey", { setValueAs: emptyToUndefined })}
             type="password"
             placeholder={
-              isEditMode && initialData?.hasApiKey
+              isEditMode && initialData?.auth.hasApiKey
                 ? "••••••••"
                 : "Enter your API key"
             }
@@ -166,9 +160,13 @@ export function ProviderForm({
         </Field>
 
         {isOpenAICompatible && (
-          <Field label="Base URL" required errorText={errors.baseUrl?.message}>
+          <Field
+            label="Base URL"
+            invalid={!!errors.baseUrl?.message}
+            errorText={errors.baseUrl?.message}
+          >
             <Input
-              {...register("baseUrl")}
+              {...register("baseUrl", { setValueAs: emptyToNull })}
               placeholder="e.g., http://localhost:8080/v1"
             />
           </Field>
@@ -176,73 +174,18 @@ export function ProviderForm({
 
         {isOpenAICompatible && (
           <Field label="Capabilities">
-            <VStack gap={2} align="stretch">
-              <Text fontSize="sm" color="content.muted">
-                Configure what this provider supports
-              </Text>
-              <Stack gap={2}>
-                <Controller
-                  name="capabilities.streaming"
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={({ checked }) => field.onChange(checked)}
-                    >
-                      Streaming responses
-                    </Checkbox>
-                  )}
+            <Controller
+              name="capabilities"
+              control={control}
+              render={({ field }) => (
+                <CapabilitiesSelector
+                  value={field.value || {}}
+                  onChange={field.onChange}
+                  allowInherit={false}
+                  helperText="Configure what this provider supports"
                 />
-                <Controller
-                  name="capabilities.assistantPrefill"
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={({ checked }) => field.onChange(checked)}
-                    >
-                      Assistant message prefill
-                    </Checkbox>
-                  )}
-                />
-                <Controller
-                  name="capabilities.logprobs"
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={({ checked }) => field.onChange(checked)}
-                    >
-                      Log probabilities
-                    </Checkbox>
-                  )}
-                />
-                <Controller
-                  name="capabilities.tools"
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={({ checked }) => field.onChange(checked)}
-                    >
-                      Tool calling
-                    </Checkbox>
-                  )}
-                />
-                <Controller
-                  name="capabilities.fim"
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={({ checked }) => field.onChange(checked)}
-                    >
-                      Fill-in-the-middle
-                    </Checkbox>
-                  )}
-                />
-              </Stack>
-            </VStack>
+              )}
+            />
           </Field>
         )}
       </VStack>
@@ -256,7 +199,6 @@ export function ProviderForm({
           form="provider-form"
           colorPalette="primary"
           loading={isSubmitting}
-          disabled={!isValid}
         >
           {submitLabel}
         </Button>

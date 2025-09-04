@@ -12,6 +12,7 @@ import type {
 
 export abstract class ProviderAdapter {
   abstract readonly kind: string;
+  private overrides?: Partial<TextInferenceCapabilities>;
 
   protected constructor(
     protected auth: ProviderAuth,
@@ -63,6 +64,25 @@ export abstract class ProviderAdapter {
     }
 
     return { prefillMode: prefill.prefillMode };
+  }
+
+  /**
+   * Attach per-model capability overrides. Returns the same adapter instance
+   * to allow fluent usage in call sites.
+   */
+  withOverrides(overrides?: Partial<TextInferenceCapabilities> | null): this {
+    if (!overrides) {
+      return this;
+    }
+    this.overrides = overrides;
+    return this;
+  }
+
+  /** Merge any provided overrides into a capabilities object */
+  protected applyOverrides(
+    caps: TextInferenceCapabilities
+  ): TextInferenceCapabilities {
+    return this.overrides ? { ...caps, ...this.overrides } : caps;
   }
 
   protected getHeaders(): Record<string, string> {

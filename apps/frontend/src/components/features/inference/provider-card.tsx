@@ -12,34 +12,16 @@ import {
 import type { ProviderConfig } from "@storyforge/schemas";
 import { useState } from "react";
 import {
-  LuCloud,
-  LuCog,
   LuEllipsisVertical,
   LuKey,
   LuPencilLine,
-  LuPlug,
-  LuServer,
   LuTrash,
 } from "react-icons/lu";
 import { DeleteProviderDialog } from "./delete-provider-dialog";
 import { EditProviderDialog } from "./edit-provider-dialog";
-import { TestConnectionButton } from "./test-connection-button";
 
 interface ProviderCardProps {
   provider: ProviderConfig;
-}
-
-function getProviderIcon(kind: string) {
-  switch (kind) {
-    case "openrouter":
-      return <LuCloud />;
-    case "deepseek":
-      return <LuServer />;
-    case "openai-compatible":
-      return <LuPlug />;
-    default:
-      return <LuCog />;
-  }
 }
 
 function getProviderBadgeColor(kind: string) {
@@ -66,7 +48,6 @@ export function ProviderCard({ provider }: ProviderCardProps) {
           <VStack align="stretch" gap={3}>
             <HStack justify="space-between">
               <HStack gap={2}>
-                {getProviderIcon(provider.kind)}
                 <Text fontWeight="medium" truncate>
                   {provider.name}
                 </Text>
@@ -125,7 +106,6 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                       : "No API key"}
                   </Text>
                 </HStack>
-                <TestConnectionButton providerId={provider.id} />
               </HStack>
             </VStack>
           </VStack>

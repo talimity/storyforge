@@ -7,4 +7,5 @@ export * from "./is-defined.js";
 export * from "./lexo-order.js";
 export * from "./result.js";
 export * from "./safe-json-parse.js";
+export * from "./strip-nulls.js";
 export * from "./ulid.js";

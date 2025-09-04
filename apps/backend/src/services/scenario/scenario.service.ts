@@ -6,6 +6,7 @@ import {
   type SqliteTransaction,
   schema,
 } from "@storyforge/db";
+import { assertDefined } from "@storyforge/utils";
 import { eq, inArray, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 
@@ -156,9 +157,12 @@ export class ScenarioService {
       .all()
       .then((ps) => ps.filter((p) => p.type === "character" && p.characterId));
 
-    // Build maps for comparison (we already filtered to ensure characterId exists)
+    // Build maps for comparison
     const existingById = new Map(
-      existing.map((p) => [p.characterId as string, p])
+      existing.map((p) => {
+        assertDefined(p.characterId);
+        return [p.characterId, p];
+      })
     );
     const inputById = new Map(inputParticipants.map((p) => [p.characterId, p]));
 
@@ -167,14 +171,12 @@ export class ScenarioService {
       (p) => !existingById.has(p.characterId)
     );
     const toRemove = existing.filter((p) => {
-      // We know characterId exists because we filtered earlier
-      const charId = p.characterId as string;
-      return !inputById.has(charId);
+      assertDefined(p.characterId);
+      return !inputById.has(p.characterId);
     });
     const toUpdate = existing.filter((p) => {
-      // We know characterId exists because we filtered earlier
-      const charId = p.characterId as string;
-      const input = inputById.get(charId);
+      assertDefined(p.characterId);
+      const input = inputById.get(p.characterId);
       if (!input) return false;
       return p.role !== input.role || p.isUserProxy !== input.isUserProxy;
     });
@@ -248,9 +250,8 @@ export class ScenarioService {
 
     // Execute updates
     for (const existing of toUpdate) {
-      // We know characterId exists and input exists from toUpdate filter
-      const charId = existing.characterId as string;
-      const input = inputById.get(charId);
+      assertDefined(existing.characterId);
+      const input = inputById.get(existing.characterId);
       if (!input) continue; // This shouldn't happen but handle it gracefully
 
       await tx

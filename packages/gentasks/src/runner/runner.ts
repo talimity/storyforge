@@ -204,7 +204,10 @@ export function makeWorkflowRunner<K extends TaskKind>(
 
     // 5. Load model profile and create adapter
     const profile = await deps.loadModelProfile(step.modelProfileId);
-    const adapter = deps.makeAdapter(profile.provider);
+    const adapter = deps
+      .makeAdapter(profile.provider)
+      // Apply per-model capability overrides so adapter preflight respects them
+      .withOverrides(profile.capabilityOverrides);
 
     emit({
       type: "step_prompt",

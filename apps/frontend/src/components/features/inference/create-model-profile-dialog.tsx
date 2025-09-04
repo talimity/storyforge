@@ -1,11 +1,10 @@
-import type { createModelProfileSchema } from "@storyforge/schemas";
-import type { z } from "zod";
 import { Dialog } from "@/components/ui";
 import { trpc } from "@/lib/trpc";
 import { showSuccessToast } from "@/lib/utils/error-handling";
-import { ModelProfileForm } from "./model-profile-form";
-
-type CreateModelProfileFormData = z.infer<typeof createModelProfileSchema>;
+import {
+  ModelProfileForm,
+  type ModelProfileFormData,
+} from "./model-profile-form";
 
 interface CreateModelProfileDialogProps {
   isOpen: boolean;
@@ -30,7 +29,7 @@ export function CreateModelProfileDialog({
       },
     });
 
-  const handleSubmit = (data: CreateModelProfileFormData) => {
+  const handleSubmit = (data: ModelProfileFormData) => {
     createModelProfileMutation.mutate(data);
   };
 

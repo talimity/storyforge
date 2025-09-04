@@ -1,7 +1,8 @@
-export * from "./provider-factory.js";
-export * from "./providers/base.js";
-export * from "./providers/deepseek.js";
-export * from "./providers/mock.js";
-export * from "./providers/openai-compatible.js";
-export * from "./providers/openrouter.js";
+export { createAdapter, getDefaultCapabilities } from "./provider-factory.js";
+export { ProviderAdapter } from "./providers/base.js";
+export { DeepseekAdapter } from "./providers/deepseek.js";
+export { MockAdapter } from "./providers/mock.js";
+export { OpenAICompatibleAdapter } from "./providers/openai-compatible.js";
+export { OpenRouterAdapter } from "./providers/openrouter.js";
+export { textInferenceCapabilitiesSchema } from "./schemas.js";
 export * from "./types.js";

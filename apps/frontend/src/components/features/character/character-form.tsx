@@ -28,9 +28,7 @@ import { CharacterImageField } from "./character-image-field";
 
 const characterFormSchema = createCharacterSchema
   .pick({ name: true, description: true, cardType: true })
-  .extend({
-    cardType: createCharacterSchema.shape.cardType.removeDefault(),
-  });
+  .extend({ cardType: createCharacterSchema.shape.cardType.unwrap() }); // remove default
 
 type CharacterFormData = z.infer<typeof characterFormSchema>;
 
@@ -216,10 +214,10 @@ export function CharacterForm({
               </Button>
               <Button
                 type="submit"
+                variant="solid"
                 colorPalette="primary"
                 disabled={isSubmitting}
                 loading={isSubmitting}
-                loadingText="Saving..."
               >
                 {submitLabel}
               </Button>
@@ -233,6 +231,8 @@ export function CharacterForm({
         isOpen={showDialog}
         onConfirm={handleConfirmNavigation}
         onCancel={handleCancelNavigation}
+        title="Unsaved Changes"
+        message="You have unsaved changes to this character. Are you sure you want to leave?"
       />
     </>
   );
