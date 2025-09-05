@@ -8,15 +8,11 @@ export type InputMode = "direct" | "constraints" | "quick";
 
 interface IntentPanelProps {
   onSubmitIntent: (mode: InputMode, text: string) => Promise<void>;
-  onQuickAction: (action: string) => Promise<void>;
   isGenerating: boolean;
 }
 
-export function IntentPanel({
-  onSubmitIntent,
-  onQuickAction,
-  isGenerating,
-}: IntentPanelProps) {
+export function IntentPanel(props: IntentPanelProps) {
+  const { onSubmitIntent, isGenerating } = props;
   const [inputMode, setInputMode] = useState<InputMode>("direct");
   const [inputText, setInputText] = useState("");
 
@@ -27,10 +23,6 @@ export function IntentPanel({
     if (!inputText.trim()) return;
     await onSubmitIntent(inputMode, inputText.trim());
     setInputText("");
-  };
-
-  const handleQuickAction = async (action: string) => {
-    await onQuickAction(action);
   };
 
   return (
@@ -69,7 +61,7 @@ export function IntentPanel({
 
       {inputMode === "quick" && (
         <QuickActionsPanel
-          onAction={handleQuickAction}
+          onGenerate={handleGenerate}
           isGenerating={isGenerating}
         />
       )}

@@ -288,23 +288,21 @@ export const intentSchema = z
 #### `intents`
 
 - `id TEXT PK`
-- `scenario_id TEXT FK`
-- `anchor_turn_id TEXT FK -> turns.id NOT NULL`
-- `mode TEXT CHECK in ('direct_control','story_constraint','quick_action')`
-- `text TEXT NULL`
-- `selected_character_id TEXT NULL`
-- `constraint_type TEXT NULL`
-- `constraint_strength INTEGER NULL`
-- `quick_action_type TEXT NULL`
-- `quick_action_target_character_id TEXT NULL`
-~~- `branch_policy TEXT CHECK in ('mainline','new_branch','replace_leaf') DEFAULT 'mainline'`~~
+- `scenario_id TEXT FK -> scenarios.id NOT NULL`
+- ~~`anchor_turn_id TEXT FK -> turns.id NOT NULL`~~
+- `kind TEXT CHECK in ('manual_control', 'guided_control', 'narrative_constraint', 'continue_story', ...)`
 - `status TEXT CHECK in ('pending','applied','cancelled','failed') DEFAULT 'pending'`
+- `target_participant_id TEXT FK -> scenario_participants.id`
+- `parameters TEXT NOT NULL
+~~- `branch_policy TEXT CHECK in ('mainline','new_branch','replace_leaf') DEFAULT 'mainline'`~~
 - timestamps
 
 #### `intent_effects`
 
-- `intent_id TEXT FK -> intents.id`
+- `id TEXT PK`
+- `intent_id TEXT FK -> intents.id NOT NULL`
 - `turn_id TEXT FK -> turns.id`
+- `kind TEXT CHECK in ('insert_turn','generate_turn','timeline_event')`
 - `sequence INTEGER NOT NULL`
 - **PK** `(intent_id, sequence)`
 
@@ -334,30 +332,20 @@ export const intentSchema = z
 
 ## Transactional writes
 
-1. **`createIntent(params)`**
-
-- Validate, read `scenario.current_turn_id` as `anchor_turn_id`, insert `intents(pending)`.
-
-2. **`applyIntentWithMock(intentId)`** *(stub engine)*
-
-- Load intent + scenario (for `current_turn_id`).
-- **If mode = direct\_control & text**: insert a new turn authored by `selectedCharacterId` with **presentation** content = `text` as **effect `sequence=0`**.
-- Always insert one **generated** turn (mock provider) as **effect `sequence=last+1`**:
-
-- parent = current leaf after the previous effect (or the anchor if none)
-- chapter\_id = parent.chapter\_id (inherit)
-- author\_participant\_id = pick narrator (simplest)
-- sibling\_order = append to parent’s children
-- Update `scenario.current_turn_id` to the last new turn.
-- Upsert `intent_effects` for each created turn; set `intents.status='applied'`.
-
-3. **`advanceTurn(params)`** *(low-level creator used by the stub above)*
-
-- Insert turn under a parent, maintain `sibling_order`, inherit `chapter_id` unless overridden.
-
-4. **`startNewChapter(scenarioId, title?)`**
-
-- Read `scenario.current_turn_id`, create chapter with `first_turn_id` at that leaf, `index = max(index)+1`.
+1. **`IntentService.createAndStart(params)`**
+   - Get `WorkflowRunnerManager` singleton, then get the runner for `turn_generation` workflows
+   - Get `IntentRunManager` singleton
+   - Insert `pending` intent into DB, commit
+   - Make saga for the selected intent kind
+     - Saga will yield effect generators:
+       - Manual control: insert turn (player input text) -> choose actor -> generate turn -> insert turn
+       - Guided control: generate turn -> insert turn
+       - Narrative constraint: generate turn (narrator) -> insert turn -> choose actor -> generate turn
+     - Effect generators 
+2. **`advanceTurn(params)`** *(low-level creator used by the stub above)*
+   - Insert turn under a parent, maintain `sibling_order`, inherit `chapter_id` unless overridden.
+3. **`startNewChapter(scenarioId, title?)`**
+   - Read `scenario.current_turn_id`, create chapter with `first_turn_id` at that leaf, `index = max(index)+1`.
 
 ---
 

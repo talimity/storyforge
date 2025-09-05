@@ -2,7 +2,7 @@ import { Box, Flex } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 
 interface PlayerLayoutProps {
-  turnHistory: ReactNode;
+  timeline: ReactNode;
   intentPanel: ReactNode;
 }
 
@@ -10,10 +10,10 @@ interface PlayerLayoutProps {
  * The main layout for the scenario player content area.
  * This component handles the vertical split between turn history and input panel.
  */
-export function PlayerLayout({ turnHistory, intentPanel }: PlayerLayoutProps) {
+export function PlayerLayout({ timeline, intentPanel }: PlayerLayoutProps) {
   return (
     <Flex direction="column" h="100%" position="relative">
-      {/* Turn History Display - Takes up most of the space */}
+      {/* Turn History Slot */}
       <Box
         flex="1"
         overflow="auto"
@@ -21,7 +21,7 @@ export function PlayerLayout({ turnHistory, intentPanel }: PlayerLayoutProps) {
         py={{ base: 4, md: 6 }}
       >
         <Box maxW="3xl" mx="auto">
-          {turnHistory}
+          {timeline}
         </Box>
       </Box>
 

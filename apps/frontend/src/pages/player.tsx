@@ -4,8 +4,7 @@ import {
   IntentPanel,
 } from "@/components/features/player/intent-panel/intent-panel";
 import { PlayerLayout } from "@/components/features/player/player-layout";
-import { TurnHistory } from "@/components/features/player/turn-history";
-import { toaster } from "@/components/ui";
+import { TimelineView } from "@/components/features/player/timeline";
 import { useActiveScenario } from "@/lib/hooks/use-active-scenario";
 import { useScenarioIntent } from "@/lib/hooks/use-scenario-intent";
 import { useScenarioTimeline } from "@/lib/hooks/use-scenario-timeline";
@@ -65,13 +64,6 @@ export function PlayerPage() {
     }
   };
 
-  const handleQuickAction = async (action: string) => {
-    // TODO: Implement quick actions when API is ready
-    toaster.info({
-      description: `Quick action "${action}" not yet implemented`,
-    });
-  };
-
   const handleStarterSelect = async (
     characterId: string,
     starterId: string
@@ -80,8 +72,8 @@ export function PlayerPage() {
     console.log("Selected starter:", { characterId, starterId });
   };
 
-  const turnHistory = (
-    <TurnHistory
+  const timelineView = (
+    <TimelineView
       scenarioId={scenario.id}
       scenarioTitle={scenario.title}
       chapterTitle={
@@ -99,10 +91,9 @@ export function PlayerPage() {
   const intentPanel = (
     <IntentPanel
       onSubmitIntent={handleSubmitIntent}
-      onQuickAction={handleQuickAction}
       isGenerating={isAddingTurn}
     />
   );
 
-  return <PlayerLayout turnHistory={turnHistory} intentPanel={intentPanel} />;
+  return <PlayerLayout timeline={timelineView} intentPanel={intentPanel} />;
 }

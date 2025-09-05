@@ -4,12 +4,12 @@ import { TurnDeleteDialog } from "@/components/dialogs/turn-delete";
 import {
   CharacterStarterSelector,
   TurnItem,
-} from "@/components/features/player/turn-history";
+} from "@/components/features/player/timeline";
 import { useAutoLoadMore } from "@/lib/hooks/use-auto-load-more";
 import { useTurnActions } from "@/lib/hooks/use-turn-actions";
 import { trpc } from "@/lib/trpc";
 
-interface TurnHistoryProps {
+interface TimelineProps {
   scenarioId: string;
   scenarioTitle: string;
   chapterTitle?: string;
@@ -21,7 +21,7 @@ interface TurnHistoryProps {
   onStarterSelect?: (characterId: string, starterId: string) => void;
 }
 
-export function TurnHistory({
+export function TimelineView({
   scenarioId,
   scenarioTitle,
   chapterTitle,
@@ -31,7 +31,7 @@ export function TurnHistory({
   onLoadMore,
   onTurnDeleted,
   onStarterSelect,
-}: TurnHistoryProps) {
+}: TimelineProps) {
   const {
     turnToDelete,
     showDeleteDialog,
@@ -54,10 +54,9 @@ export function TurnHistory({
     rootMargin: "200px 0px 0px 0px",
   });
 
-  // Fetch character starters only when there are no turns
   const { data: startersData } = trpc.scenarios.getCharacterStarters.useQuery(
     { id: scenarioId },
-    { enabled: turns.length === 0 }
+    { enabled: turns.length === 0 } // skip if timeline is already populated
   );
 
   const handleStarterSelect = (characterId: string, starterId: string) => {

@@ -149,7 +149,7 @@ export function ProviderForm({
           }
         >
           <Input
-            {...register("auth.apiKey", { setValueAs: emptyToUndefined })}
+            {...register("auth.apiKey", { setValueAs: emptyToUndefined })} // don't send null to server as it will clear existing key
             type="password"
             placeholder={
               isEditMode && initialData?.auth.hasApiKey
