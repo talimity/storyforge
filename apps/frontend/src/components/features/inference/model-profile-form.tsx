@@ -73,7 +73,7 @@ export function ModelProfileForm({
     control,
     watch,
     setValue,
-    formState: { errors, isValid },
+    formState: { errors },
   } = useForm<ModelProfileFormData>({
     resolver: zodResolver(modelProfileFormSchema),
     mode: "onChange",
@@ -268,7 +268,6 @@ export function ModelProfileForm({
           form="model-profile-form"
           colorPalette="primary"
           loading={isSubmitting}
-          disabled={!isValid}
         >
           {submitLabel}
         </Button>
