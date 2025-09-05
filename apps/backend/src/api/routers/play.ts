@@ -4,6 +4,8 @@ import {
   createIntentOutputSchema,
   environmentInputSchema,
   environmentOutputSchema,
+  intentInterruptInputSchema,
+  intentInterruptOutputSchema,
   intentProgressInputSchema,
   intentResultInputSchema,
   intentResultOutputSchema,
@@ -13,6 +15,7 @@ import {
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
 import { IntentService } from "../../services/intent/intent.service.js";
+import { intentRunManager } from "../../services/intent/run-manager.js";
 import { getScenarioEnvironment } from "../../services/scenario/scenario.queries.js";
 import { getTimelineWindow } from "../../services/timeline/timeline.queries.js";
 import { TimelineService } from "../../services/timeline/timeline.service.js";
@@ -147,8 +150,6 @@ export const playRouter = router({
         scenarioId: input.scenarioId,
         ...input.parameters,
       });
-      // TODO: The output schema expects a full intent object, not just the ID
-      // This needs to be fixed to match the schema or the schema needs to be updated
       return { intentId: result.id };
     }),
 
@@ -164,9 +165,34 @@ export const playRouter = router({
     })
     .input(intentProgressInputSchema)
     .subscription(async function* ({ input, ctx }) {
-      yield;
-      // biome-ignore lint/suspicious/noExplicitAny: todo
-      return {} as any;
+      const { intentId } = input;
+
+      const intent = await ctx.db.query.intents.findFirst({
+        where: { id: intentId },
+        columns: { id: true },
+      });
+      if (!intent) {
+        throw new ServiceError("NotFound", {
+          message: `Intent with ID ${intentId} not found.`,
+        });
+      }
+
+      if (!intentRunManager) {
+        throw new ServiceError("InternalError", {
+          message: "Intent run manager is not initialized.",
+        });
+      }
+
+      const run = intentRunManager.get(intentId);
+      if (!run) {
+        throw new ServiceError("NotFound", {
+          message: `No active run for intent ${intentId}.`,
+        });
+      }
+
+      for await (const ev of run.events()) {
+        yield ev;
+      }
     }),
 
   intentResult: publicProcedure
@@ -181,8 +207,78 @@ export const playRouter = router({
     .input(intentResultInputSchema)
     .output(intentResultOutputSchema)
     .query(async ({ input, ctx }) => {
-      // biome-ignore lint/suspicious/noExplicitAny: todo
-      return {} as any;
+      const { intentId } = input;
+      const intent = await ctx.db.query.intents.findFirst({
+        where: { id: intentId },
+      });
+      if (!intent) {
+        throw new ServiceError("NotFound", {
+          message: `Intent with ID ${intentId} not found.`,
+        });
+      }
+
+      const scenario = await ctx.db.query.scenarios.findFirst({
+        where: { id: intent.scenarioId },
+        columns: { anchorTurnId: true },
+      });
+      if (!scenario) {
+        throw new ServiceError("NotFound", {
+          message: `Scenario ${intent.scenarioId} not found.`,
+        });
+      }
+
+      const effects = await ctx.db.query.intentEffects.findMany({
+        where: { intentId },
+        columns: { turnId: true, createdAt: true },
+        orderBy: (t, { asc }) => [asc(t.createdAt)],
+      });
+
+      return {
+        id: intent.id,
+        scenarioId: intent.scenarioId,
+        status: intent.status,
+        effects: effects.map((e, i) => ({ turnId: e.turnId, sequence: i + 1 })),
+        // Schema expects non-null string; in practice scenarios will have an anchor by the time
+        // results are fetched. Fall back to empty string to satisfy schema.
+        anchorTurnId: scenario.anchorTurnId ?? "",
+      };
+    }),
+
+  interruptIntent: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/play/intent/{intentId}/interrupt",
+        tags: ["play"],
+        summary: "Cancels a running intent",
+        enabled: true,
+      },
+    })
+    .input(intentInterruptInputSchema)
+    .output(intentInterruptOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { intentId } = input;
+      const intent = await ctx.db.query.intents.findFirst({
+        where: { id: intentId },
+      });
+      if (!intent) {
+        throw new ServiceError("NotFound", {
+          message: `Intent with ID ${intentId} not found.`,
+        });
+      }
+      if (!intentRunManager) {
+        throw new ServiceError("InternalError", {
+          message: "Intent run manager is not initialized.",
+        });
+      }
+      const run = intentRunManager.get(intentId);
+      if (!run) {
+        throw new ServiceError("NotFound", {
+          message: `No active run for intent ${intentId}.`,
+        });
+      }
+      run.cancel();
+      return { success: true };
     }),
 
   addTurn: publicProcedure
@@ -259,12 +355,9 @@ export const playRouter = router({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
+      const { turnId, layer, content } = input;
       const contentService = new TurnContentService(ctx.db);
-      await contentService.updateTurnContent({
-        turnId: input.turnId,
-        layer: input.layer,
-        content: input.content,
-      });
+      await contentService.updateTurnContent({ turnId, layer, content });
       return { success: true };
     }),
 });

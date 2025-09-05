@@ -60,10 +60,7 @@ export function IntentPanel(props: IntentPanelProps) {
       )}
 
       {inputMode === "quick" && (
-        <QuickActionsPanel
-          onGenerate={handleGenerate}
-          isGenerating={isGenerating}
-        />
+        <QuickActionsPanel isGenerating={isGenerating} />
       )}
     </Stack>
   );

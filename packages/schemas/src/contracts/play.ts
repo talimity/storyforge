@@ -185,7 +185,7 @@ export const intentSchema = z
     id: z.string(),
     scenarioId: z.string(),
     status: z
-      .enum(["pending", "applied", "failed"])
+      .enum(["pending", "running", "finished", "failed", "cancelled"])
       .describe("Current status of intent"),
     effects: z
       .array(intentEffectSchema)
@@ -202,6 +202,10 @@ export const intentProgressInputSchema = z.object({ intentId: z.string() });
 export const intentResultInputSchema = z.object({ intentId: z.string() });
 export const intentResultOutputSchema = intentSchema;
 
+// Interrupt intent
+export const intentInterruptInputSchema = z.object({ intentId: z.string() });
+export const intentInterruptOutputSchema = z.object({ success: z.boolean() });
+
 // Type exports
 export type IntentKind = z.infer<typeof intentKindSchema>;
 export type IntentInput = z.infer<typeof intentInputSchema>;
@@ -214,3 +218,5 @@ export type CreateIntentInput = z.infer<typeof createIntentInputSchema>;
 export type CreateIntentOutput = z.infer<typeof createIntentOutputSchema>;
 export type Intent = z.infer<typeof intentSchema>;
 export type IntentEffect = z.infer<typeof intentEffectSchema>;
+export type IntentInterruptInput = z.infer<typeof intentInterruptInputSchema>;
+export type IntentInterruptOutput = z.infer<typeof intentInterruptOutputSchema>;

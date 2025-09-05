@@ -18,11 +18,12 @@ The vision is something akin a turn-based/text-based version of The Sims, which 
 
 ### Build & Test Commands
 
+IMPORTANT: Do NOT use `-w`/watch mode with any commands. It will block your REPL/harness and require manual intervention.
+
 ```bash
 # Rebuild type declarations after changing shared packages
 pnpm build
 # Lint, fix imports, and check for type errors
-# (IMPORTANT: don't use flags aside from `--filter` with this command, so no -w or -s)
 pnpm check
 # Run tests (backend, integration-only)
 pnpm test
@@ -107,8 +108,6 @@ When in doubt, skip the comment.
 - **Use JSDoc for public APIs** - Document functions, classes, and interfaces that are at the boundary of your module
   - Skip parameter/return type JSDoc if the name and type make it obvious
 
----
-
 ## Other Important Reminders
 
 ### BEFORE starting a task
@@ -121,9 +120,8 @@ When in doubt, skip the comment.
 
 ### DURING work on a task
 - You MUST `pnpm build` any time you are making changes across packages
-- You MUST follow existing conventions and patterns over introducing new abstractions
+- You MUST follow existing conventions and patterns as much as possible
 - You SHOULD run checks and address diagnostics incrementally; it will be easier than fixing dozens of errors at the end
 - You MUST run the build and check commands before a task can be considered finished
-
-### At ALL TIMES
-- You MUST NOT run any `pnpm` commands with `-w` or `-s` flags. `-w` will block your readline, and `-s` will not return any output.
+- You MUST NOT run any commands in watch mode or you will get stuck until the user manually interrupts the process
+- You MUST NOT 

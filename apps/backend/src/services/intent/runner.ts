@@ -9,7 +9,8 @@ export class IntentRunner {
   private queue = new AsyncQueue<IntentEvent>();
   private aborted = new AbortController();
   // The accumulated text from the last generated turn
-  private partial?: string;
+  private partial: string | undefined;
+  private closedAt?: number;
 
   constructor(
     private deps: { db: SqliteDatabase; now: () => number },
@@ -26,8 +27,22 @@ export class IntentRunner {
     this.aborted.abort();
   }
 
+  isClosed() {
+    return this.queue.isClosed();
+  }
+  getClosedAt() {
+    return this.closedAt;
+  }
+
   async run() {
     const { db, now } = this.deps;
+    // Mark intent as running as early as possible
+
+    await db
+      .update(schema.intents)
+      .set({ status: "running" })
+      .where(eq(schema.intents.id, this.intentId));
+
     const startEv: IntentEvent = {
       type: "intent_started",
       intentId: this.intentId,
@@ -40,7 +55,9 @@ export class IntentRunner {
     try {
       for await (const ev of this.saga) {
         if (this.aborted.signal.aborted) throw new Error("Intent cancelled");
-        if (ev.type === "gen_token") this.partial += ev.delta;
+        if (ev.type === "gen_token") {
+          this.partial = (this.partial ?? "") + ev.delta;
+        }
         if (ev.type === "effect_committed") this.partial = undefined;
         this.queue.push(ev);
       }
@@ -56,7 +73,7 @@ export class IntentRunner {
         .set({ status: "finished" })
         .where(eq(schema.intents.id, this.intentId));
     } catch (e) {
-      const error = String(e.message ?? e);
+      const error = String("message" in e ? e.message : e);
       this.queue.push({
         type: "intent_failed",
         intentId: this.intentId,
@@ -64,13 +81,15 @@ export class IntentRunner {
         partialText: this.partial,
         ts: now(),
       });
-
+      const cancelled =
+        this.aborted.signal.aborted || String(error).includes("cancelled");
       await db
         .update(schema.intents)
-        .set({ status: "failed" })
+        .set({ status: cancelled ? "cancelled" : "failed" })
         .where(eq(schema.intents.id, this.intentId));
     } finally {
       this.queue.close();
+      this.closedAt = now();
     }
   }
 }

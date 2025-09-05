@@ -1,0 +1,296 @@
+import { setTimeout as delay } from "node:timers/promises";
+import { type SqliteDatabase, schema } from "@storyforge/db";
+import { beforeAll, describe, expect, it } from "vitest";
+import {
+  initRunManager,
+  intentRunManager,
+} from "../services/intent/run-manager.js";
+import { ScenarioService } from "../services/scenario/scenario.service.js";
+import { createFreshTestCaller, createTestDatabase } from "../test/setup.js";
+
+async function seedMockInference(db: SqliteDatabase) {
+  // Provider (mock)
+  const [provider] = await db
+    .insert(schema.providerConfigs)
+    .values({
+      kind: "mock" as any,
+      name: "Mock Provider",
+      auth: { apiKey: "test" },
+      baseUrl: null,
+    })
+    .returning();
+
+  // Model profile
+  const [profile] = await db
+    .insert(schema.modelProfiles)
+    .values({
+      providerId: provider.id,
+      displayName: "Mock Fast",
+      modelId: "mock-fast",
+    })
+    .returning();
+
+  // Minimal turn_generation template (no sources)
+  const [tmpl] = await db
+    .insert(schema.promptTemplates)
+    .values({
+      name: "Minimal TurnGen",
+      description: "Minimal test template",
+      kind: "turn_generation",
+      version: 1,
+      layout: [
+        {
+          kind: "message",
+          name: "systemMessage",
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        { kind: "message", role: "user", content: "Write 1-2 sentences." },
+      ],
+      slots: {},
+    })
+    .returning();
+
+  // Workflow (single gen step capturing assistant text as 'presentation')
+  const steps = [
+    {
+      id: "gen",
+      modelProfileId: profile.id,
+      promptTemplateId: tmpl.id,
+      stop: [],
+      outputs: [{ key: "presentation", capture: "assistantText" }],
+    },
+  ];
+  const [wf] = await db
+    .insert(schema.workflows)
+    .values({
+      task: "turn_generation",
+      name: "Default TurnGen",
+      description: "Test workflow",
+      version: 1,
+      isBuiltIn: true,
+      steps,
+    })
+    .returning();
+
+  // Default scope binding
+  await db.insert(schema.workflowScopes).values({
+    workflowId: wf.id,
+    workflowTask: "turn_generation",
+    scopeKind: "default",
+  });
+}
+
+async function seedScenario(db: SqliteDatabase) {
+  // Two characters
+  const [alice, bob] = await db
+    .insert(schema.characters)
+    .values([
+      { name: "Alice", description: "Hero" },
+      { name: "Bob", description: "Sidekick" },
+    ])
+    .returning();
+
+  const svc = new ScenarioService(db);
+  const sc = await svc.createScenario({
+    name: "Intent Test Scenario",
+    description: "",
+    status: "active",
+    characterIds: [alice.id, bob.id],
+    userProxyCharacterId: alice.id,
+  });
+  return sc.id;
+}
+
+describe("play.intentProgress subscription (runner events)", () => {
+  let db: SqliteDatabase;
+
+  beforeAll(async () => {
+    db = await createTestDatabase();
+    // Initialize run manager singleton for this DB
+    initRunManager({ db, now: () => Date.now() });
+    await seedMockInference(db);
+  });
+
+  it("streams events until completion and updates intent status", async () => {
+    const scenarioId = await seedScenario(db);
+    const { caller } = await createFreshTestCaller(db);
+
+    // Start an intent (continue story)
+    const { intentId } = await caller.play.createIntent({
+      scenarioId,
+      parameters: { kind: "continue_story" },
+    });
+
+    // Ensure run exists
+    expect(intentRunManager?.get(intentId)).toBeTruthy();
+
+    const events: string[] = [];
+    for await (const ev of intentRunManager!.get(intentId)!.events()) {
+      events.push(ev.type);
+      if (ev.type === "intent_finished" || ev.type === "intent_failed") break;
+    }
+
+    // Event shape assertions
+    expect(events[0]).toBe("intent_started");
+    expect(events).toContain("actor_selected");
+    expect(events).toContain("gen_token");
+    expect(events).toContain("effect_committed");
+    expect(events.at(-1)).toBe("intent_finished");
+
+    // Intent status should be finished
+    const finished = await db.query.intents.findFirst({
+      where: { id: intentId },
+    });
+    expect(finished?.status).toBe("finished");
+
+    // A turn should have been created
+    const effect = await db.query.intentEffects.findFirst({
+      where: { intentId },
+    });
+    expect(effect?.turnId).toBeTruthy();
+    const turn = await db.query.turns.findFirst({
+      where: { id: effect!.turnId },
+    });
+    expect(turn).toBeTruthy();
+  });
+
+  it("backfills buffered events produced before a subscriber starts reading", async () => {
+    const scenarioId = await seedScenario(db);
+    const { caller } = await createFreshTestCaller(db);
+
+    const { intentId } = await caller.play.createIntent({
+      scenarioId,
+      parameters: { kind: "continue_story" },
+    });
+
+    // Wait so some tokens are produced before we attach
+    await delay(150);
+
+    const attachAt = Date.now();
+    const received: { type: string; ts: number }[] = [];
+    for await (const ev of intentRunManager!.get(intentId)!.events()) {
+      received.push({ type: ev.type, ts: ev.ts });
+      if (ev.type === "intent_finished" || ev.type === "intent_failed") break;
+    }
+
+    // We should receive events emitted before we attached (buffer backfill)
+    expect(received.length).toBeGreaterThan(1);
+    expect(received[0].type).toBe("intent_started");
+    expect(received[0].ts).toBeLessThanOrEqual(attachAt);
+    // And we should finish (success or failure still demonstrates buffering)
+    expect(["intent_finished", "intent_failed"]).toContain(
+      received.at(-1)!.type
+    );
+  });
+
+  it("interrupts a running intent and sets status to cancelled", async () => {
+    const scenarioId = await seedScenario(db);
+
+    // Create a baseline anchor turn so intentResult always has an anchor ID
+    const narrator = await db.query.scenarioParticipants.findFirst({
+      where: { scenarioId, type: "narrator" },
+      columns: { id: true },
+    });
+    const { TimelineService } = await import(
+      "../services/timeline/timeline.service.js"
+    );
+    const tl = new TimelineService(db);
+    await tl.advanceTurn({
+      scenarioId,
+      authorParticipantId: narrator!.id,
+      layers: [{ key: "presentation", content: "Baseline" }],
+    });
+
+    // Create a slow workflow scoped to this scenario so we can cancel mid-flight
+    const provider = await db.query.providerConfigs.findFirst({
+      where: { kind: "mock" as any },
+    });
+    const [slowProfile] = await db
+      .insert(schema.modelProfiles)
+      .values({
+        providerId: provider!.id,
+        displayName: "Mock Slow",
+        modelId: "mock-slow",
+      })
+      .returning();
+    const [tmpl] = await db.query.promptTemplates.findMany({ limit: 1 });
+    const slowSteps = [
+      {
+        id: "gen",
+        modelProfileId: slowProfile.id,
+        promptTemplateId: tmpl!.id,
+        stop: [],
+        outputs: [{ key: "presentation", capture: "assistantText" }],
+      },
+    ];
+    const [slowWf] = await db
+      .insert(schema.workflows)
+      .values({
+        task: "turn_generation",
+        name: "Slow TurnGen",
+        isBuiltIn: false,
+        steps: slowSteps,
+      })
+      .returning();
+    await db.insert(schema.workflowScopes).values({
+      workflowId: slowWf.id,
+      workflowTask: "turn_generation",
+      scopeKind: "scenario",
+      scenarioId,
+    });
+
+    const { caller } = await createFreshTestCaller(db);
+    const { intentId } = await caller.play.createIntent({
+      scenarioId,
+      parameters: { kind: "continue_story" },
+    });
+
+    // Cancel soon after start to ensure it's still running
+    const interruptResult = await caller.play.interruptIntent({
+      intentId,
+    });
+    expect(interruptResult.success).toBe(true);
+
+    // Consume terminal event
+    const evs: string[] = [];
+    for await (const ev of intentRunManager!.get(intentId)!.events()) {
+      evs.push(ev.type);
+      if (ev.type === "intent_finished" || ev.type === "intent_failed") break;
+    }
+    expect(evs.at(-1)).toBe("intent_failed"); // cancel currently surfaces as failed event
+
+    const row = await db.query.intents.findFirst({ where: { id: intentId } });
+    expect(row?.status).toBe("cancelled");
+
+    // Check result procedure
+    const result = await caller.play.intentResult({ intentId });
+    expect(result.id).toBe(intentId);
+    expect(result.status).toBe("cancelled");
+    expect(typeof result.anchorTurnId).toBe("string");
+  });
+
+  it("returns intent result with effects and sequence when finished", async () => {
+    const scenarioId = await seedScenario(db);
+    const { caller } = await createFreshTestCaller(db);
+
+    const { intentId } = await caller.play.createIntent({
+      scenarioId,
+      parameters: { kind: "continue_story" },
+    });
+
+    // Drain to completion
+    for await (const ev of intentRunManager!.get(intentId)!.events()) {
+      if (ev.type === "intent_finished" || ev.type === "intent_failed") break;
+    }
+
+    const res = await caller.play.intentResult({ intentId });
+    expect(res.id).toBe(intentId);
+    expect(res.status).toBe("finished");
+    expect(res.effects.length).toBeGreaterThanOrEqual(1);
+    for (let i = 0; i < res.effects.length; i++) {
+      expect(res.effects[i]!.sequence).toBe(i + 1);
+    }
+    expect(typeof res.anchorTurnId).toBe("string");
+  });
+});

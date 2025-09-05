@@ -36,6 +36,27 @@ export function makeWorkflowRunner<K extends TaskKind>(
   deps: RunnerDeps<K>
 ): WorkflowRunner<K> {
   const store = new RunStore();
+  // Reap terminal runs periodically to keep memory usage bounded
+  const REAPER_INTERVAL_MS = 60_000; // 1 minute
+  const REAPER_TTL_MS = 3 * 60_000; // 3 minutes
+  setInterval(() => {
+    const now = Date.now();
+    for (const id of store.getActiveRunIds()) {
+      const snap = store.snapshot(id);
+      if (!snap) continue;
+      const last = [...snap.events]
+        .reverse()
+        .find(
+          (e) =>
+            e.type === "run_finished" ||
+            e.type === "run_error" ||
+            e.type === "run_cancelled"
+        );
+      if (last && now - last.ts > REAPER_TTL_MS) {
+        store.delete(id);
+      }
+    }
+  }, REAPER_INTERVAL_MS);
 
   // Create an extended registry that includes stepOutput handling
   const extendedRegistry = createExtendedRegistry(deps.registry);
