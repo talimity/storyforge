@@ -18,13 +18,6 @@ import {
   LuWorkflow,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { WorkflowImportDialog } from "@/components/dialogs/workflow-import";
-import { AssignmentDialog } from "@/components/features/workflows/assignment-dialog";
-import { AssignmentList } from "@/components/features/workflows/assignment-list";
-import {
-  WorkflowCard,
-  WorkflowCardSkeleton,
-} from "@/components/features/workflows/workflow-card";
 import {
   Button,
   EmptyState,
@@ -35,6 +28,13 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui";
+import { AssignmentDialog } from "@/features/workflows/components/assignment-dialog";
+import { AssignmentList } from "@/features/workflows/components/assignment-list";
+import {
+  WorkflowCard,
+  WorkflowCardSkeleton,
+} from "@/features/workflows/components/workflow-card";
+import { WorkflowImportDialog } from "@/features/workflows/components/workflow-import-dialog";
 import { trpc } from "@/lib/trpc";
 
 const taskOptions = [

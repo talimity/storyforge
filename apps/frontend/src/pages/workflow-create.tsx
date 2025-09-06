@@ -1,7 +1,7 @@
 import { Container } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { WorkflowForm } from "@/components/features/workflows/workflow-form";
 import { SimplePageHeader } from "@/components/ui";
+import { WorkflowForm } from "@/features/workflows/components/workflow-form";
 import { trpc } from "@/lib/trpc";
 
 export function WorkflowCreatePage() {

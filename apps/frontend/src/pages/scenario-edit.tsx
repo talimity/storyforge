@@ -1,12 +1,12 @@
 import { Container, Spinner, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ScenarioDeleteDialog } from "@/components/dialogs/scenario-delete";
-import { ScenarioForm } from "@/components/features/scenario/scenario-form";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
+import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
+import { ScenarioForm } from "@/features/scenarios/components/scenario-form";
+import { showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";
-import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function ScenarioEditPage() {
   const { id } = useParams<{ id: string }>();

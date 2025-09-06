@@ -20,9 +20,6 @@ import {
   LuUpload,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { TemplateImportDialog } from "@/components/dialogs/template-import";
-import { TemplateCard } from "@/components/features/templates/template-card";
-import { TemplateListItem } from "@/components/features/templates/template-list-item";
 import {
   Button,
   EmptyState,
@@ -34,6 +31,9 @@ import {
   SelectValueText,
   SimplePageHeader,
 } from "@/components/ui";
+import { TemplateCard } from "@/features/templates/components/template-card";
+import { TemplateImportDialog } from "@/features/templates/components/template-import-dialog";
+import { TemplateListItem } from "@/features/templates/components/template-list-item";
 import { trpc } from "@/lib/trpc";
 
 type ViewMode = "grid" | "list";

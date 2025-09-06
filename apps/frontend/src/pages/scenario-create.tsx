@@ -1,9 +1,9 @@
 import { Container } from "@chakra-ui/react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ScenarioForm } from "@/components/features/scenario/scenario-form";
 import { SimplePageHeader } from "@/components/ui";
+import { ScenarioForm } from "@/features/scenarios/components/scenario-form";
+import { showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";
-import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function ScenarioCreatePage() {
   const navigate = useNavigate();

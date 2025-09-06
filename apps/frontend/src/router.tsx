@@ -1,15 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
-import { PlayerShell } from "@/components/features/player/player-shell";
+import { PlayerShell } from "@/features/scenario-player/components/player-shell";
 import { AppShell } from "./components/app-shell";
-import { AgentsPage } from "./pages/agents";
 import { CharacterCreatePage } from "./pages/character-create";
 import { CharacterEditPage } from "./pages/character-edit";
 import { CharacterLibraryPage } from "./pages/character-library";
-import { ModelsPage } from "./pages/models";
-import { PlayerPage } from "./pages/player";
+import { ModelsPage } from "./pages/models-library";
 import { ScenarioCreatePage } from "./pages/scenario-create";
 import { ScenarioEditPage } from "./pages/scenario-edit";
 import { ScenarioLibraryPage } from "./pages/scenario-library";
+import { PlayerPage } from "./pages/scenario-player";
 import { TemplateCreatePage } from "./pages/template-create";
 import { TemplateEditPage } from "./pages/template-edit";
 import { TemplatesPage } from "./pages/template-library";
@@ -67,10 +66,6 @@ export const router = createBrowserRouter([
       {
         path: "workflows/:id/edit",
         element: <WorkflowEditPage />,
-      },
-      {
-        path: "agents",
-        element: <AgentsPage />,
       },
       {
         path: "templates",

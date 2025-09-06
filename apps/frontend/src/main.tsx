@@ -4,7 +4,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { TRPCReactProvider } from "@/lib/providers";
+import { TRPCReactProvider } from "@/lib/trpc-react-provider";
 import { router } from "@/router";
 import { system } from "@/theme";
 

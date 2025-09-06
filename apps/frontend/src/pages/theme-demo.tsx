@@ -25,10 +25,6 @@ import {
   LuUsersRound,
 } from "react-icons/lu";
 import {
-  CharacterMultiSelect,
-  CharacterSingleSelect,
-} from "@/components/features/character/character-selector";
-import {
   Button,
   Checkbox,
   Field,
@@ -40,6 +36,10 @@ import {
   Switch,
 } from "@/components/ui";
 import { PageHeader, SimplePageHeader } from "@/components/ui/page-header";
+import {
+  CharacterMultiSelect,
+  CharacterSingleSelect,
+} from "@/features/characters/components/character-selector";
 
 export function ThemeDemoPage() {
   return (

@@ -1,16 +1,16 @@
 import { Container, Heading, Text, VStack } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import { useNavigate, useParams } from "react-router-dom";
-import { TemplateForm } from "@/components/features/templates/template-form";
+import { Button, SimplePageHeader } from "@/components/ui";
+import { TemplateForm } from "@/features/template-builder/components/template-form";
+import { compileDraft } from "@/features/template-builder/services/compile-draft";
+import { templateToDraft } from "@/features/template-builder/services/template-conversion";
 import type {
   LayoutNodeDraft,
   SlotDraft,
-} from "@/components/features/templates/types";
-import { compileDraft } from "@/components/features/templates/utils/compile-draft";
-import { templateToDraft } from "@/components/features/templates/utils/template-conversion";
-import { Button, SimplePageHeader } from "@/components/ui";
+} from "@/features/template-builder/types";
+import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
 
 export function TemplateEditPage() {
   const { id } = useParams<{ id: string }>();

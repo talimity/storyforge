@@ -1,12 +1,12 @@
 import { Container, Spinner, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { CharacterDeleteDialog } from "@/components/dialogs/character-delete";
-import { CharacterForm } from "@/components/features/character/character-form";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
+import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
+import { CharacterForm } from "@/features/characters/components/character-form";
+import { showSuccessToast } from "@/lib/error-handling";
 import { getApiUrl, trpc } from "@/lib/trpc";
-import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function CharacterEditPage() {
   const { id } = useParams<{ id: string }>();

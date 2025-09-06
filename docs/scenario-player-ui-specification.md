@@ -293,7 +293,7 @@ PlayerShell                      // Layout shell with navigation
 - **Custom Hooks**: Created dedicated hooks for data management
   - `useScenarioEnvironment`: Centralized bootstrap data fetching with caching
   - `useScenarioTimeline`: Timeline pagination with deduplication support
-  - `useScenarioIntent`: Intent/turn mutations with optimistic updates
+  - `useScenarioIntentActions`: Intent/turn mutations with optimistic updates
 - **State Management Strategy**:
   - React Query for server state (environment, timeline, mutations)
   - Zustand for ephemeral client state (selected character)

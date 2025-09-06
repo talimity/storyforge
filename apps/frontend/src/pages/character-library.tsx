@@ -15,16 +15,6 @@ import {
   LuUsersRound,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { CharacterImportDialog } from "@/components/dialogs/character-import";
-import {
-  CharacterCard,
-  CharacterCardSkeleton,
-} from "@/components/features/character/character-card";
-import { CharacterPile } from "@/components/features/character/character-pile";
-import {
-  CompactCharacterCard,
-  CompactCharacterCardSkeleton,
-} from "@/components/features/character/compact-character-card";
 import {
   ActionBarContent,
   Button,
@@ -33,6 +23,16 @@ import {
   PageHeader,
   SplitButton,
 } from "@/components/ui";
+import { CharacterImportDialog } from "@/features/characters/character-import-dialog";
+import {
+  CharacterCard,
+  CharacterCardSkeleton,
+} from "@/features/characters/components/character-card";
+import { CharacterPile } from "@/features/characters/components/character-pile";
+import {
+  CompactCharacterCard,
+  CompactCharacterCardSkeleton,
+} from "@/features/characters/components/compact-character-card";
 
 import { trpc } from "@/lib/trpc";
 

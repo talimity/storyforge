@@ -1,9 +1,9 @@
 import { Container } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { CharacterForm } from "@/components/features/character/character-form";
 import { SimplePageHeader } from "@/components/ui";
+import { CharacterForm } from "@/features/characters/components/character-form";
+import { showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";
-import { showSuccessToast } from "@/lib/utils/error-handling";
 
 export function CharacterCreatePage() {
   const navigate = useNavigate();

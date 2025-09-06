@@ -9,10 +9,9 @@ import {
 import { useState } from "react";
 import { LuBookOpen, LuImport, LuPlus } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { ChatImportDialog } from "@/components/dialogs/chat-import";
-import { ScenarioCard } from "@/components/features/scenario/scenario-card";
 import { Button, EmptyState, PageHeader } from "@/components/ui";
-
+import { ChatImportDialog } from "@/features/scenario-import/components/chat-import-dialog";
+import { ScenarioCard } from "@/features/scenarios/components/scenario-card";
 import { trpc } from "@/lib/trpc";
 
 export function ScenarioLibraryPage() {

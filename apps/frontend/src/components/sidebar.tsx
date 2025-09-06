@@ -24,7 +24,7 @@ import { ColorModeToggle } from "@/components/color-mode-toggle";
 import { Logo } from "@/components/logo";
 import { SidebarLink } from "@/components/sidebar-link";
 import { Button } from "@/components/ui/index";
-import { useActiveScenarioWithData } from "@/lib/hooks/use-active-scenario";
+import { useActiveScenarioWithData } from "@/hooks/use-active-scenario";
 
 interface SidebarProps {
   collapsed: boolean;

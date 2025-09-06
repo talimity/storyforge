@@ -1,0 +1,173 @@
+import {
+  Box,
+  Card,
+  HStack,
+  IconButton,
+  Image,
+  Menu,
+  Portal,
+  Skeleton,
+  Text,
+  VisuallyHidden,
+} from "@chakra-ui/react";
+import {
+  LuCheck,
+  LuEllipsisVertical,
+  LuPencilLine,
+  LuSquareUserRound,
+  LuTrash,
+} from "react-icons/lu";
+import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
+import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
+
+interface CharacterCardProps {
+  character: {
+    id: string;
+    name: string;
+    imagePath: string | null;
+    avatarPath: string | null;
+  };
+  isSelected?: boolean;
+  onSelectionToggle?: () => void;
+  readOnly?: boolean;
+}
+
+export function CharacterCard({
+  character,
+  isSelected = false,
+  onSelectionToggle,
+  readOnly = false,
+}: CharacterCardProps) {
+  const {
+    isDeleteDialogOpen,
+    deleteCharacterMutation,
+    handleDelete,
+    handleEdit,
+    openDeleteDialog,
+    closeDeleteDialog,
+  } = useCharacterActions(character.id);
+
+  const imageUrl = character.imagePath
+    ? `http://localhost:3001/assets/characters/${character.id}/card`
+    : null;
+
+  return (
+    <>
+      <Card.Root
+        width="240px"
+        layerStyle="surface"
+        _hover={
+          !readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined
+        }
+        className={readOnly ? undefined : "group"}
+        cursor={!readOnly && onSelectionToggle ? "pointer" : "default"}
+        onClick={readOnly ? undefined : onSelectionToggle}
+        overflow="hidden"
+      >
+        <Box position="relative">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={character.name}
+              aspectRatio={2 / 3}
+              fit="cover"
+              width="100%"
+            />
+          ) : (
+            <Box
+              aspectRatio={2 / 3}
+              bg="gray.100"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              color="gray.500"
+            >
+              <LuSquareUserRound size={64} />
+            </Box>
+          )}
+          {!readOnly && (
+            <Menu.Root positioning={{ placement: "bottom-end" }}>
+              <Menu.Trigger asChild>
+                <IconButton
+                  aria-label="Character options"
+                  variant="subtle"
+                  size="sm"
+                  position="absolute"
+                  top={2}
+                  right={2}
+                  colorPalette="neutral"
+                  opacity={0}
+                  _groupHover={{ opacity: 1 }}
+                  _focus={{ opacity: 1 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <LuEllipsisVertical />
+                </IconButton>
+              </Menu.Trigger>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="edit" onClick={handleEdit}>
+                      <LuPencilLine />
+                      <Box flex="1">Edit</Box>
+                    </Menu.Item>
+                    <Menu.Item
+                      value="delete"
+                      color="fg.error"
+                      _hover={{ bg: "bg.error", color: "fg.error" }}
+                      onClick={openDeleteDialog}
+                      disabled={deleteCharacterMutation.isPending}
+                    >
+                      <LuTrash />
+                      <Box flex="1">Delete</Box>
+                    </Menu.Item>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
+          )}
+        </Box>
+        <Card.Body p={3}>
+          <HStack>
+            {isSelected && (
+              <Box
+                height="5"
+                width="5"
+                layerStyle="contrast"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <LuCheck size={16} color="white" />
+                <VisuallyHidden>Selected</VisuallyHidden>
+              </Box>
+            )}
+            <Text fontWeight="medium" fontSize="sm" truncate>
+              {character.name}
+            </Text>
+          </HStack>
+        </Card.Body>
+      </Card.Root>
+      {!readOnly && (
+        <CharacterDeleteDialog
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={() => closeDeleteDialog()}
+          characterName={character.name}
+          onConfirmDelete={handleDelete}
+          isDeleting={deleteCharacterMutation.isPending}
+        />
+      )}
+    </>
+  );
+}
+
+export function CharacterCardSkeleton() {
+  return (
+    <Card.Root width="240px" variant="outline" overflow="hidden">
+      <Skeleton aspectRatio={2 / 3} />
+      <Card.Body p={3}>
+        <Skeleton height="5" width="70%" />
+      </Card.Body>
+    </Card.Root>
+  );
+}

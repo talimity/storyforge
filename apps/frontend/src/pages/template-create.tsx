@@ -2,15 +2,15 @@ import { Container } from "@chakra-ui/react";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { TemplateForm } from "@/components/features/templates/template-form";
+import { TemplateForm } from "@/features/template-builder/components/template-form";
+import { compileDraft } from "@/features/template-builder/services/compile-draft";
+import { createBlankTemplate } from "@/features/template-builder/services/template-conversion";
 import type {
   LayoutNodeDraft,
   SlotDraft,
-} from "@/components/features/templates/types";
-import { compileDraft } from "@/components/features/templates/utils/compile-draft";
-import { createBlankTemplate } from "@/components/features/templates/utils/template-conversion";
+} from "@/features/template-builder/types";
+import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";
-import { showErrorToast, showSuccessToast } from "@/lib/utils/error-handling";
 
 export function TemplateCreatePage() {
   const navigate = useNavigate();
