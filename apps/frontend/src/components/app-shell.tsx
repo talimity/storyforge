@@ -5,7 +5,6 @@ import {
   Drawer,
   Flex,
   Portal,
-  Show,
   Skeleton,
   useBreakpointValue,
 } from "@chakra-ui/react";
@@ -34,92 +33,81 @@ export function AppShell() {
 
   return (
     <Box minH="100vh" data-testid="app-shell" colorPalette="neutral">
-      {/* Mobile Layout */}
-      <Show when={isMobile}>
-        <Drawer.Root
-          open={drawerOpen}
-          onOpenChange={(e) => setDrawerOpen(e.open)}
+      {/* Mobile Header + Drawer: mounted always, visible only on mobile */}
+      <Drawer.Root
+        open={drawerOpen}
+        onOpenChange={(e) => setDrawerOpen(e.open)}
+      >
+        <Flex
+          as="header"
+          p={4}
+          borderBottomWidth="1px"
+          justify="space-between"
+          align="center"
+          bg="bg.surface"
+          data-testid="mobile-header"
+          display={{ base: "flex", md: "none" }}
         >
-          <Flex
-            as="header"
-            p={4}
-            borderBottomWidth="1px"
-            justify="space-between"
-            align="center"
-            bg="bg.surface"
-            data-testid="mobile-header"
-          >
-            <Drawer.Trigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                data-testid="mobile-menu-button"
-              >
-                <LuMenu />
-              </Button>
-            </Drawer.Trigger>
-            <Logo collapsed />
-            <ClientOnly fallback={<Skeleton w="10" h="10" rounded="md" />}>
-              <ColorModeToggle />
-            </ClientOnly>
-          </Flex>
-          <Portal>
-            <Drawer.Backdrop />
-            <Drawer.Positioner>
-              <Drawer.Content data-testid="mobile-drawer">
-                <Drawer.Header>
-                  <Drawer.Title>Navigation</Drawer.Title>
-                  <Drawer.CloseTrigger />
-                </Drawer.Header>
-                <Drawer.Body p="0">
-                  <Box onClick={() => setDrawerOpen(false)}>
-                    <Sidebar collapsed={false} onToggleCollapse={() => {}} />
-                  </Box>
-                </Drawer.Body>
-              </Drawer.Content>
-            </Drawer.Positioner>
-          </Portal>
-          <Box as="main" p={4} data-testid="mobile-main-content">
-            <ErrorBoundary fallbackTitle="Application Error">
-              <Outlet />
-            </ErrorBoundary>
-          </Box>
-        </Drawer.Root>
-      </Show>
+          <Drawer.Trigger asChild>
+            <Button variant="ghost" size="sm" data-testid="mobile-menu-button">
+              <LuMenu />
+            </Button>
+          </Drawer.Trigger>
+          <Logo collapsed />
+          <ClientOnly fallback={<Skeleton w="10" h="10" rounded="md" />}>
+            <ColorModeToggle />
+          </ClientOnly>
+        </Flex>
+        <Portal>
+          <Drawer.Backdrop />
+          <Drawer.Positioner>
+            <Drawer.Content data-testid="mobile-drawer">
+              <Drawer.Header>
+                <Drawer.Title>Navigation</Drawer.Title>
+                <Drawer.CloseTrigger />
+              </Drawer.Header>
+              <Drawer.Body p="0">
+                <Box onClick={() => setDrawerOpen(false)}>
+                  <Sidebar collapsed={false} onToggleCollapse={() => {}} />
+                </Box>
+              </Drawer.Body>
+            </Drawer.Content>
+          </Drawer.Positioner>
+        </Portal>
+      </Drawer.Root>
 
-      {/* Desktop Layout */}
-      <Show when={!isMobile}>
-        <Flex h="100vh" data-testid="desktop-layout">
-          {/* Sidebar */}
+      {/* Unified Layout: sidebar + main. Sidebar is hidden on mobile via wrapper */}
+      <Flex h="100vh" data-testid={isMobile ? undefined : "desktop-layout"}>
+        {/* Sidebar (desktop only) */}
+        <Box display={{ base: "none", md: "block" }}>
           <Sidebar
             collapsed={!sidebarExpanded}
             onToggleCollapse={toggleSidebar}
           />
+        </Box>
 
-          {/* Main Content */}
-          <Flex
-            as="main"
-            direction="column"
-            flex="1"
-            overflow="auto"
-            data-testid="desktop-main-content"
+        {/* Main Content */}
+        <Flex
+          as="main"
+          direction="column"
+          flex="1"
+          overflow="auto"
+          data-testid={
+            isMobile ? "mobile-main-content" : "desktop-main-content"
+          }
+        >
+          <Container
+            p={{ base: 4, md: 6 }}
+            pb={24} // Provide space for action bars/sticky footers
+            maxW={{ base: "100%", md: "container.xl" }}
+            data-testid="main-container"
           >
-            {/* Main Content Area */}
-            {/* <Box flex="1"> */}
-            <Container
-              p={6}
-              pb={24} // Provide space for action bars/sticky footers
-              maxW="container.xl"
-              data-testid="main-container"
-            >
-              <ErrorBoundary fallbackTitle="Application Error">
-                <Outlet />
-              </ErrorBoundary>
-            </Container>
-            {/* </Box> */}
-          </Flex>
+            <ErrorBoundary fallbackTitle="Application Error">
+              <Outlet />
+            </ErrorBoundary>
+          </Container>
         </Flex>
-      </Show>
+      </Flex>
     </Box>
   );
 }

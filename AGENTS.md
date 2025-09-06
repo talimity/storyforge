@@ -18,14 +18,14 @@ The vision is something akin a turn-based/text-based version of The Sims, which 
 
 ### Build & Test Commands
 
-IMPORTANT: Do NOT use `-w`/watch mode with any commands. It will block your REPL/harness and require manual intervention.
-
 ```bash
 # Rebuild type declarations after changing shared packages
 pnpm build
 # Lint, fix imports, and check for type errors
+# ⚠️ IMPORTANT: Do NOT pass `-w`, it will run tsc in watch mode and block your terminal.
 pnpm check
 # Run tests (backend, integration-only)
+# ⚠️ IMPORTANT: Do NOT pass `-w`, it will run vitest in watch mode and block your terminal. 
 pnpm test
 
 # Remember to generate migrations when changing database schema in packages/db
