@@ -8,7 +8,7 @@ import {
   scenariosWithCharactersListResponseSchema,
   scenarioWithCharactersSchema,
   updateScenarioSchema,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {

@@ -1,6 +1,6 @@
 import { createListCollection, HStack, Input, Spinner, Text, VStack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createModelProfileSchema } from "@storyforge/schemas";
+import { createModelProfileSchema } from "@storyforge/contracts";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";

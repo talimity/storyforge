@@ -1,5 +1,5 @@
 import { Box, Group, HStack, Menu, Portal, Stack, Text, Textarea } from "@chakra-ui/react";
-import type { TimelineTurn } from "@storyforge/schemas";
+import type { TimelineTurn } from "@storyforge/contracts";
 import { memo, useCallback, useState } from "react";
 import {
   LuBetweenHorizontalEnd,

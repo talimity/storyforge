@@ -3,7 +3,7 @@ import {
   chatImportAnalyzeOutputSchema,
   chatImportExecuteInputSchema,
   chatImportExecuteOutputSchema,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
 import { ChatImportService } from "../../services/chat-import/chat-import.service.js";
 import { ScenarioService } from "../../services/scenario/scenario.service.js";
 import { TimelineService } from "../../services/timeline/timeline.service.js";

@@ -1,7 +1,7 @@
 import type {
   ScenarioParticipant as ApiScenarioParticipant,
   ScenarioWithCharacters as ApiScenarioWithCharacters,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
 import { transformCharacterSummary } from "../character/character.transforms.js";
 import type { ScenarioDetail, ScenarioOverview } from "./scenario.queries.js";
 

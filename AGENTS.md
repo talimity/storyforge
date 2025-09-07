@@ -66,11 +66,11 @@ storyforge
 ├── docs                       # Specification and design documents
 └── packages                   # Shared packages
     ├── config                 # Configuration management
+    ├── contracts              # Shared types and Zod schemas for data contracts/interfaces 
     │── db                     # Drizzle ORM database layer
     │── gentasks               # Generative task and workflow runner implementations
     ├── inference              # Adapters for inference APIs
     ├── prompt-rendering       # Prompt template rendering engine
-    ├── schemas                # Zod runtime schemas and types
     ├── utils                  # Isomorphic utility functions
     └── yolo-onnx              # YOLOv8 ONNX wrapper for face detection
 ```

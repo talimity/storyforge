@@ -1,15 +1,15 @@
+import type { IntentEvent } from "@storyforge/contracts";
 import type { SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
-import { AsyncQueue } from "@storyforge/utils";
+import { AsyncBroadcast } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
-import { IntentCancelledError } from "./errors.js";
-import type { IntentEvent, IntentGenerator } from "./types.js";
+import type { IntentGenerator } from "./types.js";
 
 export class IntentRunner {
-  private queue = new AsyncQueue<IntentEvent>();
-  // The accumulated text from the last generated turn
-  private partial: string | undefined;
+  private eventLog: IntentEvent[] = [];
+  private ticks = new AsyncBroadcast();
   private closedAt?: number;
+  private partial?: string;
 
   constructor(
     private deps: { db: SqliteDatabase; now: () => number },
@@ -17,19 +17,36 @@ export class IntentRunner {
     private scenarioId: string,
     private kind: string,
     private generator: IntentGenerator,
-    private abortCtl: AbortController
+    private abortCtrl: AbortController
   ) {}
 
-  events() {
-    return this.queue.iterate();
+  events(): AsyncIterable<IntentEvent> {
+    const self = this;
+    return (async function* () {
+      let idx = 0;
+
+      const drain = function* () {
+        while (idx < self.eventLog.length) yield self.eventLog[idx++];
+      };
+
+      // replay
+      yield* drain();
+
+      // live
+      for await (const _ of self.ticks.iterate()) {
+        yield* drain();
+      }
+    })();
   }
+
   cancel() {
-    this.abortCtl.abort();
+    this.abortCtrl.abort();
   }
 
   isClosed() {
-    return this.queue.isClosed();
+    return this.ticks.isClosed();
   }
+
   getClosedAt() {
     return this.closedAt;
   }
@@ -42,7 +59,7 @@ export class IntentRunner {
       .set({ status: "running" })
       .where(eq(schema.intents.id, this.intentId));
 
-    this.queue.push({
+    this.emit({
       type: "intent_started",
       intentId: this.intentId,
       scenarioId: this.scenarioId,
@@ -52,28 +69,25 @@ export class IntentRunner {
 
     try {
       for await (const ev of this.generator) {
-        if (this.abortCtl.signal.aborted) throw new IntentCancelledError();
+        this.abortCtrl.signal.throwIfAborted();
 
-        if (ev.type === "gen_token") {
-          this.partial = (this.partial ?? "") + ev.delta;
-        }
+        if (ev.type === "gen_token") this.partial = (this.partial ?? "") + ev.delta;
         if (ev.type === "effect_committed") this.partial = undefined;
-        this.queue.push(ev);
+
+        this.emit(ev);
       }
 
-      this.queue.push({
-        type: "intent_finished",
-        intentId: this.intentId,
-        ts: now(),
-      });
+      this.emit({ type: "intent_finished", intentId: this.intentId, ts: now() });
 
       await db
         .update(schema.intents)
         .set({ status: "finished" })
         .where(eq(schema.intents.id, this.intentId));
     } catch (e) {
+      const cancelled = this.abortCtrl.signal.aborted;
       const error = String("message" in e ? e.message : e);
-      this.queue.push({
+
+      this.emit({
         type: "intent_failed",
         intentId: this.intentId,
         error,
@@ -81,15 +95,18 @@ export class IntentRunner {
         ts: now(),
       });
 
-      const cancelled = this.abortCtl.signal.aborted || e instanceof IntentCancelledError;
-
       await db
         .update(schema.intents)
         .set({ status: cancelled ? "cancelled" : "failed" })
         .where(eq(schema.intents.id, this.intentId));
     } finally {
-      this.queue.close();
+      this.ticks.close();
       this.closedAt = now();
     }
+  }
+
+  private emit(ev: IntentEvent) {
+    this.eventLog.push(ev);
+    if (!this.ticks.isClosed()) this.ticks.push();
   }
 }

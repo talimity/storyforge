@@ -1,6 +1,6 @@
 import { createListCollection, HStack, Input, VStack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProviderConfigSchema, providerAuthInputSchema } from "@storyforge/schemas";
+import { createProviderConfigSchema, providerAuthInputSchema } from "@storyforge/contracts";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import {

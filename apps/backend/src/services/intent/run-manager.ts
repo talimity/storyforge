@@ -1,6 +1,6 @@
 import type { SqliteDatabase } from "@storyforge/db";
 import { IntentRunner } from "./runner.js";
-import type { IntentGenerator, IntentHandle } from "./types.js";
+import type { IntentGenerator, IntentRunHandle } from "./types.js";
 
 export class IntentRunManager {
   private runs = new Map<string, IntentRunner>();
@@ -25,7 +25,7 @@ export class IntentRunManager {
     kind: string,
     gen: IntentGenerator,
     abortCtl: AbortController
-  ): IntentHandle {
+  ): IntentRunHandle {
     const run = new IntentRunner(this.deps, intentId, scenarioId, kind, gen, abortCtl);
     this.runs.set(intentId, run);
     // noinspection JSIgnoredPromiseFromCall
@@ -44,7 +44,7 @@ export class IntentRunManager {
   private sweep() {
     const now = this.deps.now();
     for (const [id, run] of this.runs.entries()) {
-      const closedAt = run.getClosedAt?.();
+      const closedAt = run.getClosedAt();
       if (closedAt && now - closedAt > this.ttlMs) {
         this.runs.delete(id);
       }

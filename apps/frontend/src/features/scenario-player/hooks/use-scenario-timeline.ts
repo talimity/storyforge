@@ -1,4 +1,4 @@
-import type { TimelineTurn } from "@storyforge/schemas";
+import type { TimelineTurn } from "@storyforge/contracts";
 import { useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 

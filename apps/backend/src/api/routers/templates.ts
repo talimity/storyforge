@@ -9,7 +9,7 @@ import {
   templateOperationResponseSchema,
   templatesListResponseSchema,
   updateTemplateSchema,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
 import { z } from "zod";
 import { getTemplateById, listTemplates } from "../../services/template/template.queries.js";
 import { TemplateService } from "../../services/template/template.service.js";

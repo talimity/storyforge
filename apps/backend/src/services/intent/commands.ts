@@ -17,7 +17,7 @@ export function makeCommands(deps: IntentExecDeps) {
       actorId: string;
       text: string;
     }): IntentCommandGenerator<{ turnId: string }> {
-      const newTurn = await db.transaction(async (tx) => {
+      const [newEffect] = await db.transaction(async (tx) => {
         const turn = await timeline.advanceTurn(
           {
             scenarioId,
@@ -29,25 +29,22 @@ export function makeCommands(deps: IntentExecDeps) {
 
         const sequence = await getNextEffectSequence(tx, intentId);
 
-        await tx.insert(schema.intentEffects).values({
-          intentId,
-          sequence,
-          kind: "new_turn",
-          turnId: turn.id,
-        });
-
-        return turn;
+        return tx
+          .insert(schema.intentEffects)
+          .values({ intentId, sequence, kind: "new_turn", turnId: turn.id })
+          .returning();
       });
 
       yield {
         type: "effect_committed",
-        intentId,
         effect: "new_turn",
-        turnId: newTurn.id,
+        intentId,
+        sequence: newEffect.sequence,
+        turnId: newEffect.turnId,
         ts: now(),
       };
 
-      return { turnId: newTurn.id };
+      return { turnId: newEffect.turnId };
     },
 
     chooseActor: async function* (args: { afterTurnId?: string }): IntentCommandGenerator<string> {
@@ -62,12 +59,7 @@ export function makeCommands(deps: IntentExecDeps) {
 
       const participantId = await chooseNextActorRoundRobin(db, scenarioId, afterAuthor);
 
-      yield {
-        type: "actor_selected",
-        intentId,
-        participantId: participantId,
-        ts: now(),
-      };
+      yield { type: "actor_selected", intentId, participantId: participantId, ts: now() };
 
       return participantId;
     },
@@ -75,10 +67,8 @@ export function makeCommands(deps: IntentExecDeps) {
     generateTurn: async function* (args: {
       actorId: string;
       constraint?: string;
-    }): IntentCommandGenerator<{
-      presentation: string;
-      outputs: Record<string, unknown>;
-    }> {
+    }): IntentCommandGenerator<{ presentation: string; outputs: Record<string, unknown> }> {
+      let partial = "";
       const ctx = await new IntentContextBuilder(db, scenarioId).buildContext({
         actorParticipantId: args.actorId,
         // TODO: Need to change how TurnGenCtx receives intent parameters.
@@ -92,21 +82,12 @@ export function makeCommands(deps: IntentExecDeps) {
         participantId: args.actorId,
       });
 
-      const handle = await runner.startRun(workflow, ctx, {
-        parentSignal: deps.signal,
-      });
-      let partial = "";
+      const handle = await runner.startRun(workflow, ctx, { parentSignal: deps.signal });
 
       for await (const ev of handle.events()) {
         if (ev.type === "stream_delta") {
           partial += ev.delta;
-          yield {
-            type: "gen_token",
-            intentId,
-            stepId: ev.stepId,
-            delta: ev.delta,
-            ts: now(),
-          };
+          yield { type: "gen_token", intentId, stepId: ev.stepId, delta: ev.delta, ts: now() };
         } else {
           yield { type: "gen_event", intentId, payload: ev, ts: now() };
         }
@@ -123,9 +104,7 @@ export function makeCommands(deps: IntentExecDeps) {
 
 async function getNextEffectSequence(db: SqliteTxLike, intentId: string) {
   const [{ next }] = await db
-    .select({
-      next: sql<number>`COALESCE(MAX(${schema.intentEffects.sequence}) + 1, 0)`,
-    })
+    .select({ next: sql<number>`COALESCE(MAX(${schema.intentEffects.sequence}) + 1, 0)` })
     .from(schema.intentEffects)
     .where(eq(schema.intentEffects.intentId, intentId));
   return next;

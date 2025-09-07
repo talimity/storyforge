@@ -42,7 +42,6 @@
 │  │  │  │  │  ├── actor-selection.ts
 │  │  │  │  │  ├── commands.ts
 │  │  │  │  │  ├── context-builder.ts
-│  │  │  │  │  ├── errors.ts
 │  │  │  │  │  ├── executors.ts
 │  │  │  │  │  ├── intent.service.ts
 │  │  │  │  │  ├── run-manager.ts
@@ -319,6 +318,23 @@
 │  │  │  └── index.ts
 │  │  ├── tsconfig.build.json
 │  │  └── tsconfig.json
+│  ├── contracts
+│  │  ├── package.json
+│  │  ├── src
+│  │  │  ├── events.ts
+│  │  │  ├── index.ts
+│  │  │  ├── schemas
+│  │  │  │  ├── character.ts
+│  │  │  │  ├── chat-import.ts
+│  │  │  │  ├── play.ts
+│  │  │  │  ├── provider.ts
+│  │  │  │  ├── scenario.ts
+│  │  │  │  ├── templates.ts
+│  │  │  │  └── workflows.ts
+│  │  │  └── utils
+│  │  │      └── data-uri-validation.ts
+│  │  ├── tsconfig.build.json
+│  │  └── tsconfig.json
 │  ├── db
 │  │  ├── drizzle.config.ts
 │  │  ├── package.json
@@ -470,22 +486,6 @@
 │  │  ├── tsconfig.build.json
 │  │  ├── tsconfig.json
 │  │  └── vitest.config.ts
-│  ├── schemas
-│  │  ├── package.json
-│  │  ├── src
-│  │  │  ├── contracts
-│  │  │  │  ├── character.ts
-│  │  │  │  ├── chat-import.ts
-│  │  │  │  ├── play.ts
-│  │  │  │  ├── provider.ts
-│  │  │  │  ├── scenario.ts
-│  │  │  │  ├── templates.ts
-│  │  │  │  └── workflows.ts
-│  │  │  ├── index.ts
-│  │  │  └── utils
-│  │  │      └── data-uri-validation.ts
-│  │  ├── tsconfig.build.json
-│  │  └── tsconfig.json
 │  ├── utils
 │  │  ├── package.json
 │  │  ├── src

@@ -1,5 +1,5 @@
 import { Box, Flex, Image, Text, VStack } from "@chakra-ui/react";
-import type { CharacterWithStarters } from "@storyforge/schemas";
+import type { CharacterWithStarters } from "@storyforge/contracts";
 import { useState } from "react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import Markdown from "react-markdown";

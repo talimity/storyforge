@@ -1,5 +1,5 @@
 {
-  "name": "@storyforge/schemas",
+  "name": "@storyforge/contracts",
   "description": "Shared zod schemas for Storyforge.",
   "version": "1.0.0",
   "type": "module",

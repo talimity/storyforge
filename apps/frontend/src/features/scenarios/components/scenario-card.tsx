@@ -1,5 +1,5 @@
 import { Badge, Box, Card, HStack, IconButton, Menu, Portal, Text, VStack } from "@chakra-ui/react";
-import type { ScenarioWithCharacters } from "@storyforge/schemas";
+import type { ScenarioWithCharacters } from "@storyforge/contracts";
 import {
   LuCalendar,
   LuEllipsisVertical,

@@ -1,12 +1,3 @@
-import type {
-  ModelProfile as DbModelProfile,
-  ProviderConfig as DbProviderConfig,
-} from "@storyforge/db";
-import {
-  createAdapter,
-  getDefaultCapabilities,
-  textInferenceCapabilitiesSchema,
-} from "@storyforge/inference";
 import {
   type ModelProfile as ApiModelProfile,
   type ProviderConfig as ApiProviderConfig,
@@ -24,7 +15,16 @@ import {
   testProviderConnectionOutputSchema,
   updateModelProfileSchema,
   updateProviderConfigSchema,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
+import type {
+  ModelProfile as DbModelProfile,
+  ProviderConfig as DbProviderConfig,
+} from "@storyforge/db";
+import {
+  createAdapter,
+  getDefaultCapabilities,
+  textInferenceCapabilitiesSchema,
+} from "@storyforge/inference";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {

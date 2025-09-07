@@ -21,7 +21,7 @@
     "@storyforge/gentasks": "workspace:*",
     "@storyforge/inference": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
-    "@storyforge/schemas": "workspace:*",
+    "@storyforge/contracts": "workspace:*",
     "@storyforge/utils": "workspace:*",
     "@tanstack/react-query": "^5.87.1",
     "@trpc/client": "catalog:",

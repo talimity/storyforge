@@ -1,4 +1,4 @@
-import type { createIntentInputSchema } from "@storyforge/schemas";
+import type { createIntentInputSchema } from "@storyforge/contracts";
 import type { z } from "zod";
 import { trpc } from "@/lib/trpc";
 

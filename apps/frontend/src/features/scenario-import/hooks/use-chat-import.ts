@@ -1,4 +1,4 @@
-import type { CharacterMapping, ChatImportAnalyzeOutput } from "@storyforge/schemas";
+import type { CharacterMapping, ChatImportAnalyzeOutput } from "@storyforge/contracts";
 import type React from "react";
 import { useRef, useState } from "react";
 import { toaster } from "@/components/ui/index";

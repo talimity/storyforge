@@ -1,4 +1,3 @@
-import { sqliteTimestampToDate } from "@storyforge/db";
 import {
   createIntentInputSchema,
   createIntentOutputSchema,
@@ -11,7 +10,8 @@ import {
   intentResultOutputSchema,
   loadTimelineInputSchema,
   loadTimelineOutputSchema,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
+import { sqliteTimestampToDate } from "@storyforge/db";
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
 import { IntentService } from "../../services/intent/intent.service.js";

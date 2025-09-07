@@ -10,8 +10,8 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import type { ModelProfile } from "@storyforge/contracts";
 import type { TextInferenceCapabilities } from "@storyforge/inference";
-import type { ModelProfile } from "@storyforge/schemas";
 import { useState } from "react";
 import { LuCog, LuEllipsisVertical, LuPencilLine, LuTrash } from "react-icons/lu";
 

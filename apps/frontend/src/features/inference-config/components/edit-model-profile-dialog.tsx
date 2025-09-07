@@ -1,4 +1,4 @@
-import type { ModelProfile } from "@storyforge/schemas";
+import type { ModelProfile } from "@storyforge/contracts";
 import { Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";

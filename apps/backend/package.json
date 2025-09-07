@@ -29,7 +29,7 @@
     "@storyforge/inference": "workspace:*",
     "@storyforge/gentasks": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
-    "@storyforge/schemas": "workspace:*",
+    "@storyforge/contracts": "workspace:*",
     "@storyforge/utils": "workspace:*",
     "@storyforge/yolo-onnx": "workspace:*",
     "@trpc/server": "catalog:",

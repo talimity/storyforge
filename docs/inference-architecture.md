@@ -222,7 +222,7 @@ The prompt templating and rendering system is handled by a separate package (`pr
     * `capability_overrides TEXT`      // Partial<TextInferenceCapabilities>
     * timestamps + FK
 
-* `gentasks` (generative task workflows bound to a particular task kind)
+* `workflows` (generative task workflows bound to a particular task kind)
     * `id TEXT PRIMARY KEY`
     * `kind TEXT NOT NULL`           // e.g., 'chapter_summarization', 'writing_assistant', 'turn_generation'
     * `name TEXT NOT NULL`
@@ -232,11 +232,11 @@ The prompt templating and rendering system is handled by a separate package (`pr
     * `is_builtin INTEGER NOT NULL`
     * timestamps
 
-* `gentask_bindings` (bind app features → gentasks, with optional scope for overrides)
+* `workflow_scopes` (bind app features/characters/scenarios/etc → specific workflows)
     * `id TEXT PRIMARY KEY`
-    * `display_name TEXT`
     * `gentask_id TEXT`                  // fk → gentask.id
     * `scope TEXT NOT NULL`               // 'default' | scenario | character | participant
+    * entity columns for each scope type
     * timestamps
 
 * `prompt_templates`

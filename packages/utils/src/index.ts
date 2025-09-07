@@ -1,6 +1,6 @@
 export * from "./assert-defined.js";
 export * from "./assert-never.js";
-export * from "./async-queue.js";
+export * from "./async-broadcast.js";
 export * from "./exact-keys.js";
 export * from "./fractional-order.js";
 export * from "./is-defined.js";

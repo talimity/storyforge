@@ -487,7 +487,6 @@ describe("Workflow Runner", () => {
     const snapshotDuring = handle.snapshot();
     expect(snapshotDuring.runId).toBe(handle.id);
     expect(snapshotDuring.workflowId).toBe("snapshot-workflow");
-    expect(snapshotDuring.task).toBe("turn_generation");
 
     // Wait for completion
     await handle.result;

@@ -1,15 +1,12 @@
 import type { ChatCompletionResponse } from "@storyforge/inference";
-import { AsyncQueue, createId } from "@storyforge/utils";
+import { AsyncBroadcast, createId } from "@storyforge/utils";
 import type { TaskKind } from "../types.js";
 import type { WorkflowEvent, WorkflowRunId, WorkflowRunSnapshot } from "./types.js";
 
 interface RunData {
-  /** Buffered event log */
   events: WorkflowEvent[];
-  /** Signal queue for new events */
-  ticks: AsyncQueue<void>;
-  /** Abort controller for cancellation */
-  aborted: AbortController;
+  ticks: AsyncBroadcast;
+  abortCtrl: AbortController;
   meta: { workflowId: string; task: TaskKind };
   stepOutputs: Record<string, unknown>;
   stepResponses: Record<string, ChatCompletionResponse>;
@@ -24,7 +21,6 @@ interface RunData {
 
 /**
  * In-memory store for managing workflow runs.
- * Handles event buffering, cancellation, and result promises.
  */
 export class RunStore {
   private runs = new Map<WorkflowRunId, RunData>();
@@ -44,7 +40,6 @@ export class RunStore {
     }>;
   } {
     const id = createId();
-    const aborted = new AbortController();
 
     let resultResolve:
       | ((value: {
@@ -61,10 +56,11 @@ export class RunStore {
       resultReject = reject;
     });
 
+    const abortCtrl = new AbortController();
     const run: RunData = {
       events: [],
-      ticks: new AsyncQueue<void>(),
-      aborted,
+      ticks: new AsyncBroadcast(),
+      abortCtrl,
       meta: { workflowId, task },
       stepOutputs: {},
       stepResponses: {},
@@ -73,7 +69,7 @@ export class RunStore {
     };
 
     this.runs.set(id, run);
-    return { id, signal: aborted.signal, resultPromise };
+    return { id, signal: abortCtrl.signal, resultPromise };
   }
 
   /**
@@ -143,7 +139,7 @@ export class RunStore {
     const run = this.runs.get(id);
     if (!run) return;
 
-    run.aborted.abort();
+    run.abortCtrl.abort();
     run.resultReject?.(new Error("Workflow cancelled"));
   }
 
@@ -168,16 +164,14 @@ export class RunStore {
     let idx = 0;
 
     const drain = function* () {
-      while (idx < run.events.length) {
-        yield run.events[idx++];
-      }
+      while (idx < run.events.length) yield run.events[idx++];
     };
 
     // First drain everything so far
     yield* drain();
 
     // Then wait for ticks and drain again
-    for await (const _tick of run.ticks.iterate()) {
+    for await (const _ of run.ticks.iterate()) {
       yield* drain();
     }
   }
@@ -192,34 +186,19 @@ export class RunStore {
     return {
       runId: id,
       workflowId: run.meta.workflowId,
-      task: run.meta.task,
       events: [...run.events],
       stepOutputs: { ...run.stepOutputs },
       stepResponses: { ...run.stepResponses },
       final: run.final ? { ...run.final } : undefined,
-      cancelled: run.aborted.signal.aborted,
+      cancelled: run.abortCtrl.signal.aborted,
       error: run.error,
     };
   }
 
   /**
-   * Get the abort signal for a run
-   */
-  getSignal(id: WorkflowRunId): AbortSignal | undefined {
-    return this.runs.get(id)?.aborted.signal;
-  }
-
-  /**
-   * Check if a run exists
-   */
-  has(id: WorkflowRunId): boolean {
-    return this.runs.has(id);
-  }
-
-  /**
    * Delete a run from the store (cleanup)
    */
-  delete(id: WorkflowRunId): boolean {
+  delete(id: WorkflowRunId) {
     const run = this.runs.get(id);
     if (!run) return false;
 

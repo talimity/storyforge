@@ -1,10 +1,10 @@
-import { type SqliteDatabase, schema } from "@storyforge/db";
 import {
   type CharacterMapping,
   type ChatImportAnalyzeOutput,
   type SillyTavernMessage,
   sillyTavernMessageSchema,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
+import { type SqliteDatabase, schema } from "@storyforge/db";
 import { assertDefined } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
 import { logger } from "../../logging.js";

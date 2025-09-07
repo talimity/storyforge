@@ -1,5 +1,3 @@
-import { schema } from "@storyforge/db";
-import { genStepSchema, taskKindSchema } from "@storyforge/gentasks";
 import {
   createWorkflowSchema,
   deleteWorkflowScopeSchema,
@@ -15,7 +13,9 @@ import {
   workflowIdSchema,
   workflowOperationResponseSchema,
   workflowsListResponseSchema,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
+import { schema } from "@storyforge/db";
+import { genStepSchema, taskKindSchema } from "@storyforge/gentasks";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { WorkflowService } from "../../services/workflows/workflow.service.js";

@@ -29,27 +29,28 @@ import type {
   WorkflowRunner,
 } from "./types.js";
 
+// Remove finished runs periodically to keep memory usage bounded
+const REAPER_INTERVAL_MS = 60_000; // 1 minute
+const REAPER_TTL_MS = 3 * 60_000; // 3 minutes
+
 /**
  * Creates a workflow runner for a specific task kind
  */
 export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): WorkflowRunner<K> {
   const store = new RunStore();
-  // Reap terminal runs periodically to keep memory usage bounded
-  const REAPER_INTERVAL_MS = 60_000; // 1 minute
-  const REAPER_TTL_MS = 3 * 60_000; // 3 minutes
+
+  // Set up periodic reaper to remove finished runs
   setInterval(() => {
     const now = Date.now();
     for (const id of store.getActiveRunIds()) {
       const snap = store.snapshot(id);
       if (!snap) continue;
+
       const last = [...snap.events]
         .reverse()
-        .find(
-          (e) => e.type === "run_finished" || e.type === "run_error" || e.type === "run_cancelled"
-        );
-      if (last && now - last.ts > REAPER_TTL_MS) {
-        store.delete(id);
-      }
+        .find((e) => ["run_finished", "run_error", "run_cancelled"].includes(e.type));
+
+      if (last && now - last.ts > REAPER_TTL_MS) store.delete(id);
     }
   }, REAPER_INTERVAL_MS);
 
@@ -203,13 +204,7 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
     const budget = deps.budgetFactory(step.maxContextTokens);
     const messages = render(compiled, ctx, budget, extendedRegistry);
 
-    emit({
-      type: "prompt_rendered",
-      runId,
-      stepId: step.id,
-      messages,
-      ts: now(),
-    });
+    emit({ type: "prompt_rendered", runId, stepId: step.id, messages, ts: now() });
 
     // 3. Apply input transforms
     const { messages: transformedMessages, changed } = applyInputTransforms(
@@ -266,10 +261,12 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
 
     while (true) {
       const { value, done } = await iterator.next();
+
       if (done) {
         finalResponse = value;
         break;
       }
+
       const chunk = value;
       if (chunk?.delta?.content) {
         aggregatedContent += chunk.delta.content;

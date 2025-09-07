@@ -1,5 +1,5 @@
 import { Box, Heading, Stack, Text } from "@chakra-ui/react";
-import type { TimelineTurn } from "@storyforge/schemas";
+import type { TimelineTurn } from "@storyforge/contracts";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
 import { TurnItem } from "@/features/scenario-player/components/timeline/turn-item";

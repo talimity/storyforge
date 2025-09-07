@@ -1,3 +1,9 @@
+import type {
+  CreateModelProfile,
+  CreateProviderConfig,
+  UpdateModelProfile,
+  UpdateProviderConfig,
+} from "@storyforge/contracts";
 import {
   buildSqliteUpdates,
   type ModelProfile,
@@ -14,12 +20,6 @@ import {
   type ChatCompletionResponse,
   createAdapter,
 } from "@storyforge/inference";
-import type {
-  CreateModelProfile,
-  CreateProviderConfig,
-  UpdateModelProfile,
-  UpdateProviderConfig,
-} from "@storyforge/schemas";
 import { stripNulls } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
 import { createChildLogger } from "../../logging.js";

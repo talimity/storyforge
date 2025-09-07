@@ -149,7 +149,6 @@ export type GenStepResult = {
 export type WorkflowRunSnapshot = {
   runId: WorkflowRunId;
   workflowId: string;
-  task: TaskKind;
   events: WorkflowEvent[];
   stepOutputs: Record<string, unknown>;
   stepResponses: Record<string, ChatCompletionResponse>;

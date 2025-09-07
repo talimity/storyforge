@@ -11,7 +11,7 @@ import {
   characterWithRelationsSchema,
   createCharacterSchema,
   updateCharacterSchema,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {

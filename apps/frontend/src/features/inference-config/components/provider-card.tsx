@@ -9,7 +9,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { ProviderConfig } from "@storyforge/schemas";
+import type { ProviderConfig } from "@storyforge/contracts";
 import { useState } from "react";
 import { LuEllipsisVertical, LuKey, LuPencilLine, LuTrash } from "react-icons/lu";
 import { DeleteProviderDialog } from "./delete-provider-dialog";

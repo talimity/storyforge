@@ -71,6 +71,13 @@
       "when": 1757205233945,
       "tag": "0009_provider-capabilities",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1757358476098,
+      "tag": "0010_intent-effect-seq",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { Text } from "@chakra-ui/react";
-import type { ProviderConfig } from "@storyforge/schemas";
+import type { ProviderConfig } from "@storyforge/contracts";
 import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";

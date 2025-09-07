@@ -125,7 +125,7 @@ describe("play.intentProgress subscription (runner events)", () => {
     const events: string[] = [];
     for await (const ev of intentRunManager!.get(intentId)!.events()) {
       events.push(ev.type);
-      if (ev.type === "intent_finished" || ev.type === "intent_failed") break;
+      if (ev.type === "intent_finished") break;
     }
 
     // Event shape assertions
@@ -152,7 +152,7 @@ describe("play.intentProgress subscription (runner events)", () => {
     expect(turn).toBeTruthy();
   });
 
-  it("backfills buffered events produced before a subscriber starts reading", async () => {
+  it("replays buffered events produced before a subscriber starts reading", async () => {
     const scenarioId = await seedScenario(db);
     const { caller } = await createFreshTestCaller(db);
 
@@ -162,13 +162,13 @@ describe("play.intentProgress subscription (runner events)", () => {
     });
 
     // Wait so some tokens are produced before we attach
-    await delay(150);
+    await delay(50);
 
     const attachAt = Date.now();
     const received: { type: string; ts: number }[] = [];
     for await (const ev of intentRunManager!.get(intentId)!.events()) {
       received.push({ type: ev.type, ts: ev.ts });
-      if (ev.type === "intent_finished" || ev.type === "intent_failed") break;
+      if (ev.type === "intent_finished") break;
     }
 
     // We should receive events emitted before we attached (buffer backfill)
@@ -196,16 +196,10 @@ describe("play.intentProgress subscription (runner events)", () => {
     });
 
     // Create a slow workflow scoped to this scenario so we can cancel mid-flight
-    const provider = await db.query.providerConfigs.findFirst({
-      where: { kind: "mock" as any },
-    });
+    const provider = await db.query.providerConfigs.findFirst({ where: { kind: "mock" as any } });
     const [slowProfile] = await db
       .insert(schema.modelProfiles)
-      .values({
-        providerId: provider!.id,
-        displayName: "Mock Slow",
-        modelId: "mock-slow",
-      })
+      .values({ providerId: provider!.id, displayName: "Mock Slow", modelId: "mock-slow" })
       .returning();
     const [tmpl] = await db.query.promptTemplates.findMany({ limit: 1 });
     const slowSteps = [
@@ -219,12 +213,7 @@ describe("play.intentProgress subscription (runner events)", () => {
     ];
     const [slowWf] = await db
       .insert(schema.workflows)
-      .values({
-        task: "turn_generation",
-        name: "Slow TurnGen",
-        isBuiltIn: false,
-        steps: slowSteps,
-      })
+      .values({ task: "turn_generation", name: "Slow TurnGen", isBuiltIn: false, steps: slowSteps })
       .returning();
     await db.insert(schema.workflowScopes).values({
       workflowId: slowWf.id,
@@ -249,9 +238,9 @@ describe("play.intentProgress subscription (runner events)", () => {
     const evs: string[] = [];
     for await (const ev of intentRunManager!.get(intentId)!.events()) {
       evs.push(ev.type);
-      if (ev.type === "intent_finished" || ev.type === "intent_failed") break;
+      if (ev.type === "intent_finished") break;
     }
-    expect(evs.at(-1)).toBe("intent_failed"); // cancel currently surfaces as failed event
+    expect(evs.at(-1)).toBe("intent_failed"); // cancel surfaces as failed event
 
     const row = await db.query.intents.findFirst({ where: { id: intentId } });
     expect(row?.status).toBe("cancelled");
@@ -267,23 +256,27 @@ describe("play.intentProgress subscription (runner events)", () => {
     const scenarioId = await seedScenario(db);
     const { caller } = await createFreshTestCaller(db);
 
+    const chara = await db.query.scenarioParticipants.findFirst({
+      where: { scenarioId, type: "character" },
+      columns: { id: true },
+    });
+
     const { intentId } = await caller.play.createIntent({
       scenarioId,
-      parameters: { kind: "continue_story" },
+      parameters: { kind: "manual_control", text: "hi", targetParticipantId: chara?.id ?? "" },
     });
 
     // Drain to completion
     for await (const ev of intentRunManager!.get(intentId)!.events()) {
-      if (ev.type === "intent_finished" || ev.type === "intent_failed") break;
+      if (ev.type === "intent_finished") break;
     }
 
     const res = await caller.play.intentResult({ intentId });
     expect(res.id).toBe(intentId);
     expect(res.status).toBe("finished");
-    expect(res.effects.length).toBeGreaterThanOrEqual(1);
-    for (let i = 0; i < res.effects.length; i++) {
-      expect(res.effects[i]!.sequence).toBe(i + 1);
-    }
+    expect(res.effects.length).toBe(2);
+    expect(res.effects[0].sequence).toBe(0);
+    expect(res.effects[1].sequence).toBe(1);
     expect(typeof res.anchorTurnId).toBe("string");
   });
 });

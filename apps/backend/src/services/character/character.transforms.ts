@@ -1,8 +1,8 @@
-import { type Character as DbCharacter, sqliteTimestampToDate } from "@storyforge/db";
 import type {
   Character as ApiCharacter,
   CharacterSummary as ApiCharacterSummary,
-} from "@storyforge/schemas";
+} from "@storyforge/contracts";
+import { type Character as DbCharacter, sqliteTimestampToDate } from "@storyforge/db";
 import { getCharaAssetPaths } from "./utils/chara-asset-helpers.js";
 
 // TODO: don't use this file. queries should select exactly what they need to

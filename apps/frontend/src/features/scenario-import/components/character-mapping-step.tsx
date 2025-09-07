@@ -1,5 +1,5 @@
 import { Box, Grid, HStack, Icon, Input, Text, VStack } from "@chakra-ui/react";
-import type { CharacterMapping, ChatImportAnalyzeOutput } from "@storyforge/schemas";
+import type { CharacterMapping, ChatImportAnalyzeOutput } from "@storyforge/contracts";
 import { LuMessageCircle, LuUser } from "react-icons/lu";
 import { Field } from "@/components/ui/index";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
