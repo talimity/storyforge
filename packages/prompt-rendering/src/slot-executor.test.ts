@@ -64,15 +64,9 @@ describe("Slot Executor", () => {
         expect(result.slotC).toHaveLength(1);
 
         // Verify content matches expected priority order
-        expect(result.slotA[0].content).toContain(
-          "Priority 0 - executed first"
-        );
-        expect(result.slotB[0].content).toContain(
-          "Priority 1 - executed second"
-        );
-        expect(result.slotC[0].content).toContain(
-          "Priority 2 - executed third"
-        );
+        expect(result.slotA[0].content).toContain("Priority 0 - executed first");
+        expect(result.slotB[0].content).toContain("Priority 1 - executed second");
+        expect(result.slotC[0].content).toContain("Priority 2 - executed third");
       });
 
       it("should handle slots with same priority consistently", () => {
@@ -238,9 +232,7 @@ describe("Slot Executor", () => {
               {
                 kind: "message",
                 role: "user",
-                content: compileLeaf(
-                  "This message is longer than the slot budget allows"
-                ),
+                content: compileLeaf("This message is longer than the slot budget allows"),
               },
             ],
           },
@@ -424,9 +416,7 @@ describe("Slot Executor", () => {
 
         const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
         const result = executeSlots(slots, ctx, budget, registry);
-        expect(spy).toHaveBeenCalledWith(
-          expect.stringContaining("Unresolvable DataRef")
-        );
+        expect(spy).toHaveBeenCalledWith(expect.stringContaining("Unresolvable DataRef"));
         spy.mockRestore();
 
         // Expect the slot to be empty due to error in source
@@ -524,9 +514,7 @@ describe("Slot Executor", () => {
                   {
                     kind: "message",
                     role: "user",
-                    content: compileLeaf(
-                      "Chapter {{item.chapterNo}}: {{item.summary}}"
-                    ),
+                    content: compileLeaf("Chapter {{item.chapterNo}}: {{item.summary}}"),
                   },
                 ],
               },
@@ -543,9 +531,7 @@ describe("Slot Executor", () => {
                   {
                     kind: "message",
                     role: "user",
-                    content: compileLeaf(
-                      "{{item.authorName}}: {{item.content}}"
-                    ),
+                    content: compileLeaf("{{item.authorName}}: {{item.content}}"),
                   },
                 ],
               },

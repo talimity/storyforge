@@ -31,10 +31,7 @@ export type LayoutNode<S extends SourceSpec = SourceSpec> =
       omitIfEmpty?: boolean;
     };
 
-export type PromptTemplate<
-  K extends string,
-  S extends SourceSpec = SourceSpec,
-> = {
+export type PromptTemplate<K extends string, S extends SourceSpec = SourceSpec> = {
   id: string;
   name: string;
   description?: string;
@@ -155,11 +152,10 @@ export interface SourceRegistry<Ctx, S extends SourceSpec> {
  * Source handler function type - receives a DataRef and task context,
  * returns any value that the source provides.
  */
-export type SourceHandler<
-  Ctx,
-  S extends SourceSpec,
-  K extends keyof S & string,
-> = (ref: DataRef<K, S[K]["args"]>, ctx: Ctx) => S[K]["out"];
+export type SourceHandler<Ctx, S extends SourceSpec, K extends keyof S & string> = (
+  ref: DataRef<K, S[K]["args"]>,
+  ctx: Ctx
+) => S[K]["out"];
 
 export type SourceHandlerMap<Ctx, S extends SourceSpec> = {
   [K in keyof S & string]: SourceHandler<Ctx, S, K & string>;

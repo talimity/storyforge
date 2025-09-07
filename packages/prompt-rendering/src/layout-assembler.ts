@@ -45,9 +45,7 @@ export function assembleLayout<Ctx extends object, S extends SourceSpec>(
         break;
       default: {
         const badNode = nodeKind satisfies never;
-        console.warn(
-          `prompt-rendering assembler: Unsupported LayoutNode '${badNode}'.`
-        );
+        console.warn(`prompt-rendering assembler: Unsupported LayoutNode '${badNode}'.`);
       }
     }
   }
@@ -90,8 +88,7 @@ function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
     if (resolved == null) {
       return "skip"; // skip this block
     }
-    content =
-      typeof resolved === "string" ? resolved : JSON.stringify(resolved);
+    content = typeof resolved === "string" ? resolved : JSON.stringify(resolved);
   } else if (block.content) {
     // Use compiled leaf function
     content = block.content(scope);
@@ -155,9 +152,7 @@ function processSlotNode<Ctx extends object, S extends SourceSpec>(
 ): void {
   // Check if slot exists in buffers
   if (!(node.name in slotBuffers)) {
-    throw new TemplateStructureError(
-      `Layout references nonexistent slot '${node.name}'`
-    );
+    throw new TemplateStructureError(`Layout references nonexistent slot '${node.name}'`);
   }
 
   const slotMessages = slotBuffers[node.name];

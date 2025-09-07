@@ -1,9 +1,4 @@
-import {
-  exists,
-  isNonEmpty,
-  isValidNumber,
-  resolveDataRef,
-} from "./data-ref-resolver.js";
+import { exists, isNonEmpty, isValidNumber, resolveDataRef } from "./data-ref-resolver.js";
 import type { ConditionRef, SourceRegistry, SourceSpec } from "./types.js";
 
 /**

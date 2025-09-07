@@ -52,15 +52,11 @@ export function getRecipesForTask<K extends TaskKind>(
   return Object.values(BY_TASK[task]);
 }
 
-export function getRecipeIdsForTask<K extends TaskKind>(
-  task: K
-): RecipeId<K>[] {
+export function getRecipeIdsForTask<K extends TaskKind>(task: K): RecipeId<K>[] {
   return Object.keys(BY_TASK[task]) as RecipeId<K>[];
 }
 
-export function getRecipeById<I extends keyof typeof ALL_RECIPES>(
-  id: I
-): (typeof ALL_RECIPES)[I];
+export function getRecipeById<I extends keyof typeof ALL_RECIPES>(id: I): (typeof ALL_RECIPES)[I];
 export function getRecipeById(id: string): AnyRecipe | undefined;
 export function getRecipeById(id: string): AnyRecipe | undefined {
   return ALL_RECIPES[id as keyof typeof ALL_RECIPES] as AnyRecipe | undefined;

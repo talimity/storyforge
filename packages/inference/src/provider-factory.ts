@@ -33,9 +33,7 @@ export function createAdapter(config: ProviderConfig): ProviderAdapter {
   }
 }
 
-export function getDefaultCapabilities(
-  kind: string
-): TextInferenceCapabilities {
+export function getDefaultCapabilities(kind: string): TextInferenceCapabilities {
   switch (kind) {
     case "deepseek":
       return new DeepseekAdapter({ apiKey: "" }).defaultCapabilities();

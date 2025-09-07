@@ -2,10 +2,7 @@ import type { ModelProfile } from "@storyforge/schemas";
 import { Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";
-import {
-  ModelProfileForm,
-  type ModelProfileFormData,
-} from "./model-profile-form";
+import { ModelProfileForm, type ModelProfileFormData } from "./model-profile-form";
 
 interface EditModelProfileDialogProps {
   modelProfile: ModelProfile;
@@ -20,17 +17,16 @@ export function EditModelProfileDialog({
 }: EditModelProfileDialogProps) {
   const utils = trpc.useUtils();
 
-  const updateModelProfileMutation =
-    trpc.providers.updateModelProfile.useMutation({
-      onSuccess: () => {
-        showSuccessToast({
-          title: "Model profile updated successfully",
-          description: "Model profile has been updated",
-        });
-        utils.providers.listModelProfiles.invalidate();
-        onOpenChange(false);
-      },
-    });
+  const updateModelProfileMutation = trpc.providers.updateModelProfile.useMutation({
+    onSuccess: () => {
+      showSuccessToast({
+        title: "Model profile updated successfully",
+        description: "Model profile has been updated",
+      });
+      utils.providers.listModelProfiles.invalidate();
+      onOpenChange(false);
+    },
+  });
 
   const handleSubmit = (data: ModelProfileFormData) => {
     updateModelProfileMutation.mutate({ id: modelProfile.id, data });

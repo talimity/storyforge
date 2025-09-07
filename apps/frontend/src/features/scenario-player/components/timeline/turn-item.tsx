@@ -1,13 +1,4 @@
-import {
-  Box,
-  Group,
-  HStack,
-  Menu,
-  Portal,
-  Stack,
-  Text,
-  Textarea,
-} from "@chakra-ui/react";
+import { Box, Group, HStack, Menu, Portal, Stack, Text, Textarea } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/schemas";
 import { memo, useCallback, useState } from "react";
 import {
@@ -185,10 +176,7 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
                           <Portal>
                             <Menu.Positioner>
                               <Menu.Content>
-                                <Menu.Item
-                                  onClick={doNothing}
-                                  value="chapter-break"
-                                >
+                                <Menu.Item onClick={doNothing} value="chapter-break">
                                   Chapter Break...
                                 </Menu.Item>
                               </Menu.Content>

@@ -28,9 +28,7 @@ export function DiscardChangesDialog({
           <Dialog.Title>Discard Changes?</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
-          <Text>
-            You have unsaved changes. Are you sure you want to discard them?
-          </Text>
+          <Text>You have unsaved changes. Are you sure you want to discard them?</Text>
         </Dialog.Body>
         <Dialog.Footer>
           <Dialog.ActionTrigger asChild>

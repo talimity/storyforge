@@ -10,12 +10,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
-import {
-  LuEllipsisVertical,
-  LuPencilLine,
-  LuShare,
-  LuTrash,
-} from "react-icons/lu";
+import { LuEllipsisVertical, LuPencilLine, LuShare, LuTrash } from "react-icons/lu";
 import { useWorkflowActions } from "../hooks/use-workflow-actions";
 import { DeleteWorkflowDialog } from "./delete-workflow-dialog";
 
@@ -65,11 +60,7 @@ export function WorkflowCard({ workflow }: { workflow: WorkflowSummaryView }) {
                         <LuShare />
                         Export
                       </Menu.Item>
-                      <Menu.Item
-                        value="delete"
-                        onClick={actions.openDeleteDialog}
-                        color="red.500"
-                      >
+                      <Menu.Item value="delete" onClick={actions.openDeleteDialog} color="red.500">
                         <LuTrash />
                         Delete
                       </Menu.Item>
@@ -96,9 +87,7 @@ export function WorkflowCard({ workflow }: { workflow: WorkflowSummaryView }) {
       <DeleteWorkflowDialog
         workflow={{ id: workflow.id, name: workflow.name }}
         isOpen={actions.isDeleteDialogOpen}
-        onOpenChange={(open) =>
-          open ? actions.openDeleteDialog() : actions.closeDeleteDialog()
-        }
+        onOpenChange={(open) => (open ? actions.openDeleteDialog() : actions.closeDeleteDialog())}
       />
     </>
   );

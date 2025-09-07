@@ -104,28 +104,14 @@ export const timelineTurnSchema = z.object({
     .string()
     .nullable()
     .describe("Previous turn in this timeline (or null for the root turn)"),
-  authorParticipantId: z
-    .string()
-    .describe("Participant ID of the author of this turn"),
-  turnNo: z
-    .number()
-    .describe("1-based position of this turn from the timeline root"),
+  authorParticipantId: z.string().describe("Participant ID of the author of this turn"),
+  turnNo: z.number().describe("1-based position of this turn from the timeline root"),
   swipes: z
     .object({
-      leftTurnId: z
-        .string()
-        .nullable()
-        .describe("Previous sibling turn, forking left"),
-      rightTurnId: z
-        .string()
-        .nullable()
-        .describe("Next sibling turn, forking right"),
-      swipeCount: z
-        .number()
-        .describe("Sibling count for this turn, including itself"),
-      swipeNo: z
-        .number()
-        .describe("1-based position of this swipe among its siblings"),
+      leftTurnId: z.string().nullable().describe("Previous sibling turn, forking left"),
+      rightTurnId: z.string().nullable().describe("Next sibling turn, forking right"),
+      swipeCount: z.number().describe("Sibling count for this turn, including itself"),
+      swipeNo: z.number().describe("1-based position of this swipe among its siblings"),
     })
     .describe("Swipe (alternate branch) information for this turn"),
   layer: z.literal("presentation").describe("The content layer being loaded"),
@@ -137,18 +123,11 @@ export const timelineTurnSchema = z.object({
 });
 
 export const loadTimelineOutputSchema = z.object({
-  timeline: z
-    .array(timelineTurnSchema)
-    .describe("Array of turns in the loaded timeline slice"),
+  timeline: z.array(timelineTurnSchema).describe("Array of turns in the loaded timeline slice"),
   cursors: z.object({
-    nextLeafTurnId: z
-      .string()
-      .nullable()
-      .describe("Cursor for the next page of turns, if any"),
+    nextLeafTurnId: z.string().nullable().describe("Cursor for the next page of turns, if any"),
   }),
-  timelineDepth: z
-    .number()
-    .describe("Number of turns in the timeline from root to anchor"),
+  timelineDepth: z.number().describe("Number of turns in the timeline from root to anchor"),
 });
 
 // Intent API schemas
@@ -174,14 +153,9 @@ export const createIntentOutputSchema = z.object({ intentId: z.string() });
 export const intentEffectSchema = z
   .object({
     intentId: z.string().describe("ID of the intent that created this effect"),
-    sequence: z
-      .number()
-      .describe("Order of this effect among all created by this intent"),
+    sequence: z.number().describe("Order of this effect among all created by this intent"),
     kind: z.enum(["new_turn"]).describe("Type of effect on the timeline"),
-    turnId: z
-      .string()
-      .nullable()
-      .describe("ID of the turn created by this effect"),
+    turnId: z.string().nullable().describe("ID of the turn created by this effect"),
   })
   .describe("Representation of an effect of player's intent (ie. new turns)");
 
@@ -192,12 +166,8 @@ export const intentSchema = z
     status: z
       .enum(["pending", "running", "finished", "failed", "cancelled"])
       .describe("Current status of intent"),
-    effects: z
-      .array(intentEffectSchema)
-      .describe("Array of effects created by this intent"),
-    anchorTurnId: z
-      .string()
-      .describe("Timeline anchor turn when this intent was created"),
+    effects: z.array(intentEffectSchema).describe("Array of effects created by this intent"),
+    anchorTurnId: z.string().describe("Timeline anchor turn when this intent was created"),
   })
   .describe("Representation of a player's intent to influence the story");
 

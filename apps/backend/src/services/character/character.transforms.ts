@@ -1,7 +1,4 @@
-import {
-  type Character as DbCharacter,
-  sqliteTimestampToDate,
-} from "@storyforge/db";
+import { type Character as DbCharacter, sqliteTimestampToDate } from "@storyforge/db";
 import type {
   Character as ApiCharacter,
   CharacterSummary as ApiCharacterSummary,
@@ -46,13 +43,7 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
 export function transformCharacterSummary(
   charaSummary: Pick<
     DbCharacter,
-    | "id"
-    | "name"
-    | "createdAt"
-    | "updatedAt"
-    | "cardType"
-    | "tags"
-    | "creatorNotes"
+    "id" | "name" | "createdAt" | "updatedAt" | "cardType" | "tags" | "creatorNotes"
   > & { hasPortrait: number }
 ): ApiCharacterSummary {
   return {

@@ -16,8 +16,7 @@ export const chatImportRouter = router({
         method: "POST",
         path: "/api/chat-import/analyze",
         tags: ["chat-import"],
-        summary:
-          "Scans a SillyTavern chat export for messages and possible character matches",
+        summary: "Scans a SillyTavern chat export for messages and possible character matches",
       },
     })
     .input(chatImportAnalyzeInputSchema)
@@ -25,11 +24,7 @@ export const chatImportRouter = router({
     .mutation(async ({ input, ctx }) => {
       const scenarioService = new ScenarioService(ctx.db);
       const timelineService = new TimelineService(ctx.db);
-      const importService = new ChatImportService(
-        ctx.db,
-        scenarioService,
-        timelineService
-      );
+      const importService = new ChatImportService(ctx.db, scenarioService, timelineService);
 
       return await importService.analyzeChat(input.fileDataUri);
     }),
@@ -49,11 +44,7 @@ export const chatImportRouter = router({
     .mutation(async ({ input, ctx }) => {
       const scenarioService = new ScenarioService(ctx.db);
       const timelineService = new TimelineService(ctx.db);
-      const importService = new ChatImportService(
-        ctx.db,
-        scenarioService,
-        timelineService
-      );
+      const importService = new ChatImportService(ctx.db, scenarioService, timelineService);
 
       const result = await importService.importChatAsScenario(input);
 

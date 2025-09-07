@@ -23,14 +23,8 @@ export type ChapterSummSources = {
 };
 
 // Convenience type aliases
-export type ChapterSummTemplate = PromptTemplate<
-  "chapter_summarization",
-  ChapterSummSources
->;
-export type ChapterSummRegistry = SourceRegistry<
-  ChapterSummCtx,
-  ChapterSummSources
->;
+export type ChapterSummTemplate = PromptTemplate<"chapter_summarization", ChapterSummSources>;
+export type ChapterSummRegistry = SourceRegistry<ChapterSummCtx, ChapterSummSources>;
 
 const makeChapterSummarizationRegistry = (
   handlers: SourceHandlerMap<ChapterSummCtx, ChapterSummSources>

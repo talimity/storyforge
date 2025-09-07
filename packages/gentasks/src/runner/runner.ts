@@ -32,9 +32,7 @@ import type {
 /**
  * Creates a workflow runner for a specific task kind
  */
-export function makeWorkflowRunner<K extends TaskKind>(
-  deps: WorkflowDeps<K>
-): WorkflowRunner<K> {
+export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): WorkflowRunner<K> {
   const store = new RunStore();
   // Reap terminal runs periodically to keep memory usage bounded
   const REAPER_INTERVAL_MS = 60_000; // 1 minute
@@ -47,10 +45,7 @@ export function makeWorkflowRunner<K extends TaskKind>(
       const last = [...snap.events]
         .reverse()
         .find(
-          (e) =>
-            e.type === "run_finished" ||
-            e.type === "run_error" ||
-            e.type === "run_cancelled"
+          (e) => e.type === "run_finished" || e.type === "run_error" || e.type === "run_cancelled"
         );
       if (last && now - last.ts > REAPER_TTL_MS) {
         store.delete(id);
@@ -148,8 +143,7 @@ export function makeWorkflowRunner<K extends TaskKind>(
           store.closeQueue(runId);
           // Do NOT call store.fail here; store.cancel() already rejected & closed
         } else {
-          const message =
-            error instanceof Error ? error.message : String(error);
+          const message = error instanceof Error ? error.message : String(error);
           emit({ type: "run_error", runId, error: message, ts: now() });
           store.fail(runId, message);
         }
@@ -304,10 +298,7 @@ export function makeWorkflowRunner<K extends TaskKind>(
     // 8. Apply output transforms
     // Use the final response content if available, otherwise aggregated content
     const outputContent = finalResponse.message?.content || aggregatedContent;
-    const transformedOutput = applyOutputTransforms(
-      outputContent,
-      step.transforms
-    );
+    const transformedOutput = applyOutputTransforms(outputContent, step.transforms);
 
     // 9. Capture outputs
     const captured = captureOutputs(step.outputs, transformedOutput);
@@ -330,9 +321,7 @@ export function makeWorkflowRunner<K extends TaskKind>(
 /**
  * Derive hints for assistant prefill based on messages
  */
-function deriveHints(
-  messages: RenderedChatCompletionMessage[]
-): ChatCompletionRequestHints {
+function deriveHints(messages: RenderedChatCompletionMessage[]): ChatCompletionRequestHints {
   const last = messages.at(-1);
   if (last?.role === "assistant" && last?.prefix === true) {
     return { assistantPrefill: "require" };
@@ -371,10 +360,7 @@ function applyInputTransforms(
 /**
  * Apply output transforms to text
  */
-function applyOutputTransforms(
-  text: string,
-  transforms?: TransformSpec[]
-): string {
+function applyOutputTransforms(text: string, transforms?: TransformSpec[]): string {
   if (!transforms?.length) return text;
 
   let result = text;
@@ -401,10 +387,7 @@ function applyTransform(text: string, transform: TransformSpec): string {
   } else if ("regex" in transform) {
     // TODO: precompile
     const flags = transform.regex.flags ?? "g";
-    const re = new RegExp(
-      transform.regex.pattern,
-      flags.includes("g") ? flags : `${flags}g`
-    );
+    const re = new RegExp(transform.regex.pattern, flags.includes("g") ? flags : `${flags}g`);
     return text.replace(re, transform.regex.substitution);
   }
   return text;
@@ -413,10 +396,7 @@ function applyTransform(text: string, transform: TransformSpec): string {
 /**
  * Capture outputs from generated text
  */
-function captureOutputs(
-  outputs: OutputCapture[],
-  text: string
-): Record<string, unknown> {
+function captureOutputs(outputs: OutputCapture[], text: string): Record<string, unknown> {
   const captured: Record<string, unknown> = {};
   const parsed = safeJson(text);
 

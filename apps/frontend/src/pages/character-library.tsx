@@ -1,19 +1,6 @@
-import {
-  ActionBar,
-  Center,
-  Container,
-  Flex,
-  Grid,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { ActionBar, Center, Container, Flex, Grid, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  LuLayoutGrid,
-  LuLayoutList,
-  LuPlay,
-  LuUsersRound,
-} from "react-icons/lu";
+import { LuLayoutGrid, LuLayoutList, LuPlay, LuUsersRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import {
   ActionBarContent,
@@ -48,18 +35,13 @@ export function CharacterLibraryPage() {
     const saved = localStorage.getItem("character-library-view-mode");
     return saved !== null ? JSON.parse(saved) : "grid";
   });
-  const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>(
-    []
-  );
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([]);
   const charactersQuery = trpc.characters.list.useQuery();
   const utils = trpc.useUtils();
 
   // Persist view mode to localStorage
   useEffect(() => {
-    localStorage.setItem(
-      "character-library-view-mode",
-      JSON.stringify(viewMode)
-    );
+    localStorage.setItem("character-library-view-mode", JSON.stringify(viewMode));
   }, [viewMode]);
 
   const toggleCharacterSelection = (characterId: string) => {
@@ -82,9 +64,7 @@ export function CharacterLibraryPage() {
     if (!charactersQuery.data?.characters) return [];
 
     return selectedCharacterIds
-      .map((id) =>
-        charactersQuery.data.characters.find((char) => char.id === id)
-      )
+      .map((id) => charactersQuery.data.characters.find((char) => char.id === id))
       .filter((char): char is NonNullable<typeof char> => char !== undefined);
   }, [charactersQuery.data?.characters, selectedCharacterIds]);
 
@@ -125,19 +105,15 @@ export function CharacterLibraryPage() {
             gap={4}
             justifyContent="start"
           >
-            {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map(
-              (skeletonId) => (
-                <CharacterCardSkeleton key={skeletonId} />
-              )
-            )}
+            {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
+              <CharacterCardSkeleton key={skeletonId} />
+            ))}
           </Grid>
         ) : (
           <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)" }} gap={3}>
-            {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map(
-              (skeletonId) => (
-                <CompactCharacterCardSkeleton key={skeletonId} />
-              )
-            )}
+            {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
+              <CompactCharacterCardSkeleton key={skeletonId} />
+            ))}
           </Grid>
         ))}
 
@@ -148,11 +124,7 @@ export function CharacterLibraryPage() {
               Failed to load characters
             </Text>
             <Text color="gray.600">{charactersQuery.error.message}</Text>
-            <Button
-              onClick={() => charactersQuery.refetch()}
-              variant="outline"
-              colorPalette="red"
-            >
+            <Button onClick={() => charactersQuery.refetch()} variant="outline" colorPalette="red">
               Try Again
             </Button>
           </VStack>
@@ -172,11 +144,7 @@ export function CharacterLibraryPage() {
       {charactersQuery.data &&
         charactersQuery.data.characters.length > 0 &&
         (viewMode === "grid" ? (
-          <Grid
-            templateColumns="repeat(auto-fit, 240px)"
-            justifyContent="center"
-            gap={4}
-          >
+          <Grid templateColumns="repeat(auto-fit, 240px)" justifyContent="center" gap={4}>
             {charactersQuery.data.characters.map((character) => (
               <CharacterCard
                 key={character.id}
@@ -211,10 +179,7 @@ export function CharacterLibraryPage() {
         onImportSuccess={() => utils.characters.list.invalidate()}
       />
 
-      <ActionBar.Root
-        open={selectedCharacterIds.length > 1}
-        closeOnEscape={true}
-      >
+      <ActionBar.Root open={selectedCharacterIds.length > 1} closeOnEscape={true}>
         <ActionBarContent layerStyle="contrast" colorPalette="contrast">
           <Container>
             <Flex align="center">
@@ -228,12 +193,7 @@ export function CharacterLibraryPage() {
             </Flex>
           </Container>
           <ActionBar.Separator />
-          <Button
-            variant="solid"
-            colorPalette="accent"
-            size="sm"
-            onClick={handleStartScenario}
-          >
+          <Button variant="solid" colorPalette="accent" size="sm" onClick={handleStartScenario}>
             <LuPlay />
             Start New Scenario
           </Button>

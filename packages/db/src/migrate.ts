@@ -22,9 +22,7 @@ function findMigrationsFolder(): string {
     }
   }
 
-  throw new Error(
-    `Could not find migrations folder. Tried: ${possiblePaths.join(", ")}`
-  );
+  throw new Error(`Could not find migrations folder. Tried: ${possiblePaths.join(", ")}`);
 }
 
 export async function runMigrations(db: SqliteDatabase) {

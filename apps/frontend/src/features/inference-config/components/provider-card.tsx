@@ -11,12 +11,7 @@ import {
 } from "@chakra-ui/react";
 import type { ProviderConfig } from "@storyforge/schemas";
 import { useState } from "react";
-import {
-  LuEllipsisVertical,
-  LuKey,
-  LuPencilLine,
-  LuTrash,
-} from "react-icons/lu";
+import { LuEllipsisVertical, LuKey, LuPencilLine, LuTrash } from "react-icons/lu";
 import { DeleteProviderDialog } from "./delete-provider-dialog";
 import { EditProviderDialog } from "./edit-provider-dialog";
 
@@ -61,10 +56,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                 <Portal>
                   <Menu.Positioner>
                     <Menu.Content>
-                      <Menu.Item
-                        value="edit"
-                        onClick={() => setIsEditDialogOpen(true)}
-                      >
+                      <Menu.Item value="edit" onClick={() => setIsEditDialogOpen(true)}>
                         <LuPencilLine />
                         Edit
                       </Menu.Item>
@@ -101,9 +93,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                 <HStack gap={1} align="center">
                   <LuKey size={12} />
                   <Text fontSize="xs" color="content.muted">
-                    {provider.auth.hasApiKey
-                      ? "API key configured"
-                      : "No API key"}
+                    {provider.auth.hasApiKey ? "API key configured" : "No API key"}
                   </Text>
                 </HStack>
               </HStack>

@@ -7,8 +7,6 @@ export type TRPCContext = {
   logger: FastifyBaseLogger;
 };
 
-export async function createContext({
-  req,
-}: CreateFastifyContextOptions): Promise<TRPCContext> {
+export async function createContext({ req }: CreateFastifyContextOptions): Promise<TRPCContext> {
   return { db: req.server.db, logger: req.log };
 }

@@ -1,7 +1,4 @@
-import type {
-  PromptTemplate,
-  SourceHandlerMap,
-} from "@storyforge/prompt-rendering";
+import type { PromptTemplate, SourceHandlerMap } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
 import type { CharacterCtxDTO, TurnCtxDTO } from "../types.js";
@@ -24,15 +21,11 @@ export type TurnGenCtx = {
 // Source specification for turn generation
 export type TurnGenSources = {
   turns: {
-    args:
-      | { order?: "asc" | "desc"; limit?: number; start?: number; end?: number }
-      | undefined;
+    args: { order?: "asc" | "desc"; limit?: number; start?: number; end?: number } | undefined;
     out: TurnCtxDTO[];
   };
   characters: {
-    args:
-      | { order?: "asc" | "desc"; limit?: number; ids?: string[] }
-      | undefined;
+    args: { order?: "asc" | "desc"; limit?: number; ids?: string[] } | undefined;
     out: CharacterCtxDTO[];
   };
   currentIntent: {
@@ -65,9 +58,8 @@ export type TurnGenSources = {
   scenario: { args: never; out: string | undefined };
 };
 
-const makeTurnGenRegistry = (
-  handlers: SourceHandlerMap<TurnGenCtx, TurnGenSources>
-) => makeRegistry<TurnGenCtx, TurnGenSources>(handlers);
+const makeTurnGenRegistry = (handlers: SourceHandlerMap<TurnGenCtx, TurnGenSources>) =>
+  makeRegistry<TurnGenCtx, TurnGenSources>(handlers);
 
 export const turnGenRegistry = makeTurnGenRegistry({
   /**

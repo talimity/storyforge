@@ -1,12 +1,7 @@
 import { z } from "zod";
 import { imageDataUriSchema } from "../utils/data-uri-validation.js";
 
-export const cardTypeSchema = z.enum([
-  "character",
-  "group",
-  "persona",
-  "scenario",
-]);
+export const cardTypeSchema = z.enum(["character", "group", "persona", "scenario"]);
 export type CardType = z.infer<typeof cardTypeSchema>;
 
 // Input schemas
@@ -130,27 +125,15 @@ export const characterAutocompleteResponseSchema = z.object({
 
 // Export inferred types
 export type Character = z.infer<typeof characterSchema>;
-export type CharacterWithRelations = z.infer<
-  typeof characterWithRelationsSchema
->;
+export type CharacterWithRelations = z.infer<typeof characterWithRelationsSchema>;
 export type CharacterSummary = z.infer<typeof characterSummarySchema>;
 export type CharacterStarter = z.infer<typeof characterStarterSchema>;
 export type CharacterExample = z.infer<typeof characterExampleSchema>;
 export type CharacterImportInput = z.infer<typeof characterImportSchema>;
-export type CharacterImportResponse = z.infer<
-  typeof characterImportResponseSchema
->;
+export type CharacterImportResponse = z.infer<typeof characterImportResponseSchema>;
 export type CreateCharacterInput = z.infer<typeof createCharacterSchema>;
 export type UpdateCharacterInput = z.infer<typeof updateCharacterSchema>;
-export type CharactersListResponse = z.infer<
-  typeof charactersListResponseSchema
->;
-export type CharacterAutocompleteInput = z.infer<
-  typeof characterAutocompleteInputSchema
->;
-export type CharacterAutocompleteItem = z.infer<
-  typeof characterAutocompleteItemSchema
->;
-export type CharacterAutocompleteResponse = z.infer<
-  typeof characterAutocompleteResponseSchema
->;
+export type CharactersListResponse = z.infer<typeof charactersListResponseSchema>;
+export type CharacterAutocompleteInput = z.infer<typeof characterAutocompleteInputSchema>;
+export type CharacterAutocompleteItem = z.infer<typeof characterAutocompleteItemSchema>;
+export type CharacterAutocompleteResponse = z.infer<typeof characterAutocompleteResponseSchema>;

@@ -100,11 +100,9 @@ export class MockAdapter extends ProviderAdapter {
       ],
       streaming: {
         defaultChunkDelay:
-          config.streaming?.defaultChunkDelay ??
-          defaultStreaming.defaultChunkDelay,
+          config.streaming?.defaultChunkDelay ?? defaultStreaming.defaultChunkDelay,
         defaultWordsPerChunk:
-          config.streaming?.defaultWordsPerChunk ??
-          defaultStreaming.defaultWordsPerChunk,
+          config.streaming?.defaultWordsPerChunk ?? defaultStreaming.defaultWordsPerChunk,
       },
     };
 
@@ -153,9 +151,7 @@ export class MockAdapter extends ProviderAdapter {
     return ["temperature"];
   }
 
-  async complete(
-    request: ChatCompletionRequest
-  ): Promise<ChatCompletionResponse> {
+  async complete(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
     this.preflightCheck(request, capabilities);
 
@@ -224,10 +220,8 @@ export class MockAdapter extends ProviderAdapter {
 
     // Chunk the response
     const words = responseText.split(" ");
-    const wordsPerChunk =
-      mockResponse.wordsPerChunk ?? this.config.streaming.defaultWordsPerChunk;
-    const chunkDelay =
-      mockResponse.chunkDelay ?? this.config.streaming.defaultChunkDelay;
+    const wordsPerChunk = mockResponse.wordsPerChunk ?? this.config.streaming.defaultWordsPerChunk;
+    const chunkDelay = mockResponse.chunkDelay ?? this.config.streaming.defaultChunkDelay;
 
     let accumulatedText = "";
 
@@ -279,9 +273,7 @@ export class MockAdapter extends ProviderAdapter {
     );
   }
 
-  override async searchModels(
-    query?: string
-  ): Promise<ProviderModelSearchResult[]> {
+  override async searchModels(query?: string): Promise<ProviderModelSearchResult[]> {
     let models = [...this.config.models];
 
     if (query) {
@@ -305,17 +297,13 @@ export class MockAdapter extends ProviderAdapter {
     }
 
     // Check pattern-based responses
-    const lastUserMessage = [...request.messages]
-      .reverse()
-      .find((msg) => msg.role === "user");
+    const lastUserMessage = [...request.messages].reverse().find((msg) => msg.role === "user");
 
     if (lastUserMessage) {
       for (const pattern of this.config.patterns) {
         const match =
           typeof pattern.pattern === "string"
-            ? lastUserMessage.content
-                .toLowerCase()
-                .includes(pattern.pattern.toLowerCase())
+            ? lastUserMessage.content.toLowerCase().includes(pattern.pattern.toLowerCase())
             : pattern.pattern.test(lastUserMessage.content);
 
         if (match) {

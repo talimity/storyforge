@@ -236,9 +236,7 @@ describe("evaluateCondition", () => {
         ref: { source: "objectA" },
         value: { name: "Bob", age: 30 },
       };
-      expect(evaluateCondition(differentCondition, mockCtx, registry)).toBe(
-        false
-      );
+      expect(evaluateCondition(differentCondition, mockCtx, registry)).toBe(false);
 
       // Equal arrays
       const arrayCondition: ConditionRef = {
@@ -254,9 +252,7 @@ describe("evaluateCondition", () => {
         ref: { source: "arrayA" },
         value: [3, 2, 1],
       };
-      expect(
-        evaluateCondition(differentArrayCondition, mockCtx, registry)
-      ).toBe(false);
+      expect(evaluateCondition(differentArrayCondition, mockCtx, registry)).toBe(false);
     });
   });
 
@@ -420,9 +416,7 @@ describe("evaluateCondition", () => {
       // Should not throw, should return false (exists check on undefined)
       const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
       expect(evaluateCondition(condition, mockCtx, errorRegistry)).toBe(false);
-      expect(spy).toHaveBeenCalledWith(
-        expect.stringContaining("Unresolvable DataRef")
-      );
+      expect(spy).toHaveBeenCalledWith(expect.stringContaining("Unresolvable DataRef"));
       spy.mockRestore();
     });
 
@@ -442,9 +436,7 @@ describe("evaluateCondition", () => {
       };
 
       // Should handle gracefully (fall back to === comparison)
-      expect(evaluateCondition(condition, mockCtx, circularRegistry)).toBe(
-        false
-      );
+      expect(evaluateCondition(condition, mockCtx, circularRegistry)).toBe(false);
     });
 
     it("should handle unknown condition types gracefully", () => {
@@ -454,9 +446,7 @@ describe("evaluateCondition", () => {
         ref: { source: "positiveNumber" },
       } as any;
 
-      expect(evaluateCondition(unknownCondition, mockCtx, registry)).toBe(
-        false
-      );
+      expect(evaluateCondition(unknownCondition, mockCtx, registry)).toBe(false);
     });
   });
 
@@ -505,9 +495,7 @@ describe("evaluateCondition", () => {
       ];
 
       for (const { condition, expected } of conditions) {
-        expect(evaluateCondition(condition, mockCtx, complexRegistry)).toBe(
-          expected
-        );
+        expect(evaluateCondition(condition, mockCtx, complexRegistry)).toBe(expected);
       }
     });
   });

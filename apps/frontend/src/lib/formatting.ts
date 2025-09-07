@@ -9,11 +9,7 @@ export function formatDate(dateStr: string | Date): string {
 /**
  * Pluralizes a word based on a count
  */
-export function pluralize(
-  word: string,
-  count: number,
-  plural?: string
-): string {
+export function pluralize(word: string, count: number, plural?: string): string {
   if (count === 1) {
     return word;
   }
@@ -23,10 +19,6 @@ export function pluralize(
 /**
  * Formats a count with the appropriate singular/plural form
  */
-export function formatCount(
-  count: number,
-  singular: string,
-  plural?: string
-): string {
+export function formatCount(count: number, singular: string, plural?: string): string {
   return `${count} ${pluralize(singular, count, plural)}`;
 }

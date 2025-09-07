@@ -12,7 +12,7 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "lineEnding": "lf",
-    "lineWidth": 80,
+    "lineWidth": 100,
     "attributePosition": "auto",
     "bracketSpacing": true
   },
@@ -31,12 +31,7 @@
       }
     },
     {
-      "includes": [
-        "./apps/backend/**",
-        "!**/scripts/*",
-        "!**/*.test.ts*",
-        "!**/src/test/**"
-      ],
+      "includes": ["./apps/backend/**", "!**/scripts/*", "!**/*.test.ts*", "!**/src/test/**"],
       "plugins": ["./biome-rules/no-console-use-pino.grit"]
     }
   ],

@@ -86,10 +86,8 @@ export function TemplateForm({
       prev !== null &&
       (prev.name !== initialDraft.name ||
         prev.task !== initialDraft.task ||
-        JSON.stringify(prev.layoutDraft) !==
-          JSON.stringify(initialDraft.layoutDraft) ||
-        JSON.stringify(prev.slotsDraft) !==
-          JSON.stringify(initialDraft.slotsDraft));
+        JSON.stringify(prev.layoutDraft) !== JSON.stringify(initialDraft.layoutDraft) ||
+        JSON.stringify(prev.slotsDraft) !== JSON.stringify(initialDraft.slotsDraft));
 
     // Initialize on mount or when draft changes
     if ((isFirstMount || draftChanged) && !justSubmittedRef.current) {
@@ -124,14 +122,7 @@ export function TemplateForm({
       layoutDraft,
       slotsDraft,
     }),
-    [
-      initialDraft.id,
-      metadata.name,
-      metadata.description,
-      metadata.task,
-      layoutDraft,
-      slotsDraft,
-    ]
+    [initialDraft.id, metadata.name, metadata.description, metadata.task, layoutDraft, slotsDraft]
   );
 
   const structureErrors = useMemo(
@@ -142,14 +133,12 @@ export function TemplateForm({
   const metadataErrorCount = Object.keys(errors).length;
   const structureErrorCount = structureErrors.length;
 
-  const hasUnsavedChanges =
-    (metadataIsDirty || builderIsDirty) && !isSubmitting;
+  const hasUnsavedChanges = (metadataIsDirty || builderIsDirty) && !isSubmitting;
 
   const { showDialog, handleConfirmNavigation, handleCancelNavigation } =
     useUnsavedChangesProtection({
       hasUnsavedChanges,
-      message:
-        "You have unsaved changes to this template. Are you sure you want to leave?",
+      message: "You have unsaved changes to this template. Are you sure you want to leave?",
     });
 
   const onFormSubmit = useCallback(
@@ -198,11 +187,7 @@ export function TemplateForm({
       <PageHeader.Root>
         <PageHeader.Title>{pageTitle}</PageHeader.Title>
 
-        <PageHeader.Tabs
-          tabs={tabs}
-          defaultValue={activeTab}
-          onChange={setActiveTab}
-        >
+        <PageHeader.Tabs tabs={tabs} defaultValue={activeTab} onChange={setActiveTab}>
           <PageHeader.Controls>
             <Button variant="ghost" onClick={onCancel} disabled={isSubmitting}>
               Cancel
@@ -210,10 +195,7 @@ export function TemplateForm({
             <Button
               colorPalette="primary"
               onClick={handleFormSubmit}
-              disabled={
-                isSubmitting ||
-                (hasStructureErrors && activeTab === "structure")
-              }
+              disabled={isSubmitting || (hasStructureErrors && activeTab === "structure")}
               loading={isSubmitting}
               loadingText={isEditMode ? "Saving..." : "Creating..."}
             >
@@ -235,13 +217,7 @@ export function TemplateForm({
             <VStack align="stretch" gap={4}>
               {/* Validation Errors */}
               {hasStructureErrors && (
-                <Box
-                  bg="red.50"
-                  border="1px solid"
-                  borderColor="red.200"
-                  p={3}
-                  borderRadius="md"
-                >
+                <Box bg="red.50" border="1px solid" borderColor="red.200" p={3} borderRadius="md">
                   <VStack align="start" gap={1}>
                     {structureErrors.map((error) => (
                       <Box key={error} fontSize="sm" color="red.600">

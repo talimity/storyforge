@@ -9,10 +9,7 @@ interface WorkflowImportDialogProps {
   onOpenChange: (details: { open: boolean }) => void;
 }
 
-export function WorkflowImportDialog({
-  isOpen,
-  onOpenChange,
-}: WorkflowImportDialogProps) {
+export function WorkflowImportDialog({ isOpen, onOpenChange }: WorkflowImportDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const browseButtonRef = useRef<HTMLButtonElement>(null);
@@ -23,8 +20,7 @@ export function WorkflowImportDialog({
       await utils.workflows.list.invalidate();
       handleClose();
     },
-    onError: (error) =>
-      setImportError(error.message || "Failed to import workflow"),
+    onError: (error) => setImportError(error.message || "Failed to import workflow"),
   });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,9 +60,7 @@ export function WorkflowImportDialog({
       await importWorkflowMutation.mutateAsync({ workflow });
     } catch (e) {
       setImportError(
-        e instanceof SyntaxError
-          ? "Invalid JSON file."
-          : "Failed to import workflow."
+        e instanceof SyntaxError ? "Invalid JSON file." : "Failed to import workflow."
       );
     }
   };
@@ -118,9 +112,7 @@ export function WorkflowImportDialog({
                   <LuUpload />
                 </Icon>
                 <VStack gap={1}>
-                  <Text fontWeight="medium">
-                    Drop workflow JSON file here or click to browse
-                  </Text>
+                  <Text fontWeight="medium">Drop workflow JSON file here or click to browse</Text>
                   <Text fontSize="sm" color="content.muted">
                     Supports JSON files up to 1MB
                   </Text>

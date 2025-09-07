@@ -8,10 +8,7 @@ interface CreateProviderDialogProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-export function CreateProviderDialog({
-  isOpen,
-  onOpenChange,
-}: CreateProviderDialogProps) {
+export function CreateProviderDialog({ isOpen, onOpenChange }: CreateProviderDialogProps) {
   const utils = trpc.useUtils();
 
   const createProviderMutation = trpc.providers.createProvider.useMutation({

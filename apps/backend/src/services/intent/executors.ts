@@ -14,10 +14,7 @@ export function makeExecutors(deps: IntentExecDeps) {
    * manual_control: player writes directly as Actor A; system generates a reply
    * from another actor.
    */
-  function manualControl(args: {
-    actorId: string;
-    text: string;
-  }): IntentGenerator {
+  function manualControl(args: { actorId: string; text: string }): IntentGenerator {
     return (async function* () {
       const { actorId, text } = args;
 
@@ -29,10 +26,7 @@ export function makeExecutors(deps: IntentExecDeps) {
   }
 
   /** guided_control: system generates for selected actor given a constraint */
-  function guidedControl(args: {
-    actorId: string;
-    constraint: string;
-  }): IntentGenerator {
+  function guidedControl(args: { actorId: string; constraint: string }): IntentGenerator {
     return (async function* () {
       const { actorId, constraint } = args;
 
@@ -82,10 +76,7 @@ export function makeExecutors(deps: IntentExecDeps) {
   return { manualControl, guidedControl, narrativeConstraint, continueStory };
 }
 
-async function getNarratorParticipantId(
-  db: SqliteDatabase,
-  scenarioId: string
-) {
+async function getNarratorParticipantId(db: SqliteDatabase, scenarioId: string) {
   const narrator = await db.query.scenarioParticipants.findFirst({
     columns: { id: true },
     where: { scenarioId, type: "narrator" },

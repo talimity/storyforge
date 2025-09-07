@@ -86,10 +86,7 @@ export function ScenarioEditPage() {
     return (
       <Container>
         <Stack gap={8} align="center">
-          <SimplePageHeader
-            title="Edit Scenario"
-            tagline="Loading scenario data..."
-          />
+          <SimplePageHeader title="Edit Scenario" tagline="Loading scenario data..." />
           <Spinner size="lg" />
         </Stack>
       </Container>
@@ -108,9 +105,7 @@ export function ScenarioEditPage() {
             {loadError?.message ||
               "The scenario you're looking for doesn't exist or has been deleted."}
           </Text>
-          <Button onClick={() => navigate("/scenarios")}>
-            Back to Scenario Library
-          </Button>
+          <Button onClick={() => navigate("/scenarios")}>Back to Scenario Library</Button>
         </Stack>
       </Container>
     );
@@ -136,10 +131,7 @@ export function ScenarioEditPage() {
               colorPalette="red"
               variant="outline"
               onClick={handleDelete}
-              disabled={
-                deleteScenarioMutation.isPending ||
-                updateScenarioMutation.isPending
-              }
+              disabled={deleteScenarioMutation.isPending || updateScenarioMutation.isPending}
             >
               Delete Scenario
             </Button>

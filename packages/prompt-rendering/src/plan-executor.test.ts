@@ -147,12 +147,7 @@ describe("Plan Executor", () => {
         };
 
         const nullResult = executeMessageNode(nullNode, ctx, budget, registry);
-        const undefinedResult = executeMessageNode(
-          undefinedNode,
-          ctx,
-          budget,
-          registry
-        );
+        const undefinedResult = executeMessageNode(undefinedNode, ctx, budget, registry);
 
         expect(nullResult).toHaveLength(0);
         expect(undefinedResult).toHaveLength(0);
@@ -232,9 +227,7 @@ describe("Plan Executor", () => {
         const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
           role: "user",
-          content: compileLeaf(
-            "This is a very long message that should exceed the node budget"
-          ),
+          content: compileLeaf("This is a very long message that should exceed the node budget"),
           budget: nodeBudget,
         };
 
@@ -278,15 +271,11 @@ describe("Plan Executor", () => {
         const result = executeForEachNode(node, ctx, budget, registry);
 
         expect(result).toHaveLength(3);
-        expect(result[0].content).toBe(
-          "Turn 1: Hello there! How are you doing today?"
-        );
+        expect(result[0].content).toBe("Turn 1: Hello there! How are you doing today?");
         expect(result[1].content).toBe(
           "Turn 2: I'm doing well, thanks for asking. What brings you here?"
         );
-        expect(result[2].content).toBe(
-          "Turn 3: The wind picks up as the conversation continues."
-        );
+        expect(result[2].content).toBe("Turn 3: The wind picks up as the conversation continues.");
       });
 
       it("should handle empty arrays", () => {
@@ -500,9 +489,7 @@ describe("Plan Executor", () => {
         const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
-          content: compileLeaf(
-            "This is a long message that will consume budget"
-          ),
+          content: compileLeaf("This is a long message that will consume budget"),
         };
         const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
@@ -548,9 +535,7 @@ describe("Plan Executor", () => {
         const childNode: CompiledPlanNode<any> = {
           kind: "message",
           role: "user",
-          content: compileLeaf(
-            "This is a long message that will consume budget"
-          ),
+          content: compileLeaf("This is a long message that will consume budget"),
         };
         const node: CompiledPlanNode<any> & { kind: "forEach" } = {
           kind: "forEach",
@@ -836,9 +821,7 @@ describe("Plan Executor", () => {
 
       const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
       const result = executePlanNode(node, ctx, budget, registry);
-      expect(spy).toHaveBeenCalledWith(
-        expect.stringContaining("Unsupported PlanNode 'unknown'")
-      );
+      expect(spy).toHaveBeenCalledWith(expect.stringContaining("Unsupported PlanNode 'unknown'"));
       spy.mockRestore();
 
       expect(result).toHaveLength(0);

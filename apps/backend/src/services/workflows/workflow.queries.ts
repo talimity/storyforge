@@ -31,9 +31,7 @@ export async function getTurngenWorkflowForScope(
     characterId = participant?.characterId ?? undefined;
   }
 
-  const orClauses: (SQL<unknown> | undefined)[] = [
-    eq(workflowScopes.scopeKind, "default"),
-  ];
+  const orClauses: (SQL<unknown> | undefined)[] = [eq(workflowScopes.scopeKind, "default")];
   if (scope.participantId) {
     orClauses.push(
       and(
@@ -44,18 +42,12 @@ export async function getTurngenWorkflowForScope(
   }
   if (characterId) {
     orClauses.push(
-      and(
-        eq(workflowScopes.scopeKind, "character"),
-        eq(workflowScopes.characterId, characterId)
-      )
+      and(eq(workflowScopes.scopeKind, "character"), eq(workflowScopes.characterId, characterId))
     );
   }
   if (scope.scenarioId) {
     orClauses.push(
-      and(
-        eq(workflowScopes.scopeKind, "scenario"),
-        eq(workflowScopes.scenarioId, scope.scenarioId)
-      )
+      and(eq(workflowScopes.scopeKind, "scenario"), eq(workflowScopes.scenarioId, scope.scenarioId))
     );
   }
 

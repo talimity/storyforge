@@ -20,9 +20,7 @@ describe("compileLeaf", () => {
     });
 
     it("should substitute multiple variables", () => {
-      const compiled = compileLeaf(
-        "{{greeting}} {{name}}, you have {{count}} messages"
-      );
+      const compiled = compileLeaf("{{greeting}} {{name}}, you have {{count}} messages");
       const scope = { greeting: "Hello", name: "Bob", count: 5 };
       expect(compiled(scope)).toBe("Hello Bob, you have 5 messages");
     });
@@ -108,9 +106,7 @@ describe("compileLeaf", () => {
         name: "Nia",
       };
       // Arrays/objects are JSON stringified; nested mustaches are preserved
-      expect(compiled(scope)).toBe(
-        'Array: ["Yay {{name}}"] | Object: {"t":"{{name}}"}'
-      );
+      expect(compiled(scope)).toBe('Array: ["Yay {{name}}"] | Object: {"t":"{{name}}"}');
     });
 
     it("is safe on direct self-reference (depth-limited, does not hang)", () => {
@@ -284,9 +280,7 @@ describe("compileLeaf", () => {
     });
 
     it("should resolve multiple array indices", () => {
-      const compiled = compileLeaf(
-        "{{items.[0]}}, {{items.[1]}}, {{items.[2]}}"
-      );
+      const compiled = compileLeaf("{{items.[0]}}, {{items.[1]}}, {{items.[2]}}");
       const scope = { items: ["a", "b", "c"] };
       expect(compiled(scope)).toBe("a, b, c");
     });
@@ -352,9 +346,7 @@ describe("compileLeaf", () => {
     });
 
     it("should handle complex paths with brackets", () => {
-      const compiled = compileLeaf(
-        "{{examples.[0].content}} by {{examples.[0].author.name}}"
-      );
+      const compiled = compileLeaf("{{examples.[0].content}} by {{examples.[0].author.name}}");
       const scope = {
         examples: [
           {

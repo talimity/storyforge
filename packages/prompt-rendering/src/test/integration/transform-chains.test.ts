@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  applyTransforms,
-  type ResponseTransform,
-} from "../../response-transformer.js";
+import { applyTransforms, type ResponseTransform } from "../../response-transformer.js";
 
 describe("Response Transform Chains", () => {
   it("should apply regexExtract followed by regexReplace in order", () => {

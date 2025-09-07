@@ -7,11 +7,7 @@ import {
   WRITING_ASSIST_SOURCE_NAMES,
   type WritingAssistantSources,
 } from "@storyforge/gentasks";
-import {
-  compileTemplate,
-  parseTemplate,
-  type UnboundTemplate,
-} from "@storyforge/prompt-rendering";
+import { compileTemplate, parseTemplate, type UnboundTemplate } from "@storyforge/prompt-rendering";
 import { ServiceError } from "../../../service-error.js";
 
 /**

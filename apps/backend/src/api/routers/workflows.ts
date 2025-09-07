@@ -20,10 +20,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { WorkflowService } from "../../services/workflows/workflow.service.js";
 import { WorkflowScopesService } from "../../services/workflows/workflow-scopes.service.js";
-import {
-  getWorkflowById,
-  listWorkflows,
-} from "../../services/workflows/workflows.queries.js";
+import { getWorkflowById, listWorkflows } from "../../services/workflows/workflows.queries.js";
 import { publicProcedure, router } from "../index.js";
 
 export const workflowsRouter = router({
@@ -184,18 +181,10 @@ export const workflowsRouter = router({
       const { workflowScopes, workflows } = schema;
       const where = and(
         eq(workflowScopes.workflowTask, input.task),
-        input.scopeKind
-          ? eq(workflowScopes.scopeKind, input.scopeKind)
-          : undefined,
-        input.scenarioId
-          ? eq(workflowScopes.scenarioId, input.scenarioId)
-          : undefined,
-        input.characterId
-          ? eq(workflowScopes.characterId, input.characterId)
-          : undefined,
-        input.participantId
-          ? eq(workflowScopes.participantId, input.participantId)
-          : undefined
+        input.scopeKind ? eq(workflowScopes.scopeKind, input.scopeKind) : undefined,
+        input.scenarioId ? eq(workflowScopes.scenarioId, input.scenarioId) : undefined,
+        input.characterId ? eq(workflowScopes.characterId, input.characterId) : undefined,
+        input.participantId ? eq(workflowScopes.participantId, input.participantId) : undefined
       );
       const rows = await ctx.db
         .select({ scope: workflowScopes, wf: workflows })

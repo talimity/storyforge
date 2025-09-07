@@ -45,9 +45,7 @@ describe("source-linter", () => {
               {
                 kind: "if",
                 when: { type: "nonEmpty", ref: { source: "intent" } },
-                then: [
-                  { kind: "message", role: "assistant", content: "Response" },
-                ],
+                then: [{ kind: "message", role: "assistant", content: "Response" }],
                 else: [
                   {
                     kind: "message",
@@ -66,13 +64,7 @@ describe("source-linter", () => {
   describe("extractAllSourceNames", () => {
     it("should extract all unique source names from template", () => {
       const sources = extractAllSourceNames(sampleTemplate);
-      expect(sources).toEqual([
-        "chapterSummaries",
-        "characters",
-        "intent",
-        "stepOutput",
-        "turns",
-      ]);
+      expect(sources).toEqual(["chapterSummaries", "characters", "intent", "stepOutput", "turns"]);
     });
 
     it("should handle template with no DataRefs", () => {
@@ -81,9 +73,7 @@ describe("source-linter", () => {
         name: "Empty Template",
         task: "turn_generation",
         version: 1,
-        layout: [
-          { kind: "message", role: "system", content: "Static message" },
-        ],
+        layout: [{ kind: "message", role: "system", content: "Static message" }],
         slots: {},
       };
 
@@ -210,12 +200,7 @@ describe("source-linter", () => {
   });
 
   describe("lintSourceNames", () => {
-    const allowedSources = new Set([
-      "turns",
-      "characters",
-      "chapterSummaries",
-      "intent",
-    ]);
+    const allowedSources = new Set(["turns", "characters", "chapterSummaries", "intent"]);
 
     it("should pass when all sources are allowed", () => {
       const validTemplate: PromptTemplate<any, any> = {
@@ -241,9 +226,7 @@ describe("source-linter", () => {
         },
       };
 
-      expect(() =>
-        lintSourceNames(validTemplate, allowedSources)
-      ).not.toThrow();
+      expect(() => lintSourceNames(validTemplate, allowedSources)).not.toThrow();
     });
 
     it("should throw for unknown source names", () => {
@@ -252,9 +235,7 @@ describe("source-linter", () => {
         name: "Invalid Template",
         task: "turn_generation",
         version: 1,
-        layout: [
-          { kind: "message", role: "user", from: { source: "unknownSource" } },
-        ],
+        layout: [{ kind: "message", role: "user", from: { source: "unknownSource" } }],
         slots: {},
       };
 
@@ -294,9 +275,9 @@ describe("source-linter", () => {
         },
       };
 
-      expect(() =>
-        lintSourceNames(multiInvalidTemplate, allowedSources)
-      ).toThrow("Unknown source names found: unknown1, unknown2");
+      expect(() => lintSourceNames(multiInvalidTemplate, allowedSources)).toThrow(
+        "Unknown source names found: unknown1, unknown2"
+      );
     });
 
     it("should not validate when allowedSources is undefined", () => {
@@ -324,9 +305,7 @@ describe("source-linter", () => {
       const emptySources = new Set<string>();
       const templateWithSources: PromptTemplate<any, any> = {
         ...sampleTemplate,
-        layout: [
-          { kind: "message", role: "user", from: { source: "anySource" } },
-        ],
+        layout: [{ kind: "message", role: "user", from: { source: "anySource" } }],
       };
 
       expect(() => lintSourceNames(templateWithSources, emptySources)).toThrow(
@@ -343,15 +322,11 @@ describe("source-linter", () => {
         name: "Empty Template",
         task: "turn_generation",
         version: 1,
-        layout: [
-          { kind: "message", role: "system", content: "Static message" },
-        ],
+        layout: [{ kind: "message", role: "system", content: "Static message" }],
         slots: {},
       };
 
-      expect(() =>
-        lintSourceNames(noSourcesTemplate, allowedSources)
-      ).not.toThrow();
+      expect(() => lintSourceNames(noSourcesTemplate, allowedSources)).not.toThrow();
     });
   });
 });

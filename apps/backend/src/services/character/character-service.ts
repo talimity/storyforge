@@ -29,10 +29,7 @@ export class CharacterService {
     examples?: NewCharacterExample[];
   }) {
     return this.db.transaction(async (tx) => {
-      const characters = await tx
-        .insert(schema.characters)
-        .values(characterData)
-        .returning();
+      const characters = await tx.insert(schema.characters).values(characterData).returning();
 
       const character = characters[0];
 

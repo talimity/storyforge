@@ -9,10 +9,7 @@ interface TemplateImportDialogProps {
   onOpenChange: (details: { open: boolean }) => void;
 }
 
-export function TemplateImportDialog({
-  isOpen,
-  onOpenChange,
-}: TemplateImportDialogProps) {
+export function TemplateImportDialog({ isOpen, onOpenChange }: TemplateImportDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const browseButtonRef = useRef<HTMLButtonElement>(null);
@@ -50,9 +47,7 @@ export function TemplateImportDialog({
   const handleFile = (file: File) => {
     // Filter for JSON files only
     if (file.type !== "application/json" && !file.name.endsWith(".json")) {
-      setImportError(
-        "Invalid file format. Only JSON files are supported for template import."
-      );
+      setImportError("Invalid file format. Only JSON files are supported for template import.");
       return;
     }
 
@@ -74,12 +69,7 @@ export function TemplateImportDialog({
       const templateData = JSON.parse(fileContent);
 
       // Validate that it's a valid template by checking required fields
-      if (
-        !templateData.name ||
-        !templateData.task ||
-        !templateData.layout ||
-        !templateData.slots
-      ) {
+      if (!templateData.name || !templateData.task || !templateData.layout || !templateData.slots) {
         setImportError("Invalid template file. Missing required fields.");
         return;
       }
@@ -138,18 +128,14 @@ export function TemplateImportDialog({
               onDrop={handleDrop}
               _hover={{ borderColor: "border.emphasized" }}
               cursor="pointer"
-              onClick={() =>
-                document.getElementById("template-file-input")?.click()
-              }
+              onClick={() => document.getElementById("template-file-input")?.click()}
             >
               <VStack gap={3}>
                 <Icon fontSize="3xl" color="content.muted">
                   <LuUpload />
                 </Icon>
                 <VStack gap={1}>
-                  <Text fontWeight="medium">
-                    Drop template JSON file here or click to browse
-                  </Text>
+                  <Text fontWeight="medium">Drop template JSON file here or click to browse</Text>
                   <Text fontSize="sm" color="content.muted">
                     Supports JSON template files up to 1MB
                   </Text>

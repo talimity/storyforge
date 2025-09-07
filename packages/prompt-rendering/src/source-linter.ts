@@ -17,14 +17,10 @@ export function lintSourceNames<K extends string, S extends SourceSpec>(
   }
 
   const usedSources = extractAllSourceNames(template);
-  const unknownSources = usedSources.filter(
-    (source) => !allowedSources.has(source)
-  );
+  const unknownSources = usedSources.filter((source) => !allowedSources.has(source));
 
   if (unknownSources.length > 0) {
-    throw new AuthoringValidationError(
-      `Unknown source names found: ${unknownSources.join(", ")}`
-    );
+    throw new AuthoringValidationError(`Unknown source names found: ${unknownSources.join(", ")}`);
   }
 }
 

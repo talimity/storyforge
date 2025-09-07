@@ -21,11 +21,7 @@ export async function getCharacters(db: SqliteDatabase, ids: string[]) {
 }
 
 export async function getCharacterDetail(db: SqliteDatabase, id: string) {
-  const data = await db
-    .select()
-    .from(tCharacters)
-    .where(eq(tCharacters.id, id))
-    .limit(1);
+  const data = await db.select().from(tCharacters).where(eq(tCharacters.id, id)).limit(1);
 
   const character = data[0];
   if (!character) return undefined;
@@ -120,9 +116,7 @@ export async function searchCharacters(
   // Add name filter if provided
   if (name) {
     const q = name.replaceAll("%", "\\%").replaceAll("_", "\\_");
-    whereConditions.push(
-      sql`lower(${tCharacters.name}) LIKE lower(${`${q}%`})`
-    );
+    whereConditions.push(sql`lower(${tCharacters.name}) LIKE lower(${`${q}%`})`);
   }
 
   // Apply combined where conditions

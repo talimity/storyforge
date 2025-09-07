@@ -1,19 +1,10 @@
 import { createId } from "@storyforge/utils";
 import { sql } from "drizzle-orm";
-import {
-  integer,
-  sqliteTable,
-  text,
-  uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { scenarioParticipants } from "./scenario-participants.js";
 import { scenarios } from "./scenarios.js";
 
-type IntentKind =
-  | "manual_control"
-  | "guided_control"
-  | "narrative_constraint"
-  | "continue_story";
+type IntentKind = "manual_control" | "guided_control" | "narrative_constraint" | "continue_story";
 type IntentStatus = "pending" | "running" | "finished" | "failed" | "cancelled";
 
 export const intents = sqliteTable(
@@ -27,10 +18,9 @@ export const intents = sqliteTable(
       .references(() => scenarios.id, { onDelete: "cascade" }),
     kind: text("kind").notNull().$type<IntentKind>(),
     status: text("status").notNull().$type<IntentStatus>(),
-    targetParticipantId: text("target_participant_id").references(
-      () => scenarioParticipants.id,
-      { onDelete: "restrict" }
-    ),
+    targetParticipantId: text("target_participant_id").references(() => scenarioParticipants.id, {
+      onDelete: "restrict",
+    }),
     inputText: text("input_text"),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()

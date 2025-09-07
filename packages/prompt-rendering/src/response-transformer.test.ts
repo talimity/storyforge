@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  applyTransforms,
-  type ResponseTransform,
-} from "./response-transformer.js";
+import { applyTransforms, type ResponseTransform } from "./response-transformer.js";
 
 describe("Response Transformer", () => {
   describe("applyTransforms", () => {
@@ -116,15 +113,12 @@ describe("Response Transformer", () => {
     });
 
     it("should extract JSON from mixed text", () => {
-      const text =
-        'Here is the result: {"name": "test", "value": 42} and more text.';
+      const text = 'Here is the result: {"name": "test", "value": 42} and more text.';
       const transform: ResponseTransform = {
         type: "regexExtract",
         pattern: "\\{[^{}]*\\}",
       };
-      expect(applyTransforms(text, [transform])).toBe(
-        '{"name": "test", "value": 42}'
-      );
+      expect(applyTransforms(text, [transform])).toBe('{"name": "test", "value": 42}');
     });
 
     it("should handle Unicode characters", () => {
@@ -259,9 +253,7 @@ describe("Response Transformer", () => {
           flags: "g",
         },
       ];
-      expect(applyTransforms(text, transforms)).toBe(
-        "{status=success, data=important info}"
-      );
+      expect(applyTransforms(text, transforms)).toBe("{status=success, data=important info}");
     });
 
     it("should handle transforms on empty extracted result", () => {

@@ -1,11 +1,4 @@
-import {
-  type ButtonProps,
-  For,
-  Group,
-  IconButton,
-  Menu,
-  Portal,
-} from "@chakra-ui/react";
+import { type ButtonProps, For, Group, IconButton, Menu, Portal } from "@chakra-ui/react";
 import { LuChevronDown } from "react-icons/lu";
 import { Button } from "@/components/ui/button";
 
@@ -20,15 +13,7 @@ export interface SplitButtonProps {
 }
 
 export const SplitButton = (props: SplitButtonProps) => {
-  const {
-    size,
-    variant,
-    onClick,
-    colorPalette,
-    buttonLabel,
-    onSelect,
-    menuItems,
-  } = props;
+  const { size, variant, onClick, colorPalette, buttonLabel, onSelect, menuItems } = props;
 
   return (
     <Menu.Root positioning={{ placement: "bottom-end" }} onSelect={onSelect}>

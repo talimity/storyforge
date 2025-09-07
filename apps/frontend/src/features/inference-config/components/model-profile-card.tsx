@@ -13,12 +13,7 @@ import {
 import type { TextInferenceCapabilities } from "@storyforge/inference";
 import type { ModelProfile } from "@storyforge/schemas";
 import { useState } from "react";
-import {
-  LuCog,
-  LuEllipsisVertical,
-  LuPencilLine,
-  LuTrash,
-} from "react-icons/lu";
+import { LuCog, LuEllipsisVertical, LuPencilLine, LuTrash } from "react-icons/lu";
 
 import { trpc } from "@/lib/trpc";
 import { DeleteModelProfileDialog } from "./delete-model-profile-dialog";
@@ -29,16 +24,12 @@ interface ModelProfileCardProps {
   modelProfile: ModelProfile;
 }
 
-function getCapabilityBadges(
-  capabilities: Partial<TextInferenceCapabilities> | null
-) {
+function getCapabilityBadges(capabilities: Partial<TextInferenceCapabilities> | null) {
   if (!capabilities) return [];
 
   const badges = [];
-  if (capabilities.streaming)
-    badges.push({ label: "Streaming", color: "blue" });
-  if (capabilities.assistantPrefill)
-    badges.push({ label: "Prefill", color: "green" });
+  if (capabilities.streaming) badges.push({ label: "Streaming", color: "blue" });
+  if (capabilities.assistantPrefill) badges.push({ label: "Prefill", color: "green" });
   if (capabilities.tools) badges.push({ label: "Tools", color: "orange" });
   if (capabilities.fim) badges.push({ label: "FIM", color: "teal" });
 
@@ -78,10 +69,7 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
                 <Portal>
                   <Menu.Positioner>
                     <Menu.Content>
-                      <Menu.Item
-                        value="edit"
-                        onClick={() => setIsEditDialogOpen(true)}
-                      >
+                      <Menu.Item value="edit" onClick={() => setIsEditDialogOpen(true)}>
                         <LuPencilLine />
                         Edit
                       </Menu.Item>
@@ -122,11 +110,7 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
               {capabilityBadges.length > 0 && (
                 <Stack direction="row" gap={1} wrap="wrap">
                   {capabilityBadges.map((badge) => (
-                    <Badge
-                      key={badge.label}
-                      colorPalette={badge.color}
-                      size="xs"
-                    >
+                    <Badge key={badge.label} colorPalette={badge.color} size="xs">
                       {badge.label}
                     </Badge>
                   ))}

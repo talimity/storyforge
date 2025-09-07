@@ -37,9 +37,7 @@ export type FakeTurnGenSourceSpec = {
     out: { chapterNo: number; summary: string }[];
   };
   characters: {
-    args:
-      | { order?: "asc" | "desc"; limit?: number; ids?: string[] }
-      | undefined;
+    args: { order?: "asc" | "desc"; limit?: number; ids?: string[] } | undefined;
     out: { id: string; name: string; description: string }[];
   };
   stepOutput: { args: { key: string }; out: unknown };
@@ -74,9 +72,7 @@ export function makeSpecTurnGenerationRegistry(): SourceRegistry<
   return makeRegistry<FakeTurnGenCtx, FakeTurnGenSourceSpec>({
     // Core array sources with ordering and limiting
     turns: (ref, ctx) => {
-      const args = ref.args as
-        | { order?: "asc" | "desc"; limit?: number }
-        | undefined;
+      const args = ref.args as { order?: "asc" | "desc"; limit?: number } | undefined;
       let result = [...ctx.turns];
 
       // Apply ordering (by turnNo)
@@ -95,9 +91,7 @@ export function makeSpecTurnGenerationRegistry(): SourceRegistry<
     },
 
     chapterSummaries: (ref, ctx) => {
-      const args = ref.args as
-        | { order?: "asc" | "desc"; limit?: number }
-        | undefined;
+      const args = ref.args as { order?: "asc" | "desc"; limit?: number } | undefined;
       let result = [...ctx.chapterSummaries];
 
       // Apply ordering (by chapterNo)
@@ -195,16 +189,11 @@ type FakeOrderTestSourceSpec = {
 /**
  * Registry specifically for testing array ordering behaviors
  */
-export function makeOrderTestRegistry(): SourceRegistry<
-  unknown,
-  FakeOrderTestSourceSpec
-> {
+export function makeOrderTestRegistry(): SourceRegistry<unknown, FakeOrderTestSourceSpec> {
   return makeRegistry<unknown, FakeOrderTestSourceSpec>({
     // Test arrays for ordering validation
     numbers: (ref, _ctx) => {
-      const args = ref.args as
-        | { order?: "asc" | "desc"; limit?: number }
-        | undefined;
+      const args = ref.args as { order?: "asc" | "desc"; limit?: number } | undefined;
       let result = [3, 1, 4, 1, 5, 9, 2, 6];
 
       if (args?.order === "desc") {
@@ -221,9 +210,7 @@ export function makeOrderTestRegistry(): SourceRegistry<
     },
 
     strings: (ref, _ctx) => {
-      const args = ref.args as
-        | { order?: "asc" | "desc"; limit?: number }
-        | undefined;
+      const args = ref.args as { order?: "asc" | "desc"; limit?: number } | undefined;
       let result = ["charlie", "alice", "bob", "david"];
 
       if (args?.order === "desc") {

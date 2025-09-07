@@ -2,30 +2,19 @@
  * Shared parameter coercion utilities for recipe implementations
  */
 
-import type {
-  InferRecipeParams,
-  RecipeParamSpec,
-} from "@/features/template-builder/types";
+import type { InferRecipeParams, RecipeParamSpec } from "@/features/template-builder/types";
 
 /**
  * Coerce order parameter to valid sort order
  */
-export function coerceOrder(
-  v: unknown,
-  defaultOrder: "asc" | "desc" = "desc"
-): "asc" | "desc" {
+export function coerceOrder(v: unknown, defaultOrder: "asc" | "desc" = "desc"): "asc" | "desc" {
   return v === "asc" || v === "desc" ? v : defaultOrder;
 }
 
 /**
  * Coerce number parameter with optional min/max clamping
  */
-export function coerceNumber(
-  v: unknown,
-  def: number,
-  min?: number,
-  max?: number
-) {
+export function coerceNumber(v: unknown, def: number, min?: number, max?: number) {
   let n: number;
   if (typeof v === "number") n = v;
   else if (v === "" || v === null || v === undefined) n = def;
@@ -67,12 +56,7 @@ export function coerceRecipeParams<P extends readonly RecipeParamSpec[]>(
 
     switch (spec.type) {
       case "number":
-        out[spec.key] = coerceNumber(
-          rawValue,
-          (defaultValue as number) ?? 0,
-          spec.min,
-          spec.max
-        );
+        out[spec.key] = coerceNumber(rawValue, (defaultValue as number) ?? 0, spec.min, spec.max);
         break;
 
       case "template_string":
@@ -91,10 +75,7 @@ export function coerceRecipeParams<P extends readonly RecipeParamSpec[]>(
       }
 
       case "toggle":
-        out[spec.key] = coerceBoolean(
-          rawValue,
-          (defaultValue as boolean) ?? false
-        );
+        out[spec.key] = coerceBoolean(rawValue, (defaultValue as boolean) ?? false);
         break;
 
       default:

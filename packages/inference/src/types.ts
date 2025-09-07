@@ -1,10 +1,6 @@
 // Inference provider types and interfaces
 
-export type ProviderKind =
-  | "openrouter"
-  | "deepseek"
-  | "openai-compatible"
-  | "mock";
+export type ProviderKind = "openrouter" | "deepseek" | "openai-compatible" | "mock";
 
 export interface ProviderAuth {
   apiKey?: string;

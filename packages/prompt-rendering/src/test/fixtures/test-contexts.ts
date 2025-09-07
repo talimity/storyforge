@@ -28,8 +28,7 @@ export const sampleChapterSummariesDTOFixture = [
   },
   {
     chapterNo: 2,
-    summary:
-      "The duo encounters a mysterious stranger who offers them a quest.",
+    summary: "The duo encounters a mysterious stranger who offers them a quest.",
   },
 ];
 
@@ -38,8 +37,7 @@ export const sampleCharactersDTOFixture = [
   {
     id: "alice",
     name: "Alice",
-    description:
-      "A brave warrior with a heart of gold and unwavering determination.",
+    description: "A brave warrior with a heart of gold and unwavering determination.",
   },
   {
     id: "bob",

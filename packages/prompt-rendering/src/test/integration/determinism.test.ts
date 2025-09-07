@@ -22,9 +22,7 @@ describe("Determinism & Immutability", () => {
   const registry = makeSpecTurnGenerationRegistry();
 
   it("should produce identical output with identical inputs", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Create separate budget managers with identical settings
     const budget1 = new DefaultBudgetManager({ maxTokens: 2000 });
@@ -32,24 +30,9 @@ describe("Determinism & Immutability", () => {
     const budget3 = new DefaultBudgetManager({ maxTokens: 2000 });
 
     // Render multiple times
-    const result1 = render(
-      compiled,
-      deterministicTurnGenCtx,
-      budget1,
-      registry
-    );
-    const result2 = render(
-      compiled,
-      deterministicTurnGenCtx,
-      budget2,
-      registry
-    );
-    const result3 = render(
-      compiled,
-      deterministicTurnGenCtx,
-      budget3,
-      registry
-    );
+    const result1 = render(compiled, deterministicTurnGenCtx, budget1, registry);
+    const result2 = render(compiled, deterministicTurnGenCtx, budget2, registry);
+    const result3 = render(compiled, deterministicTurnGenCtx, budget3, registry);
 
     // All results should be deeply equal
     expect(result1).toEqual(result2);
@@ -68,14 +51,12 @@ describe("Determinism & Immutability", () => {
 
   it("should maintain determinism across different template types", () => {
     // Test both writer and planner templates for determinism
-    const compiledWriter = compileTemplate<
-      "fake_turn_gen",
-      FakeTurnGenSourceSpec
-    >(turnWriterV2Json);
-    const compiledPlanner = compileTemplate<
-      "fake_turn_gen",
-      FakeTurnGenSourceSpec
-    >(turnPlannerV1Json);
+    const compiledWriter = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterV2Json
+    );
+    const compiledPlanner = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnPlannerV1Json
+    );
 
     // Multiple renders of each
     const writerResults = Array.from({ length: 3 }, () => {
@@ -98,9 +79,7 @@ describe("Determinism & Immutability", () => {
 
   it("should be deterministic with complex slot interactions", () => {
     // Use context that triggers all slots with various conditions
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     const complexContext = {
       turns: [], // Triggers examples slot
@@ -211,9 +190,7 @@ describe("Determinism & Immutability", () => {
   });
 
   it("should not have side effects between renders", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Create contexts with different turn counts to ensure different output
     const ctx1 = {
@@ -246,9 +223,7 @@ describe("Determinism & Immutability", () => {
   });
 
   it("should maintain determinism with budget constraints", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Test with the same budget constraint multiple times
     const budgetLimit = 800;
@@ -268,9 +243,7 @@ describe("Determinism & Immutability", () => {
 
   it("should handle concurrent rendering safely", () => {
     // Simulate concurrent rendering (though JS is single-threaded, this tests for shared state issues)
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     const contexts = [
       deterministicTurnGenCtx,
@@ -303,39 +276,18 @@ describe("Determinism & Immutability", () => {
   });
 
   it("should preserve determinism after template compilation", () => {
-    const compiled1 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
-    const compiled2 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
-    const compiled3 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled1 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
+    const compiled2 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
+    const compiled3 = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // All compilations should produce equivalent results
     const budget1 = new DefaultBudgetManager({ maxTokens: 2000 });
     const budget2 = new DefaultBudgetManager({ maxTokens: 2000 });
     const budget3 = new DefaultBudgetManager({ maxTokens: 2000 });
 
-    const result1 = render(
-      compiled1,
-      deterministicTurnGenCtx,
-      budget1,
-      registry
-    );
-    const result2 = render(
-      compiled2,
-      deterministicTurnGenCtx,
-      budget2,
-      registry
-    );
-    const result3 = render(
-      compiled3,
-      deterministicTurnGenCtx,
-      budget3,
-      registry
-    );
+    const result1 = render(compiled1, deterministicTurnGenCtx, budget1, registry);
+    const result2 = render(compiled2, deterministicTurnGenCtx, budget2, registry);
+    const result3 = render(compiled3, deterministicTurnGenCtx, budget3, registry);
 
     expect(result1).toEqual(result2);
     expect(result2).toEqual(result3);

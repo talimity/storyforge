@@ -4,15 +4,13 @@ import { trpc } from "@/lib/trpc";
 const ACTIVE_SCENARIO_KEY = "storyforge:activeScenario";
 
 export function useActiveScenario() {
-  const [activeScenarioId, setActiveScenarioIdState] = useState<string | null>(
-    () => {
-      try {
-        return localStorage.getItem(ACTIVE_SCENARIO_KEY);
-      } catch {
-        return null;
-      }
+  const [activeScenarioId, setActiveScenarioIdState] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(ACTIVE_SCENARIO_KEY);
+    } catch {
+      return null;
     }
-  );
+  });
 
   const setActiveScenario = useCallback((scenarioId: string | null) => {
     setActiveScenarioIdState(scenarioId);
@@ -52,12 +50,8 @@ export function useActiveScenario() {
 }
 
 export function useActiveScenarioWithData() {
-  const {
-    activeScenarioId,
-    setActiveScenario,
-    clearActiveScenario,
-    hasActiveScenario,
-  } = useActiveScenario();
+  const { activeScenarioId, setActiveScenario, clearActiveScenario, hasActiveScenario } =
+    useActiveScenario();
 
   // Fetch the active scenario data if there is one
   const scenarioQuery = trpc.scenarios.getById.useQuery(
@@ -65,8 +59,7 @@ export function useActiveScenarioWithData() {
     { enabled: !!activeScenarioId }
   );
 
-  const hasValidActiveScenario =
-    activeScenarioId && !scenarioQuery.error && scenarioQuery.data;
+  const hasValidActiveScenario = activeScenarioId && !scenarioQuery.error && scenarioQuery.data;
 
   return {
     activeScenarioId,

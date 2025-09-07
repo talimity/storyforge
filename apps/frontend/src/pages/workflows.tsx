@@ -10,13 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { taskKindSchema } from "@storyforge/gentasks";
 import { useMemo, useState } from "react";
-import {
-  LuImport,
-  LuListPlus,
-  LuMapPin,
-  LuPlus,
-  LuWorkflow,
-} from "react-icons/lu";
+import { LuImport, LuListPlus, LuMapPin, LuPlus, LuWorkflow } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
@@ -30,10 +24,7 @@ import {
 } from "@/components/ui";
 import { AssignmentDialog } from "@/features/workflows/components/assignment-dialog";
 import { AssignmentList } from "@/features/workflows/components/assignment-list";
-import {
-  WorkflowCard,
-  WorkflowCardSkeleton,
-} from "@/features/workflows/components/workflow-card";
+import { WorkflowCard, WorkflowCardSkeleton } from "@/features/workflows/components/workflow-card";
 import { WorkflowImportDialog } from "@/features/workflows/components/workflow-import-dialog";
 import { trpc } from "@/lib/trpc";
 
@@ -67,10 +58,7 @@ export function WorkflowsPage() {
   const workflowCount = workflows.length;
   const assignmentCount = scopes.length;
 
-  const taskCollection = useMemo(
-    () => createListCollection({ items: taskOptions }),
-    []
-  );
+  const taskCollection = useMemo(() => createListCollection({ items: taskOptions }), []);
 
   return (
     <Container>
@@ -120,24 +108,15 @@ export function WorkflowsPage() {
                 {(ctx) =>
                   ctx.value === "workflows" ? (
                     <HStack>
-                      <Button
-                        variant="outline"
-                        onClick={() => setImportOpen(true)}
-                      >
+                      <Button variant="outline" onClick={() => setImportOpen(true)}>
                         <LuImport /> Import Workflow
                       </Button>
-                      <Button
-                        colorPalette="primary"
-                        onClick={() => navigate("/workflows/create")}
-                      >
+                      <Button colorPalette="primary" onClick={() => navigate("/workflows/create")}>
                         <LuPlus /> Create Workflow
                       </Button>
                     </HStack>
                   ) : (
-                    <Button
-                      variant="outline"
-                      onClick={() => setAssignOpen(true)}
-                    >
+                    <Button variant="outline" onClick={() => setAssignOpen(true)}>
                       <LuListPlus /> New Assignment
                     </Button>
                   )
@@ -183,12 +162,7 @@ export function WorkflowsPage() {
               {assignmentsQuery.isLoading ? (
                 <Grid templateColumns="repeat(auto-fit, 360px)" gap={4}>
                   {[...Array(6)].map(() => (
-                    <Box
-                      key={crypto.randomUUID()}
-                      layerStyle="surface"
-                      borderRadius="md"
-                      p={4}
-                    >
+                    <Box key={crypto.randomUUID()} layerStyle="surface" borderRadius="md" p={4}>
                       <Skeleton height="16px" mb={2} />
                       <Skeleton height="12px" width="60%" />
                     </Box>
@@ -218,10 +192,7 @@ export function WorkflowsPage() {
         onOpenChange={setAssignOpen}
         defaultTask={selectedTask}
       />
-      <WorkflowImportDialog
-        isOpen={importOpen}
-        onOpenChange={({ open }) => setImportOpen(open)}
-      />
+      <WorkflowImportDialog isOpen={importOpen} onOpenChange={({ open }) => setImportOpen(open)} />
     </Container>
   );
 }

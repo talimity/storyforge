@@ -26,8 +26,7 @@ export class IntentService {
         status: "pending",
         kind: args.kind,
         scenarioId: args.scenarioId,
-        targetParticipantId:
-          "targetParticipantId" in args ? args.targetParticipantId : null,
+        targetParticipantId: "targetParticipantId" in args ? args.targetParticipantId : null,
         inputText: "text" in args ? args.text : null,
       })
       .returning();
@@ -65,13 +64,7 @@ export class IntentService {
     })();
 
     // 3) start the runner
-    intentRunManager.start(
-      intentId,
-      args.scenarioId,
-      args.kind,
-      exec,
-      abortCtl
-    );
+    intentRunManager.start(intentId, args.scenarioId, args.kind, exec, abortCtl);
 
     return intent;
   }

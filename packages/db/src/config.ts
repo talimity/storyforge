@@ -6,9 +6,7 @@ export interface DatabaseConfig {
   path: string;
 }
 
-export function createDatabaseConfig(
-  overrides?: Partial<DatabaseConfig>
-): DatabaseConfig {
+export function createDatabaseConfig(overrides?: Partial<DatabaseConfig>): DatabaseConfig {
   const dbConfig = { path: config.database.path, ...overrides };
 
   assertIsDatabaseConfig(dbConfig);
@@ -23,9 +21,7 @@ export function createDatabaseConfig(
   return dbConfig;
 }
 
-function assertIsDatabaseConfig(
-  config: Partial<DatabaseConfig>
-): asserts config is DatabaseConfig {
+function assertIsDatabaseConfig(config: Partial<DatabaseConfig>): asserts config is DatabaseConfig {
   if (!config.path) {
     throw new Error("No database path provided.");
   }

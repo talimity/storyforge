@@ -1,8 +1,4 @@
-import {
-  type SqliteDatabase,
-  type SqliteTransaction,
-  schema,
-} from "@storyforge/db";
+import { type SqliteDatabase, type SqliteTransaction, schema } from "@storyforge/db";
 import { after, combine } from "@storyforge/utils";
 import { asc, eq, isNull, sql } from "drizzle-orm";
 import { EngineError } from "../../engine-error.js";
@@ -28,8 +24,7 @@ const {
 const makeLoaders = (tx: SqliteTransaction) => ({
   loadChapter: (id: string) =>
     tx.select().from(tChapters).where(eq(tChapters.id, id)).limit(1).get(),
-  loadTurn: (id: string) =>
-    tx.select().from(tTurns).where(eq(tTurns.id, id)).limit(1).get(),
+  loadTurn: (id: string) => tx.select().from(tTurns).where(eq(tTurns.id, id)).limit(1).get(),
   loadAuthorParticipant: (id: string) => loadParticipantMembership(tx, id),
 });
 
@@ -41,8 +36,7 @@ interface InsertTurnArgs {
   layers: { key: string; content: string }[];
 }
 
-interface AdvanceTurnArgs
-  extends Omit<InsertTurnArgs, "parentTurnId" | "chapterId"> {
+interface AdvanceTurnArgs extends Omit<InsertTurnArgs, "parentTurnId" | "chapterId"> {
   /** If not provided, will use the chapter of the anchor turn */
   chapterId?: string;
 }
@@ -111,10 +105,7 @@ export class TimelineService {
         parentTurnId = null;
       }
 
-      const turn = await this.insertTurn(
-        { ...args, chapterId: targetChapterId, parentTurnId },
-        tx
-      );
+      const turn = await this.insertTurn({ ...args, chapterId: targetChapterId, parentTurnId }, tx);
 
       // Since this is an advance operation, we need to update the anchor turn
       // to point to the new turn.
@@ -152,11 +143,7 @@ export class TimelineService {
     throw new Error("Not implemented");
   }
 
-  async deleteTurn(
-    turnId: string,
-    cascade: boolean,
-    outerTx?: SqliteTransaction
-  ) {
+  async deleteTurn(turnId: string, cascade: boolean, outerTx?: SqliteTransaction) {
     const mode: TurnGraphDeleteMode = cascade ? "cascade" : "promote";
     const op = async (tx: SqliteTransaction) => {
       const snapshot = await this.loadDeletionSnapshot(tx, turnId, mode);
@@ -181,11 +168,7 @@ export class TimelineService {
     turnId: string,
     mode: TurnGraphDeleteMode
   ): Promise<DeletionSnapshot> {
-    const [target] = await tx
-      .select()
-      .from(tTurns)
-      .where(eq(tTurns.id, turnId))
-      .limit(1);
+    const [target] = await tx.select().from(tTurns).where(eq(tTurns.id, turnId)).limit(1);
     if (!target) {
       throw new ServiceError("NotFound", {
         message: `Turn with ID ${turnId} not found.`,
@@ -239,8 +222,7 @@ export class TimelineService {
    * Inserts a new turn into the turn graph under the specified parent turn.
    */
   private async insertTurn(args: InsertTurnArgs, outerTx?: SqliteTransaction) {
-    const { scenarioId, chapterId, authorParticipantId, parentTurnId, layers } =
-      args;
+    const { scenarioId, chapterId, authorParticipantId, parentTurnId, layers } = args;
 
     const operation = async (tx: SqliteTransaction) => {
       const loaders = makeLoaders(tx);
@@ -285,21 +267,14 @@ async function nextSiblingOrder(tx: SqliteTransaction, parent: string | null) {
   const rows = await tx
     .select({ order: schema.turns.siblingOrder })
     .from(schema.turns)
-    .where(
-      parent
-        ? eq(schema.turns.parentTurnId, parent)
-        : isNull(schema.turns.parentTurnId)
-    )
+    .where(parent ? eq(schema.turns.parentTurnId, parent) : isNull(schema.turns.parentTurnId))
     .orderBy(schema.turns.siblingOrder);
 
   const last = rows.at(-1)?.order ?? "";
   return after(last);
 }
 
-async function loadParticipantMembership(
-  tx: SqliteTransaction,
-  participantId: string
-) {
+async function loadParticipantMembership(tx: SqliteTransaction, participantId: string) {
   const [p] = await tx
     .select({
       id: tScenarioParticipants.id,

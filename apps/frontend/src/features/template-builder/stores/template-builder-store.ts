@@ -49,11 +49,7 @@ export interface TemplateBuilderState {
 
   // Edit Mode Actions
   startEditingNode: (nodeId: string) => void;
-  saveNodeEdit: (
-    nodeId: string,
-    nodeData: LayoutNodeDraft,
-    slotData?: SlotDraft
-  ) => void;
+  saveNodeEdit: (nodeId: string, nodeData: LayoutNodeDraft, slotData?: SlotDraft) => void;
   cancelNodeEdit: () => void;
 }
 
@@ -96,11 +92,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
           content: getDefaultMessageContent(role),
         };
 
-        if (
-          index !== undefined &&
-          index >= 0 &&
-          index < state.layoutDraft.length
-        ) {
+        if (index !== undefined && index >= 0 && index < state.layoutDraft.length) {
           state.layoutDraft.splice(index, 0, newNode);
         } else {
           state.layoutDraft.push(newNode);
@@ -182,8 +174,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
     createSlotFromRecipe: (recipeId, params = {}) => {
       let slotName = "";
       set((state) => {
-        const recipe =
-          recipeId !== "custom" ? getRecipeById(recipeId) : undefined;
+        const recipe = recipeId !== "custom" ? getRecipeById(recipeId) : undefined;
         const baseName = recipe?.name || "custom_content";
         slotName = generateSlotName(state.slotsDraft, baseName);
 
@@ -240,20 +231,13 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
         // If slot data is provided, handle slot updates and renames
         if (slotData) {
           // Check if this is a rename (slot node with different name)
-          if (
-            originalNode?.kind === "slot" &&
-            originalNode.name !== slotData.name
-          ) {
+          if (originalNode?.kind === "slot" && originalNode.name !== slotData.name) {
             // This is a rename - remove the old slot entry
             delete state.slotsDraft[originalNode.name];
 
             // Update all other layout nodes that reference the old name
             state.layoutDraft.forEach((node) => {
-              if (
-                node.kind === "slot" &&
-                node.name === originalNode.name &&
-                node.id !== nodeId
-              ) {
+              if (node.kind === "slot" && node.name === originalNode.name && node.id !== nodeId) {
                 node.name = slotData.name;
               }
             });
@@ -275,9 +259,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
 );
 
 // Selectors (computed values)
-export const getReferencedSlots = (
-  state: TemplateBuilderState
-): Set<string> => {
+export const getReferencedSlots = (state: TemplateBuilderState): Set<string> => {
   const referenced = new Set<string>();
   state.layoutDraft.forEach((node) => {
     if (node.kind === "slot") {
@@ -302,10 +284,7 @@ export const getUnreferencedSlots = (state: TemplateBuilderState): string[] => {
   return Object.keys(state.slotsDraft).filter((name) => !referenced.has(name));
 };
 
-export const getValidationErrors = (
-  state: TemplateBuilderState,
-  task: TaskKind
-): string[] => {
+export const getValidationErrors = (state: TemplateBuilderState, task: TaskKind): string[] => {
   return validateDraft({
     task: task,
     layoutDraft: state.layoutDraft,

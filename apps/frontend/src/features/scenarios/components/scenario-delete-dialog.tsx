@@ -36,13 +36,11 @@ export function ScenarioDeleteDialog({
         <Dialog.Body>
           <Stack>
             <Text>
-              Are you sure you want to delete "{scenarioName}"? This action
-              cannot be undone.
+              Are you sure you want to delete "{scenarioName}"? This action cannot be undone.
             </Text>
             {hasTurns && (
               <Text color="red.500">
-                You will lose all turns and progress associated with this
-                scenario!
+                You will lose all turns and progress associated with this scenario!
               </Text>
             )}
           </Stack>

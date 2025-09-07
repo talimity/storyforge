@@ -1,8 +1,4 @@
-import {
-  type SqliteDatabase,
-  type SqliteTransaction,
-  schema,
-} from "@storyforge/db";
+import { type SqliteDatabase, type SqliteTransaction, schema } from "@storyforge/db";
 import { and, eq } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 
@@ -25,10 +21,7 @@ export class TurnContentService {
    * Updates the content of a specific layer for a turn, or creates it if it
    * doesn't exist.
    */
-  async updateTurnContent(
-    args: UpdateTurnContentArgs,
-    outerTx?: SqliteTransaction
-  ) {
+  async updateTurnContent(args: UpdateTurnContentArgs, outerTx?: SqliteTransaction) {
     const { turnId, layer, content } = args;
 
     const operation = async (tx: SqliteTransaction) => {
@@ -55,9 +48,7 @@ export class TurnContentService {
         await tx
           .update(tTurnLayers)
           .set({ content, updatedAt: new Date() })
-          .where(
-            and(eq(tTurnLayers.turnId, turnId), eq(tTurnLayers.key, layer))
-          );
+          .where(and(eq(tTurnLayers.turnId, turnId), eq(tTurnLayers.key, layer)));
       } else {
         // Create new layer
         await tx.insert(tTurnLayers).values({ turnId, key: layer, content });

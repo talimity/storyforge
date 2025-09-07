@@ -59,8 +59,7 @@ export function engineErrorToTRPC(e: EngineError): never {
     case "ChapterProgressionInvalid":
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message:
-          "Turn cannot be appended to the chapter because it would be out of sequence.",
+        message: "Turn cannot be appended to the chapter because it would be out of sequence.",
       });
     // turn content invariants
     case "MissingPresentationLayer":

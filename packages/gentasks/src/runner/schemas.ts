@@ -18,10 +18,7 @@ const regexTransformSchema = z.object({
   }),
 });
 
-export const transformSpecSchema = z.union([
-  trimTransformSchema,
-  regexTransformSchema,
-]);
+export const transformSpecSchema = z.union([trimTransformSchema, regexTransformSchema]);
 
 // Output capture schemas
 const assistantTextCaptureSchema = z.object({
@@ -35,10 +32,7 @@ const jsonParsedCaptureSchema = z.object({
   jsonPath: z.string().optional(),
 });
 
-export const outputCaptureSchema = z.union([
-  assistantTextCaptureSchema,
-  jsonParsedCaptureSchema,
-]);
+export const outputCaptureSchema = z.union([assistantTextCaptureSchema, jsonParsedCaptureSchema]);
 
 // Generation step schema
 export const genStepSchema = z.object({
@@ -65,9 +59,7 @@ export const genWorkflowSchema = z.object({
 });
 
 // Runtime validation helpers
-export function validateWorkflow<K extends TaskKind>(
-  workflow: GenWorkflow<K>
-): GenWorkflow<K> {
+export function validateWorkflow<K extends TaskKind>(workflow: GenWorkflow<K>): GenWorkflow<K> {
   return genWorkflowSchema.parse(workflow) as GenWorkflow<K>;
 }
 

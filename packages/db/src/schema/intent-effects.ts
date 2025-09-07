@@ -1,9 +1,4 @@
-import {
-  integer,
-  primaryKey,
-  sqliteTable,
-  text,
-} from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { intents } from "./intents.js";
 import { turns } from "./turns.js";
 
@@ -14,9 +9,7 @@ export const intentEffects = sqliteTable(
       .notNull()
       .references(() => intents.id, { onDelete: "cascade" }),
     sequence: integer("sequence").notNull(),
-    kind: text("kind")
-      .notNull()
-      .$type<"new_turn" /* | "new_timeline_event" */>(),
+    kind: text("kind").notNull().$type<"new_turn" /* | "new_timeline_event" */>(),
     turnId: text("turn_id")
       .notNull()
       .references(() => turns.id, { onDelete: "cascade" }),

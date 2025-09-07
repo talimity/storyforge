@@ -114,12 +114,7 @@ export function AssignmentDialog({
         </Dialog.Header>
         <Dialog.Body>
           <Stack gap={4}>
-            <Field
-              label="Task"
-              required
-              invalid={!!errors.task}
-              errorText={errors.task?.message}
-            >
+            <Field label="Task" required invalid={!!errors.task} errorText={errors.task?.message}>
               <SelectRoot
                 collection={taskCollection}
                 value={[selectedTask]}
@@ -151,19 +146,12 @@ export function AssignmentDialog({
               >
                 <SelectTrigger>
                   <SelectValueText
-                    placeholder={
-                      workflowsQuery.isLoading
-                        ? "Loading..."
-                        : "Select workflow"
-                    }
+                    placeholder={workflowsQuery.isLoading ? "Loading..." : "Select workflow"}
                   />
                 </SelectTrigger>
                 <SelectContent portalled={false}>
                   {(workflowsQuery.data?.workflows ?? []).map((wf) => (
-                    <SelectItem
-                      key={wf.id}
-                      item={{ value: wf.id, label: wf.name }}
-                    >
+                    <SelectItem key={wf.id} item={{ value: wf.id, label: wf.name }}>
                       {wf.name}
                     </SelectItem>
                   ))}
@@ -184,11 +172,7 @@ export function AssignmentDialog({
                   onValueChange={(d) =>
                     setValue(
                       "scopeKind",
-                      d.value[0] as
-                        | "default"
-                        | "scenario"
-                        | "character"
-                        | "participant"
+                      d.value[0] as "default" | "scenario" | "character" | "participant"
                     )
                   }
                 >
@@ -240,10 +224,7 @@ export function AssignmentDialog({
                   invalid={!!errors.participantId}
                   errorText={errors.participantId?.message}
                 >
-                  <Input
-                    placeholder="participant id"
-                    {...register("participantId")}
-                  />
+                  <Input placeholder="participant id" {...register("participantId")} />
                 </Field>
               )}
             </HStack>

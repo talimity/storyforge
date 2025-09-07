@@ -7,10 +7,7 @@ import {
   LuMessageSquareCode,
   LuMessageSquareMore,
 } from "react-icons/lu";
-import type {
-  LayoutNodeDraft,
-  SlotDraft,
-} from "@/features/template-builder/types";
+import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/types";
 
 export const MESSAGE_ROLE_SELECT_OPTIONS = [
   { label: "System", value: "system" },
@@ -49,8 +46,7 @@ export function getNodeLabel(node: LayoutNodeDraft): string {
     case "message": {
       const roleLabel = getRoleLabel(node.role);
       const content = node.content || node.from?.source || "Empty message";
-      const truncated =
-        content.length > 50 ? `${content.slice(0, 47)}...` : content;
+      const truncated = content.length > 50 ? `${content.slice(0, 47)}...` : content;
       return `${roleLabel}: ${truncated}`;
     }
     case "slot":
@@ -99,19 +95,14 @@ export function generateSlotName(
 /**
  * Check if a slot is referenced in the layout
  */
-export function isSlotReferenced(
-  slotName: string,
-  layout: LayoutNodeDraft[]
-): boolean {
+export function isSlotReferenced(slotName: string, layout: LayoutNodeDraft[]): boolean {
   return layout.some((node) => node.kind === "slot" && node.name === slotName);
 }
 
 /**
  * Get the default content for a new message node
  */
-export function getDefaultMessageContent(
-  role: ChatCompletionMessageRole
-): string {
+export function getDefaultMessageContent(role: ChatCompletionMessageRole): string {
   switch (role) {
     case "system":
       return "You are a storyteller.";
@@ -189,9 +180,7 @@ export function getSlotStatus(
 /**
  * Gets placeholder for message block identifier depending on its role
  */
-export function getMessageBlockPlaceholder(
-  role: ChatCompletionMessageRole
-): string {
+export function getMessageBlockPlaceholder(role: ChatCompletionMessageRole): string {
   switch (role) {
     case "system":
       return "e.g., System Prompt";

@@ -46,15 +46,9 @@ describe("makeRegistry", () => {
       const charactersRef = { source: "characters" };
       const intentRef = { source: "intent" };
 
-      expect(registry.resolve(turnsRef, mockTurnGenCtx)).toBe(
-        mockTurnGenCtx.turns
-      );
-      expect(registry.resolve(charactersRef, mockTurnGenCtx)).toBe(
-        mockTurnGenCtx.characters
-      );
-      expect(registry.resolve(intentRef, mockTurnGenCtx)).toBe(
-        mockTurnGenCtx.currentIntent
-      );
+      expect(registry.resolve(turnsRef, mockTurnGenCtx)).toBe(mockTurnGenCtx.turns);
+      expect(registry.resolve(charactersRef, mockTurnGenCtx)).toBe(mockTurnGenCtx.characters);
+      expect(registry.resolve(intentRef, mockTurnGenCtx)).toBe(mockTurnGenCtx.currentIntent);
     });
 
     it("should return undefined for unknown sources", () => {
@@ -241,14 +235,10 @@ describe("makeRegistry", () => {
       const goodRef = { source: "goodSource" };
 
       // The error should propagate
-      expect(() => registry.resolve(errorRef, mockTurnGenCtx)).toThrow(
-        "Source handler error"
-      );
+      expect(() => registry.resolve(errorRef, mockTurnGenCtx)).toThrow("Source handler error");
 
       // Other sources should still work
-      expect(registry.resolve(goodRef, mockTurnGenCtx)).toBe(
-        mockTurnGenCtx.turns
-      );
+      expect(registry.resolve(goodRef, mockTurnGenCtx)).toBe(mockTurnGenCtx.turns);
     });
 
     it("should handle source handler returning undefined", () => {

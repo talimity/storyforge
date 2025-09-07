@@ -1,11 +1,4 @@
-import {
-  Center,
-  Container,
-  Grid,
-  HStack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Center, Container, Grid, HStack, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuBookOpen, LuImport, LuPlus } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
@@ -25,10 +18,7 @@ export function ScenarioLibraryPage() {
         <PageHeader.Title>Scenario Library</PageHeader.Title>
         <PageHeader.Controls>
           <HStack gap={2}>
-            <Button
-              variant="outline"
-              onClick={() => setIsImportModalOpen(true)}
-            >
+            <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
               <LuImport />
               Import Chat
             </Button>
@@ -45,16 +35,10 @@ export function ScenarioLibraryPage() {
       </PageHeader.Root>
 
       {scenariosQuery.isLoading && (
-        <Grid
-          templateColumns="repeat(auto-fit, 320px)"
-          justifyContent="center"
-          gap={4}
-        >
-          {Array.from({ length: 6 }, (_, i) => `skeleton-${i}`).map(
-            (skeletonId) => (
-              <div key={skeletonId}>Loading...</div>
-            )
-          )}
+        <Grid templateColumns="repeat(auto-fit, 320px)" justifyContent="center" gap={4}>
+          {Array.from({ length: 6 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
+            <div key={skeletonId}>Loading...</div>
+          ))}
         </Grid>
       )}
 
@@ -65,11 +49,7 @@ export function ScenarioLibraryPage() {
               Failed to load scenarios
             </Text>
             <Text color="gray.600">{scenariosQuery.error.message}</Text>
-            <Button
-              onClick={() => scenariosQuery.refetch()}
-              variant="outline"
-              colorPalette="red"
-            >
+            <Button onClick={() => scenariosQuery.refetch()} variant="outline" colorPalette="red">
               Try Again
             </Button>
           </VStack>
@@ -87,11 +67,7 @@ export function ScenarioLibraryPage() {
       )}
 
       {Number(scenariosQuery.data?.scenarios.length) > 0 && (
-        <Grid
-          templateColumns="repeat(auto-fit, 320px)"
-          justifyContent="center"
-          gap={4}
-        >
+        <Grid templateColumns="repeat(auto-fit, 320px)" justifyContent="center" gap={4}>
           {scenariosQuery.data?.scenarios.map((scenario) => (
             <ScenarioCard key={scenario.id} scenario={scenario} />
           ))}

@@ -61,11 +61,7 @@ export function TemplateDuplicateDialog({
         </Dialog.Body>
         <Dialog.Footer>
           <Dialog.ActionTrigger asChild>
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isDuplicating}
-            >
+            <Button variant="outline" onClick={handleCancel} disabled={isDuplicating}>
               Cancel
             </Button>
           </Dialog.ActionTrigger>

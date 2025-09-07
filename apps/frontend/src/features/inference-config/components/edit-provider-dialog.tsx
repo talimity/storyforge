@@ -10,11 +10,7 @@ interface EditProviderDialogProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-export function EditProviderDialog({
-  provider,
-  isOpen,
-  onOpenChange,
-}: EditProviderDialogProps) {
+export function EditProviderDialog({ provider, isOpen, onOpenChange }: EditProviderDialogProps) {
   const utils = trpc.useUtils();
 
   const updateProviderMutation = trpc.providers.updateProvider.useMutation({

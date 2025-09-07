@@ -26,8 +26,7 @@ export function ChatUploadStep({
   return (
     <VStack gap={4} align="stretch">
       <Text color="content.muted">
-        Import a SillyTavern chat export (JSONL format) to create a new scenario
-        with turn history.
+        Import a SillyTavern chat export (JSONL format) to create a new scenario with turn history.
       </Text>
 
       {!selectedFile ? (
@@ -48,9 +47,7 @@ export function ChatUploadStep({
             <Icon size="xl">
               <LuUpload />
             </Icon>
-            <Text fontWeight="medium">
-              Drop your JSONL file here or click to browse
-            </Text>
+            <Text fontWeight="medium">Drop your JSONL file here or click to browse</Text>
             <Text fontSize="sm" color="content.muted">
               Maximum file size: 50MB
             </Text>

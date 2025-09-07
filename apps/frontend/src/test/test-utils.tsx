@@ -1,9 +1,5 @@
 import { ChakraProvider } from "@chakra-ui/react";
-import {
-  type RenderOptions,
-  type RenderResult,
-  render,
-} from "@testing-library/react";
+import { type RenderOptions, type RenderResult, render } from "@testing-library/react";
 import { ThemeProvider } from "next-themes";
 import type { ReactElement } from "react";
 import { system } from "@/theme";

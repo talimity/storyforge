@@ -1,12 +1,4 @@
-import {
-  Card,
-  Heading,
-  HStack,
-  Input,
-  Separator,
-  Stack,
-  Textarea,
-} from "@chakra-ui/react";
+import { Card, Heading, HStack, Input, Separator, Stack, Textarea } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -82,9 +74,7 @@ export function ScenarioForm({
 
   const participantsWithDetails = participants.map((p) => ({
     ...p,
-    character: charactersQuery.data?.characters.find(
-      (c) => c.id === p.characterId
-    ) || {
+    character: charactersQuery.data?.characters.find((c) => c.id === p.characterId) || {
       id: p.characterId,
       name: "Loading...",
       avatarPath: null,
@@ -97,16 +87,11 @@ export function ScenarioForm({
 
   const hasUnsavedChanges = isDirty && !isSubmitting;
 
-  const {
-    showDialog,
-    handleConfirmNavigation,
-    handleCancelNavigation,
-    confirmNavigation,
-  } = useUnsavedChangesProtection({
-    hasUnsavedChanges,
-    message:
-      "You have unsaved changes to this scenario. Are you sure you want to leave?",
-  });
+  const { showDialog, handleConfirmNavigation, handleCancelNavigation, confirmNavigation } =
+    useUnsavedChangesProtection({
+      hasUnsavedChanges,
+      message: "You have unsaved changes to this scenario. Are you sure you want to leave?",
+    });
 
   const canSubmit = participants.length >= 2;
 
@@ -124,9 +109,7 @@ export function ScenarioForm({
               <Field
                 label="Scenario Name"
                 required
-                errorText={
-                  errors.name?.message || "Please enter a name for the scenario"
-                }
+                errorText={errors.name?.message || "Please enter a name for the scenario"}
                 invalid={!!errors.name}
               >
                 <Input

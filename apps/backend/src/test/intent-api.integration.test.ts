@@ -1,10 +1,7 @@
 import { setTimeout as delay } from "node:timers/promises";
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import { beforeAll, describe, expect, it } from "vitest";
-import {
-  initRunManager,
-  intentRunManager,
-} from "../services/intent/run-manager.js";
+import { initRunManager, intentRunManager } from "../services/intent/run-manager.js";
 import { ScenarioService } from "../services/scenario/scenario.service.js";
 import { createFreshTestCaller, createTestDatabase } from "../test/setup.js";
 
@@ -179,9 +176,7 @@ describe("play.intentProgress subscription (runner events)", () => {
     expect(received[0].type).toBe("intent_started");
     expect(received[0].ts).toBeLessThanOrEqual(attachAt);
     // And we should finish (success or failure still demonstrates buffering)
-    expect(["intent_finished", "intent_failed"]).toContain(
-      received.at(-1)!.type
-    );
+    expect(["intent_finished", "intent_failed"]).toContain(received.at(-1)!.type);
   });
 
   it("interrupts a running intent and sets status to cancelled", async () => {
@@ -192,9 +187,7 @@ describe("play.intentProgress subscription (runner events)", () => {
       where: { scenarioId, type: "narrator" },
       columns: { id: true },
     });
-    const { TimelineService } = await import(
-      "../services/timeline/timeline.service.js"
-    );
+    const { TimelineService } = await import("../services/timeline/timeline.service.js");
     const tl = new TimelineService(db);
     await tl.advanceTurn({
       scenarioId,

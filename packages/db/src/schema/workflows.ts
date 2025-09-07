@@ -1,10 +1,5 @@
 import { createId } from "@storyforge/utils";
-import {
-  integer,
-  sqliteTable,
-  text,
-  uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const workflows = sqliteTable(
   "workflows",
@@ -16,9 +11,7 @@ export const workflows = sqliteTable(
     name: text("name").notNull(),
     description: text("description"),
     version: integer("version").notNull().default(1),
-    isBuiltIn: integer("is_builtin", { mode: "boolean" })
-      .notNull()
-      .default(false),
+    isBuiltIn: integer("is_builtin", { mode: "boolean" }).notNull().default(false),
     steps: text("steps", { mode: "json" })
       // JSON array of workflow steps
       .$type<unknown[]>()

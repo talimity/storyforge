@@ -14,10 +14,7 @@ interface ErrorBoundaryState {
   errorInfo?: React.ErrorInfo;
 }
 
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -42,13 +39,11 @@ export class ErrorBoundary extends Component<
             </Heading>
 
             <Text>
-              An unexpected error occurred. Please try refreshing the page, or
-              create an issue on the Github repository if the problem persists.
+              An unexpected error occurred. Please try refreshing the page, or create an issue on
+              the Github repository if the problem persists.
             </Text>
 
-            <Button onClick={() => window.location.reload()}>
-              Refresh Page
-            </Button>
+            <Button onClick={() => window.location.reload()}>Refresh Page</Button>
 
             <Box layerStyle="surface" p={4} w="full" overflowX="auto">
               <Text fontFamily="mono" fontSize="sm" whiteSpace="pre-wrap">

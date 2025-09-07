@@ -15,9 +15,7 @@ import { useCharacterSearch } from "@/features/characters/hooks/use-character-se
 import { getApiUrl } from "@/lib/trpc";
 import { CharacterListItem } from "./character-list-item";
 
-type CharacterSearchCharacter = ReturnType<
-  typeof useCharacterSearch
->["characters"][number];
+type CharacterSearchCharacter = ReturnType<typeof useCharacterSearch>["characters"][number];
 
 /**
  * Shared hook that wires Chakra v3 Combobox collection to TRPC search.
@@ -28,8 +26,11 @@ function useCharacterCollection(
   filterMode?: "all" | "inScenario" | "notInScenario",
   scenarioId?: string
 ) {
-  const { characters, isLoading, updateSearch, searchQuery } =
-    useCharacterSearch({ enabled, filterMode, scenarioId });
+  const { characters, isLoading, updateSearch, searchQuery } = useCharacterSearch({
+    enabled,
+    filterMode,
+    scenarioId,
+  });
 
   const { collection, set } = useListCollection<CharacterSearchCharacter>({
     initialItems: [],
@@ -75,10 +76,7 @@ export function CharacterMultiSelect({
   inDialog?: boolean;
   /** Hides the clear trigger button in case the parent handles clearing */
   hideClearTrigger?: boolean;
-} & Omit<
-  Combobox.RootProps,
-  "value" | "onValueChange" | "collection" | "onChange"
->) {
+} & Omit<Combobox.RootProps, "value" | "onValueChange" | "collection" | "onChange">) {
   const { collection, isLoading, updateSearch } = useCharacterCollection(
     !disabled,
     filterMode,
@@ -127,11 +125,7 @@ export function CharacterMultiSelect({
             </Combobox.Empty>
             {collection.items.map((character) => (
               <Combobox.Item key={character.id} item={character}>
-                <CharacterListItem
-                  character={character}
-                  size={size}
-                  layerStyle={layerStyle}
-                />
+                <CharacterListItem character={character} size={size} layerStyle={layerStyle} />
                 <Combobox.ItemIndicator />
               </Combobox.Item>
             ))}
@@ -169,10 +163,7 @@ export function CharacterSingleSelect({
   /** If true, omits Portal so the dropdown appears within the dialog */
   inDialog?: boolean;
   layerStyle?: string;
-} & Omit<
-  Combobox.RootProviderProps,
-  "value" | "onValueChange" | "collection" | "onChange"
->) {
+} & Omit<Combobox.RootProviderProps, "value" | "onValueChange" | "collection" | "onChange">) {
   const { collection, isLoading, updateSearch } = useCharacterCollection(
     !disabled,
     filterMode,
@@ -206,10 +197,7 @@ export function CharacterSingleSelect({
   }, [value, collection.items]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (
-      (e.key === "Backspace" || e.key === "Delete") &&
-      combobox.value.length
-    ) {
+    if ((e.key === "Backspace" || e.key === "Delete") && combobox.value.length) {
       combobox.setValue([]);
       combobox.setInputValue("");
       onChange(null);
@@ -268,11 +256,7 @@ export function CharacterSingleSelect({
             </Combobox.Empty>
             {collection.items.map((character) => (
               <Combobox.Item key={character.id} item={character}>
-                <CharacterListItem
-                  character={character}
-                  size={size}
-                  layerStyle={layerStyle}
-                />
+                <CharacterListItem character={character} size={size} layerStyle={layerStyle} />
                 <Combobox.ItemIndicator />
               </Combobox.Item>
             ))}

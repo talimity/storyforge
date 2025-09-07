@@ -16,17 +16,13 @@ describe("Assistant Prefix Emission", () => {
   const registry = makeSpecTurnGenerationRegistry();
 
   it("should emit assistant message with prefix=true", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnPlannerV1Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnPlannerV1Json);
 
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
     const messages = render(compiled, standardTurnGenCtx, budget, registry);
 
     // Find the assistant message with prefix
-    const assistantPrefixMsg = messages.find(
-      (m) => m.role === "assistant" && m.prefix === true
-    );
+    const assistantPrefixMsg = messages.find((m) => m.role === "assistant" && m.prefix === true);
 
     expect(assistantPrefixMsg).toBeDefined();
     expect(assistantPrefixMsg).toMatchObject({
@@ -37,9 +33,7 @@ describe("Assistant Prefix Emission", () => {
   });
 
   it("should place prefix message at correct position in layout", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnPlannerV1Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnPlannerV1Json);
 
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
     const messages = render(compiled, standardTurnGenCtx, budget, registry);
@@ -56,42 +50,30 @@ describe("Assistant Prefix Emission", () => {
     const jsonInstructionIndex = messages.findIndex((m) =>
       m.content?.includes("Return JSON with keys")
     );
-    const prefixIndex = messages.findIndex(
-      (m) => m.role === "assistant" && m.prefix === true
-    );
+    const prefixIndex = messages.findIndex((m) => m.role === "assistant" && m.prefix === true);
 
     expect(jsonInstructionIndex).toBeGreaterThan(-1);
     expect(prefixIndex).toBeGreaterThan(jsonInstructionIndex);
   });
 
   it("should render slots before assistant prefix", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnPlannerV1Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnPlannerV1Json);
 
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
     const messages = render(compiled, standardTurnGenCtx, budget, registry);
 
-    const prefixIndex = messages.findIndex(
-      (m) => m.role === "assistant" && m.prefix === true
-    );
+    const prefixIndex = messages.findIndex((m) => m.role === "assistant" && m.prefix === true);
 
     // Should have slot content before the prefix
-    const hasTurnContent = messages
-      .slice(0, prefixIndex)
-      .some((m) => m.content?.match(/^\[\d+\]/));
-    const hasCharContent = messages
-      .slice(0, prefixIndex)
-      .some((m) => m.content?.includes(" — "));
+    const hasTurnContent = messages.slice(0, prefixIndex).some((m) => m.content?.match(/^\[\d+\]/));
+    const hasCharContent = messages.slice(0, prefixIndex).some((m) => m.content?.includes(" — "));
 
     expect(hasTurnContent).toBe(true);
     expect(hasCharContent).toBe(true);
   });
 
   it("should handle prefix with minimal context", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnPlannerV1Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnPlannerV1Json);
 
     // Use empty context to test prefix with minimal slots
     const emptyCtx = {
@@ -110,9 +92,7 @@ describe("Assistant Prefix Emission", () => {
     const messages = render(compiled, emptyCtx, budget, registry);
 
     // Should still have assistant prefix even with empty slots
-    const assistantMsg = messages.find(
-      (m) => m.role === "assistant" && m.prefix
-    );
+    const assistantMsg = messages.find((m) => m.role === "assistant" && m.prefix);
     expect(assistantMsg).toBeDefined();
     expect(assistantMsg?.content).toBe('{"goals":');
 
@@ -157,32 +137,21 @@ describe("Assistant Prefix Emission", () => {
   });
 
   it("should handle budget constraints with prefix message", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnPlannerV1Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnPlannerV1Json);
 
     // Constrained budget but enough for layout messages
     const smallBudget = new DefaultBudgetManager({ maxTokens: 800 });
-    const messages = render(
-      compiled,
-      standardTurnGenCtx,
-      smallBudget,
-      registry
-    );
+    const messages = render(compiled, standardTurnGenCtx, smallBudget, registry);
 
     // Even with tight budget, prefix message should still be included
     // (it's part of the layout, not slot content)
-    const assistantMsg = messages.find(
-      (m) => m.role === "assistant" && m.prefix
-    );
+    const assistantMsg = messages.find((m) => m.role === "assistant" && m.prefix);
     expect(assistantMsg).toBeDefined();
     expect(assistantMsg?.content).toBe('{"goals":');
 
     // But slot content might be truncated due to budget constraints
     const turnMsgs = messages.filter((m) => m.content?.match(/^\[\d+\]/));
     // Note: With budget=800 and standardTurnGenCtx having 6 turns, some may be truncated
-    expect(turnMsgs.length).toBeLessThanOrEqual(
-      standardTurnGenCtx.turns.length
-    );
+    expect(turnMsgs.length).toBeLessThanOrEqual(standardTurnGenCtx.turns.length);
   });
 });

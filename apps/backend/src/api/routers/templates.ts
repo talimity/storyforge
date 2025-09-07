@@ -11,10 +11,7 @@ import {
   updateTemplateSchema,
 } from "@storyforge/schemas";
 import { z } from "zod";
-import {
-  getTemplateById,
-  listTemplates,
-} from "../../services/template/template.queries.js";
+import { getTemplateById, listTemplates } from "../../services/template/template.queries.js";
 import { TemplateService } from "../../services/template/template.service.js";
 import { publicProcedure, router } from "../index.js";
 
@@ -142,10 +139,7 @@ export const templatesRouter = router({
     .input(templateIdSchema)
     .output(exportTemplateResponseSchema)
     .query(async ({ input, ctx }) => {
-      const { createdAt, updatedAt, ...exportTemplate } = await getTemplateById(
-        ctx.db,
-        input.id
-      );
+      const { createdAt, updatedAt, ...exportTemplate } = await getTemplateById(ctx.db, input.id);
 
       return {
         template: exportTemplate,

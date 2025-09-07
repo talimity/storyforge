@@ -10,12 +10,7 @@ interface SidebarLinkProps {
   collapsed?: boolean;
 }
 
-export function SidebarLink({
-  to,
-  icon,
-  label,
-  collapsed = false,
-}: SidebarLinkProps) {
+export function SidebarLink({ to, icon, label, collapsed = false }: SidebarLinkProps) {
   const location = useLocation();
   const isActive = location.pathname === to;
 

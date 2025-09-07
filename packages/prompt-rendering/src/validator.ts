@@ -7,10 +7,9 @@ import { iterMessageBlocks } from "./walkers.js";
  * @param template - The template to validate
  * @throws {TemplateStructureError} if validation fails
  */
-export function validateTemplateStructure<
-  K extends string,
-  S extends SourceSpec,
->(template: PromptTemplate<K, S>): void {
+export function validateTemplateStructure<K extends string, S extends SourceSpec>(
+  template: PromptTemplate<K, S>
+): void {
   validateUniqueSlotNames(template);
   validateLayoutSlotReferences(template);
   validateAssistantPrefixUsage(template);
@@ -41,9 +40,7 @@ function validateLayoutSlotReferences<K extends string, S extends SourceSpec>(
   for (const node of template.layout) {
     if (node.kind === "slot") {
       if (!availableSlots.has(node.name)) {
-        throw new TemplateStructureError(
-          `Layout references non-existent slot: "${node.name}"`
-        );
+        throw new TemplateStructureError(`Layout references non-existent slot: "${node.name}"`);
       }
     }
   }

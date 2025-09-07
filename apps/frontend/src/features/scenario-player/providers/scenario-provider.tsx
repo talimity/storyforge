@@ -8,9 +8,7 @@ type ScenarioCharacter = ScenarioEnvironment["characters"][number];
 type ScenarioCtx = ScenarioEnvironment & {
   participantsById: Record<string, ScenarioParticipant>;
   charactersById: Record<string, ScenarioCharacter>;
-  getCharacterByParticipantId: (
-    participantId: string
-  ) => ScenarioCharacter | null;
+  getCharacterByParticipantId: (participantId: string) => ScenarioCharacter | null;
 };
 const Ctx = createContext<ScenarioCtx | null>(null);
 

@@ -11,12 +11,7 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { Suspense, useState } from "react";
-import {
-  LuArrowLeft,
-  LuEllipsisVertical,
-  LuMenu,
-  LuSettings,
-} from "react-icons/lu";
+import { LuArrowLeft, LuEllipsisVertical, LuMenu, LuSettings } from "react-icons/lu";
 import { Navigate, Outlet, useNavigate, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/index";
@@ -72,22 +67,13 @@ function PlayerShellInner() {
         <HStack gap={3}>
           {/* Mobile menu button */}
           <Show when={isMobile}>
-            <IconButton
-              variant="ghost"
-              size="sm"
-              onClick={() => setMobileDrawerOpen(true)}
-            >
+            <IconButton variant="ghost" size="sm" onClick={() => setMobileDrawerOpen(true)}>
               <LuMenu />
             </IconButton>
           </Show>
 
           {/* Back button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            data-testid="scenario-back-button"
-          >
+          <Button variant="ghost" size="sm" onClick={handleBack} data-testid="scenario-back-button">
             <LuArrowLeft />
             Back to Library
           </Button>
@@ -124,10 +110,7 @@ function PlayerShellInner() {
 
         {/* Mobile Widget Drawer */}
         <Show when={isMobile}>
-          <Drawer.Root
-            open={mobileDrawerOpen}
-            onOpenChange={(e) => setMobileDrawerOpen(e.open)}
-          >
+          <Drawer.Root open={mobileDrawerOpen} onOpenChange={(e) => setMobileDrawerOpen(e.open)}>
             <Portal>
               <Drawer.Backdrop />
               <Drawer.Positioner>
@@ -138,10 +121,7 @@ function PlayerShellInner() {
                   </Drawer.Header>
                   <Drawer.Body p="0">
                     <Box onClick={() => setMobileDrawerOpen(false)}>
-                      <PlayerWidgetSidebar
-                        expanded={true}
-                        characters={characters}
-                      />
+                      <PlayerWidgetSidebar expanded={true} characters={characters} />
                     </Box>
                   </Drawer.Body>
                 </Drawer.Content>

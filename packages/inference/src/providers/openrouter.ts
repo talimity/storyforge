@@ -71,10 +71,7 @@ interface OpenRouterRequest {
       parameters?: object;
     };
   }>;
-  tool_choice?:
-    | "none"
-    | "auto"
-    | { type: "function"; function: { name: string } };
+  tool_choice?: "none" | "auto" | { type: "function"; function: { name: string } };
   // OpenRouter-specific parameters
   transforms?: string[];
   models?: string[];
@@ -223,27 +220,14 @@ export class OpenRouterAdapter extends ProviderAdapter {
   }
 
   supportedParams(): Array<keyof TextInferenceGenParams> {
-    return [
-      "temperature",
-      "topP",
-      "topK",
-      "presencePenalty",
-      "frequencyPenalty",
-      "topLogprobs",
-    ];
+    return ["temperature", "topP", "topK", "presencePenalty", "frequencyPenalty", "topLogprobs"];
   }
 
-  async complete(
-    request: ChatCompletionRequest
-  ): Promise<ChatCompletionResponse> {
+  async complete(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
 
-    const openRouterRequest = this.transformRequest(
-      request,
-      false,
-      prefillMode
-    );
+    const openRouterRequest = this.transformRequest(request, false, prefillMode);
 
     const response = await fetch(`${this.apiUrl}/chat/completions`, {
       method: "POST",
@@ -312,9 +296,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
 
         if (choice.error) {
           // Unrecoverable error raised by the provider
-          throw new InferenceProviderError(
-            `OpenRouter stream error: ${choice.error.message}`
-          );
+          throw new InferenceProviderError(`OpenRouter stream error: ${choice.error.message}`);
         }
 
         if (choice.delta?.role) {
@@ -370,9 +352,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
     return JSON.stringify(transformed, null, 2);
   }
 
-  override async searchModels(
-    query?: string
-  ): Promise<ProviderModelSearchResult[]> {
+  override async searchModels(query?: string): Promise<ProviderModelSearchResult[]> {
     try {
       const response = await fetch(`${this.apiUrl}/models/user`, {
         method: "GET",
@@ -421,13 +401,11 @@ export class OpenRouterAdapter extends ProviderAdapter {
     // Transform messages to OpenRouter format
     // OpenRouter handles assistant prefill implicitly, so we don't need special handling
     const mergedMessages = mergeConsecutiveRoles(request.messages);
-    const messages: OpenRouterMessage[] = mergedMessages.map(
-      ({ role, content }) => {
-        // For now, we only support text content
-        // TODO: Add support for image content when needed
-        return { role, content };
-      }
-    );
+    const messages: OpenRouterMessage[] = mergedMessages.map(({ role, content }) => {
+      // For now, we only support text content
+      // TODO: Add support for image content when needed
+      return { role, content };
+    });
 
     const payload: OpenRouterRequest = {
       model,
@@ -437,14 +415,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
 
     // Map generation parameters
     if (genParams) {
-      const {
-        temperature,
-        topP,
-        topK,
-        presencePenalty,
-        frequencyPenalty,
-        topLogprobs,
-      } = genParams;
+      const { temperature, topP, topK, presencePenalty, frequencyPenalty, topLogprobs } = genParams;
 
       if (temperature !== undefined) {
         payload.temperature = Math.max(0, Math.min(2, temperature));
@@ -485,9 +456,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
     return payload;
   }
 
-  private transformResponse(
-    response: OpenRouterResponse
-  ): ChatCompletionResponse {
+  private transformResponse(response: OpenRouterResponse): ChatCompletionResponse {
     const choice = response.choices[0];
 
     if (!choice) {
@@ -496,9 +465,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
 
     // Handle choice-level errors
     if (choice.error) {
-      throw new InferenceProviderError(
-        `OpenRouter error: ${choice.error.message}`
-      );
+      throw new InferenceProviderError(`OpenRouter error: ${choice.error.message}`);
     }
 
     const result: ChatCompletionResponse = {
@@ -589,9 +556,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
     }
 
     // Generic upstream error
-    throw new InferenceProviderError(
-      `OpenRouter API error (${statusCode}): ${errorMessage}`
-    );
+    throw new InferenceProviderError(`OpenRouter API error (${statusCode}): ${errorMessage}`);
   }
 
   private mapFinishReason(reason: string | null): ChatCompletionFinishReason {

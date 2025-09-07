@@ -5,11 +5,7 @@ import {
   schema,
 } from "@storyforge/db";
 import type { GenStep, TaskKind } from "@storyforge/gentasks";
-import {
-  genStepSchema,
-  taskKindSchema,
-  validateWorkflow,
-} from "@storyforge/gentasks";
+import { genStepSchema, taskKindSchema, validateWorkflow } from "@storyforge/gentasks";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
@@ -67,11 +63,7 @@ export class WorkflowService {
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
   }
 
-  async updateWorkflow(
-    id: string,
-    data: UpdateWorkflowData,
-    outerTx?: SqliteTransaction
-  ) {
+  async updateWorkflow(id: string, data: UpdateWorkflowData, outerTx?: SqliteTransaction) {
     const operation = async (tx: SqliteTransaction) => {
       const existing = await tx.query.workflows.findFirst({ where: { id } });
       if (!existing) {
@@ -88,8 +80,7 @@ export class WorkflowService {
       const newTask = taskKindSchema.parse(data.task ?? existing.task);
       const newName = data.name ?? existing.name;
       const newDesc = data.description ?? existing.description ?? undefined;
-      const newSteps =
-        data.steps ?? z.array(genStepSchema).parse(existing.steps);
+      const newSteps = data.steps ?? z.array(genStepSchema).parse(existing.steps);
 
       // Validate updated workflow
       validateWorkflow({
@@ -102,11 +93,9 @@ export class WorkflowService {
       });
 
       const updateData: Partial<NewWorkflow> = {};
-      if (data.task !== undefined)
-        updateData.task = taskKindSchema.parse(data.task);
+      if (data.task !== undefined) updateData.task = taskKindSchema.parse(data.task);
       if (data.name !== undefined) updateData.name = data.name;
-      if (data.description !== undefined)
-        updateData.description = data.description;
+      if (data.description !== undefined) updateData.description = data.description;
       if (data.steps !== undefined) updateData.steps = data.steps;
 
       const [wf] = await tx
@@ -146,19 +135,12 @@ export class WorkflowService {
         });
       }
 
-      await tx
-        .delete(schema.workflows)
-        .where(eq(schema.workflows.id, id))
-        .execute();
+      await tx.delete(schema.workflows).where(eq(schema.workflows.id, id)).execute();
     };
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
   }
 
-  async duplicateWorkflow(
-    id: string,
-    name: string,
-    outerTx?: SqliteTransaction
-  ) {
+  async duplicateWorkflow(id: string, name: string, outerTx?: SqliteTransaction) {
     const operation = async (tx: SqliteTransaction) => {
       const existing = await tx.query.workflows.findFirst({ where: { id } });
       if (!existing) {

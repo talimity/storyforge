@@ -77,16 +77,8 @@ export const chatImportExecuteOutputSchema = z.object({
 });
 
 export type SillyTavernMessage = z.infer<typeof sillyTavernMessageSchema>;
-export type ChatImportAnalyzeInput = z.infer<
-  typeof chatImportAnalyzeInputSchema
->;
-export type ChatImportAnalyzeOutput = z.infer<
-  typeof chatImportAnalyzeOutputSchema
->;
+export type ChatImportAnalyzeInput = z.infer<typeof chatImportAnalyzeInputSchema>;
+export type ChatImportAnalyzeOutput = z.infer<typeof chatImportAnalyzeOutputSchema>;
 export type CharacterMapping = z.infer<typeof characterMappingSchema>;
-export type ChatImportExecuteInput = z.infer<
-  typeof chatImportExecuteInputSchema
->;
-export type ChatImportExecuteOutput = z.infer<
-  typeof chatImportExecuteOutputSchema
->;
+export type ChatImportExecuteInput = z.infer<typeof chatImportExecuteInputSchema>;
+export type ChatImportExecuteOutput = z.infer<typeof chatImportExecuteOutputSchema>;

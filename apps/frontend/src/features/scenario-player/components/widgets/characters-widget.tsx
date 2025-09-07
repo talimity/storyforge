@@ -17,8 +17,7 @@ interface CharactersWidgetProps {
 export const CharactersWidget = memo(function CharactersWidget({
   characters,
 }: CharactersWidgetProps) {
-  const { selectedCharacterId, setSelectedCharacter } =
-    useScenarioPlayerStore();
+  const { selectedCharacterId, setSelectedCharacter } = useScenarioPlayerStore();
 
   return (
     <Box>
@@ -38,9 +37,7 @@ export const CharactersWidget = memo(function CharactersWidget({
                 _hover={{ bg: "surface.muted" }}
                 bg={isSelected ? "surface.emphasized" : "transparent"}
                 onClick={() => {
-                  setSelectedCharacter(
-                    selectedCharacterId === character.id ? null : character.id
-                  );
+                  setSelectedCharacter(selectedCharacterId === character.id ? null : character.id);
                 }}
               >
                 <CharacterListItem character={character}>

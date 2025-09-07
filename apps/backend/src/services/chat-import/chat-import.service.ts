@@ -54,8 +54,7 @@ export class ChatImportService {
         stats.count++;
         stats.isUser = stats.isUser || !!message.is_user;
         stats.isSystem =
-          stats.isSystem ||
-          (message.name === "System" && !message.extra?.isSmallSys);
+          stats.isSystem || (message.name === "System" && !message.extra?.isSmallSys);
         characterStats.set(message.name, stats);
       }
 
@@ -83,9 +82,7 @@ export class ChatImportService {
 
   async importChatAsScenario(args: ImportArgs) {
     return this.db.transaction(async (tx) => {
-      const atLeastTwoMapped = args.mappings.filter(
-        (m) => m.targetType !== "ignore"
-      ).length;
+      const atLeastTwoMapped = args.mappings.filter((m) => m.targetType !== "ignore").length;
       if (atLeastTwoMapped < 2) {
         throw new ServiceError("InvalidInput", {
           message: "You must map at least two participants.",
@@ -122,9 +119,7 @@ export class ChatImportService {
         if (mapping.targetType === "ignore") continue;
 
         if (mapping.targetType === "character") {
-          const participant = participants.find(
-            (p) => p.characterId === mapping.characterId
-          );
+          const participant = participants.find((p) => p.characterId === mapping.characterId);
           if (participant) {
             participantMap.set(mapping.detectedName, participant.id);
           }
@@ -213,10 +208,7 @@ export class ChatImportService {
   }
 
   private shouldSkipMessage(message: SillyTavernMessage): boolean {
-    if (
-      message.name === "SillyTavern System" &&
-      message.extra?.isSmallSys === true
-    ) {
+    if (message.name === "SillyTavern System" && message.extra?.isSmallSys === true) {
       // These messages are ST UI messages, not diagetic content. 'small' means
       // they are not included in the prompt so we do not want them either.
       return true;
@@ -230,28 +222,23 @@ export class ChatImportService {
   }
 
   private async detectCharacters(
-    characterStats: Map<
-      string,
-      { count: number; isUser: boolean; isSystem: boolean }
-    >
+    characterStats: Map<string, { count: number; isUser: boolean; isSystem: boolean }>
   ) {
     const allCharacters = await this.db.select().from(tCharacters).all();
 
-    const detectedCharacters = Array.from(characterStats.entries()).map(
-      ([name, stats]) => {
-        const matchedCharacter = allCharacters.find(
-          (c) => c.name.toLowerCase() === name.toLowerCase()
-        );
+    const detectedCharacters = Array.from(characterStats.entries()).map(([name, stats]) => {
+      const matchedCharacter = allCharacters.find(
+        (c) => c.name.toLowerCase() === name.toLowerCase()
+      );
 
-        return {
-          name,
-          messageCount: stats.count,
-          suggestedCharacterId: matchedCharacter?.id || null,
-          isUser: stats.isUser,
-          isSystem: stats.isSystem,
-        };
-      }
-    );
+      return {
+        name,
+        messageCount: stats.count,
+        suggestedCharacterId: matchedCharacter?.id || null,
+        isUser: stats.isUser,
+        isSystem: stats.isSystem,
+      };
+    });
 
     return detectedCharacters.sort((a, b) => b.messageCount - a.messageCount);
   }

@@ -28,10 +28,7 @@ type RecipeOf<K extends TaskKind> = RecipeDefinition<K, SourcesFor<K>>;
 export type TurnGenRecipe = RecipeOf<"turn_generation">;
 export type ChapterSummRecipe = RecipeOf<"chapter_summarization">;
 export type WritingAssistantRecipe = RecipeOf<"writing_assistant">;
-export type AnyRecipe =
-  | TurnGenRecipe
-  | ChapterSummRecipe
-  | WritingAssistantRecipe;
+export type AnyRecipe = TurnGenRecipe | ChapterSummRecipe | WritingAssistantRecipe;
 
 /** Alias for "the member of the union for this task" */
 export type TypedRecipe<K extends TaskKind> = Extract<AnyRecipe, { task: K }>;
@@ -54,18 +51,17 @@ export interface RecipeParamSpec {
 /**
  * Extracts the TypeScript type for a single RecipeParamSpec
  */
-export type InferParamType<T extends RecipeParamSpec> =
-  T["type"] extends "select"
-    ? T extends { options: readonly { value: infer V }[] }
-      ? V
-      : string
-    : T["type"] extends "number"
-      ? number
-      : T["type"] extends "toggle"
-        ? boolean
-        : T["type"] extends "template_string"
-          ? string
-          : unknown;
+export type InferParamType<T extends RecipeParamSpec> = T["type"] extends "select"
+  ? T extends { options: readonly { value: infer V }[] }
+    ? V
+    : string
+  : T["type"] extends "number"
+    ? number
+    : T["type"] extends "toggle"
+      ? boolean
+      : T["type"] extends "template_string"
+        ? string
+        : unknown;
 
 /**
  * Infers the parameter types from an array of RecipeParamSpec

@@ -33,10 +33,7 @@ import {
   getMissingSlots,
   useTemplateBuilderStore,
 } from "@/features/template-builder/stores/template-builder-store";
-import type {
-  AnyRecipeId,
-  LayoutNodeDraft,
-} from "@/features/template-builder/types";
+import type { AnyRecipeId, LayoutNodeDraft } from "@/features/template-builder/types";
 
 interface LayoutBuilderProps {
   task?: TaskKind;
@@ -53,21 +50,14 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
       }))
     );
   const layout = useTemplateBuilderStore(useShallow((s) => s.layoutDraft));
-  const missingSlots = useTemplateBuilderStore(
-    useShallow((s) => getMissingSlots(s))
-  );
+  const missingSlots = useTemplateBuilderStore(useShallow((s) => getMissingSlots(s)));
 
-  const {
-    activeNode,
-    dndContextProps,
-    sortableContextProps,
-    DragOverlayComponent,
-  } = useLayoutDnd({ layout, reorderNodes });
+  const { activeNode, dndContextProps, sortableContextProps, DragOverlayComponent } = useLayoutDnd({
+    layout,
+    reorderNodes,
+  });
 
-  const handleDeleteNode = useCallback(
-    (id: string) => deleteNode(id, true),
-    [deleteNode]
-  );
+  const handleDeleteNode = useCallback((id: string) => deleteNode(id, true), [deleteNode]);
   const handleAddMessage = useCallback(
     (role: ChatCompletionMessageRole) => addMessageNode(role),
     [addMessageNode]
@@ -83,13 +73,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
     <VStack align="stretch" gap={4}>
       {/* Validation Warnings */}
       {missingSlots.length > 0 && (
-        <Box
-          p={3}
-          bg="red.50"
-          borderColor="red.200"
-          borderWidth="1px"
-          borderRadius="md"
-        >
+        <Box p={3} bg="red.50" borderColor="red.200" borderWidth="1px" borderRadius="md">
           <Text fontSize="sm" color="red.700" fontWeight="medium">
             Missing slots referenced in layout:
           </Text>
@@ -111,11 +95,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
               />
             ) : (
               layout.map((node) => (
-                <SortableLayoutNode
-                  key={node.id}
-                  node={node}
-                  onDelete={handleDeleteNode}
-                />
+                <SortableLayoutNode key={node.id} node={node} onDelete={handleDeleteNode} />
               ))
             )}
           </VStack>
@@ -123,11 +103,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
 
         <DragOverlayComponent>
           {activeNode ? (
-            <LayoutNodeCard
-              node={activeNode}
-              isDragging
-              style={{ cursor: "grabbing" }}
-            />
+            <LayoutNodeCard node={activeNode} isDragging style={{ cursor: "grabbing" }} />
           ) : null}
         </DragOverlayComponent>
       </DndContext>
@@ -144,24 +120,15 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
           {/* Message Options */}
           <MenuItemGroup>
             <MenuItemGroupLabel>Messages</MenuItemGroupLabel>
-            <MenuItem
-              value="system-message"
-              onClick={() => handleAddMessage("system")}
-            >
+            <MenuItem value="system-message" onClick={() => handleAddMessage("system")}>
               <LuMessageSquareCode />
               System Message
             </MenuItem>
-            <MenuItem
-              value="user-message"
-              onClick={() => handleAddMessage("user")}
-            >
+            <MenuItem value="user-message" onClick={() => handleAddMessage("user")}>
               <LuMessageSquareMore />
               User Message
             </MenuItem>
-            <MenuItem
-              value="assistant-message"
-              onClick={() => handleAddMessage("assistant")}
-            >
+            <MenuItem value="assistant-message" onClick={() => handleAddMessage("assistant")}>
               <LuBotMessageSquare />
               Assistant Message
             </MenuItem>
@@ -212,14 +179,9 @@ interface SortableLayoutNodeProps {
 }
 
 function SortableLayoutNode({ node, onDelete }: SortableLayoutNodeProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: node.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: node.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),

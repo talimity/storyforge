@@ -441,10 +441,8 @@ const semanticTokens = defineSemanticTokens({
   gradients: {
     surfaceGradient: {
       value: {
-        _light:
-          "linear-gradient(135deg, {colors.surface} 0%, {colors.surface.muted} 100%)",
-        _dark:
-          "linear-gradient(135deg, {colors.surface} 0%, {colors.surface.muted} 100%)",
+        _light: "linear-gradient(135deg, {colors.surface} 0%, {colors.surface.muted} 100%)",
+        _dark: "linear-gradient(135deg, {colors.surface} 0%, {colors.surface.muted} 100%)",
       },
     },
     contrastGradient: {

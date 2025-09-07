@@ -45,25 +45,15 @@ export function CapabilitiesSelector({
             label="Streaming responses"
             helperText={
               baseline?.streaming !== undefined
-                ? `Effective: ${String(
-                    value.streaming ?? baseline.streaming
-                  )} ${
-                    allowInherit && value.streaming === undefined
-                      ? `(inherited)`
-                      : ``
+                ? `Effective: ${String(value.streaming ?? baseline.streaming)} ${
+                    allowInherit && value.streaming === undefined ? `(inherited)` : ``
                   }`
                 : undefined
             }
           >
             {allowInherit ? (
               <RadioGroup
-                value={
-                  value.streaming === undefined
-                    ? "inherit"
-                    : value.streaming
-                      ? "on"
-                      : "off"
-                }
+                value={value.streaming === undefined ? "inherit" : value.streaming ? "on" : "off"}
                 onValueChange={(e) => {
                   if (e.value === "inherit") return clear("streaming");
                   set("streaming", e.value === "on");
@@ -72,9 +62,7 @@ export function CapabilitiesSelector({
                 <HStack gap={4} wrap="wrap">
                   <Radio value="inherit">
                     Inherit
-                    {baseline?.streaming !== undefined
-                      ? ` (${String(baseline.streaming)})`
-                      : ""}
+                    {baseline?.streaming !== undefined ? ` (${String(baseline.streaming)})` : ""}
                   </Radio>
                   <Radio value="on">On</Radio>
                   <Radio value="off">Off</Radio>
@@ -96,12 +84,8 @@ export function CapabilitiesSelector({
             label="Assistant Prefill"
             helperText={
               baseline?.assistantPrefill
-                ? `Effective: ${String(
-                    value.assistantPrefill ?? baseline.assistantPrefill
-                  )} ${
-                    allowInherit && value.assistantPrefill === undefined
-                      ? `(inherited)`
-                      : ``
+                ? `Effective: ${String(value.assistantPrefill ?? baseline.assistantPrefill)} ${
+                    allowInherit && value.assistantPrefill === undefined ? `(inherited)` : ``
                   }`
                 : "How the provider handles assistant message prefilling"
             }
@@ -115,21 +99,15 @@ export function CapabilitiesSelector({
                   : value.assistantPrefill
               }
               onValueChange={(e) => {
-                if (allowInherit && e.value === "inherit")
-                  return clear("assistantPrefill");
-                set(
-                  "assistantPrefill",
-                  e.value as TextInferenceCapabilities["assistantPrefill"]
-                );
+                if (allowInherit && e.value === "inherit") return clear("assistantPrefill");
+                set("assistantPrefill", e.value as TextInferenceCapabilities["assistantPrefill"]);
               }}
             >
               <HStack gap={4} wrap="wrap">
                 {allowInherit && (
                   <Radio value="inherit">
                     Inherit
-                    {baseline?.assistantPrefill
-                      ? ` (${baseline.assistantPrefill})`
-                      : ""}
+                    {baseline?.assistantPrefill ? ` (${baseline.assistantPrefill})` : ""}
                   </Radio>
                 )}
                 <Radio value="implicit">Implicit</Radio>
@@ -146,22 +124,14 @@ export function CapabilitiesSelector({
             helperText={
               baseline?.tools !== undefined
                 ? `Effective: ${String(value.tools ?? baseline.tools)} ${
-                    allowInherit && value.tools === undefined
-                      ? `(inherited)`
-                      : ``
+                    allowInherit && value.tools === undefined ? `(inherited)` : ``
                   }`
                 : undefined
             }
           >
             {allowInherit ? (
               <RadioGroup
-                value={
-                  value.tools === undefined
-                    ? "inherit"
-                    : value.tools
-                      ? "on"
-                      : "off"
-                }
+                value={value.tools === undefined ? "inherit" : value.tools ? "on" : "off"}
                 onValueChange={(e) => {
                   if (e.value === "inherit") return clear("tools");
                   set("tools", e.value === "on");
@@ -170,9 +140,7 @@ export function CapabilitiesSelector({
                 <HStack gap={4} wrap="wrap">
                   <Radio value="inherit">
                     Inherit
-                    {baseline?.tools !== undefined
-                      ? ` (${String(baseline.tools)})`
-                      : ""}
+                    {baseline?.tools !== undefined ? ` (${String(baseline.tools)})` : ""}
                   </Radio>
                   <Radio value="on">On</Radio>
                   <Radio value="off">Off</Radio>
@@ -202,9 +170,7 @@ export function CapabilitiesSelector({
           >
             {allowInherit ? (
               <RadioGroup
-                value={
-                  value.fim === undefined ? "inherit" : value.fim ? "on" : "off"
-                }
+                value={value.fim === undefined ? "inherit" : value.fim ? "on" : "off"}
                 onValueChange={(e) => {
                   if (e.value === "inherit") return clear("fim");
                   set("fim", e.value === "on");
@@ -213,9 +179,7 @@ export function CapabilitiesSelector({
                 <HStack gap={4} wrap="wrap">
                   <Radio value="inherit">
                     Inherit
-                    {baseline?.fim !== undefined
-                      ? ` (${String(baseline.fim)})`
-                      : ""}
+                    {baseline?.fim !== undefined ? ` (${String(baseline.fim)})` : ""}
                   </Radio>
                   <Radio value="on">On</Radio>
                   <Radio value="off">Off</Radio>

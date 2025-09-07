@@ -10,13 +10,8 @@ interface TestConnectionButtonProps {
   modelProfileId: string;
 }
 
-export function TestConnectionButton({
-  providerId,
-  modelProfileId,
-}: TestConnectionButtonProps) {
-  const [testResult, setTestResult] = useState<"success" | "error" | null>(
-    null
-  );
+export function TestConnectionButton({ providerId, modelProfileId }: TestConnectionButtonProps) {
+  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
 
   const testConnectionMutation = trpc.providers.testConnection.useMutation({
     onSuccess: (result) => {
@@ -68,9 +63,7 @@ export function TestConnectionButton({
         size="xs"
         colorPalette={getColorPalette()}
         loading={testConnectionMutation.isPending}
-        onClick={() =>
-          testConnectionMutation.mutate({ providerId, modelProfileId })
-        }
+        onClick={() => testConnectionMutation.mutate({ providerId, modelProfileId })}
       >
         {getIcon()}
       </IconButton>

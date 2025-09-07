@@ -1,16 +1,9 @@
-import type {
-  DataRef,
-  SourceHandler,
-  SourceRegistry,
-  SourceSpec,
-} from "./types.js";
+import type { DataRef, SourceHandler, SourceRegistry, SourceSpec } from "./types.js";
 
 /**
  * Registry implementation that delegates to a map of source handlers.
  */
-class MapBasedRegistry<Ctx, S extends SourceSpec>
-  implements SourceRegistry<Ctx, S>
-{
+class MapBasedRegistry<Ctx, S extends SourceSpec> implements SourceRegistry<Ctx, S> {
   constructor(
     private readonly handlers: {
       [K in keyof S & string]: SourceHandler<Ctx, S, K>;

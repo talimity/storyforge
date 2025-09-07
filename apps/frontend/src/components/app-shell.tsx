@@ -34,10 +34,7 @@ export function AppShell() {
   return (
     <Box minH="100vh" data-testid="app-shell" colorPalette="neutral">
       {/* Mobile Header + Drawer: mounted always, visible only on mobile */}
-      <Drawer.Root
-        open={drawerOpen}
-        onOpenChange={(e) => setDrawerOpen(e.open)}
-      >
+      <Drawer.Root open={drawerOpen} onOpenChange={(e) => setDrawerOpen(e.open)}>
         <Flex
           as="header"
           p={4}
@@ -80,10 +77,7 @@ export function AppShell() {
       <Flex h="100vh" data-testid={isMobile ? undefined : "desktop-layout"}>
         {/* Sidebar (desktop only) */}
         <Box display={{ base: "none", md: "block" }}>
-          <Sidebar
-            collapsed={!sidebarExpanded}
-            onToggleCollapse={toggleSidebar}
-          />
+          <Sidebar collapsed={!sidebarExpanded} onToggleCollapse={toggleSidebar} />
         </Box>
 
         {/* Main Content */}
@@ -92,9 +86,7 @@ export function AppShell() {
           direction="column"
           flex="1"
           overflow="auto"
-          data-testid={
-            isMobile ? "mobile-main-content" : "desktop-main-content"
-          }
+          data-testid={isMobile ? "mobile-main-content" : "desktop-main-content"}
         >
           <Container
             p={{ base: 4, md: 6 }}

@@ -20,7 +20,5 @@ export function fractionalStepsBetween(
     );
   }
 
-  return Array.from({ length: count }, (_, i) =>
-    String(beforeNum + gap * (i + 1))
-  );
+  return Array.from({ length: count }, (_, i) => String(beforeNum + gap * (i + 1)));
 }

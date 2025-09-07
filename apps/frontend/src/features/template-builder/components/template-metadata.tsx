@@ -11,12 +11,7 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import {
-  type Control,
-  Controller,
-  type FieldErrors,
-  type UseFormRegister,
-} from "react-hook-form";
+import { type Control, Controller, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { LuFileText } from "react-icons/lu";
 import {
   Field,
@@ -89,11 +84,7 @@ export function TemplateMetadata({
             errorText={errors.name?.message}
             invalid={!!errors.name}
           >
-            <Input
-              {...register("name")}
-              placeholder="Enter template name"
-              autoComplete="off"
-            />
+            <Input {...register("name")} placeholder="Enter template name" autoComplete="off" />
           </Field>
 
           <Field

@@ -1,7 +1,4 @@
-import type {
-  CharacterMapping,
-  ChatImportAnalyzeOutput,
-} from "@storyforge/schemas";
+import type { CharacterMapping, ChatImportAnalyzeOutput } from "@storyforge/schemas";
 import type React from "react";
 import { useRef, useState } from "react";
 import { toaster } from "@/components/ui/index";
@@ -16,22 +13,16 @@ interface UseChatImportProps {
 
 export type ImportStep = "upload" | "mapping";
 
-export function useChatImport({
-  onClose,
-  onImportSuccess,
-}: UseChatImportProps) {
+export function useChatImport({ onClose, onImportSuccess }: UseChatImportProps) {
   const [step, setStep] = useState<ImportStep>("upload");
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileDataUri, setFileDataUri] = useState<string>("");
-  const [analyzeResult, setAnalyzeResult] =
-    useState<ChatImportAnalyzeOutput | null>(null);
+  const [analyzeResult, setAnalyzeResult] = useState<ChatImportAnalyzeOutput | null>(null);
   const [scenarioName, setScenarioName] = useState("");
   const [scenarioDescription, setScenarioDescription] = useState("");
-  const [characterMappings, setCharacterMappings] = useState<
-    CharacterMapping[]
-  >([]);
+  const [characterMappings, setCharacterMappings] = useState<CharacterMapping[]>([]);
 
   const utils = trpc.useUtils();
   const analyzeMutation = trpc.chatImport.analyzeChat.useMutation();
@@ -107,9 +98,7 @@ export function useChatImport({
 
       setCharacterMappings(mappings);
 
-      const fileName =
-        selectedFile?.name.replace(/\.(json|jsonl|txt)$/i, "") ||
-        "Imported Chat";
+      const fileName = selectedFile?.name.replace(/\.(json|jsonl|txt)$/i, "") || "Imported Chat";
       setScenarioName(fileName);
 
       setStep("mapping");

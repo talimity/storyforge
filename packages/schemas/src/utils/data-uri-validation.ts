@@ -7,10 +7,7 @@ import { z } from "zod";
  * @param mimeTypePattern - Optional regex pattern for allowed MIME types (default: any)
  * @returns Zod string schema with data URI validation
  */
-export function createDataUriValidator(
-  maxSizeBytes: number,
-  mimeTypePattern?: RegExp
-) {
+export function createDataUriValidator(maxSizeBytes: number, mimeTypePattern?: RegExp) {
   const pattern = mimeTypePattern
     ? new RegExp(`^data:(${mimeTypePattern.source});base64,(.+)$`)
     : /^data:([^;]+);base64,(.+)$/;
@@ -34,9 +31,6 @@ export function createDataUriValidator(
 export const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-export const imageDataUriSchema = createDataUriValidator(
-  MAX_IMAGE_SIZE,
-  /image\/(?:png|jpeg)/
-);
+export const imageDataUriSchema = createDataUriValidator(MAX_IMAGE_SIZE, /image\/(?:png|jpeg)/);
 
 export const fileDataUriSchema = createDataUriValidator(MAX_FILE_SIZE);

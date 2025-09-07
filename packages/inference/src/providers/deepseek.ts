@@ -61,11 +61,7 @@ interface DeepseekRequest {
       strict?: boolean;
     };
   }>;
-  tool_choice?:
-    | "none"
-    | "auto"
-    | "required"
-    | { type: "function"; function: { name: string } };
+  tool_choice?: "none" | "auto" | "required" | { type: "function"; function: { name: string } };
 }
 
 interface DeepseekResponse {
@@ -178,18 +174,10 @@ export class DeepseekAdapter extends ProviderAdapter {
   }
 
   supportedParams(): Array<keyof TextInferenceGenParams> {
-    return [
-      "temperature",
-      "topP",
-      "presencePenalty",
-      "frequencyPenalty",
-      "topLogprobs",
-    ];
+    return ["temperature", "topP", "presencePenalty", "frequencyPenalty", "topLogprobs"];
   }
 
-  async complete(
-    request: ChatCompletionRequest
-  ): Promise<ChatCompletionResponse> {
+  async complete(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     const capabilities = this.defaultCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
 
@@ -315,9 +303,7 @@ export class DeepseekAdapter extends ProviderAdapter {
     return JSON.stringify(transformed, null, 2);
   }
 
-  override async searchModels(
-    query?: string
-  ): Promise<ProviderModelSearchResult[]> {
+  override async searchModels(query?: string): Promise<ProviderModelSearchResult[]> {
     try {
       const response = await fetch(`${this.apiUrl}/models`, {
         method: "GET",
@@ -360,34 +346,26 @@ export class DeepseekAdapter extends ProviderAdapter {
 
     // Transform messages to Deepseek format
     const mergedMessages = mergeConsecutiveRoles(request.messages);
-    const messages: DeepseekMessage[] = mergedMessages.map(
-      ({ role, content }, index) => {
-        const deepseekMsg: DeepseekMessage = { role, content };
+    const messages: DeepseekMessage[] = mergedMessages.map(({ role, content }, index) => {
+      const deepseekMsg: DeepseekMessage = { role, content };
 
-        // Handle explicit assistant prefill using the 'prefix' flag
-        if (
-          role === "assistant" &&
-          index === mergedMessages.length - 1 &&
-          prefillMode === "prefill"
-        ) {
-          deepseekMsg.prefix = true;
-        }
-
-        return deepseekMsg;
+      // Handle explicit assistant prefill using the 'prefix' flag
+      if (
+        role === "assistant" &&
+        index === mergedMessages.length - 1 &&
+        prefillMode === "prefill"
+      ) {
+        deepseekMsg.prefix = true;
       }
-    );
+
+      return deepseekMsg;
+    });
 
     const payload: DeepseekRequest = { model, messages, stream };
 
     // Map generation parameters
     if (genParams) {
-      const {
-        temperature,
-        topP,
-        presencePenalty,
-        frequencyPenalty,
-        topLogprobs,
-      } = genParams;
+      const { temperature, topP, presencePenalty, frequencyPenalty, topLogprobs } = genParams;
 
       if (temperature !== undefined) {
         payload.temperature = Math.max(0, Math.min(2, temperature));
@@ -430,9 +408,7 @@ export class DeepseekAdapter extends ProviderAdapter {
     return payload;
   }
 
-  private transformResponse(
-    response: DeepseekResponse
-  ): ChatCompletionResponse {
+  private transformResponse(response: DeepseekResponse): ChatCompletionResponse {
     const choice = response.choices[0];
 
     if (!choice) {
@@ -480,8 +456,7 @@ export class DeepseekAdapter extends ProviderAdapter {
         totalTokens: response.usage.total_tokens,
         promptCacheHitTokens: response.usage.prompt_cache_hit_tokens,
         promptCacheMissTokens: response.usage.prompt_cache_miss_tokens,
-        reasoningTokens:
-          response.usage.completion_tokens_details?.reasoning_tokens,
+        reasoningTokens: response.usage.completion_tokens_details?.reasoning_tokens,
       };
     }
 
@@ -515,18 +490,11 @@ export class DeepseekAdapter extends ProviderAdapter {
     }
 
     // Generic upstream error
-    throw new InferenceProviderError(
-      `Deepseek API error (${statusCode}): ${errorMessage}`
-    );
+    throw new InferenceProviderError(`Deepseek API error (${statusCode}): ${errorMessage}`);
   }
 
   private mapFinishReason(
-    reason:
-      | "stop"
-      | "length"
-      | "content_filter"
-      | "tool_calls"
-      | "insufficient_system_resource"
+    reason: "stop" | "length" | "content_filter" | "tool_calls" | "insufficient_system_resource"
   ): ChatCompletionFinishReason {
     switch (reason) {
       case "stop":

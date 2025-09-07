@@ -33,8 +33,7 @@ export function CharacterDeleteDialog({
         </Dialog.Header>
         <Dialog.Body>
           <Text>
-            Are you sure you want to delete "{characterName}"? This action
-            cannot be undone.
+            Are you sure you want to delete "{characterName}"? This action cannot be undone.
           </Text>
         </Dialog.Body>
         <Dialog.Footer>

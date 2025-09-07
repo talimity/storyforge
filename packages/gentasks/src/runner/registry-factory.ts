@@ -35,9 +35,7 @@ function hasStepInputs<Ctx extends object>(
 /**
  * Ensure a context has stepInputs property
  */
-export function ensureExtendedContext<Ctx extends object>(
-  ctx: Ctx
-): ExtendedContext<Ctx> {
+export function ensureExtendedContext<Ctx extends object>(ctx: Ctx): ExtendedContext<Ctx> {
   if (hasStepInputs(ctx)) {
     return ctx;
   }

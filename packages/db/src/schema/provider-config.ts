@@ -8,17 +8,11 @@ export const providerConfigs = sqliteTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => createId()),
-    kind: text("kind")
-      .notNull()
-      .$type<"openrouter" | "deepseek" | "openai-compatible">(),
+    kind: text("kind").notNull().$type<"openrouter" | "deepseek" | "openai-compatible">(),
     name: text("name").notNull(),
-    auth: text("auth", { mode: "json" })
-      .$type<Record<string, unknown>>()
-      .notNull(),
+    auth: text("auth", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
     baseUrl: text("base_url"),
-    capabilities: text("capabilities", { mode: "json" }).$type<
-      Record<string, unknown>
-    >(),
+    capabilities: text("capabilities", { mode: "json" }).$type<Record<string, unknown>>(),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),

@@ -1,8 +1,4 @@
-import {
-  genStepSchema,
-  genWorkflowSchema,
-  taskKindSchema,
-} from "@storyforge/gentasks";
+import { genStepSchema, genWorkflowSchema, taskKindSchema } from "@storyforge/gentasks";
 import { z } from "zod";
 
 // Basic identifiers
@@ -23,10 +19,7 @@ export const updateWorkflowSchema = z
     description: z.string().optional(),
     steps: z.array(genStepSchema).min(1).optional(),
   })
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    "At least one field must be provided"
-  );
+  .refine((data) => Object.keys(data).length > 0, "At least one field must be provided");
 
 // List filters
 export const listWorkflowsQuerySchema = z.object({
@@ -76,12 +69,7 @@ export const exportWorkflowResponseSchema = z.object({
 });
 
 // Scope contracts
-export const workflowScopeKindSchema = z.enum([
-  "default",
-  "scenario",
-  "character",
-  "participant",
-]);
+export const workflowScopeKindSchema = z.enum(["default", "scenario", "character", "participant"]);
 
 export const upsertWorkflowScopeSchema = z.object({
   workflowId: z.string().min(1),
@@ -126,28 +114,14 @@ export type WorkflowSummary = z.infer<typeof workflowSummarySchema>;
 export type WorkflowDetail = z.infer<typeof workflowDetailSchema>;
 export type ListWorkflowsQuery = z.infer<typeof listWorkflowsQuerySchema>;
 export type WorkflowsListResponse = z.infer<typeof workflowsListResponseSchema>;
-export type WorkflowDetailResponse = z.infer<
-  typeof workflowDetailResponseSchema
->;
-export type WorkflowOperationResponse = z.infer<
-  typeof workflowOperationResponseSchema
->;
+export type WorkflowDetailResponse = z.infer<typeof workflowDetailResponseSchema>;
+export type WorkflowOperationResponse = z.infer<typeof workflowOperationResponseSchema>;
 export type CreateWorkflowInput = z.infer<typeof createWorkflowSchema>;
 export type UpdateWorkflowInput = z.infer<typeof updateWorkflowSchema>;
 export type DuplicateWorkflowInput = z.infer<typeof duplicateWorkflowSchema>;
 export type ImportWorkflowInput = z.infer<typeof importWorkflowSchema>;
-export type ExportWorkflowResponse = z.infer<
-  typeof exportWorkflowResponseSchema
->;
-export type UpsertWorkflowScopeInput = z.infer<
-  typeof upsertWorkflowScopeSchema
->;
-export type DeleteWorkflowScopeInput = z.infer<
-  typeof deleteWorkflowScopeSchema
->;
-export type ListWorkflowScopesQuery = z.infer<
-  typeof listWorkflowScopesQuerySchema
->;
-export type ListWorkflowScopesResponse = z.infer<
-  typeof listWorkflowScopesResponseSchema
->;
+export type ExportWorkflowResponse = z.infer<typeof exportWorkflowResponseSchema>;
+export type UpsertWorkflowScopeInput = z.infer<typeof upsertWorkflowScopeSchema>;
+export type DeleteWorkflowScopeInput = z.infer<typeof deleteWorkflowScopeSchema>;
+export type ListWorkflowScopesQuery = z.infer<typeof listWorkflowScopesQuerySchema>;
+export type ListWorkflowScopesResponse = z.infer<typeof listWorkflowScopesResponseSchema>;

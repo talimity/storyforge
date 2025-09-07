@@ -48,10 +48,7 @@ const taskTypeConfig = {
   },
 };
 
-export function TemplateListItem({
-  template,
-  readOnly = false,
-}: TemplateListItemProps) {
+export function TemplateListItem({ template, readOnly = false }: TemplateListItemProps) {
   const taskConfig = taskTypeConfig[template.task];
   const {
     isDeleteDialogOpen,
@@ -70,9 +67,7 @@ export function TemplateListItem({
 
   const formatUpdatedAt = (date: Date) => {
     const now = new Date();
-    const diffInDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffInDays === 0) return "Today";
     if (diffInDays === 1) return "Yesterday";
@@ -84,9 +79,7 @@ export function TemplateListItem({
     <>
       <Card.Root
         layerStyle="surface"
-        _hover={
-          !readOnly ? { layerStyle: "interactive", shadow: "sm" } : undefined
-        }
+        _hover={!readOnly ? { layerStyle: "interactive", shadow: "sm" } : undefined}
         className={readOnly ? undefined : "group"}
         cursor={!readOnly ? "pointer" : "default"}
         onClick={readOnly ? undefined : () => handleEdit()}
@@ -132,11 +125,7 @@ export function TemplateListItem({
             </HStack>
 
             {/* Right side - Last modified and actions */}
-            <HStack
-              gap={4}
-              flexShrink={0}
-              justify={{ base: "space-between", md: "flex-end" }}
-            >
+            <HStack gap={4} flexShrink={0} justify={{ base: "space-between", md: "flex-end" }}>
               <Text
                 fontSize="sm"
                 color="content.subtle"
@@ -165,10 +154,7 @@ export function TemplateListItem({
                     <Portal>
                       <Menu.Positioner>
                         <Menu.Content>
-                          <Menu.Item
-                            value="edit"
-                            onClick={nonBubblingHandler(handleEdit)}
-                          >
+                          <Menu.Item value="edit" onClick={nonBubblingHandler(handleEdit)}>
                             <LuPencilLine />
                             <Box flex="1">Edit</Box>
                           </Menu.Item>
@@ -179,10 +165,7 @@ export function TemplateListItem({
                             <LuCopy />
                             <Box flex="1">Duplicate</Box>
                           </Menu.Item>
-                          <Menu.Item
-                            value="export"
-                            onClick={nonBubblingHandler(handleExport)}
-                          >
+                          <Menu.Item value="export" onClick={nonBubblingHandler(handleExport)}>
                             <LuDownload />
                             <Box flex="1">Export</Box>
                           </Menu.Item>

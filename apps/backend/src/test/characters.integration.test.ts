@@ -1,31 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { registerAssetsRoutes } from "../api/assets.js";
-import {
-  getFixtureCount,
-  loadCharacterFixtures,
-  seedCharacterFixtures,
-} from "./fixtures.js";
-import {
-  cleanupTestDatabase,
-  createFreshTestCaller,
-  createTestFastifyServer,
-} from "./setup.js";
+import { getFixtureCount, loadCharacterFixtures, seedCharacterFixtures } from "./fixtures.js";
+import { cleanupTestDatabase, createFreshTestCaller, createTestFastifyServer } from "./setup.js";
 
 vi.mock("@storyforge/yolo-onnx");
-vi.mock(
-  "../services/character/utils/face-detection",
-  async (importOriginal) => ({
-    ...((await importOriginal()) as any),
-    identifyCharacterFace: vi.fn().mockImplementation(() => ({
-      x: 0.5,
-      y: 0.3,
-      w: 0.5,
-      h: 0.5,
-      c: 0,
-    })),
-  })
-);
+vi.mock("../services/character/utils/face-detection", async (importOriginal) => ({
+  ...((await importOriginal()) as any),
+  identifyCharacterFace: vi.fn().mockImplementation(() => ({
+    x: 0.5,
+    y: 0.3,
+    w: 0.5,
+    h: 0.5,
+    c: 0,
+  })),
+}));
 
 describe("characters router integration", () => {
   let caller: Awaited<ReturnType<typeof createFreshTestCaller>>["caller"];
@@ -81,9 +70,9 @@ describe("characters router integration", () => {
     });
 
     it("should throw NOT_FOUND for invalid id", async () => {
-      await expect(
-        caller.characters.getById({ id: "invalid-id" })
-      ).rejects.toThrow("Character not found");
+      await expect(caller.characters.getById({ id: "invalid-id" })).rejects.toThrow(
+        "Character not found"
+      );
     });
   });
 
@@ -202,20 +191,12 @@ describe("characters router integration", () => {
         name: "Character",
       });
 
-      const withImage = result.characters.find(
-        (c: any) => c.id === charWithImage.id
-      );
-      const withoutImage = result.characters.find(
-        (c: any) => c.id === charWithoutImage.id
-      );
+      const withImage = result.characters.find((c: any) => c.id === charWithImage.id);
+      const withoutImage = result.characters.find((c: any) => c.id === charWithoutImage.id);
 
       expect(withImage).toBeDefined();
-      expect(withImage!.imagePath).toBe(
-        `/assets/characters/${charWithImage.id}/card`
-      );
-      expect(withImage!.avatarPath).toBe(
-        `/assets/characters/${charWithImage.id}/avatar`
-      );
+      expect(withImage!.imagePath).toBe(`/assets/characters/${charWithImage.id}/card`);
+      expect(withImage!.avatarPath).toBe(`/assets/characters/${charWithImage.id}/avatar`);
 
       expect(withoutImage).toBeDefined();
       expect(withoutImage!.imagePath).toBeNull();
@@ -332,9 +313,7 @@ describe("characters router integration", () => {
         filterMode: "notInScenario",
         scenarioId: scenario.id,
       });
-      const notInScenarioIds = notInScenarioResults.characters.map(
-        (c: any) => c.id
-      );
+      const notInScenarioIds = notInScenarioResults.characters.map((c: any) => c.id);
       expect(notInScenarioIds).not.toContain(char1.id);
       expect(notInScenarioIds).not.toContain(char2.id);
       expect(notInScenarioIds).toContain(char3.id);
@@ -489,9 +468,9 @@ describe("characters router integration", () => {
       await caller.characters.delete({ id: firstCharacter!.id });
 
       // Verify character is deleted
-      await expect(
-        caller.characters.getById({ id: firstCharacter!.id })
-      ).rejects.toThrow("Character not found");
+      await expect(caller.characters.getById({ id: firstCharacter!.id })).rejects.toThrow(
+        "Character not found"
+      );
 
       // Verify list has one less character
       const updatedList = await caller.characters.list();
@@ -499,9 +478,9 @@ describe("characters router integration", () => {
     });
 
     it("should throw NOT_FOUND for invalid id", async () => {
-      await expect(
-        caller.characters.delete({ id: "invalid-id" })
-      ).rejects.toThrow("Character not found");
+      await expect(caller.characters.delete({ id: "invalid-id" })).rejects.toThrow(
+        "Character not found"
+      );
     });
   });
 
@@ -596,17 +575,13 @@ describe("characters router integration", () => {
     it("should throw error for invalid base64 data URI", async () => {
       const invalidDataUri = "data:image/png;base64,invalid-base64-data";
 
-      await expect(
-        caller.characters.import({ charaDataUri: invalidDataUri })
-      ).rejects.toThrow();
+      await expect(caller.characters.import({ charaDataUri: invalidDataUri })).rejects.toThrow();
     });
 
     it("should throw error for non-image data URI", async () => {
       const textDataUri = "data:text/plain;base64,SGVsbG8gV29ybGQ=";
 
-      await expect(
-        caller.characters.import({ charaDataUri: textDataUri })
-      ).rejects.toThrow();
+      await expect(caller.characters.import({ charaDataUri: textDataUri })).rejects.toThrow();
     });
 
     it("should handle corrupted PNG data gracefully", async () => {

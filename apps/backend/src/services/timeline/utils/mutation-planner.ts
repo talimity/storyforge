@@ -76,8 +76,7 @@ export function planPromoteDelete(s: DeletionSnapshot): TurnGraphDeletionPlan {
   // 1) Find an insert position for the promoted children between existing siblings
   const idx = s.siblings.findIndex((x) => x.id === s.target.id);
   const before = idx > 0 ? s.siblings[idx - 1].order : EMPTY_RANK;
-  const after =
-    idx < s.siblings.length - 1 ? s.siblings[idx + 1].order : EMPTY_RANK;
+  const after = idx < s.siblings.length - 1 ? s.siblings[idx + 1].order : EMPTY_RANK;
 
   const mutations: TurnGraphDeletionPlan["mutations"] = [
     // delete target first so we don't get a sibling order constraint violation
@@ -187,10 +186,7 @@ export async function executeDeletionPlan(
 
   if (plan.anchorPlan.kind === "set") {
     // Find the actual leaf turn by traversing down from the proposed anchor
-    const leafTurnId = await findLeafFromProposedAnchor(
-      tx,
-      plan.anchorPlan.turnId
-    );
+    const leafTurnId = await findLeafFromProposedAnchor(tx, plan.anchorPlan.turnId);
     await tx
       .update(schema.scenarios)
       .set({ anchorTurnId: leafTurnId })

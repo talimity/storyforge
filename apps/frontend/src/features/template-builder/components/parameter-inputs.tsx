@@ -1,9 +1,4 @@
-import {
-  createListCollection,
-  HStack,
-  NumberInput,
-  Text,
-} from "@chakra-ui/react";
+import { createListCollection, HStack, NumberInput, Text } from "@chakra-ui/react";
 import {
   Field,
   SelectContent,
@@ -35,21 +30,14 @@ export function NumberParameterInput({
   isInvalid = false,
   errorText,
 }: BaseParameterInputProps) {
-  const numericValue =
-    typeof value === "number" ? value : Number(param.defaultValue) || 0;
+  const numericValue = typeof value === "number" ? value : Number(param.defaultValue) || 0;
 
   const formatDisplay = (val: number): string => {
     // Special formatting for common parameter types
-    if (
-      param.key.toLowerCase().includes("token") ||
-      param.key.toLowerCase().includes("budget")
-    ) {
+    if (param.key.toLowerCase().includes("token") || param.key.toLowerCase().includes("budget")) {
       return `${val} tokens`;
     }
-    if (
-      param.key.toLowerCase().includes("max") ||
-      param.key.toLowerCase().includes("limit")
-    ) {
+    if (param.key.toLowerCase().includes("max") || param.key.toLowerCase().includes("limit")) {
       return `${val} items`;
     }
     return val.toString();
@@ -67,9 +55,7 @@ export function NumberParameterInput({
         <NumberInput.Root
           value={String(numericValue)}
           onValueChange={({ valueAsNumber }) => {
-            const n = Number.isFinite(valueAsNumber)
-              ? valueAsNumber
-              : (param.min ?? 0);
+            const n = Number.isFinite(valueAsNumber) ? valueAsNumber : (param.min ?? 0);
             onChange(n);
           }}
           min={param.min}
@@ -119,9 +105,7 @@ export function SelectParameterInput({
         value={[stringValue]}
         onValueChange={(details) => {
           const selected = details.value[0];
-          const typed = param.options?.find(
-            (o) => o.value.toString() === selected
-          )?.value;
+          const typed = param.options?.find((o) => o.value.toString() === selected)?.value;
           onChange(typed ?? selected);
         }}
         invalid={isInvalid}
@@ -138,10 +122,7 @@ export function SelectParameterInput({
         </SelectTrigger>
         <SelectContent>
           {param.options?.map((option) => (
-            <SelectItem
-              key={option.value.toString()}
-              item={option.value.toString()}
-            >
+            <SelectItem key={option.value.toString()} item={option.value.toString()}>
               {option.label}
             </SelectItem>
           ))}
@@ -161,16 +142,10 @@ export function ToggleParameterInput({
   isInvalid = false,
   errorText,
 }: BaseParameterInputProps) {
-  const booleanValue =
-    typeof value === "boolean" ? value : !!param.defaultValue || false;
+  const booleanValue = typeof value === "boolean" ? value : !!param.defaultValue || false;
 
   return (
-    <Field
-      label={param.label}
-      helperText={param.help}
-      errorText={errorText}
-      invalid={isInvalid}
-    >
+    <Field label={param.label} helperText={param.help} errorText={errorText} invalid={isInvalid}>
       <Switch
         checked={booleanValue}
         onCheckedChange={(details) => onChange(details.checked)}
@@ -197,8 +172,7 @@ export function TemplateStringParameterInput({
   isInvalid = false,
   errorText,
 }: TemplateStringParameterInputProps) {
-  const stringValue =
-    typeof value === "string" ? value : String(param.defaultValue) || "";
+  const stringValue = typeof value === "string" ? value : String(param.defaultValue) || "";
 
   return (
     <TemplateStringEditor
@@ -254,10 +228,7 @@ export function ParameterInput({
 
     case "template_string":
       return (
-        <TemplateStringParameterInput
-          {...commonProps}
-          availableVariables={availableVariables}
-        />
+        <TemplateStringParameterInput {...commonProps} availableVariables={availableVariables} />
       );
 
     default:
@@ -280,20 +251,14 @@ export function ParameterInput({
  */
 function getStepForParam(param: RecipeParamSpec): number {
   // For token/budget related parameters, use larger steps
-  if (
-    param.key.toLowerCase().includes("token") ||
-    param.key.toLowerCase().includes("budget")
-  ) {
+  if (param.key.toLowerCase().includes("token") || param.key.toLowerCase().includes("budget")) {
     if (param.max && param.max > 1000) return 50;
     if (param.max && param.max > 100) return 10;
     return 5;
   }
 
   // For count/limit parameters, use step of 1
-  if (
-    param.key.toLowerCase().includes("max") ||
-    param.key.toLowerCase().includes("limit")
-  ) {
+  if (param.key.toLowerCase().includes("max") || param.key.toLowerCase().includes("limit")) {
     return 1;
   }
 

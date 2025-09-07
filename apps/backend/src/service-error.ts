@@ -1,9 +1,4 @@
-type ServiceErrorCode =
-  | "NotFound"
-  | "InvalidInput"
-  | "Forbidden"
-  | "Conflict"
-  | "InternalError";
+type ServiceErrorCode = "NotFound" | "InvalidInput" | "Forbidden" | "Conflict" | "InternalError";
 
 export class ServiceError extends Error {
   constructor(

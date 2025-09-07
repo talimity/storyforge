@@ -10,9 +10,7 @@ export const characterStarters = sqliteTable("character_starters", {
     .notNull()
     .references(() => characters.id, { onDelete: "cascade" }),
   message: text("message").notNull(),
-  isPrimary: integer("is_primary", { mode: "boolean" })
-    .notNull()
-    .default(false),
+  isPrimary: integer("is_primary", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -22,7 +20,4 @@ export const characterStarters = sqliteTable("character_starters", {
 });
 
 export type CharacterStarter = typeof characterStarters.$inferSelect;
-export type NewCharacterStarter = Omit<
-  typeof characterStarters.$inferInsert,
-  "characterId"
->;
+export type NewCharacterStarter = Omit<typeof characterStarters.$inferInsert, "characterId">;

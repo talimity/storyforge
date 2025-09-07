@@ -14,9 +14,7 @@ export const createTemplateSchema = taskPromptTemplate.omit({
   version: true,
 });
 
-export const updateTemplateSchema = taskPromptTemplate
-  .omit({ id: true, version: true })
-  .partial();
+export const updateTemplateSchema = taskPromptTemplate.omit({ id: true, version: true }).partial();
 
 export const duplicateTemplateSchema = z.object({
   id: z.string().min(1),
@@ -70,12 +68,6 @@ export type DuplicateTemplateInput = z.infer<typeof duplicateTemplateSchema>;
 export type ImportTemplateInput = z.infer<typeof importTemplateSchema>;
 export type ListTemplatesQuery = z.infer<typeof listTemplatesQuerySchema>;
 export type TemplatesListResponse = z.infer<typeof templatesListResponseSchema>;
-export type TemplateDetailResponse = z.infer<
-  typeof templateDetailResponseSchema
->;
-export type TemplateOperationResponse = z.infer<
-  typeof templateOperationResponseSchema
->;
-export type ExportTemplateResponse = z.infer<
-  typeof exportTemplateResponseSchema
->;
+export type TemplateDetailResponse = z.infer<typeof templateDetailResponseSchema>;
+export type TemplateOperationResponse = z.infer<typeof templateOperationResponseSchema>;
+export type ExportTemplateResponse = z.infer<typeof exportTemplateResponseSchema>;

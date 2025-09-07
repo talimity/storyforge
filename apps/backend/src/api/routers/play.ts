@@ -30,8 +30,7 @@ export const playRouter = router({
         method: "GET",
         path: "/api/play/environment",
         tags: ["play"],
-        summary:
-          "Returns initial data for setting up the scenario player environment",
+        summary: "Returns initial data for setting up the scenario player environment",
       },
     })
     .input(environmentInputSchema)
@@ -53,8 +52,7 @@ export const playRouter = router({
     .input(loadTimelineInputSchema)
     .output(loadTimelineOutputSchema)
     .query(async ({ input, ctx }) => {
-      const { scenarioId, cursor, windowSize /*, layer = "presentation"*/ } =
-        input;
+      const { scenarioId, cursor, windowSize /*, layer = "presentation"*/ } = input;
 
       // If there is no anchor/turns yet, return an empty slice
       const scenario = await ctx.db.query.scenarios.findFirst({
@@ -116,8 +114,7 @@ export const playRouter = router({
       }));
 
       // Cursor-by-ancestor: take TOP row's parent (root-most in this page)
-      const hasMoreTurns =
-        rows.length === windowSize && rows[0].parent_turn_id !== null;
+      const hasMoreTurns = rows.length === windowSize && rows[0].parent_turn_id !== null;
       const nextLeafTurnId = hasMoreTurns ? rows[0].parent_turn_id : null;
 
       // All rows carry the same depth scalar; take it from the first
@@ -333,10 +330,7 @@ export const playRouter = router({
     .input(
       z.object({
         turnId: z.string(),
-        cascade: z
-          .boolean()
-          .default(false)
-          .describe("Whether to delete all descendant turns"),
+        cascade: z.boolean().default(false).describe("Whether to delete all descendant turns"),
       })
     )
     .output(z.object({ success: z.boolean() }))

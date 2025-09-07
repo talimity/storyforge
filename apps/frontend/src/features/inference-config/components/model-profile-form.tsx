@@ -1,11 +1,4 @@
-import {
-  createListCollection,
-  HStack,
-  Input,
-  Spinner,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { createListCollection, HStack, Input, Spinner, Text, VStack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createModelProfileSchema } from "@storyforge/schemas";
 import { useEffect, useState } from "react";
@@ -53,9 +46,7 @@ export function ModelProfileForm({
   isSubmitting = false,
   submitLabel = "Save Model Profile",
 }: ModelProfileFormProps) {
-  const [selectedProviderId, setSelectedProviderId] = useState(
-    initialData?.providerId || ""
-  );
+  const [selectedProviderId, setSelectedProviderId] = useState(initialData?.providerId || "");
   const [modelSearchQuery, setModelSearchQuery] = useState("");
 
   const providersQuery = trpc.providers.listProviders.useQuery();
@@ -82,8 +73,7 @@ export function ModelProfileForm({
       providerId: initialData?.providerId || "",
       displayName: initialData?.displayName || "",
       modelId: initialData?.modelId || "",
-      capabilityOverrides:
-        initialData?.capabilityOverrides || defaultCapabilityOverrides,
+      capabilityOverrides: initialData?.capabilityOverrides || defaultCapabilityOverrides,
     },
   });
 
@@ -98,12 +88,7 @@ export function ModelProfileForm({
         setValue("modelId", "");
       }
     }
-  }, [
-    watchedProviderId,
-    selectedProviderId,
-    setValue,
-    initialData?.providerId,
-  ]);
+  }, [watchedProviderId, selectedProviderId, setValue, initialData?.providerId]);
 
   const handleFormSubmit = (data: ModelProfileFormData) => {
     onSubmit(data);
@@ -152,15 +137,8 @@ export function ModelProfileForm({
           />
         </Field>
 
-        <Field
-          label="Display Name"
-          required
-          errorText={errors.displayName?.message}
-        >
-          <Input
-            {...register("displayName")}
-            placeholder="e.g., GPT-4o for Creative Writing"
-          />
+        <Field label="Display Name" required errorText={errors.displayName?.message}>
+          <Input {...register("displayName")} placeholder="e.g., GPT-4o for Creative Writing" />
         </Field>
 
         {selectedProviderId && (
@@ -188,9 +166,7 @@ export function ModelProfileForm({
                     <SelectRoot
                       collection={modelOptions}
                       value={field.value ? [field.value] : []}
-                      onValueChange={(details) =>
-                        field.onChange(details.value[0])
-                      }
+                      onValueChange={(details) => field.onChange(details.value[0])}
                     >
                       <SelectTrigger>
                         <SelectValueText placeholder="Select a model" />
@@ -201,11 +177,7 @@ export function ModelProfileForm({
                             <VStack align="start" gap={1}>
                               <Text>{item.label}</Text>
                               {item.description && (
-                                <Text
-                                  fontSize="xs"
-                                  color="content.muted"
-                                  lineClamp={2}
-                                >
+                                <Text fontSize="xs" color="content.muted" lineClamp={2}>
                                   {item.description}
                                 </Text>
                               )}
@@ -249,8 +221,7 @@ export function ModelProfileForm({
                 value={field.value || {}}
                 onChange={field.onChange}
                 baseline={
-                  providers.find((p) => p.id === selectedProviderId)
-                    ?.capabilities || undefined
+                  providers.find((p) => p.id === selectedProviderId)?.capabilities || undefined
                 }
                 helperText="Override provider capabilities for this specific model"
               />

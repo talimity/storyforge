@@ -38,10 +38,7 @@ export async function listScenarios(
 
 export type ScenarioDetail = Awaited<ReturnType<typeof getScenarioDetail>>;
 
-export async function getScenarioDetail(
-  db: SqliteDatabase,
-  scenarioId: string
-) {
+export async function getScenarioDetail(db: SqliteDatabase, scenarioId: string) {
   return db.query.scenarios.findFirst({
     where: { id: scenarioId },
     with: {
@@ -56,17 +53,12 @@ export async function getScenarioDetail(
   });
 }
 
-export type ScenarioEnvironment = Awaited<
-  ReturnType<typeof getScenarioEnvironment>
->;
+export type ScenarioEnvironment = Awaited<ReturnType<typeof getScenarioEnvironment>>;
 
 /**
  * Fetches all necessary data to bootstrap the Scenario Player environment.
  */
-export async function getScenarioEnvironment(
-  db: SqliteDatabase,
-  scenarioId: string
-) {
+export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: string) {
   const result = await db.query.scenarios.findFirst({
     where: { id: scenarioId },
     columns: { id: true, name: true, rootTurnId: true, anchorTurnId: true },
@@ -127,17 +119,12 @@ export async function getScenarioEnvironment(
   };
 }
 
-export type ScenarioCharacterStarters = Awaited<
-  ReturnType<typeof getScenarioCharacterStarters>
->;
+export type ScenarioCharacterStarters = Awaited<ReturnType<typeof getScenarioCharacterStarters>>;
 
 /**
  * Fetches character starters for all characters in a scenario.
  */
-export async function getScenarioCharacterStarters(
-  db: SqliteDatabase,
-  scenarioId: string
-) {
+export async function getScenarioCharacterStarters(db: SqliteDatabase, scenarioId: string) {
   const result = await db.query.scenarios.findFirst({
     where: { id: scenarioId },
     columns: { id: true },
@@ -158,10 +145,7 @@ export async function getScenarioCharacterStarters(
                   createdAt: true,
                   updatedAt: true,
                 },
-                orderBy: (s, { desc }) => [
-                  desc(s.isPrimary),
-                  desc(s.createdAt),
-                ],
+                orderBy: (s, { desc }) => [desc(s.isPrimary), desc(s.createdAt)],
               },
             },
           },

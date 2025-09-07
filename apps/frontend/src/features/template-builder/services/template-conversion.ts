@@ -68,9 +68,7 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
 
     default: {
       const exhaustive: never = node;
-      throw new Error(
-        `Unknown layout node kind: ${JSON.stringify(exhaustive)}`
-      );
+      throw new Error(`Unknown layout node kind: ${JSON.stringify(exhaustive)}`);
     }
   }
 }
@@ -97,17 +95,13 @@ const recipeMetaSchema = z
  * Convert slots from engine format to draft format
  * Note: This is a best-effort conversion since we lose the original recipe information
  */
-function convertSlotsToDraft(
-  slots: Record<string, SlotSpec>
-): Record<string, SlotDraft> {
+function convertSlotsToDraft(slots: Record<string, SlotSpec>): Record<string, SlotDraft> {
   const slotsDraft: Record<string, SlotDraft> = {};
 
   for (const [name, slot] of Object.entries(slots)) {
     const recipeMeta = recipeMetaSchema.safeParse(slot.meta);
     if (!recipeMeta.success || !isValidRecipeId(recipeMeta.data.recipe.id)) {
-      console.log(
-        `Slot ${name} has no valid recipe meta, converting to custom format`
-      );
+      console.log(`Slot ${name} has no valid recipe meta, converting to custom format`);
       slotsDraft[name] = {
         recipeId: "custom",
         params: {}, // Custom slots will need manual configuration

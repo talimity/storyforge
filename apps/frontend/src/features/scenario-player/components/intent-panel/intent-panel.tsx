@@ -34,9 +34,7 @@ export function IntentPanel(props: IntentPanelProps) {
         size="sm"
       >
         <SegmentGroup.Item value="direct">Direct Control</SegmentGroup.Item>
-        <SegmentGroup.Item value="constraints">
-          Story Constraints
-        </SegmentGroup.Item>
+        <SegmentGroup.Item value="constraints">Story Constraints</SegmentGroup.Item>
         <SegmentGroup.Item value="quick">Quick Actions</SegmentGroup.Item>
       </SegmentGroup.Root>
 
@@ -59,9 +57,7 @@ export function IntentPanel(props: IntentPanelProps) {
         />
       )}
 
-      {inputMode === "quick" && (
-        <QuickActionsPanel isGenerating={isGenerating} />
-      )}
+      {inputMode === "quick" && <QuickActionsPanel isGenerating={isGenerating} />}
     </Stack>
   );
 }

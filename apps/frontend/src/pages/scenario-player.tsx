@@ -14,8 +14,7 @@ import { useActiveScenario } from "@/hooks/use-active-scenario";
 export function PlayerPage() {
   const { scenario, participants, chapters } = useScenarioCtx();
   const { setActiveScenario } = useActiveScenario();
-  const { selectedCharacterId, setSelectedCharacter, reset } =
-    useScenarioPlayerStore();
+  const { selectedCharacterId, setSelectedCharacter, reset } = useScenarioPlayerStore();
 
   // Reset store when scenario changes
   // biome-ignore lint/correctness/useExhaustiveDependencies: "hook specifies more dependencies than necessary" but we want to trigger reset only on scenarioId change???
@@ -28,8 +27,9 @@ export function PlayerPage() {
 
   const { addTurn, isAddingTurn } = useScenarioIntentActions();
 
-  const { turns, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } =
-    useScenarioTimeline({ scenarioId: scenario.id });
+  const { turns, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } = useScenarioTimeline({
+    scenarioId: scenario.id,
+  });
 
   // Auto-select first character when available
   const firstCharacterParticipant = useMemo(
@@ -64,10 +64,7 @@ export function PlayerPage() {
     }
   };
 
-  const handleStarterSelect = async (
-    characterId: string,
-    starterId: string
-  ) => {
+  const handleStarterSelect = async (characterId: string, starterId: string) => {
     // TODO: Implement starter selection behavior
     console.log("Selected starter:", { characterId, starterId });
   };
@@ -76,9 +73,7 @@ export function PlayerPage() {
     <TimelineView
       scenarioId={scenario.id}
       scenarioTitle={scenario.title}
-      chapterTitle={
-        chapters.length > 0 ? chapters[0].title || "Chapter 1" : undefined
-      }
+      chapterTitle={chapters.length > 0 ? chapters[0].title || "Chapter 1" : undefined}
       turns={turns}
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
@@ -89,10 +84,7 @@ export function PlayerPage() {
   );
 
   const intentPanel = (
-    <IntentPanel
-      onSubmitIntent={handleSubmitIntent}
-      isGenerating={isAddingTurn}
-    />
+    <IntentPanel onSubmitIntent={handleSubmitIntent} isGenerating={isAddingTurn} />
   );
 
   return <PlayerLayout timeline={timelineView} intentPanel={intentPanel} />;

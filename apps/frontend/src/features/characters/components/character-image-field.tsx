@@ -1,13 +1,4 @@
-import {
-  Box,
-  Heading,
-  HStack,
-  Icon,
-  Image,
-  Stack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, Heading, HStack, Icon, Image, Stack, Text, VStack } from "@chakra-ui/react";
 import { LuUpload, LuX } from "react-icons/lu";
 import { Button } from "@/components/ui/index";
 import type { useImageField } from "@/hooks/use-image-field";
@@ -59,12 +50,9 @@ export function CharacterImageField({
               <LuUpload />
             </Icon>
             <VStack gap={1}>
-              <Text fontWeight="medium">
-                Drop portrait image here or click to browse
-              </Text>
+              <Text fontWeight="medium">Drop portrait image here or click to browse</Text>
               <Text fontSize="xs" color="fg.muted">
-                Supports PNG and JPEG files up to 10MB. A 2:3 aspect ratio is
-                recommended.
+                Supports PNG and JPEG files up to 10MB. A 2:3 aspect ratio is recommended.
               </Text>
             </VStack>
             <Button size="sm" variant="outline" disabled={isDisabled}>
@@ -84,12 +72,7 @@ export function CharacterImageField({
       )}
 
       {imageField.hasImage && (
-        <HStack
-          p={4}
-          layerStyle="surface"
-          justify="space-between"
-          align="center"
-        >
+        <HStack p={4} layerStyle="surface" justify="space-between" align="center">
           <HStack gap={3}>
             {imageField.getPreviewUrl() && (
               <Image

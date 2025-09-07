@@ -44,9 +44,7 @@ describe("validateTemplateStructure", () => {
         ],
       };
 
-      expect(() => validateTemplateStructure(invalidTemplate)).toThrow(
-        TemplateStructureError
-      );
+      expect(() => validateTemplateStructure(invalidTemplate)).toThrow(TemplateStructureError);
       expect(() => validateTemplateStructure(invalidTemplate)).toThrow(
         'Layout references non-existent slot: "missing_slot"'
       );
@@ -65,9 +63,7 @@ describe("validateTemplateStructure", () => {
         },
       };
 
-      expect(() =>
-        validateTemplateStructure(validMultiSlotTemplate)
-      ).not.toThrow();
+      expect(() => validateTemplateStructure(validMultiSlotTemplate)).not.toThrow();
     });
   });
 
@@ -85,9 +81,7 @@ describe("validateTemplateStructure", () => {
         ],
       };
 
-      expect(() =>
-        validateTemplateStructure(validPrefixTemplate)
-      ).not.toThrow();
+      expect(() => validateTemplateStructure(validPrefixTemplate)).not.toThrow();
     });
 
     it("should throw for prefix:true on non-assistant role in layout", () => {
@@ -130,21 +124,16 @@ describe("validateTemplateStructure", () => {
         },
       };
 
-      expect(() =>
-        validateTemplateStructure(invalidSlotPrefixTemplate)
-      ).toThrow(TemplateStructureError);
-      expect(() =>
-        validateTemplateStructure(invalidSlotPrefixTemplate)
-      ).toThrow(
+      expect(() => validateTemplateStructure(invalidSlotPrefixTemplate)).toThrow(
+        TemplateStructureError
+      );
+      expect(() => validateTemplateStructure(invalidSlotPrefixTemplate)).toThrow(
         "prefix:true can only be used with role:'assistant', found on role:'user' at slots.content.plan[0]"
       );
     });
 
     it("should throw for prefix:true in nested plan nodes", () => {
-      const nestedInvalidTemplate: PromptTemplate<
-        any,
-        { items: { out: any; args: never } }
-      > = {
+      const nestedInvalidTemplate: PromptTemplate<any, { items: { out: any; args: never } }> = {
         ...(validTemplate as any),
         slots: {
           content: {
@@ -209,9 +198,7 @@ describe("validateTemplateStructure", () => {
         },
       };
 
-      expect(() => validateTemplateStructure(ifInvalidTemplate)).toThrow(
-        TemplateStructureError
-      );
+      expect(() => validateTemplateStructure(ifInvalidTemplate)).toThrow(TemplateStructureError);
       expect(() => validateTemplateStructure(ifInvalidTemplate)).toThrow(
         "prefix:true can only be used with role:'assistant', found on role:'user' at slots.content.plan[0].if.then[0].plan[0]"
       );
@@ -222,9 +209,7 @@ describe("validateTemplateStructure", () => {
     it("should handle templates with no slots", () => {
       const noSlotsTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
-        layout: [
-          { kind: "message", role: "system", content: "Just a message" },
-        ],
+        layout: [{ kind: "message", role: "system", content: "Just a message" }],
         slots: {},
       };
 
@@ -237,22 +222,16 @@ describe("validateTemplateStructure", () => {
         layout: [],
       };
 
-      expect(() =>
-        validateTemplateStructure(emptyLayoutTemplate)
-      ).not.toThrow();
+      expect(() => validateTemplateStructure(emptyLayoutTemplate)).not.toThrow();
     });
 
     it("should handle undefined prefix (should not throw)", () => {
       const undefinedPrefixTemplate: PromptTemplate<any, any> = {
         ...validTemplate,
-        layout: [
-          { kind: "message", role: "user", content: "No prefix defined" },
-        ],
+        layout: [{ kind: "message", role: "user", content: "No prefix defined" }],
       };
 
-      expect(() =>
-        validateTemplateStructure(undefinedPrefixTemplate)
-      ).not.toThrow();
+      expect(() => validateTemplateStructure(undefinedPrefixTemplate)).not.toThrow();
     });
 
     it("should handle false prefix (should not throw)", () => {
@@ -268,9 +247,7 @@ describe("validateTemplateStructure", () => {
         ],
       };
 
-      expect(() =>
-        validateTemplateStructure(falsePrefixTemplate)
-      ).not.toThrow();
+      expect(() => validateTemplateStructure(falsePrefixTemplate)).not.toThrow();
     });
   });
 });

@@ -49,12 +49,11 @@ export function DeleteProviderDialog({
         </Dialog.Header>
         <Dialog.Body>
           <Text>
-            Are you sure you want to delete "{provider.name}"? This action
-            cannot be undone.
+            Are you sure you want to delete "{provider.name}"? This action cannot be undone.
           </Text>
           <Text mt={2} fontSize="sm" color="content.muted">
-            Any model profiles using this provider will also be deleted, which
-            may break workflows that were relying on them.
+            Any model profiles using this provider will also be deleted, which may break workflows
+            that were relying on them.
           </Text>
         </Dialog.Body>
         <Dialog.Footer>

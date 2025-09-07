@@ -94,9 +94,9 @@ async function selectAll(tableName: string) {
 
 async function countRows(tableName: string) {
   console.log(`🔍 Counting rows in ${tableName}`);
-  const result = (await db.get(
-    sql.raw(`SELECT COUNT(*) as count FROM ${tableName}`)
-  )) as { count: number };
+  const result = (await db.get(sql.raw(`SELECT COUNT(*) as count FROM ${tableName}`))) as {
+    count: number;
+  };
   console.log(`📊 Count: ${result.count} rows`);
 }
 

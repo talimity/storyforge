@@ -1,11 +1,6 @@
 import { createId } from "@storyforge/utils";
 import { sql } from "drizzle-orm";
-import {
-  type AnySQLiteColumn,
-  integer,
-  sqliteTable,
-  text,
-} from "drizzle-orm/sqlite-core";
+import { type AnySQLiteColumn, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { turns } from "./turns.js";
 
 export const scenarios = sqliteTable("scenarios", {
@@ -14,10 +9,7 @@ export const scenarios = sqliteTable("scenarios", {
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  status: text("status")
-    .$type<"active" | "archived">()
-    .notNull()
-    .default("active"),
+  status: text("status").$type<"active" | "archived">().notNull().default("active"),
   rootTurnId: text("root_turn_id").references(
     (): AnySQLiteColumn => turns.id, // First turn in the scenario
     { onDelete: "set null" }

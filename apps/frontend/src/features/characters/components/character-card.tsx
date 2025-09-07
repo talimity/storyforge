@@ -56,9 +56,7 @@ export function CharacterCard({
       <Card.Root
         width="240px"
         layerStyle="surface"
-        _hover={
-          !readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined
-        }
+        _hover={!readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined}
         className={readOnly ? undefined : "group"}
         cursor={!readOnly && onSelectionToggle ? "pointer" : "default"}
         onClick={readOnly ? undefined : onSelectionToggle}

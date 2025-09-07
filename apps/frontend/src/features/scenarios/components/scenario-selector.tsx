@@ -12,13 +12,11 @@ import { useScenarioSearch } from "@/features/scenarios/hooks/use-scenario-searc
 
 type ScenarioItem = ReturnType<typeof useScenarioSearch>["scenarios"][number];
 
-function useScenarioCollection(
-  enabled: boolean,
-  status?: "active" | "archived"
-) {
-  const { scenarios, isLoading, updateSearch, searchQuery } = useScenarioSearch(
-    { enabled, status }
-  );
+function useScenarioCollection(enabled: boolean, status?: "active" | "archived") {
+  const { scenarios, isLoading, updateSearch, searchQuery } = useScenarioSearch({
+    enabled,
+    status,
+  });
   const { collection, set } = useListCollection<ScenarioItem>({
     initialItems: [],
     itemToString: (s) => s.name,
@@ -47,14 +45,8 @@ export function ScenarioSingleSelect({
   size?: "sm" | "md" | "lg";
   inDialog?: boolean;
   status?: "active" | "archived";
-} & Omit<
-  Combobox.RootProviderProps,
-  "value" | "onValueChange" | "collection" | "onChange"
->) {
-  const { collection, isLoading, updateSearch } = useScenarioCollection(
-    !disabled,
-    status
-  );
+} & Omit<Combobox.RootProviderProps, "value" | "onValueChange" | "collection" | "onChange">) {
+  const { collection, isLoading, updateSearch } = useScenarioCollection(!disabled, status);
   const internalValue = useMemo(() => (value ? [value] : []), [value]);
   const combobox = useCombobox({
     collection,

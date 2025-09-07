@@ -27,9 +27,7 @@ export abstract class ProviderAdapter {
    * Given a chat completion request, invoke the provider's API to get a
    * completion response.
    */
-  abstract complete(
-    request: ChatCompletionRequest
-  ): Promise<ChatCompletionResponse>;
+  abstract complete(request: ChatCompletionRequest): Promise<ChatCompletionResponse>;
 
   /**
    * Given a chat completion request, invoke the provider's API to get a
@@ -58,9 +56,7 @@ export abstract class ProviderAdapter {
     // ...
 
     if (!prefill.ok) {
-      throw new InferenceProviderCompatibilityError(
-        `Request validation failed: ${prefill.reason}`
-      );
+      throw new InferenceProviderCompatibilityError(`Request validation failed: ${prefill.reason}`);
     }
 
     return { prefillMode: prefill.prefillMode };
@@ -79,9 +75,7 @@ export abstract class ProviderAdapter {
   }
 
   /** Merge any provided overrides into a capabilities object */
-  protected applyOverrides(
-    caps: TextInferenceCapabilities
-  ): TextInferenceCapabilities {
+  protected applyOverrides(caps: TextInferenceCapabilities): TextInferenceCapabilities {
     return this.overrides ? { ...caps, ...this.overrides } : caps;
   }
 

@@ -33,9 +33,7 @@ export function executeSlots<Ctx extends object, S extends SourceSpec>(
   const result: SlotExecutionResult = {};
 
   // Sort slots by priority (ascending - 0 before 1 before 2)
-  const sortedSlots = Object.entries(slots).sort(
-    ([, a], [, b]) => a.priority - b.priority
-  );
+  const sortedSlots = Object.entries(slots).sort(([, a], [, b]) => a.priority - b.priority);
 
   // Execute each slot in priority order
   for (const [slotName, slotSpec] of sortedSlots) {

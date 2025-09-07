@@ -6,8 +6,9 @@ import type { SqliteDatabase } from "@storyforge/db";
 type TestDatabase = SqliteDatabase;
 
 export async function createTestDatabase(): Promise<TestDatabase> {
-  const { createClient, drizzle, runMigrations, schema, relations } =
-    await import("@storyforge/db");
+  const { createClient, drizzle, runMigrations, schema, relations } = await import(
+    "@storyforge/db"
+  );
 
   // Create a unique temporary database file for this test run
   const tempDir = mkdtempSync(path.join(tmpdir(), "storyforge-test-"));

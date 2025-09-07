@@ -49,8 +49,7 @@ export interface DetectOptions {
   iouThreshold?: number;
 }
 
-export interface FocalPointOptions
-  extends Omit<DetectOptions, "confThreshold"> {
+export interface FocalPointOptions extends Omit<DetectOptions, "confThreshold"> {
   /**
    * Confidence thresholds to try in sequence if no face is found.
    * Default: [0.25, 0.15, 0.05, 0.02]
@@ -97,11 +96,7 @@ function nms(boxes: DetectedBox[], iouThreshold: number): DetectedBox[] {
  */
 export async function detectFaces(
   imageInput: sharp.SharpInput,
-  {
-    inputSize = 640,
-    confThreshold = 0.02,
-    iouThreshold = 0.45,
-  }: DetectOptions = {}
+  { inputSize = 640, confThreshold = 0.02, iouThreshold = 0.45 }: DetectOptions = {}
 ): Promise<DetectedBox[]> {
   const session = await getSession();
 
@@ -150,9 +145,7 @@ export async function detectFaces(
 
   // 4) inference
   const input = new Tensor("float32", inputData, [1, 3, inputSize, inputSize]);
-  const out = (await session.run({ [session.inputNames[0]]: input }))[
-    session.outputNames[0]
-  ];
+  const out = (await session.run({ [session.inputNames[0]]: input }))[session.outputNames[0]];
   const [, _attrN, boxN] = out.dims; // [1,5,8400]
   const buf = out.data as Float32Array;
 

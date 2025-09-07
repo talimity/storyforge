@@ -85,8 +85,7 @@ export function TimelineView({
 
         {/* Turn list */}
         {turns.length === 0 ? (
-          startersData?.charactersWithStarters &&
-          startersData.charactersWithStarters.length > 0 ? (
+          startersData?.charactersWithStarters && startersData.charactersWithStarters.length > 0 ? (
             <CharacterStarterSelector
               charactersWithStarters={startersData.charactersWithStarters}
               onStarterSelect={handleStarterSelect}

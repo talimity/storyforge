@@ -10,8 +10,7 @@ export function ScenarioCreatePage() {
   const [searchParams] = useSearchParams();
   const utils = trpc.useUtils();
 
-  const selectedCharacterIds =
-    searchParams.get("characterIds")?.split(",") || [];
+  const selectedCharacterIds = searchParams.get("characterIds")?.split(",") || [];
 
   const createScenarioMutation = trpc.scenarios.create.useMutation({
     onSuccess: (scenario) => {
@@ -36,9 +35,7 @@ export function ScenarioCreatePage() {
     }>;
   }) => {
     const characterIds = formData.participants.map((p) => p.characterId);
-    const userProxyCharacterId = formData.participants.find(
-      (p) => p.isUserProxy
-    )?.characterId;
+    const userProxyCharacterId = formData.participants.find((p) => p.isUserProxy)?.characterId;
 
     createScenarioMutation.mutate({
       name: formData.name,

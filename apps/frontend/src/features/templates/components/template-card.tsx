@@ -47,10 +47,7 @@ const taskTypeConfig = {
   },
 };
 
-export function TemplateCard({
-  template,
-  readOnly = false,
-}: TemplateCardProps) {
+export function TemplateCard({ template, readOnly = false }: TemplateCardProps) {
   const taskConfig = taskTypeConfig[template.task];
   const {
     isDeleteDialogOpen,
@@ -69,9 +66,7 @@ export function TemplateCard({
 
   const formatUpdatedAt = (date: Date) => {
     const now = new Date();
-    const diffInDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffInDays === 0) return "Today";
     if (diffInDays === 1) return "Yesterday";
@@ -85,9 +80,7 @@ export function TemplateCard({
         width={{ base: "100%", sm: "280px" }}
         maxW="280px"
         layerStyle="surface"
-        _hover={
-          !readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined
-        }
+        _hover={!readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined}
         className={readOnly ? undefined : "group"}
         cursor={!readOnly ? "pointer" : "default"}
         onClick={readOnly ? undefined : () => handleEdit()}
@@ -197,11 +190,7 @@ export function TemplateCard({
 
             {/* Template Stats */}
             <Stack gap={2}>
-              <HStack
-                justify="space-between"
-                fontSize="xs"
-                color="content.muted"
-              >
+              <HStack justify="space-between" fontSize="xs" color="content.muted">
                 <Text>Layout nodes:</Text>
                 <Text fontWeight="medium">{template.layoutNodeCount}</Text>
               </HStack>

@@ -1,12 +1,6 @@
 import { createId } from "@storyforge/utils";
 import { sql } from "drizzle-orm";
-import {
-  index,
-  integer,
-  sqliteTable,
-  text,
-  uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { chapters } from "./chapters.js";
 import { scenarioParticipants } from "./scenario-participants.js";
 import { scenarios } from "./scenarios.js";
@@ -38,13 +32,8 @@ export const turns = sqliteTable(
   (t) => [
     index("idx_turn_parent").on(t.parentTurnId),
     index("idx_turn_scenario").on(t.scenarioId),
-    uniqueIndex("idx_uniq_turn_parent_order").on(
-      t.parentTurnId,
-      t.siblingOrder
-    ),
-    uniqueIndex("idx_one_root_per_scenario")
-      .on(t.scenarioId)
-      .where(sql`parent_turn_id IS NULL`),
+    uniqueIndex("idx_uniq_turn_parent_order").on(t.parentTurnId, t.siblingOrder),
+    uniqueIndex("idx_one_root_per_scenario").on(t.scenarioId).where(sql`parent_turn_id IS NULL`),
   ]
 );
 

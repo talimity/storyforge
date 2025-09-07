@@ -65,9 +65,7 @@ describe("compileTemplate", () => {
     });
 
     it("should parse JSON input", () => {
-      const compiled = compileTemplate(
-        JSON.parse(JSON.stringify(sampleTemplate))
-      );
+      const compiled = compileTemplate(JSON.parse(JSON.stringify(sampleTemplate)));
       expect(compiled.id).toBe("test_template");
     });
 
@@ -92,9 +90,7 @@ describe("compileTemplate", () => {
       expect(messageNode.kind).toBe("message");
       if (messageNode.kind === "message") {
         expect(typeof messageNode.content).toBe("function");
-        expect(messageNode.content!({ user: { message: "Hello" } })).toBe(
-          "User: Hello"
-        );
+        expect(messageNode.content!({ user: { message: "Hello" } })).toBe("User: Hello");
       }
 
       // Check forEach map content
@@ -104,9 +100,7 @@ describe("compileTemplate", () => {
         const mapNode = forEachNode.map[0];
         if (mapNode.kind === "message") {
           expect(typeof mapNode.content).toBe("function");
-          expect(mapNode.content!({ item: { name: "Test" } })).toBe(
-            "Item: Test"
-          );
+          expect(mapNode.content!({ item: { name: "Test" } })).toBe("Item: Test");
         }
 
         // Check interleave separator
@@ -121,9 +115,7 @@ describe("compileTemplate", () => {
         const thenNode = ifNode.then[0];
         if (thenNode.kind === "message") {
           expect(typeof thenNode.content).toBe("function");
-          expect(thenNode.content!({ then: { value: "yes" } })).toBe(
-            "Then: yes"
-          );
+          expect(thenNode.content!({ then: { value: "yes" } })).toBe("Then: yes");
         }
 
         const elseNode = ifNode.else![0];
@@ -175,9 +167,7 @@ describe("compileTemplate", () => {
         layout: [{ kind: "slot", name: "nonexistent_slot" }],
       };
 
-      expect(() => compileTemplate(invalidTemplate)).toThrow(
-        TemplateStructureError
-      );
+      expect(() => compileTemplate(invalidTemplate)).toThrow(TemplateStructureError);
     });
 
     it("should throw for unknown source names when allowedSources provided", () => {
@@ -185,9 +175,7 @@ describe("compileTemplate", () => {
         allowedSources: ["items"], // Only allow "items", not "condition"
       };
 
-      expect(() => compileTemplate(sampleTemplate, options)).toThrow(
-        AuthoringValidationError
-      );
+      expect(() => compileTemplate(sampleTemplate, options)).toThrow(AuthoringValidationError);
       expect(() => compileTemplate(sampleTemplate, options)).toThrow(
         "Unknown source names found: condition"
       );
@@ -269,9 +257,7 @@ describe("compileTemplate", () => {
         },
       };
 
-      expect(() => compileTemplate(invalidTemplate, options)).toThrow(
-        AuthoringValidationError
-      );
+      expect(() => compileTemplate(invalidTemplate, options)).toThrow(AuthoringValidationError);
     });
   });
 
@@ -282,16 +268,12 @@ describe("compileTemplate", () => {
         name: "No Content",
         task: "turn_generation",
         version: 1,
-        layout: [
-          { kind: "message", role: "system", from: { source: "systemPrompt" } },
-        ],
+        layout: [{ kind: "message", role: "system", from: { source: "systemPrompt" } }],
         slots: {
           test: {
             meta: {},
             priority: 0,
-            plan: [
-              { kind: "message", role: "user", from: { source: "userInput" } },
-            ],
+            plan: [{ kind: "message", role: "user", from: { source: "userInput" } }],
           },
         },
       };
@@ -348,13 +330,9 @@ describe("compileTemplate", () => {
         if (footer && Array.isArray(footer)) {
           const footerArray = footer as readonly CompiledMessageBlock[];
           expect(typeof footerArray[0].content).toBe("function");
-          expect(footerArray[0].content!({ footer1: "F1" })).toBe(
-            "Footer 1: F1"
-          );
+          expect(footerArray[0].content!({ footer1: "F1" })).toBe("Footer 1: F1");
           expect(typeof footerArray[1].content).toBe("function");
-          expect(footerArray[1].content!({ footer2: "F2" })).toBe(
-            "Footer 2: F2"
-          );
+          expect(footerArray[1].content!({ footer2: "F2" })).toBe("Footer 2: F2");
         }
       }
     });

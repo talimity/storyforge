@@ -111,11 +111,7 @@ export function resolveAsString<
   Ctx extends object,
   S extends SourceSpec,
   K extends keyof S & string,
->(
-  ref: DataRef<K, S[K]["args"]>,
-  ctx: Ctx,
-  registry: SourceRegistry<Ctx, S>
-): string | undefined {
+>(ref: DataRef<K, S[K]["args"]>, ctx: Ctx, registry: SourceRegistry<Ctx, S>): string | undefined {
   const result = resolveDataRef(ref, ctx, registry);
   return isString(result) ? result : undefined;
 }
@@ -133,11 +129,7 @@ export function resolveAsNumber<
   Ctx extends object,
   S extends SourceSpec,
   K extends keyof S & string,
->(
-  ref: DataRef<K, S[K]["args"]>,
-  ctx: Ctx,
-  registry: SourceRegistry<Ctx, S>
-): number | undefined {
+>(ref: DataRef<K, S[K]["args"]>, ctx: Ctx, registry: SourceRegistry<Ctx, S>): number | undefined {
   const result = resolveDataRef(ref, ctx, registry);
   return isValidNumber(result) ? result : undefined;
 }

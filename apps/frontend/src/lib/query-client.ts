@@ -1,8 +1,4 @@
-import {
-  defaultShouldDehydrateQuery,
-  MutationCache,
-  QueryClient,
-} from "@tanstack/react-query";
+import { defaultShouldDehydrateQuery, MutationCache, QueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { toaster } from "@/components/ui/index";
 
@@ -37,8 +33,7 @@ export function makeQueryClient() {
       // No SSR currently so dehydration is not used
       dehydrate: {
         shouldDehydrateQuery: (query) =>
-          defaultShouldDehydrateQuery(query) ||
-          query.state.status === "pending",
+          defaultShouldDehydrateQuery(query) || query.state.status === "pending",
       },
     },
   });

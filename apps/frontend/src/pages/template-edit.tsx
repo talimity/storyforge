@@ -5,10 +5,7 @@ import { Button, SimplePageHeader } from "@/components/ui";
 import { TemplateForm } from "@/features/template-builder/components/template-form";
 import { compileDraft } from "@/features/template-builder/services/compile-draft";
 import { templateToDraft } from "@/features/template-builder/services/template-conversion";
-import type {
-  LayoutNodeDraft,
-  SlotDraft,
-} from "@/features/template-builder/types";
+import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/types";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";
 
@@ -17,10 +14,7 @@ export function TemplateEditPage() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
 
-  const templateQuery = trpc.templates.getById.useQuery(
-    { id: id ?? "" },
-    { enabled: !!id }
-  );
+  const templateQuery = trpc.templates.getById.useQuery({ id: id ?? "" }, { enabled: !!id });
 
   const updateMutation = trpc.templates.update.useMutation({
     onSuccess: async () => {

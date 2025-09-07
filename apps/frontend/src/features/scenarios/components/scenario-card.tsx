@@ -1,14 +1,4 @@
-import {
-  Badge,
-  Box,
-  Card,
-  HStack,
-  IconButton,
-  Menu,
-  Portal,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Card, HStack, IconButton, Menu, Portal, Text, VStack } from "@chakra-ui/react";
 import type { ScenarioWithCharacters } from "@storyforge/schemas";
 import {
   LuCalendar,
@@ -57,17 +47,10 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
           {/* Header */}
           <VStack align="start" gap={2} width="100%">
             <HStack justify="space-between" width="100%">
-              <Text
-                fontSize="lg"
-                fontWeight="semibold"
-                color="content.emphasized"
-              >
+              <Text fontSize="lg" fontWeight="semibold" color="content.emphasized">
                 {scenario.name}
               </Text>
-              <Badge
-                colorPalette={scenario.status === "active" ? "green" : "gray"}
-                variant="solid"
-              >
+              <Badge colorPalette={scenario.status === "active" ? "green" : "gray"} variant="solid">
                 {scenario.status}
               </Badge>
             </HStack>
@@ -88,9 +71,7 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
               </Text>
             </HStack>
             <CharacterPile
-              characters={scenario.characters.map(
-                (participant) => participant.character
-              )}
+              characters={scenario.characters.map((participant) => participant.character)}
               maxAvatars={5}
               spaceX={0.5}
               size="lg"
@@ -117,13 +98,7 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
 
           {/* Actions */}
           <HStack gap={2} width="100%" pt={2}>
-            <Button
-              variant="solid"
-              colorPalette="primary"
-              size="sm"
-              flex={1}
-              onClick={handlePlay}
-            >
+            <Button variant="solid" colorPalette="primary" size="sm" flex={1} onClick={handlePlay}>
               <LuPlay />
               Play
             </Button>

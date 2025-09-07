@@ -35,11 +35,7 @@ export function compileTemplate<K extends string, S extends SourceSpec>(
   options?: CompileOptions
 ): CompiledTemplate<K, S> {
   // 1: Parse with Zod and lint source references to try to
-  const parsedTemplate = parseTemplate<K, S>(
-    template,
-    options?.kind,
-    options?.allowedSources
-  );
+  const parsedTemplate = parseTemplate<K, S>(template, options?.kind, options?.allowedSources);
 
   // 2: Ensure consistent slot names and references
   validateTemplateStructure(parsedTemplate);
@@ -182,9 +178,7 @@ function compilePlanNode<S extends SourceSpec = SourceSpec>(
         interleave: node.interleave
           ? Object.freeze({
               kind: "separator",
-              text: node.interleave.text
-                ? compileLeaf(node.interleave.text)
-                : undefined,
+              text: node.interleave.text ? compileLeaf(node.interleave.text) : undefined,
             })
           : undefined,
         budget: node.budget,

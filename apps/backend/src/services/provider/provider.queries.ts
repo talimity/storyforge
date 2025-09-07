@@ -28,11 +28,7 @@ export async function listModelProfiles(db: SqliteDatabase) {
 }
 
 export async function getModelProfileById(db: SqliteDatabase, id: string) {
-  const [results] = await db
-    .select()
-    .from(modelProfiles)
-    .where(eq(modelProfiles.id, id))
-    .limit(1);
+  const [results] = await db.select().from(modelProfiles).where(eq(modelProfiles.id, id)).limit(1);
 
   if (!results) {
     throw new ServiceError("NotFound", {
@@ -49,10 +45,7 @@ export async function searchModelProfiles(
 ) {
   const { q, limit = 25 } = args;
   const where = q?.length
-    ? or(
-        like(modelProfiles.displayName, `%${q}%`),
-        like(modelProfiles.modelId, `%${q}%`)
-      )
+    ? or(like(modelProfiles.displayName, `%${q}%`), like(modelProfiles.modelId, `%${q}%`))
     : undefined;
   const rows = await db
     .select()

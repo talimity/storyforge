@@ -84,10 +84,7 @@ export function CharacterEditPage() {
     return (
       <Container>
         <Stack gap={8} align="center">
-          <SimplePageHeader
-            title="Edit Character"
-            tagline="Loading character data..."
-          />
+          <SimplePageHeader title="Edit Character" tagline="Loading character data..." />
           <Spinner size="lg" />
         </Stack>
       </Container>
@@ -106,9 +103,7 @@ export function CharacterEditPage() {
             {loadError?.message ||
               "The character you're looking for doesn't exist or has been deleted."}
           </Text>
-          <Button onClick={() => navigate("/characters")}>
-            Back to Character Library
-          </Button>
+          <Button onClick={() => navigate("/characters")}>Back to Character Library</Button>
         </Stack>
       </Container>
     );
@@ -118,9 +113,7 @@ export function CharacterEditPage() {
     name: character.name,
     description: character.description,
     cardType: character.cardType,
-    imageDataUri: character.avatarPath
-      ? getApiUrl(character.avatarPath) || undefined
-      : undefined,
+    imageDataUri: character.avatarPath ? getApiUrl(character.avatarPath) || undefined : undefined,
   };
 
   return (
@@ -133,10 +126,7 @@ export function CharacterEditPage() {
               colorPalette="red"
               variant="outline"
               onClick={handleDelete}
-              disabled={
-                deleteCharacterMutation.isPending ||
-                updateCharacterMutation.isPending
-              }
+              disabled={deleteCharacterMutation.isPending || updateCharacterMutation.isPending}
             >
               Delete Character
             </Button>

@@ -1,8 +1,4 @@
-import {
-  AuthoringValidationError,
-  RenderError,
-  TemplateStructureError,
-} from "./errors.js";
+import { AuthoringValidationError, RenderError, TemplateStructureError } from "./errors.js";
 import { assembleLayout } from "./layout-assembler.js";
 import { executeSlots } from "./slot-executor.js";
 import type {
@@ -27,11 +23,7 @@ import type {
  * @returns Array of chat completion messages ready for LLM consumption
  * @throws RenderError for unexpected runtime errors during rendering
  */
-export function render<
-  K extends string,
-  Ctx extends object,
-  S extends SourceSpec,
->(
+export function render<K extends string, Ctx extends object, S extends SourceSpec>(
   template: CompiledTemplate<K, S>,
   ctx: Ctx,
   budget: BudgetManager,
@@ -55,9 +47,6 @@ export function render<
 
     // Wrap unexpected errors in RenderError
     const e = error instanceof Error ? error : new Error(String(error));
-    throw new RenderError(
-      `Unexpected error during template rendering: ${e.message}`,
-      { cause: e }
-    );
+    throw new RenderError(`Unexpected error during template rendering: ${e.message}`, { cause: e });
   }
 }

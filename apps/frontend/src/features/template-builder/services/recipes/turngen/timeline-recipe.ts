@@ -37,8 +37,7 @@ export const timelineRecipe: RecipeDefinition<
   id: "timeline_basic",
   name: "Timeline",
   task: "turn_generation",
-  description:
-    "Lists turns from the scenario's timeline in chronological order.",
+  description: "Lists turns from the scenario's timeline in chronological order.",
   parameters,
 
   availableVariables: [
@@ -49,8 +48,7 @@ export const timelineRecipe: RecipeDefinition<
     },
     {
       name: "item.authorName",
-      description:
-        "Name of the character who authored this turn (or 'Narrator')",
+      description: "Name of the character who authored this turn (or 'Narrator')",
       example: "Alice",
     },
     {

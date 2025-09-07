@@ -13,8 +13,7 @@ export const richTurnsDTOFixture: FakeTurnGenCtx["turns"] = [
     turnNo: 2,
     authorName: "Bob",
     authorType: "character",
-    content:
-      "Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
+    content: "Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
   },
   {
     turnNo: 3,
@@ -27,8 +26,7 @@ export const richTurnsDTOFixture: FakeTurnGenCtx["turns"] = [
     turnNo: 4,
     authorName: "Charlie",
     authorType: "character",
-    content:
-      "Charlie emerged from behind the pillar, a mysterious smile playing on their lips.",
+    content: "Charlie emerged from behind the pillar, a mysterious smile playing on their lips.",
   },
   {
     turnNo: 5,
@@ -41,8 +39,7 @@ export const richTurnsDTOFixture: FakeTurnGenCtx["turns"] = [
     turnNo: 6,
     authorName: "Bob",
     authorType: "character",
-    content:
-      "Bob closed his book carefully and stood up, brushing dust from his robes.",
+    content: "Bob closed his book carefully and stood up, brushing dust from his robes.",
   },
 ];
 
@@ -134,15 +131,11 @@ export const standardTurnGenCtx: FakeTurnGenCtx = {
           "Bob shares his knowledge",
           "Charlie makes their presence known",
         ],
-        risks: [
-          "Revealing too much too soon",
-          "Breaking the atmospheric tension",
-        ],
+        risks: ["Revealing too much too soon", "Breaking the atmospheric tension"],
       },
     },
     critic: {
-      feedback:
-        "The pacing is good but we need more sensory details to enhance immersion",
+      feedback: "The pacing is good but we need more sensory details to enhance immersion",
       suggestions: [
         "Add more environmental description",
         "Show character emotions through actions",
@@ -192,19 +185,14 @@ export const stepChainedCtx = {
   chapterSummaries: richChapterSummariesDTOFixture.slice(0, 2),
   characters: richCharactersDTOFixture.slice(0, 3),
   currentIntent: {
-    description:
-      "Execute a multi-step workflow with planner -> writer chaining",
+    description: "Execute a multi-step workflow with planner -> writer chaining",
     constraint: "Follow the planner's guidance precisely",
   },
   stepInputs: {
     planner: {
       plan: JSON.stringify({
         goals: ["Create dramatic tension", "Reveal character motivation"],
-        beats: [
-          "Alice confronts her fear",
-          "Bob offers support",
-          "An unexpected revelation",
-        ],
+        beats: ["Alice confronts her fear", "Bob offers support", "An unexpected revelation"],
         risks: ["Moving too fast", "Losing emotional impact"],
       }),
     },
@@ -240,8 +228,7 @@ export const noTurnsCtx = {
   chapterSummaries: richChapterSummariesDTOFixture.slice(0, 2),
   characters: richCharactersDTOFixture.slice(0, 3),
   currentIntent: {
-    description:
-      "Test scenario where examples should render due to no current turns",
+    description: "Test scenario where examples should render due to no current turns",
   },
   stepInputs: {},
   globals: {

@@ -8,32 +8,25 @@ export interface FieldProps extends Omit<ChakraField.RootProps, "label"> {
   optionalText?: React.ReactNode;
 }
 
-export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
-  function Field(props, ref) {
-    const { label, children, helperText, errorText, optionalText, ...rest } =
-      props;
+export const Field = React.forwardRef<HTMLDivElement, FieldProps>(function Field(props, ref) {
+  const { label, children, helperText, errorText, optionalText, ...rest } = props;
 
-    // If a color prop is provided, select appropriate helper
-    const helperTextColor = rest.color ? `${rest.color}.muted` : undefined;
+  // If a color prop is provided, select appropriate helper
+  const helperTextColor = rest.color ? `${rest.color}.muted` : undefined;
 
-    return (
-      <ChakraField.Root ref={ref} {...rest}>
-        {label && (
-          <ChakraField.Label>
-            {label}
-            <ChakraField.RequiredIndicator fallback={optionalText} />
-          </ChakraField.Label>
-        )}
-        {children}
-        {helperText && (
-          <ChakraField.HelperText color={helperTextColor}>
-            {helperText}
-          </ChakraField.HelperText>
-        )}
-        {errorText && (
-          <ChakraField.ErrorText>{errorText}</ChakraField.ErrorText>
-        )}
-      </ChakraField.Root>
-    );
-  }
-);
+  return (
+    <ChakraField.Root ref={ref} {...rest}>
+      {label && (
+        <ChakraField.Label>
+          {label}
+          <ChakraField.RequiredIndicator fallback={optionalText} />
+        </ChakraField.Label>
+      )}
+      {children}
+      {helperText && (
+        <ChakraField.HelperText color={helperTextColor}>{helperText}</ChakraField.HelperText>
+      )}
+      {errorText && <ChakraField.ErrorText>{errorText}</ChakraField.ErrorText>}
+    </ChakraField.Root>
+  );
+});

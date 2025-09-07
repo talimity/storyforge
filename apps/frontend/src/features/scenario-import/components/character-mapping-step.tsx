@@ -1,8 +1,5 @@
 import { Box, Grid, HStack, Icon, Input, Text, VStack } from "@chakra-ui/react";
-import type {
-  CharacterMapping,
-  ChatImportAnalyzeOutput,
-} from "@storyforge/schemas";
+import type { CharacterMapping, ChatImportAnalyzeOutput } from "@storyforge/schemas";
 import { LuMessageCircle, LuUser } from "react-icons/lu";
 import { Field } from "@/components/ui/index";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
@@ -50,8 +47,8 @@ export function CharacterMappingStep({
             Detected Characters ({analyzeResult.detectedCharacters.length})
           </Text>
           <Text fontSize="sm" color="content.muted" mb={4}>
-            Assign the detected characters to existing characters in your
-            library, set them as narrators, or choose to drop their messages.
+            Assign the detected characters to existing characters in your library, set them as
+            narrators, or choose to drop their messages.
           </Text>
 
           <VStack gap={3} align="stretch" maxH="300px" overflowY="auto">
@@ -79,18 +76,12 @@ interface CharacterMappingItemProps {
   onUpdate: (mapping: Partial<CharacterMapping>) => void;
 }
 
-function CharacterMappingItem({
-  stats,
-  mapping,
-  onUpdate,
-}: CharacterMappingItemProps) {
+function CharacterMappingItem({ stats, mapping, onUpdate }: CharacterMappingItemProps) {
   return (
     <Box p={3} bg="surface.subtle" borderRadius="md">
       <Grid templateColumns="1fr 2fr" gap={3} alignItems="center">
         <HStack gap={2}>
-          <Icon size="sm">
-            {stats.isUser ? <LuUser /> : <LuMessageCircle />}
-          </Icon>
+          <Icon size="sm">{stats.isUser ? <LuUser /> : <LuMessageCircle />}</Icon>
           <VStack align="start" gap={0}>
             <Text fontWeight="medium">{stats.name}</Text>
             <Text fontSize="xs" color="content.muted">

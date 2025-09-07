@@ -96,19 +96,13 @@ export const scenariosRouter = router({
     .output(scenarioCharacterStartersResponseSchema)
     .query(async ({ input, ctx }) => {
       try {
-        const charactersWithStarters = await getScenarioCharacterStarters(
-          ctx.db,
-          input.id
-        );
+        const charactersWithStarters = await getScenarioCharacterStarters(ctx.db, input.id);
 
         return {
           charactersWithStarters,
         };
       } catch (error) {
-        ctx.logger.error(
-          error,
-          `Error fetching character starters for scenario ${input.id}`
-        );
+        ctx.logger.error(error, `Error fetching character starters for scenario ${input.id}`);
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Scenario not found",

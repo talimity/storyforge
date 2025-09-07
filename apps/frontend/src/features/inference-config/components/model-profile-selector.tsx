@@ -42,13 +42,8 @@ export function ModelProfileSingleSelect({
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
   inDialog?: boolean;
-} & Omit<
-  Combobox.RootProviderProps,
-  "value" | "onValueChange" | "collection" | "onChange"
->) {
-  const { collection, isLoading, updateSearch } = useModelProfileCollection(
-    !disabled
-  );
+} & Omit<Combobox.RootProviderProps, "value" | "onValueChange" | "collection" | "onChange">) {
+  const { collection, isLoading, updateSearch } = useModelProfileCollection(!disabled);
   const internalValue = useMemo(() => (value ? [value] : []), [value]);
   const combobox = useCombobox({
     collection,

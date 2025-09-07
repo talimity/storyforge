@@ -28,13 +28,7 @@ describe("Layout Assembler", () => {
         ];
         const slotBuffers: SlotExecutionResult = {};
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
@@ -54,13 +48,7 @@ describe("Layout Assembler", () => {
         ];
         const slotBuffers: SlotExecutionResult = {};
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
@@ -81,13 +69,7 @@ describe("Layout Assembler", () => {
         ];
         const slotBuffers: SlotExecutionResult = {};
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
@@ -103,20 +85,12 @@ describe("Layout Assembler", () => {
           {
             kind: "message",
             role: "user",
-            content: compileLeaf(
-              "This is a very long message that exceeds budget"
-            ),
+            content: compileLeaf("This is a very long message that exceeds budget"),
           },
         ];
         const slotBuffers: SlotExecutionResult = {};
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(0);
       });
@@ -132,13 +106,7 @@ describe("Layout Assembler", () => {
         ];
         const slotBuffers: SlotExecutionResult = {};
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(0);
       });
@@ -154,13 +122,7 @@ describe("Layout Assembler", () => {
         ];
         const slotBuffers: SlotExecutionResult = {};
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
@@ -184,8 +146,7 @@ describe("Layout Assembler", () => {
           main: [
             {
               role: "user",
-              content:
-                "This is a very long message that would normally exceed the small budget",
+              content: "This is a very long message that would normally exceed the small budget",
             },
             {
               role: "assistant",
@@ -194,22 +155,14 @@ describe("Layout Assembler", () => {
           ],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         // Slot content should be included despite small budget
         expect(result).toHaveLength(2);
         expect(result[0].content).toBe(
           "This is a very long message that would normally exceed the small budget"
         );
-        expect(result[1].content).toBe(
-          "Another long message that would exceed budget"
-        );
+        expect(result[1].content).toBe("Another long message that would exceed budget");
       });
 
       it("should include headers and footers with budget checking", () => {
@@ -234,13 +187,7 @@ describe("Layout Assembler", () => {
           main: [{ role: "assistant", content: "Slot content" }],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(3);
         expect(result[0]).toEqual({
@@ -261,9 +208,7 @@ describe("Layout Assembler", () => {
         const budget = createBudget(10); // Small budget
         const header: CompiledMessageBlock = {
           role: "user",
-          content: compileLeaf(
-            "This is a very long header that exceeds the small budget"
-          ),
+          content: compileLeaf("This is a very long header that exceeds the small budget"),
         };
         const layout: CompiledLayoutNode[] = [
           {
@@ -276,13 +221,7 @@ describe("Layout Assembler", () => {
           main: [{ role: "assistant", content: "Slot content" }],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         // Header should be skipped due to budget, but slot content included
         expect(result).toHaveLength(1);
@@ -309,13 +248,7 @@ describe("Layout Assembler", () => {
           empty: [],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         // Should be entirely skipped
         expect(result).toHaveLength(0);
@@ -344,13 +277,7 @@ describe("Layout Assembler", () => {
           empty: [],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         // Should include headers and footers even with empty slot
         expect(result).toHaveLength(2);
@@ -396,13 +323,7 @@ describe("Layout Assembler", () => {
           main: [{ role: "assistant", content: "Content" }],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(2);
         expect(result[0]).toEqual({
@@ -428,13 +349,7 @@ describe("Layout Assembler", () => {
           main: [{ role: "assistant", content: "Content" }],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         // Only slot content, header should be skipped
         expect(result).toHaveLength(1);
@@ -482,13 +397,7 @@ describe("Layout Assembler", () => {
           ],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         expect(result).toHaveLength(6);
         expect(result[0]).toEqual({
@@ -540,13 +449,7 @@ describe("Layout Assembler", () => {
           main: [{ role: "assistant", content: "Slot content" }],
         };
 
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
         // Should include first message and slot content, but skip the header and final message
         expect(result).toHaveLength(2);
@@ -589,22 +492,10 @@ describe("Layout Assembler", () => {
 
         // Run assembly twice
         const budget1 = createBudget();
-        const result1 = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget1,
-          registry
-        );
+        const result1 = assembleLayout(layout, slotBuffers, ctx, budget1, registry);
 
         const budget2 = createBudget();
-        const result2 = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget2,
-          registry
-        );
+        const result2 = assembleLayout(layout, slotBuffers, ctx, budget2, registry);
 
         // Should be deeply equal
         expect(result1).toEqual(result2);
@@ -623,13 +514,7 @@ describe("Layout Assembler", () => {
         const slotBuffers: SlotExecutionResult = {};
 
         // Should not throw, but should warn
-        const result = assembleLayout(
-          layout,
-          slotBuffers,
-          ctx,
-          budget,
-          registry
-        );
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
         expect(result).toHaveLength(0);
       });
     });

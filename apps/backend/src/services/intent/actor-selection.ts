@@ -29,9 +29,7 @@ export async function chooseNextActorRoundRobin(
   }
 
   // Find the participant after the author
-  const pos = participants.findIndex(
-    (p) => p.id === afterTurnAuthorParticipantId
-  );
+  const pos = participants.findIndex((p) => p.id === afterTurnAuthorParticipantId);
   if (pos === -1) return participants[0].id;
   return participants[(pos + 1) % participants.length].id;
 }

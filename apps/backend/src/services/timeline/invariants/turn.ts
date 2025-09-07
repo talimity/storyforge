@@ -14,9 +14,7 @@ type AuthorParticipant = {
 };
 
 type AuthorParticipantLoaders = {
-  loadAuthorParticipant: (
-    participantId: string
-  ) => Promise<AuthorParticipant | undefined>;
+  loadAuthorParticipant: (participantId: string) => Promise<AuthorParticipant | undefined>;
 };
 
 /**

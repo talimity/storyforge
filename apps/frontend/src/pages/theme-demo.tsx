@@ -17,13 +17,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import {
-  LuBook,
-  LuLayoutGrid,
-  LuLayoutList,
-  LuPlus,
-  LuUsersRound,
-} from "react-icons/lu";
+import { LuBook, LuLayoutGrid, LuLayoutList, LuPlus, LuUsersRound } from "react-icons/lu";
 import {
   Button,
   Checkbox,
@@ -72,8 +66,8 @@ function MaterialExample() {
             Primary Surface
           </Heading>
           <Text color="content.muted">
-            This uses the primary surface material with subtle gradients and
-            appropriate text colors.
+            This uses the primary surface material with subtle gradients and appropriate text
+            colors.
           </Text>
         </Card.Body>
       </Card.Root>
@@ -85,8 +79,8 @@ function MaterialExample() {
             Primary Surface, with Interactive
           </Heading>
           <Text color="content.muted" mb={4}>
-            This uses the primary surface material, with an layer style that
-            applies a lift effect on hover to indicate interactivity.
+            This uses the primary surface material, with an layer style that applies a lift effect
+            on hover to indicate interactivity.
           </Text>
         </Card.Body>
       </Card.Root>
@@ -192,10 +186,7 @@ function CharacterSelectorExample() {
               Basic Character Selector
             </Heading>
 
-            <CharacterSingleSelect
-              value={selectedCharacter}
-              onChange={setSelectedCharacter}
-            />
+            <CharacterSingleSelect value={selectedCharacter} onChange={setSelectedCharacter} />
             {selectedCharacter && (
               <Text mt={2} fontSize="sm" color="content.muted">
                 Selected character ID: {selectedCharacter}
@@ -206,20 +197,10 @@ function CharacterSelectorExample() {
             <Heading size="md" mb={4}>
               Multi Character Selector
             </Heading>
-            <CharacterMultiSelect
-              value={selectedMany}
-              onChange={setSelectedMany}
-            />
+            <CharacterMultiSelect value={selectedMany} onChange={setSelectedMany} />
             <HStack mt={2} wrap="wrap" gap={2}>
               {selectedMany.map((id) => (
-                <Text
-                  key={id}
-                  fontSize="xs"
-                  layerStyle="surface"
-                  px={2}
-                  py={1}
-                  borderRadius="xl"
-                >
+                <Text key={id} fontSize="xs" layerStyle="surface" px={2} py={1} borderRadius="xl">
                   {id}
                 </Text>
               ))}
@@ -268,9 +249,7 @@ function PageHeaderExamples() {
       <Box layerStyle="surface" p={6}>
         <PageHeader.Root>
           <PageHeader.Title>Campaign Assets</PageHeader.Title>
-          <PageHeader.Tagline>
-            Manage images, audio, and other media files
-          </PageHeader.Tagline>
+          <PageHeader.Tagline>Manage images, audio, and other media files</PageHeader.Tagline>
           <PageHeader.Controls>
             <PageHeader.Sort
               options={[
@@ -304,9 +283,7 @@ function PageHeaderExamples() {
       <Box layerStyle="surface" p={6}>
         <PageHeader.Root>
           <PageHeader.Title>Asset Library</PageHeader.Title>
-          <PageHeader.Tagline>
-            Browse and organize your scenario resources
-          </PageHeader.Tagline>
+          <PageHeader.Tagline>Browse and organize your scenario resources</PageHeader.Tagline>
           <PageHeader.Tabs
             tabs={[
               { value: "images", label: "Images", badge: "24" },
@@ -345,9 +322,7 @@ function PageHeaderExamples() {
       <Box layerStyle="surface" p={6}>
         <PageHeader.Root>
           <PageHeader.Title>Scenario Dashboard</PageHeader.Title>
-          <PageHeader.Tagline>
-            Overview of your scenario progress and assets
-          </PageHeader.Tagline>
+          <PageHeader.Tagline>Overview of your scenario progress and assets</PageHeader.Tagline>
           <PageHeader.Tabs
             tabs={[
               { value: "overview", label: "Overview", badge: "5" },
@@ -410,9 +385,7 @@ function FormExample() {
           <Heading size="2xl" mb={2}>
             Character Creation
           </Heading>
-          <Text color="content.muted">
-            Create a new character for your story
-          </Text>
+          <Text color="content.muted">Create a new character for your story</Text>
         </Box>
 
         {/* Main form card - using surface material */}
@@ -431,10 +404,7 @@ function FormExample() {
                   </Field>
 
                   <Field label="Background Story">
-                    <Textarea
-                      placeholder="Tell us about your character's past..."
-                      rows={4}
-                    />
+                    <Textarea placeholder="Tell us about your character's past..." rows={4} />
                   </Field>
 
                   <Field label="Character Class">
@@ -466,20 +436,13 @@ function FormExample() {
 
               {/* Preferences Section - using contrast material */}
               <Box layerStyle="contrast" p={5} borderRadius="md" mt={2}>
-                <Heading
-                  as="h3"
-                  size="md"
-                  mb={4}
-                  color="contentContrast.emphasized"
-                >
+                <Heading as="h3" size="md" mb={4} color="contentContrast.emphasized">
                   Gameplay Preferences
                 </Heading>
 
                 <Fieldset.Root size="lg" maxW="md">
                   <Stack>
-                    <Fieldset.Legend color="contentContrast.emphasized">
-                      Game Mode
-                    </Fieldset.Legend>
+                    <Fieldset.Legend color="contentContrast.emphasized">Game Mode</Fieldset.Legend>
                     <Fieldset.HelperText color="contentContrast.muted">
                       Choose your preferred game mode
                     </Fieldset.HelperText>
@@ -515,9 +478,7 @@ function FormExample() {
                     </Field>
 
                     <Checkbox colorPalette="accent" defaultChecked>
-                      <Text color="contentContrast.muted">
-                        Receive campaign notifications
-                      </Text>
+                      <Text color="contentContrast.muted">Receive campaign notifications</Text>
                     </Checkbox>
                   </Fieldset.Content>
                 </Fieldset.Root>

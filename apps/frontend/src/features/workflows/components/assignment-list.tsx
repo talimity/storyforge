@@ -40,11 +40,7 @@ function AssignmentItem({ item }: { item: AssignmentItemView }) {
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
-                    <Menu.Item
-                      value="delete"
-                      onClick={() => setOpen(true)}
-                      color="red.500"
-                    >
+                    <Menu.Item value="delete" onClick={() => setOpen(true)} color="red.500">
                       <LuTrash />
                       Delete
                     </Menu.Item>

@@ -81,8 +81,7 @@ export class IntentRunner {
         ts: now(),
       });
 
-      const cancelled =
-        this.abortCtl.signal.aborted || e instanceof IntentCancelledError;
+      const cancelled = this.abortCtl.signal.aborted || e instanceof IntentCancelledError;
 
       await db
         .update(schema.intents)

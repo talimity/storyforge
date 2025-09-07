@@ -13,12 +13,8 @@ export const promptTemplates = sqliteTable("prompt_templates", {
   // Database temmplates are intentionally typed as unknown. Consumer code
   // should parse and validate them using the appropriate Zod schema for the
   // version of the template.
-  layout: text("layout", { mode: "json" })
-    .$type<Record<string, unknown>[]>()
-    .notNull(),
-  slots: text("slots", { mode: "json" })
-    .$type<Record<string, unknown>>()
-    .notNull(),
+  layout: text("layout", { mode: "json" }).$type<Record<string, unknown>[]>().notNull(),
+  slots: text("slots", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

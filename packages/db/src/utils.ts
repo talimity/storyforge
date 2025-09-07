@@ -1,8 +1,5 @@
 import { getTableColumns, type InferInsertModel, sql } from "drizzle-orm";
-import type {
-  SQLiteTable,
-  SQLiteUpdateSetSource,
-} from "drizzle-orm/sqlite-core";
+import type { SQLiteTable, SQLiteUpdateSetSource } from "drizzle-orm/sqlite-core";
 
 /** Column map type + string keys for a table */
 type Columns<T extends SQLiteTable> = T["_"]["columns"];

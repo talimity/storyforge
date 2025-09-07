@@ -1,18 +1,7 @@
-import {
-  Box,
-  Card,
-  Heading,
-  HStack,
-  Icon,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, Card, Heading, HStack, Icon, Text, VStack } from "@chakra-ui/react";
 import type { UnboundTemplate } from "@storyforge/prompt-rendering";
 import { LuInfo } from "react-icons/lu";
-import {
-  compileDraft,
-  validateDraft,
-} from "@/features/template-builder/services/compile-draft";
+import { compileDraft, validateDraft } from "@/features/template-builder/services/compile-draft";
 import type { TemplateDraft } from "@/features/template-builder/types";
 
 interface TemplatePreviewProps {
@@ -32,21 +21,13 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
       compilationErrors = validation;
     }
   } catch (error) {
-    compilationErrors = [
-      error instanceof Error ? error.message : "Unknown compilation error",
-    ];
+    compilationErrors = [error instanceof Error ? error.message : "Unknown compilation error"];
   }
 
   if (compilationErrors.length > 0) {
     return (
       <VStack align="stretch" gap={4}>
-        <Box
-          bg="red.50"
-          border="1px solid"
-          borderColor="red.200"
-          p={4}
-          borderRadius="md"
-        >
+        <Box bg="red.50" border="1px solid" borderColor="red.200" p={4} borderRadius="md">
           <HStack gap={2} mb={2}>
             <Icon as={LuInfo} color="red.500" />
             <Heading size="sm" color="red.700">
@@ -86,9 +67,7 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
             <HStack justify="space-between" fontSize="sm">
               <Text fontWeight="medium">Task:</Text>
               <Text>
-                {compiledTemplate.task
-                  .replace(/_/g, " ")
-                  .replace(/\b\w/g, (l) => l.toUpperCase())}
+                {compiledTemplate.task.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
               </Text>
             </HStack>
             <HStack justify="space-between" fontSize="sm">

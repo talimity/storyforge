@@ -37,17 +37,12 @@ export class ScenarioService {
 
     if (userProxyCharacterId && !characterIds.includes(userProxyCharacterId)) {
       throw new ServiceError("InvalidInput", {
-        message:
-          "User proxy character must be one of the scenario participants.",
+        message: "User proxy character must be one of the scenario participants.",
       });
     }
 
     const operation = async (tx: SqliteTransaction) => {
-      const [sc] = await tx
-        .insert(schema.scenarios)
-        .values(scenarioData)
-        .returning()
-        .all();
+      const [sc] = await tx.insert(schema.scenarios).values(scenarioData).returning().all();
 
       await tx
         .insert(schema.chapters)
@@ -83,11 +78,7 @@ export class ScenarioService {
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
   }
 
-  async updateScenario(
-    id: string,
-    data: UpdateScenarioData,
-    outerTx?: SqliteTransaction
-  ) {
+  async updateScenario(id: string, data: UpdateScenarioData, outerTx?: SqliteTransaction) {
     const { participants, ...scenarioData } = data;
 
     const operation = async (tx: SqliteTransaction) => {
@@ -140,9 +131,7 @@ export class ScenarioService {
     }
 
     // Ensure only one user proxy
-    const userProxyCount = inputParticipants.filter(
-      (p) => p.isUserProxy
-    ).length;
+    const userProxyCount = inputParticipants.filter((p) => p.isUserProxy).length;
     if (userProxyCount > 1) {
       throw new ServiceError("InvalidInput", {
         message: "Only one participant can be designated as the user proxy.",
@@ -167,9 +156,7 @@ export class ScenarioService {
     const inputById = new Map(inputParticipants.map((p) => [p.characterId, p]));
 
     // Compute operations
-    const toAdd = inputParticipants.filter(
-      (p) => !existingById.has(p.characterId)
-    );
+    const toAdd = inputParticipants.filter((p) => !existingById.has(p.characterId));
     const toRemove = existing.filter((p) => {
       assertDefined(p.characterId);
       return !inputById.has(p.characterId);
@@ -196,9 +183,7 @@ export class ScenarioService {
         .groupBy(schema.turns.authorParticipantId)
         .all();
 
-      const participantIdsWithTurns = new Set(
-        participantsWithTurns.map((p) => p.participantId)
-      );
+      const participantIdsWithTurns = new Set(participantsWithTurns.map((p) => p.participantId));
 
       // Check if any participant has turns
       const participantsToRemoveWithTurns = toRemove.filter((p) =>
@@ -301,19 +286,14 @@ export class ScenarioService {
         .from(schema.scenarioParticipants)
         .where(eq(schema.scenarioParticipants.scenarioId, scenarioId));
 
-      const hasNarrator = ps.some(
-        (p) => p.type === "narrator" && p.characterId === null
-      );
+      const hasNarrator = ps.some((p) => p.type === "narrator" && p.characterId === null);
       if (type === "narrator" && hasNarrator) {
         throw new ServiceError("Conflict", {
           message: "Scenario can only have one narrator.",
         });
       }
 
-      const maxOrderIndex = ps.reduce(
-        (max, p) => Math.max(max, p.orderIndex ?? 0),
-        -1
-      );
+      const maxOrderIndex = ps.reduce((max, p) => Math.max(max, p.orderIndex ?? 0), -1);
 
       const result = await tx
         .insert(schema.scenarioParticipants)

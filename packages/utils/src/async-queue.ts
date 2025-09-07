@@ -43,8 +43,8 @@ export class AsyncQueue<T> {
         return;
       } else {
         // Wait for next item or closure
-        const { done, value } = await new Promise<IteratorResult<T>>(
-          (resolve) => this.resolvers.push(resolve)
+        const { done, value } = await new Promise<IteratorResult<T>>((resolve) =>
+          this.resolvers.push(resolve)
         );
         if (done) return;
         yield value;

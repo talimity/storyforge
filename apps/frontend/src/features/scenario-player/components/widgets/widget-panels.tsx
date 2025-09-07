@@ -25,16 +25,9 @@ export const WidgetPanels = memo(function WidgetPanels({
   }
 
   return (
-    <Box
-      flex="1"
-      overflow="auto"
-      borderTopWidth="1px"
-      borderColor="border.subtle"
-    >
+    <Box flex="1" overflow="auto" borderTopWidth="1px" borderColor="border.subtle">
       <Stack p={3} gap={4}>
-        {activeWidgets.has("characters") && (
-          <CharactersWidget characters={characters} />
-        )}
+        {activeWidgets.has("characters") && <CharactersWidget characters={characters} />}
         {activeWidgets.has("scene") && <SceneWidget />}
         {activeWidgets.has("director") && <DirectorWidget />}
         {activeWidgets.has("settings") && <ToolsWidget />}

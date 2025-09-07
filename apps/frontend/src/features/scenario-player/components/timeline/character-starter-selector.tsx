@@ -29,16 +29,12 @@ export function CharacterStarterSelector({
   const hasMultipleStarters = currentCharacter.starters.length > 1;
 
   const goToPreviousCharacter = () => {
-    setCurrentCharacterIndex((prev) =>
-      prev === 0 ? charactersWithStarters.length - 1 : prev - 1
-    );
+    setCurrentCharacterIndex((prev) => (prev === 0 ? charactersWithStarters.length - 1 : prev - 1));
     setCurrentStarterIndex(0); // Reset to first starter when changing character
   };
 
   const goToNextCharacter = () => {
-    setCurrentCharacterIndex((prev) =>
-      prev === charactersWithStarters.length - 1 ? 0 : prev + 1
-    );
+    setCurrentCharacterIndex((prev) => (prev === charactersWithStarters.length - 1 ? 0 : prev + 1));
     setCurrentStarterIndex(0); // Reset to first starter when changing character
   };
 
@@ -65,12 +61,7 @@ export function CharacterStarterSelector({
   return (
     <Box maxW="full" my={2} mx="auto" layerStyle="surface" borderRadius="lg">
       {/* Compact Character Header */}
-      <Box
-        bg="primary.solid"
-        color="contentContrast"
-        p={4}
-        borderTopRadius="lg"
-      >
+      <Box bg="primary.solid" color="contentContrast" p={4} borderTopRadius="lg">
         <Flex align="center" justify="space-between">
           {hasMultipleCharacters && (
             <Button onClick={goToPreviousCharacter} variant="ghost" size="sm">
@@ -129,21 +120,10 @@ export function CharacterStarterSelector({
                 >
                   <LuChevronLeft />
                 </Button>
-                <Text
-                  fontSize="sm"
-                  color="content.muted"
-                  px={2}
-                  aria-live="polite"
-                >
-                  {currentStarterIndex + 1} of{" "}
-                  {currentCharacter.starters.length}
+                <Text fontSize="sm" color="content.muted" px={2} aria-live="polite">
+                  {currentStarterIndex + 1} of {currentCharacter.starters.length}
                 </Text>
-                <Button
-                  onClick={goToNextStarter}
-                  variant="ghost"
-                  size="sm"
-                  colorPalette="neutral"
-                >
+                <Button onClick={goToNextStarter} variant="ghost" size="sm" colorPalette="neutral">
                   <LuChevronRight />
                 </Button>
               </Flex>
@@ -169,12 +149,7 @@ export function CharacterStarterSelector({
 
             {/* Action Button */}
             <VStack>
-              <Button
-                onClick={handleSelect}
-                colorPalette="primary"
-                variant="solid"
-                size="lg"
-              >
+              <Button onClick={handleSelect} colorPalette="primary" variant="solid" size="lg">
                 Choose this starter
               </Button>
               <Text fontSize="sm" color="content.muted" mt={2}>
@@ -185,8 +160,8 @@ export function CharacterStarterSelector({
         ) : (
           <Box textAlign="center" py={8}>
             <Text color="content.muted">
-              {currentCharacter.character.name} does not have any starters, but
-              you can still use the input panel to begin the story.
+              {currentCharacter.character.name} does not have any starters, but you can still use
+              the input panel to begin the story.
             </Text>
           </Box>
         )}

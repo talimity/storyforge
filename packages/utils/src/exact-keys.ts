@@ -4,10 +4,7 @@ type UnionEq<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 type Diff<A, B> = Exclude<A, B>;
 type TupleUnion<T extends readonly unknown[]> = T[number];
 
-type HasDuplicates<
-  T extends readonly PropertyKey[],
-  Seen = never,
-> = T extends readonly [
+type HasDuplicates<T extends readonly PropertyKey[], Seen = never> = T extends readonly [
   infer F extends PropertyKey,
   ...infer R extends readonly PropertyKey[],
 ]
@@ -16,10 +13,9 @@ type HasDuplicates<
     : HasDuplicates<R, Seen | F>
   : false;
 
-type NoDupError<T extends readonly PropertyKey[]> =
-  HasDuplicates<T> extends true
-    ? { __error__: "Duplicate items are not allowed" }
-    : unknown;
+type NoDupError<T extends readonly PropertyKey[]> = HasDuplicates<T> extends true
+  ? { __error__: "Duplicate items are not allowed" }
+  : unknown;
 
 /**
  * Factory that returns an "exact keys" tuple builder for any map type.

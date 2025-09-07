@@ -1,12 +1,4 @@
-import {
-  Box,
-  HStack,
-  Icon,
-  Image,
-  Progress,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, HStack, Icon, Image, Progress, Text, VStack } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, toaster } from "@/components/ui/index";
@@ -19,18 +11,12 @@ interface CharacterImportDialog {
   onImportSuccess: () => void;
 }
 
-export function CharacterImportDialog({
-  isOpen,
-  onClose,
-  onImportSuccess,
-}: CharacterImportDialog) {
+export function CharacterImportDialog({ isOpen, onClose, onImportSuccess }: CharacterImportDialog) {
   const [isUploading, setIsUploading] = useState(false);
   const browseButtonRef = useRef<HTMLButtonElement>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>(
-    {}
-  );
+  const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>({});
 
   const utils = trpc.useUtils();
   const importMutation = trpc.characters.import.useMutation();
@@ -65,9 +51,7 @@ export function CharacterImportDialog({
     }
 
     // Check file size (max 10MB per file)
-    const oversizedFiles = pngFiles.filter(
-      (file) => file.size > 10 * 1024 * 1024
-    );
+    const oversizedFiles = pngFiles.filter((file) => file.size > 10 * 1024 * 1024);
     if (oversizedFiles.length > 0) {
       toaster.error({
         title: "Files too large",
@@ -154,9 +138,7 @@ export function CharacterImportDialog({
       toaster.error({
         title: "Import failed",
         description:
-          err instanceof Error
-            ? err.message
-            : "Failed to import characters. Please try again.",
+          err instanceof Error ? err.message : "Failed to import characters. Please try again.",
         duration: 5000,
       });
       setUploadProgress(0);
@@ -201,8 +183,7 @@ export function CharacterImportDialog({
         <Dialog.Body>
           <VStack gap={4} align="stretch">
             <Text color="fg.muted" fontSize="sm">
-              Upload TavernCard character files (PNG format) to import them into
-              your library.
+              Upload TavernCard character files (PNG format) to import them into your library.
             </Text>
 
             <Box
@@ -222,19 +203,12 @@ export function CharacterImportDialog({
                   <LuUpload />
                 </Icon>
                 <VStack gap={1}>
-                  <Text fontWeight="medium">
-                    Drop character PNG files here or click to browse
-                  </Text>
+                  <Text fontWeight="medium">Drop character PNG files here or click to browse</Text>
                   <Text fontSize="sm" color="fg.muted">
                     Supports TavernCard PNG files up to 10MB each
                   </Text>
                 </VStack>
-                <Button
-                  ref={browseButtonRef}
-                  size="sm"
-                  variant="outline"
-                  disabled={isUploading}
-                >
+                <Button ref={browseButtonRef} size="sm" variant="outline" disabled={isUploading}>
                   Browse Files
                 </Button>
               </VStack>
@@ -288,11 +262,7 @@ export function CharacterImportDialog({
                       </VStack>
                     </HStack>
                     {!isUploading && (
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        onClick={() => removeFile(index)}
-                      >
+                      <Button size="xs" variant="ghost" onClick={() => removeFile(index)}>
                         <LuX />
                       </Button>
                     )}
@@ -318,11 +288,7 @@ export function CharacterImportDialog({
 
         <Dialog.Footer>
           <HStack justify="space-between" width="full">
-            <Button
-              variant="ghost"
-              onClick={handleClose}
-              disabled={isUploading}
-            >
+            <Button variant="ghost" onClick={handleClose} disabled={isUploading}>
               Cancel
             </Button>
             <Button

@@ -1,8 +1,4 @@
-import type {
-  ChatCompletionRequest,
-  PreflightResult,
-  TextInferenceCapabilities,
-} from "./types.js";
+import type { ChatCompletionRequest, PreflightResult, TextInferenceCapabilities } from "./types.js";
 
 /**
  * Given a chat completion request and the provider's capabilities, determine
@@ -15,8 +11,7 @@ export function preflightPrefill(
 ): PreflightResult {
   const hints = req.hints ?? {};
   const endsWithAssistant =
-    req.messages.length > 0 &&
-    req.messages[req.messages.length - 1].role === "assistant";
+    req.messages.length > 0 && req.messages[req.messages.length - 1].role === "assistant";
 
   // decide whether the *prompt semantics* expect prefill.
   const wantsPrefill =
@@ -31,8 +26,7 @@ export function preflightPrefill(
     if (caps.assistantPrefill === "implicit" && endsWithAssistant) {
       return {
         ok: false,
-        reason:
-          "Provider implicitly prefills assistant continuations and cannot opt out.",
+        reason: "Provider implicitly prefills assistant continuations and cannot opt out.",
       };
     }
     return { ok: true, prefillMode: "no-prefill" };
@@ -42,8 +36,7 @@ export function preflightPrefill(
   if (wantsPrefill && caps.assistantPrefill === "unsupported") {
     return {
       ok: false,
-      reason:
-        "Template (or hints) require assistant prefill but provider does not support it.",
+      reason: "Template (or hints) require assistant prefill but provider does not support it.",
     };
   }
 

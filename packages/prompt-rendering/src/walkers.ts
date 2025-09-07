@@ -130,16 +130,14 @@ export function* iterDataRefs<K extends string, S extends SourceSpec>(
       const headers = normalizeBlocks(node.header);
       for (let idx = 0; idx < headers.length; idx++) {
         const b = headers[idx];
-        if (b.from)
-          yield { ref: b.from, path: join([...here, `header[${idx}]`]) };
+        if (b.from) yield { ref: b.from, path: join([...here, `header[${idx}]`]) };
       }
 
       // Yield references from footer blocks
       const footers = normalizeBlocks(node.footer);
       for (let idx = 0; idx < footers.length; idx++) {
         const b = footers[idx];
-        if (b.from)
-          yield { ref: b.from, path: join([...here, `footer[${idx}]`]) };
+        if (b.from) yield { ref: b.from, path: join([...here, `footer[${idx}]`]) };
       }
     }
   }
@@ -188,10 +186,7 @@ function* walkPlanDataRefs<S extends SourceSpec>(
       // Walk through `map` nodes
       for (let j = 0; j < node.map.length; j++) {
         const child = node.map[j];
-        for (const nested of walkPlanDataRefs(
-          [child],
-          [...here, `forEach.map[${j}]`]
-        )) {
+        for (const nested of walkPlanDataRefs([child], [...here, `forEach.map[${j}]`])) {
           yield nested;
         }
       }
@@ -201,10 +196,7 @@ function* walkPlanDataRefs<S extends SourceSpec>(
       // Walk through `then` branches
       for (let j = 0; j < node.then.length; j++) {
         const t = node.then[j];
-        for (const nested of walkPlanDataRefs(
-          [t],
-          [...here, `if.then[${j}]`]
-        )) {
+        for (const nested of walkPlanDataRefs([t], [...here, `if.then[${j}]`])) {
           yield nested;
         }
       }
@@ -213,10 +205,7 @@ function* walkPlanDataRefs<S extends SourceSpec>(
       if (node.else) {
         for (let j = 0; j < node.else.length; j++) {
           const e = node.else[j];
-          for (const nested of walkPlanDataRefs(
-            [e],
-            [...here, `if.else[${j}]`]
-          )) {
+          for (const nested of walkPlanDataRefs([e], [...here, `if.else[${j}]`])) {
             yield nested;
           }
         }

@@ -40,25 +40,17 @@ export const slotNameSchema = z
 /**
  * Create a validation schema for a specific parameter
  */
-export function createParameterSchema(
-  param: RecipeParamSpec
-): z.ZodSchema<unknown> {
+export function createParameterSchema(param: RecipeParamSpec): z.ZodSchema<unknown> {
   switch (param.type) {
     case "number": {
       let schema = z.number();
 
       if (param.min !== undefined) {
-        schema = schema.min(
-          param.min,
-          `${param.label} must be at least ${param.min}`
-        );
+        schema = schema.min(param.min, `${param.label} must be at least ${param.min}`);
       }
 
       if (param.max !== undefined) {
-        schema = schema.max(
-          param.max,
-          `${param.label} must be at most ${param.max}`
-        );
+        schema = schema.max(param.max, `${param.label} must be at most ${param.max}`);
       }
 
       return param.defaultValue !== undefined
@@ -86,9 +78,7 @@ export function createParameterSchema(
             })
           : base;
 
-      return param.defaultValue !== undefined
-        ? schema.default(param.defaultValue)
-        : schema;
+      return param.defaultValue !== undefined ? schema.default(param.defaultValue) : schema;
     }
 
     case "toggle": {
@@ -100,9 +90,7 @@ export function createParameterSchema(
 
     case "template_string": {
       const schema = z.string().min(1, `${param.label} cannot be empty`);
-      return param.defaultValue !== undefined
-        ? schema.default(String(param.defaultValue))
-        : schema;
+      return param.defaultValue !== undefined ? schema.default(String(param.defaultValue)) : schema;
     }
 
     default:
@@ -113,9 +101,7 @@ export function createParameterSchema(
 /**
  * Create a validation schema for all parameters of a recipe
  */
-export function createRecipeParametersSchema(
-  parameters: readonly RecipeParamSpec[]
-) {
+export function createRecipeParametersSchema(parameters: readonly RecipeParamSpec[]) {
   const schemaShape: Record<string, z.ZodSchema<unknown>> = {};
 
   for (const param of parameters) {
@@ -142,11 +128,7 @@ export const slotDraftSchema = z.object({
 export interface TemplateStringValidationResult {
   isValid: boolean;
   errors: Array<{
-    type:
-      | "unclosed_bracket"
-      | "invalid_variable"
-      | "empty_variable"
-      | "syntax_error";
+    type: "unclosed_bracket" | "invalid_variable" | "empty_variable" | "syntax_error";
     message: string;
     position?: number;
   }>;
@@ -254,13 +236,9 @@ export function validateSlotPriorityUniqueness(
   existingSlots: Record<string, SlotDraft>,
   currentSlotName?: string
 ): { isValid: boolean; warning?: string } {
-  const otherSlots = Object.entries(existingSlots).filter(
-    ([name]) => name !== currentSlotName
-  );
+  const otherSlots = Object.entries(existingSlots).filter(([name]) => name !== currentSlotName);
 
-  const conflictingSlot = otherSlots.find(
-    ([, slot]) => slot.priority === priority
-  );
+  const conflictingSlot = otherSlots.find(([, slot]) => slot.priority === priority);
 
   if (conflictingSlot) {
     return {
@@ -281,14 +259,10 @@ export function validateSlotLayoutReference(
 ): { isReferenced: boolean; warnings: string[] } {
   const warnings: string[] = [];
 
-  const isReferenced = layout.some(
-    (node) => node.kind === "slot" && node.name === slotName
-  );
+  const isReferenced = layout.some((node) => node.kind === "slot" && node.name === slotName);
 
   if (!isReferenced) {
-    warnings.push(
-      `Slot "${slotName}" is not referenced in the template layout`
-    );
+    warnings.push(`Slot "${slotName}" is not referenced in the template layout`);
   }
 
   return { isReferenced, warnings };
@@ -328,11 +302,7 @@ export function validateSlotDraft(
   }
 
   // Check name uniqueness
-  const nameUniqueness = validateSlotNameUniqueness(
-    slot.name,
-    existingSlots,
-    currentSlotName
-  );
+  const nameUniqueness = validateSlotNameUniqueness(slot.name, existingSlots, currentSlotName);
   if (!nameUniqueness.isValid && nameUniqueness.error) {
     result.isValid = false;
     result.errors.name = nameUniqueness.error;
@@ -391,10 +361,7 @@ export function validateSlotDraft(
     if (param.type === "template_string") {
       const value = slot.params[param.key];
       if (typeof value === "string") {
-        const templateValidation = validateTemplateString(
-          value,
-          availableVariables
-        );
+        const templateValidation = validateTemplateString(value, availableVariables);
         if (!templateValidation.isValid) {
           result.isValid = false;
           result.errors[`param_${param.key}`] =

@@ -165,9 +165,7 @@ export async function getTurnContentLayers(
   // }
   return result.map((turn) => ({
     turnId: turn.id,
-    contentLayers: Object.fromEntries(
-      turn.layers.map(({ key, content }) => [key, content])
-    ),
+    contentLayers: Object.fromEntries(turn.layers.map(({ key, content }) => [key, content])),
   }));
 }
 

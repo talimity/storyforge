@@ -1,21 +1,6 @@
-import {
-  Badge,
-  Box,
-  HStack,
-  Icon,
-  Input,
-  Text,
-  Textarea,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, HStack, Icon, Input, Text, Textarea, VStack } from "@chakra-ui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  LuCheck,
-  LuChevronDown,
-  LuChevronUp,
-  LuCode,
-  LuCopy,
-} from "react-icons/lu";
+import { LuCheck, LuChevronDown, LuChevronUp, LuCode, LuCopy } from "react-icons/lu";
 import { Button, Field, Tooltip } from "@/components/ui/index";
 
 export interface TemplateVariable {
@@ -93,12 +78,7 @@ export function TemplateStringEditor({
   }, []);
 
   return (
-    <Field
-      label={label}
-      helperText={help}
-      errorText={errorText}
-      invalid={isInvalid}
-    >
+    <Field label={label} helperText={help} errorText={errorText} invalid={isInvalid}>
       <VStack align="stretch" gap={3} width="full">
         {/* Main textarea */}
         <Box position="relative">
@@ -115,9 +95,7 @@ export function TemplateStringEditor({
             borderColor={isInvalid ? "red.300" : "surface.border"}
             _focus={{
               borderColor: isInvalid ? "red.500" : "accent.500",
-              boxShadow: isInvalid
-                ? "0 0 0 1px red.500"
-                : "0 0 0 1px accent.500",
+              boxShadow: isInvalid ? "0 0 0 1px red.500" : "0 0 0 1px accent.500",
             }}
           />
         </Box>
@@ -156,39 +134,28 @@ export function TemplateStringEditor({
 
               {/* Variable groups */}
               {Object.keys(groupedVariables).length === 0 ? (
-                <Text
-                  fontSize="sm"
-                  color="content.muted"
-                  textAlign="center"
-                  py={4}
-                >
+                <Text fontSize="sm" color="content.muted" textAlign="center" py={4}>
                   No variables found
                 </Text>
               ) : (
                 <VStack align="stretch" gap={4} maxH="300px" overflowY="auto">
-                  {Object.entries(groupedVariables).map(
-                    ([category, variables]) => (
-                      <VStack key={category} align="stretch" gap={2}>
-                        <Text
-                          fontSize="sm"
-                          fontWeight="medium"
-                          color="content.emphasized"
-                        >
-                          {category}
-                        </Text>
-                        <VStack align="stretch" gap={1}>
-                          {variables.map((variable) => (
-                            <VariableCard
-                              key={variable.name}
-                              variable={variable}
-                              onCopy={() => copyVariable(variable.name)}
-                              isCopied={copiedVariable === variable.name}
-                            />
-                          ))}
-                        </VStack>
+                  {Object.entries(groupedVariables).map(([category, variables]) => (
+                    <VStack key={category} align="stretch" gap={2}>
+                      <Text fontSize="sm" fontWeight="medium" color="content.emphasized">
+                        {category}
+                      </Text>
+                      <VStack align="stretch" gap={1}>
+                        {variables.map((variable) => (
+                          <VariableCard
+                            key={variable.name}
+                            variable={variable}
+                            onCopy={() => copyVariable(variable.name)}
+                            isCopied={copiedVariable === variable.name}
+                          />
+                        ))}
                       </VStack>
-                    )
-                  )}
+                    </VStack>
+                  ))}
                 </VStack>
               )}
             </VStack>
@@ -218,12 +185,7 @@ function VariableCard({ variable, onCopy, isCopied }: VariableCardProps) {
     >
       <VStack align="start" gap={1} flex={1} minW={0}>
         <HStack gap={2}>
-          <Badge
-            size="sm"
-            fontFamily="mono"
-            colorPalette="neutral"
-            variant="subtle"
-          >
+          <Badge size="sm" fontFamily="mono" colorPalette="neutral" variant="subtle">
             {variable.name}
           </Badge>
         </HStack>

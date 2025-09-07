@@ -17,8 +17,7 @@ import { trpc } from "@/lib/trpc";
 
 export function ModelsPage() {
   const [isCreateModelDialogOpen, setIsCreateModelDialogOpen] = useState(false);
-  const [isCreateProviderDialogOpen, setIsCreateProviderDialogOpen] =
-    useState(false);
+  const [isCreateProviderDialogOpen, setIsCreateProviderDialogOpen] = useState(false);
   const modelProfilesQuery = trpc.providers.listModelProfiles.useQuery();
   const providersQuery = trpc.providers.listProviders.useQuery();
 
@@ -32,9 +31,7 @@ export function ModelsPage() {
     <Container>
       <PageHeader.Root>
         <PageHeader.Title>Models</PageHeader.Title>
-        <PageHeader.Tagline>
-          Manage AI models and provider configurations
-        </PageHeader.Tagline>
+        <PageHeader.Tagline>Manage AI models and provider configurations</PageHeader.Tagline>
         <PageHeader.Tabs
           tabs={[
             {
@@ -82,17 +79,13 @@ export function ModelsPage() {
             <Box pt={6}>
               {modelsLoading ? (
                 <Grid templateColumns="repeat(auto-fit, 320px)" gap={4}>
-                  {Array.from(
-                    { length: 8 },
-                    (_, i) => `model-skeleton-${i}`
-                  ).map((key) => (
+                  {Array.from({ length: 8 }, (_, i) => `model-skeleton-${i}`).map((key) => (
                     <ModelProfileCardSkeleton key={key} />
                   ))}
                 </Grid>
               ) : modelProfilesQuery.error ? (
                 <Text color="red.500">
-                  Failed to load model profiles:{" "}
-                  {modelProfilesQuery.error.message}
+                  Failed to load model profiles: {modelProfilesQuery.error.message}
                 </Text>
               ) : modelProfileList.length === 0 ? (
                 <EmptyState
@@ -105,10 +98,7 @@ export function ModelsPage() {
               ) : (
                 <Grid templateColumns="repeat(auto-fit, 320px)" gap={4}>
                   {modelProfileList.map((modelProfile) => (
-                    <ModelProfileCard
-                      key={modelProfile.id}
-                      modelProfile={modelProfile}
-                    />
+                    <ModelProfileCard key={modelProfile.id} modelProfile={modelProfile} />
                   ))}
                 </Grid>
               )}
@@ -119,10 +109,7 @@ export function ModelsPage() {
             <Box pt={6}>
               {providersLoading ? (
                 <Grid templateColumns="repeat(auto-fit, 320px)" gap={4}>
-                  {Array.from(
-                    { length: 8 },
-                    (_, i) => `provider-skeleton-${i}`
-                  ).map((key) => (
+                  {Array.from({ length: 8 }, (_, i) => `provider-skeleton-${i}`).map((key) => (
                     <ProviderCardSkeleton key={key} />
                   ))}
                 </Grid>

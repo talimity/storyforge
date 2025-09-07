@@ -29,9 +29,7 @@ export function TurnDeleteDialog({
     >
       <Dialog.Content>
         <Dialog.Header>
-          <Dialog.Title>
-            {cascade ? "Delete Entire Branch" : "Delete Turn"}
-          </Dialog.Title>
+          <Dialog.Title>{cascade ? "Delete Entire Branch" : "Delete Turn"}</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
           <Text>

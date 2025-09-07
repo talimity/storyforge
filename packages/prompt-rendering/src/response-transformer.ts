@@ -32,10 +32,7 @@ export const responseTransformSchema = z.discriminatedUnion("type", [
  * @param transforms - Array of transforms to apply sequentially
  * @returns Transformed text
  */
-export function applyTransforms(
-  text: string,
-  transforms?: readonly ResponseTransform[]
-): string {
+export function applyTransforms(text: string, transforms?: readonly ResponseTransform[]): string {
   if (!transforms || transforms.length === 0) {
     return text;
   }

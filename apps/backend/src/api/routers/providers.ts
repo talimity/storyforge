@@ -38,22 +38,16 @@ import { ProviderService } from "../../services/provider/provider.service.js";
 import { publicProcedure, router } from "../index.js";
 
 function mapProvider(provider: DbProviderConfig): ApiProviderConfig {
-  const parsed = textInferenceCapabilitiesSchema.safeParse(
-    provider.capabilities
-  );
+  const parsed = textInferenceCapabilitiesSchema.safeParse(provider.capabilities);
   return {
     ...provider,
     auth: { hasApiKey: Boolean(provider.auth?.apiKey) },
-    capabilities: parsed.success
-      ? parsed.data
-      : getDefaultCapabilities(provider.kind),
+    capabilities: parsed.success ? parsed.data : getDefaultCapabilities(provider.kind),
   };
 }
 
 function mapModelProfile(model: DbModelProfile): ApiModelProfile {
-  const parsed = textInferenceCapabilitiesSchema
-    .partial()
-    .safeParse(model.capabilityOverrides);
+  const parsed = textInferenceCapabilitiesSchema.partial().safeParse(model.capabilityOverrides);
   return {
     id: model.id,
     providerId: model.providerId,

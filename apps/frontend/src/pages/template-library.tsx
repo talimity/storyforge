@@ -11,14 +11,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import {
-  LuFileText,
-  LuGrid3X3,
-  LuList,
-  LuPlus,
-  LuSearch,
-  LuUpload,
-} from "react-icons/lu";
+import { LuFileText, LuGrid3X3, LuList, LuPlus, LuSearch, LuUpload } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
@@ -97,8 +90,7 @@ export function TemplatesPage() {
 
   const filteredTemplates = templates.filter((template) => {
     const matchesSearch =
-      !searchQuery ||
-      template.name.toLowerCase().includes(searchQuery.toLowerCase());
+      !searchQuery || template.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTask = !taskFilter || template.kind === taskFilter;
     return matchesSearch && matchesTask;
   });
@@ -112,11 +104,7 @@ export function TemplatesPage() {
 
       {/* Action Bar */}
       <Stack gap={4} mb={6}>
-        <Stack
-          direction={{ base: "column", lg: "row" }}
-          justify="space-between"
-          gap={4}
-        >
+        <Stack direction={{ base: "column", lg: "row" }} justify="space-between" gap={4}>
           {/* Search and Filters */}
           <HStack
             flex="1"
@@ -141,9 +129,7 @@ export function TemplatesPage() {
               <SelectRoot
                 collection={createListCollection({ items: taskTypeOptions })}
                 value={[taskFilter]}
-                onValueChange={(details) =>
-                  setTaskFilter(details.value[0] as TaskFilter)
-                }
+                onValueChange={(details) => setTaskFilter(details.value[0] as TaskFilter)}
                 size="md"
               >
                 <SelectTrigger>
@@ -166,9 +152,7 @@ export function TemplatesPage() {
             <SegmentGroup.Root
               hideBelow="md"
               defaultValue={viewMode}
-              onValueChange={(details) =>
-                handleViewModeChange(toViewMode(details.value))
-              }
+              onValueChange={(details) => handleViewModeChange(toViewMode(details.value))}
             >
               <SegmentGroup.Indicator />
               <SegmentGroup.Items items={viewModeOptions} />
@@ -200,32 +184,20 @@ export function TemplatesPage() {
       ) : isLoading ? (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
           {Array.from({ length: 8 }).map((_, index) => (
-            <Skeleton
-              key={`skeleton-${String(index)}`}
-              height="300px"
-              borderRadius="md"
-            />
+            <Skeleton key={`skeleton-${String(index)}`} height="300px" borderRadius="md" />
           ))}
         </SimpleGrid>
       ) : filteredTemplates.length === 0 ? (
         <EmptyState
           icon={<LuFileText />}
-          title={
-            searchQuery || taskFilter
-              ? "No Templates Found"
-              : "No Templates Yet"
-          }
+          title={searchQuery || taskFilter ? "No Templates Found" : "No Templates Yet"}
           description={
             searchQuery || taskFilter
               ? "Try adjusting your search or filter criteria."
               : "Create your first prompt template to get started."
           }
-          actionLabel={
-            !searchQuery && !taskFilter ? "Create Template" : undefined
-          }
-          onActionClick={
-            !searchQuery && !taskFilter ? handleCreateTemplate : undefined
-          }
+          actionLabel={!searchQuery && !taskFilter ? "Create Template" : undefined}
+          onActionClick={!searchQuery && !taskFilter ? handleCreateTemplate : undefined}
         />
       ) : viewMode === "grid" ? (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>

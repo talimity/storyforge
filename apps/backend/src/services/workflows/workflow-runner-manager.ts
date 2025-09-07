@@ -34,9 +34,7 @@ const REGISTRIES = {
   [K in TaskKind]: SourceRegistry<ContextFor<K>, SourcesFor<K>>;
 };
 
-function getRegistryForTask<K extends TaskKind>(
-  taskKind: K
-): (typeof REGISTRIES)[K] {
+function getRegistryForTask<K extends TaskKind>(taskKind: K): (typeof REGISTRIES)[K] {
   return REGISTRIES[taskKind];
 }
 
@@ -73,10 +71,7 @@ export class WorkflowRunnerManager {
       loadModelProfile: (id) => this.loadModelProfile(id),
       budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
       makeAdapter: createAdapter,
-      registry: registry as unknown as SourceRegistry<
-        ContextFor<K>,
-        SourcesFor<K>
-      >,
+      registry: registry as unknown as SourceRegistry<ContextFor<K>, SourcesFor<K>>,
     });
 
     this.runners.set(taskKind, runner);
@@ -103,9 +98,7 @@ export class WorkflowRunnerManager {
   /**
    * Loads a model profile with its provider configuration
    */
-  private async loadModelProfile(
-    profileId: string
-  ): Promise<ModelProfileResolved> {
+  private async loadModelProfile(profileId: string): Promise<ModelProfileResolved> {
     // Query model profile with provider config joined
     const result = await this.db
       .select({

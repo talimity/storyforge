@@ -7,10 +7,7 @@ import {
 import type { UnboundTemplate } from "@storyforge/prompt-rendering";
 import { eq } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
-import {
-  fromDbPromptTemplate,
-  tryCompileUnboundTemplate,
-} from "./utils/marshalling.js";
+import { fromDbPromptTemplate, tryCompileUnboundTemplate } from "./utils/marshalling.js";
 
 type CreateTemplateData = Omit<UnboundTemplate, "id" | "version">;
 type UpdateTemplateData = Partial<Omit<UnboundTemplate, "id" | "version">>;
@@ -42,11 +39,7 @@ export class TemplateService {
         slots: data.slots,
       };
 
-      const [dbTemplate] = await tx
-        .insert(schema.promptTemplates)
-        .values(dbData)
-        .returning()
-        .all();
+      const [dbTemplate] = await tx.insert(schema.promptTemplates).values(dbData).returning().all();
 
       return {
         ...fromDbPromptTemplate(dbTemplate),
@@ -58,11 +51,7 @@ export class TemplateService {
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
   }
 
-  async updateTemplate(
-    id: string,
-    data: UpdateTemplateData,
-    outerTx?: SqliteTransaction
-  ) {
+  async updateTemplate(id: string, data: UpdateTemplateData, outerTx?: SqliteTransaction) {
     const operation = async (tx: SqliteTransaction) => {
       const existing = await tx.query.promptTemplates.findFirst({
         where: { id },
@@ -97,8 +86,7 @@ export class TemplateService {
       };
 
       if (data.name !== undefined) updateData.name = data.name;
-      if (data.description !== undefined)
-        updateData.description = data.description;
+      if (data.description !== undefined) updateData.description = data.description;
       if (data.layout !== undefined) updateData.layout = data.layout;
       if (data.slots !== undefined) updateData.slots = data.slots;
 
@@ -131,10 +119,7 @@ export class TemplateService {
         });
       }
 
-      await tx
-        .delete(schema.promptTemplates)
-        .where(eq(schema.promptTemplates.id, id))
-        .execute();
+      await tx.delete(schema.promptTemplates).where(eq(schema.promptTemplates.id, id)).execute();
 
       return { success: true };
     };
@@ -142,11 +127,7 @@ export class TemplateService {
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
   }
 
-  async duplicateTemplate(
-    id: string,
-    newName: string,
-    outerTx?: SqliteTransaction
-  ) {
+  async duplicateTemplate(id: string, newName: string, outerTx?: SqliteTransaction) {
     const operation = async (tx: SqliteTransaction) => {
       const existing = await tx.query.promptTemplates.findFirst({
         where: { id },

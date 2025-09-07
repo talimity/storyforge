@@ -75,8 +75,7 @@ describe("Workflow Runner", () => {
       }),
       registry: turnGenRegistry,
       budgetFactory: vi.fn(
-        (maxTokens?: number) =>
-          new DefaultBudgetManager({ maxTokens: maxTokens ?? 8192 })
+        (maxTokens?: number) => new DefaultBudgetManager({ maxTokens: maxTokens ?? 8192 })
       ),
     };
   });
@@ -119,7 +118,7 @@ describe("Workflow Runner", () => {
       },
     };
 
-    const handle = await runner.startRun(workflow, context);
+    const handle = await runner.startRun(workflow, context, {});
 
     // Start collecting events asynchronously
     const eventCollection = (async () => {
@@ -138,9 +137,7 @@ describe("Workflow Runner", () => {
     await eventCollection;
 
     // Verify event sequence
-    const eventTypes = capturedEvents
-      .map((e) => e.type)
-      .filter((e) => e !== "stream_delta");
+    const eventTypes = capturedEvents.map((e) => e.type).filter((e) => e !== "stream_delta");
     expect(eventTypes).toEqual([
       "run_started",
       "step_started",
@@ -210,7 +207,7 @@ describe("Workflow Runner", () => {
       },
     };
 
-    const handle = await runner.startRun(workflow, context);
+    const handle = await runner.startRun(workflow, context, {});
     const result = await handle.result;
 
     // Verify both steps produced outputs
@@ -268,7 +265,7 @@ describe("Workflow Runner", () => {
       },
     };
 
-    const handle = await runner.startRun(workflow, context);
+    const handle = await runner.startRun(workflow, context, {});
     const result = await handle.result;
 
     // The mock adapter returns a response with "test" in it
@@ -358,7 +355,7 @@ describe("Workflow Runner", () => {
       },
     };
 
-    const handle = await runner.startRun(workflow, context);
+    const handle = await runner.startRun(workflow, context, {});
 
     // Cancel after a short delay to ensure it's during streaming
     setTimeout(() => handle.cancel(), 50);
@@ -438,7 +435,7 @@ describe("Workflow Runner", () => {
       },
     };
 
-    const handle = await runner.startRun(workflow, context);
+    const handle = await runner.startRun(workflow, context, {});
     const result = await handle.result;
 
     expect(result.finalOutputs.full_json).toEqual({
@@ -484,7 +481,7 @@ describe("Workflow Runner", () => {
       },
     };
 
-    const handle = await runner.startRun(workflow, context);
+    const handle = await runner.startRun(workflow, context, {});
 
     // Get snapshot before completion
     const snapshotDuring = handle.snapshot();
@@ -555,13 +552,11 @@ describe("Workflow Runner", () => {
       },
     };
 
-    const handle = await runner.startRun(workflow, context);
+    const handle = await runner.startRun(workflow, context, {});
     const result = await handle.result;
 
     // Should use the final response, not the concatenated chunks
-    expect(result.stepResponses.step1.message.content).toBe(
-      "final complete response"
-    );
+    expect(result.stepResponses.step1.message.content).toBe("final complete response");
     expect(result.finalOutputs.final_content).toBe("final complete response");
   });
 
@@ -611,7 +606,7 @@ describe("Workflow Runner", () => {
       },
     };
 
-    const handle = await runner.startRun(workflow, context);
+    const handle = await runner.startRun(workflow, context, {});
 
     // Collect events
     const eventCollection = (async () => {
@@ -661,7 +656,7 @@ describe("Workflow Runner", () => {
     };
 
     const events2: WorkflowEvent[] = [];
-    const handle2 = await runner.startRun(workflow2, context);
+    const handle2 = await runner.startRun(workflow2, context, {});
 
     const eventCollection2 = (async () => {
       for await (const event of handle2.events()) {

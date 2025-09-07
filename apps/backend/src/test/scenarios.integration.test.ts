@@ -131,9 +131,9 @@ describe("scenarios router integration", () => {
     });
 
     it("should throw NOT_FOUND for invalid id", async () => {
-      await expect(
-        caller.scenarios.getById({ id: "invalid-id" })
-      ).rejects.toThrow("Scenario not found");
+      await expect(caller.scenarios.getById({ id: "invalid-id" })).rejects.toThrow(
+        "Scenario not found"
+      );
     });
   });
 
@@ -182,21 +182,19 @@ describe("scenarios router integration", () => {
       await caller.scenarios.delete({ id: newScenario.id });
 
       // Verify scenario is deleted
-      await expect(
-        caller.scenarios.getById({ id: newScenario.id })
-      ).rejects.toThrow("Scenario not found");
+      await expect(caller.scenarios.getById({ id: newScenario.id })).rejects.toThrow(
+        "Scenario not found"
+      );
 
       // Verify list doesn't contain the deleted scenario
       const scenarios = await caller.scenarios.list({});
-      expect(
-        scenarios.scenarios.find((s: any) => s.id === newScenario.id)
-      ).toBeUndefined();
+      expect(scenarios.scenarios.find((s: any) => s.id === newScenario.id)).toBeUndefined();
     });
 
     it("should throw NOT_FOUND for invalid id", async () => {
-      await expect(
-        caller.scenarios.delete({ id: "invalid-id" })
-      ).rejects.toThrow("Scenario not found");
+      await expect(caller.scenarios.delete({ id: "invalid-id" })).rejects.toThrow(
+        "Scenario not found"
+      );
     });
   });
 });

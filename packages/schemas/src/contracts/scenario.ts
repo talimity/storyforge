@@ -12,10 +12,7 @@ export const createScenarioSchema = z.object({
   status: z.enum(["active", "archived"]).default("active"),
   settings: z.record(z.string(), z.unknown()).default({}),
   metadata: z.record(z.string(), z.unknown()).default({}),
-  characterIds: z
-    .array(z.string())
-    .min(2, "A scenario requires at least 2 characters")
-    .default([]),
+  characterIds: z.array(z.string()).min(2, "A scenario requires at least 2 characters").default([]),
   userProxyCharacterId: z.string().optional(),
 });
 
@@ -121,9 +118,7 @@ export const scenarioCharacterStartersResponseSchema = z.object({
 
 // Export inferred types
 export type Scenario = z.infer<typeof scenarioSchema>;
-export type ScenarioWithCharacters = z.infer<
-  typeof scenarioWithCharactersSchema
->;
+export type ScenarioWithCharacters = z.infer<typeof scenarioWithCharactersSchema>;
 export type ScenarioParticipant = z.infer<typeof scenarioParticipantSchema>;
 export type CreateScenarioInput = z.infer<typeof createScenarioSchema>;
 export type UpdateScenarioInput = z.infer<typeof updateScenarioSchema>;
@@ -137,6 +132,4 @@ export type ScenarioCharacterStartersResponse = z.infer<
 >;
 export type ScenarioSearchQuery = z.infer<typeof scenarioSearchQuerySchema>;
 export type ScenarioSearchResult = z.infer<typeof scenarioSearchResultSchema>;
-export type ScenarioSearchResponse = z.infer<
-  typeof scenarioSearchResponseSchema
->;
+export type ScenarioSearchResponse = z.infer<typeof scenarioSearchResponseSchema>;

@@ -35,22 +35,20 @@ interface PageHeaderRootProps extends PropsWithChildren {
 
 // Updated PageHeaderRoot component with better wrapping behavior
 function PageHeaderRoot({ children, containerProps }: PageHeaderRootProps) {
-  const childArray = Children.toArray(children).filter((child) =>
-    isValidElement(child)
-  );
+  const childArray = Children.toArray(children).filter((child) => isValidElement(child));
 
   // Find key components
   const title = childArray.find((child) => child.type === PageHeaderTitle) as
     | ReactElement<PageHeaderTitleProps>
     | undefined;
 
-  const tagline = childArray.find(
-    (child) => child.type === PageHeaderTagline
-  ) as ReactElement<PageHeaderTaglineProps> | undefined;
+  const tagline = childArray.find((child) => child.type === PageHeaderTagline) as
+    | ReactElement<PageHeaderTaglineProps>
+    | undefined;
 
-  const controls = childArray.find(
-    (child) => child.type === PageHeaderControls
-  ) as ReactElement<PageHeaderControlsProps> | undefined;
+  const controls = childArray.find((child) => child.type === PageHeaderControls) as
+    | ReactElement<PageHeaderControlsProps>
+    | undefined;
 
   const tabs = childArray.find((child) => child.type === PageHeaderTabs) as
     | ReactElement<PageHeaderTabsProps>
@@ -129,12 +127,7 @@ interface PageHeaderTitleProps extends HeadingProps {
   children: ReactNode;
 }
 
-function PageHeaderTitle({
-  children,
-  size = "3xl",
-  py = "6",
-  ...props
-}: PageHeaderTitleProps) {
+function PageHeaderTitle({ children, size = "3xl", py = "6", ...props }: PageHeaderTitleProps) {
   return (
     <Heading size={size} py={py} {...props}>
       {children}
@@ -180,9 +173,7 @@ function PageHeaderSort({
         {label}
       </Text>
       <NativeSelect.Root width="100px" defaultValue={defaultValue}>
-        <NativeSelect.Field
-          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        >
+        <NativeSelect.Field onChange={onChange ? (e) => onChange(e.target.value) : undefined}>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -207,20 +198,12 @@ interface PageHeaderViewModesProps {
   onChange?: (value: string) => void;
 }
 
-function PageHeaderViewModes({
-  options,
-  defaultValue,
-  onChange,
-}: PageHeaderViewModesProps) {
+function PageHeaderViewModes({ options, defaultValue, onChange }: PageHeaderViewModesProps) {
   return (
     <SegmentGroup.Root
       hideBelow="md"
       defaultValue={defaultValue || options[0]?.value}
-      onValueChange={
-        onChange
-          ? (details) => details.value && onChange(details.value)
-          : undefined
-      }
+      onValueChange={onChange ? (details) => details.value && onChange(details.value) : undefined}
     >
       <SegmentGroup.Indicator />
       <SegmentGroup.Items items={options} />
@@ -257,12 +240,7 @@ interface PageHeaderTabsProps {
   children?: ReactNode;
 }
 
-function PageHeaderTabs({
-  tabs,
-  defaultValue,
-  onChange,
-  children,
-}: PageHeaderTabsProps) {
+function PageHeaderTabs({ tabs, defaultValue, onChange, children }: PageHeaderTabsProps) {
   // Extract any Controls from children to place them in the tab list
   const childArray = Children.toArray(children);
   const controls = childArray.find(
@@ -277,11 +255,7 @@ function PageHeaderTabs({
     <Tabs.Root
       size="lg"
       defaultValue={defaultValue || tabs[0]?.value}
-      onValueChange={
-        onChange
-          ? (details) => details.value && onChange(details.value)
-          : undefined
-      }
+      onValueChange={onChange ? (details) => details.value && onChange(details.value) : undefined}
     >
       <Tabs.List>
         {tabs.map((tab) => (

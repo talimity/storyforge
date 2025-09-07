@@ -1,8 +1,4 @@
-type NonNull<T> = T extends null
-  ? never
-  : T extends object
-    ? { [K in keyof T]: NonNull<T[K]> }
-    : T;
+type NonNull<T> = T extends null ? never : T extends object ? { [K in keyof T]: NonNull<T[K]> } : T;
 
 /**
  * Drizzle ORM returns null for values that are not set, which is not ideal for

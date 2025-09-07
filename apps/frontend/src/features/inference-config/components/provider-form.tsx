@@ -1,9 +1,6 @@
 import { createListCollection, HStack, Input, VStack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  createProviderConfigSchema,
-  providerAuthInputSchema,
-} from "@storyforge/schemas";
+import { createProviderConfigSchema, providerAuthInputSchema } from "@storyforge/schemas";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import {
@@ -130,10 +127,7 @@ export function ProviderForm({
           invalid={!!errors.name?.message}
           errorText={errors.name?.message}
         >
-          <Input
-            {...register("name")}
-            placeholder="e.g., OpenRouter (Personal), Local vLLM"
-          />
+          <Input {...register("name")} placeholder="e.g., OpenRouter (Personal), Local vLLM" />
         </Field>
 
         <Field
@@ -152,9 +146,7 @@ export function ProviderForm({
             {...register("auth.apiKey", { setValueAs: emptyToUndefined })} // don't send null to server as it will clear existing key
             type="password"
             placeholder={
-              isEditMode && initialData?.auth.hasApiKey
-                ? "••••••••"
-                : "Enter your API key"
+              isEditMode && initialData?.auth.hasApiKey ? "••••••••" : "Enter your API key"
             }
           />
         </Field>
@@ -194,12 +186,7 @@ export function ProviderForm({
         <Button variant="ghost" onClick={onCancel} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button
-          type="submit"
-          form="provider-form"
-          colorPalette="primary"
-          loading={isSubmitting}
-        >
+        <Button type="submit" form="provider-form" colorPalette="primary" loading={isSubmitting}>
           {submitLabel}
         </Button>
       </HStack>

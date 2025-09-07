@@ -6,10 +6,7 @@ import { MessageNodeView } from "@/features/template-builder/components/nodes/me
 import { SlotReferenceEdit } from "@/features/template-builder/components/nodes/slot-reference-edit";
 import { SlotReferenceView } from "@/features/template-builder/components/nodes/slot-reference-view";
 import { useTemplateBuilderStore } from "@/features/template-builder/stores/template-builder-store";
-import type {
-  LayoutNodeDraft,
-  SlotDraft,
-} from "@/features/template-builder/types";
+import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/types";
 
 interface LayoutNodeCardProps {
   node: LayoutNodeDraft;
@@ -19,22 +16,10 @@ interface LayoutNodeCardProps {
   style?: React.CSSProperties;
 }
 
-export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>(
-  (props, ref) => {
-    const {
-      node,
-      isDragging = false,
-      onDelete,
-      dragHandleProps,
-      style,
-    } = props;
-    const {
-      slots,
-      editingNodeId,
-      startEditingNode,
-      saveNodeEdit,
-      cancelNodeEdit,
-    } = useTemplateBuilderStore(
+export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>((props, ref) => {
+  const { node, isDragging = false, onDelete, dragHandleProps, style } = props;
+  const { slots, editingNodeId, startEditingNode, saveNodeEdit, cancelNodeEdit } =
+    useTemplateBuilderStore(
       useShallow((s) => ({
         slots: s.slotsDraft,
         editingNodeId: s.editingNodeId,
@@ -44,103 +29,99 @@ export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>(
       }))
     );
 
-    const isEditing = editingNodeId === node.id;
+  const isEditing = editingNodeId === node.id;
 
-    const handleEdit = () => {
-      startEditingNode(node.id);
-    };
+  const handleEdit = () => {
+    startEditingNode(node.id);
+  };
 
-    const handleSaveNode = (updatedNode: LayoutNodeDraft) => {
-      saveNodeEdit(node.id, updatedNode);
-    };
+  const handleSaveNode = (updatedNode: LayoutNodeDraft) => {
+    saveNodeEdit(node.id, updatedNode);
+  };
 
-    const handleSaveSlot = (
-      updatedNode: LayoutNodeDraft,
-      updatedSlot: SlotDraft
-    ) => {
-      saveNodeEdit(node.id, updatedNode, updatedSlot);
-    };
+  const handleSaveSlot = (updatedNode: LayoutNodeDraft, updatedSlot: SlotDraft) => {
+    saveNodeEdit(node.id, updatedNode, updatedSlot);
+  };
 
-    const handleCancel = () => {
-      cancelNodeEdit();
-    };
+  const handleCancel = () => {
+    cancelNodeEdit();
+  };
 
-    // Get the slot for slot references
-    const slot = node.kind === "slot" ? slots[node.name] : undefined;
-    const kind = node.kind;
+  // Get the slot for slot references
+  const slot = node.kind === "slot" ? slots[node.name] : undefined;
+  const kind = node.kind;
 
-    if (isEditing) {
-      // Render edit mode based on node type
-      if (kind === "message") {
-        return (
-          <MessageNodeEdit
-            ref={ref}
-            style={style}
-            node={node}
-            isDragging={isDragging}
-            onSave={handleSaveNode}
-            onCancel={handleCancel}
-            dragHandleProps={dragHandleProps}
-          />
-        );
-      }
-
-      if (kind === "slot") {
-        if (!slot) {
-          return (
-            <div ref={ref} style={style}>
-              <Text fontSize="sm" color="red.500">
-                Slot "{node.name}" not found.
-              </Text>
-            </div>
-          );
-        }
-        return (
-          <SlotReferenceEdit
-            ref={ref}
-            style={style}
-            node={node}
-            slot={slot}
-            isDragging={isDragging}
-            onSave={handleSaveSlot}
-            onCancel={handleCancel}
-            dragHandleProps={dragHandleProps}
-          />
-        );
-      }
-    }
-
-    // Render view mode based on node type
+  if (isEditing) {
+    // Render edit mode based on node type
     if (kind === "message") {
       return (
-        <MessageNodeView
+        <MessageNodeEdit
           ref={ref}
           style={style}
           node={node}
           isDragging={isDragging}
-          onEdit={handleEdit}
-          onDelete={onDelete}
+          onSave={handleSaveNode}
+          onCancel={handleCancel}
           dragHandleProps={dragHandleProps}
         />
       );
     }
 
     if (kind === "slot") {
+      if (!slot) {
+        return (
+          <div ref={ref} style={style}>
+            <Text fontSize="sm" color="red.500">
+              Slot "{node.name}" not found.
+            </Text>
+          </div>
+        );
+      }
       return (
-        <SlotReferenceView
+        <SlotReferenceEdit
           ref={ref}
           style={style}
           node={node}
           slot={slot}
           isDragging={isDragging}
-          onEdit={handleEdit}
-          onDelete={onDelete}
+          onSave={handleSaveSlot}
+          onCancel={handleCancel}
           dragHandleProps={dragHandleProps}
         />
       );
     }
-
-    const badKind = kind satisfies never;
-    throw new Error(`Unsupported node kind: ${badKind}`);
   }
-);
+
+  // Render view mode based on node type
+  if (kind === "message") {
+    return (
+      <MessageNodeView
+        ref={ref}
+        style={style}
+        node={node}
+        isDragging={isDragging}
+        onEdit={handleEdit}
+        onDelete={onDelete}
+        dragHandleProps={dragHandleProps}
+      />
+    );
+  }
+
+  if (kind === "slot") {
+    return (
+      <SlotReferenceView
+        ref={ref}
+        style={style}
+        node={node}
+        slot={slot}
+        isDragging={isDragging}
+        onEdit={handleEdit}
+        onDelete={onDelete}
+        dragHandleProps={dragHandleProps}
+      />
+    );
+  }
+
+  const badKind = kind satisfies never;
+  throw new Error(`Unsupported node kind: ${badKind}`);
+});

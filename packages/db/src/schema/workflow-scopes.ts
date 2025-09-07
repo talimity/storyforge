@@ -13,11 +13,7 @@ import { scenarioParticipants } from "./scenario-participants.js";
 import { scenarios } from "./scenarios.js";
 import { workflows } from "./workflows.js";
 
-export type WorkflowScopeKind =
-  | "default"
-  | "scenario"
-  | "character"
-  | "participant";
+export type WorkflowScopeKind = "default" | "scenario" | "character" | "participant";
 
 export const workflowScopes = sqliteTable(
   "workflow_scopes",
@@ -36,10 +32,9 @@ export const workflowScopes = sqliteTable(
     characterId: text("character_id").references(() => characters.id, {
       onDelete: "cascade",
     }),
-    participantId: text("participant_id").references(
-      () => scenarioParticipants.id,
-      { onDelete: "cascade" }
-    ),
+    participantId: text("participant_id").references(() => scenarioParticipants.id, {
+      onDelete: "cascade",
+    }),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),

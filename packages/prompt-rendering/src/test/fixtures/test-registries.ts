@@ -23,9 +23,7 @@ export function makeTurnGenTestRegistry(): SourceRegistry<any, any> {
     },
     charactersByIds: (ref: any, ctx) => {
       const args = ref.args;
-      return ctx.characters.filter((c: { id: string }) =>
-        args.ids.includes(c.id)
-      );
+      return ctx.characters.filter((c: { id: string }) => args.ids.includes(c.id));
     },
 
     // Simple value sources

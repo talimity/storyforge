@@ -89,9 +89,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
     return this.genParams;
   }
 
-  async complete(
-    _request: ChatCompletionRequest
-  ): Promise<ChatCompletionResponse> {
+  async complete(_request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     throw new Error("OpenAI-compatible completion not implemented yet");
   }
 
@@ -131,9 +129,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
       let filtered = models;
       if (query) {
         const lowerQuery = query.toLowerCase();
-        filtered = models.filter((m) =>
-          m.id.toLowerCase().includes(lowerQuery)
-        );
+        filtered = models.filter((m) => m.id.toLowerCase().includes(lowerQuery));
       }
 
       return filtered.map((m) => ({
@@ -152,8 +148,6 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
     _request: ChatCompletionRequest,
     _stream: boolean
   ): OpenAICompatibleRequest {
-    throw new Error(
-      "OpenAI-compatible request transformation not implemented yet"
-    );
+    throw new Error("OpenAI-compatible request transformation not implemented yet");
   }
 }

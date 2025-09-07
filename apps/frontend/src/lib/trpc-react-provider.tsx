@@ -31,10 +31,7 @@ export function TRPCReactProvider({ children }: TRPCReactProviderProps) {
         {children}
         {/* Add React Query Devtools in development */}
         {import.meta.env.DEV && (
-          <ReactQueryDevtools
-            initialIsOpen={false}
-            buttonPosition="bottom-right"
-          />
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
         )}
       </QueryClientProvider>
     </trpc.Provider>

@@ -19,17 +19,16 @@ export function DeleteModelProfileDialog({
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const utils = trpc.useUtils();
 
-  const deleteModelProfileMutation =
-    trpc.providers.deleteModelProfile.useMutation({
-      onSuccess: () => {
-        showSuccessToast({
-          title: "Model profile deleted successfully",
-          description: "Model profile has been removed",
-        });
-        utils.providers.listModelProfiles.invalidate();
-        onOpenChange(false);
-      },
-    });
+  const deleteModelProfileMutation = trpc.providers.deleteModelProfile.useMutation({
+    onSuccess: () => {
+      showSuccessToast({
+        title: "Model profile deleted successfully",
+        description: "Model profile has been removed",
+      });
+      utils.providers.listModelProfiles.invalidate();
+      onOpenChange(false);
+    },
+  });
 
   const handleDelete = () => {
     deleteModelProfileMutation.mutate({ id: modelProfile.id });
@@ -49,8 +48,8 @@ export function DeleteModelProfileDialog({
         </Dialog.Header>
         <Dialog.Body>
           <Text>
-            Are you sure you want to delete "{modelProfile.displayName}"? This
-            action cannot be undone.
+            Are you sure you want to delete "{modelProfile.displayName}"? This action cannot be
+            undone.
           </Text>
           <Text mt={2} fontSize="sm" color="content.muted">
             Model: {modelProfile.modelId}

@@ -9,12 +9,7 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  type GenStep,
-  genStepSchema,
-  type TaskKind,
-  taskKindSchema,
-} from "@storyforge/gentasks";
+import { type GenStep, genStepSchema, type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -76,9 +71,7 @@ export function WorkflowForm({
       task: initialData?.task ?? "turn_generation",
       name: initialData?.name ?? "",
       description: initialData?.description ?? "",
-      stepsJson: initialData?.steps
-        ? JSON.stringify(initialData.steps, null, 2)
-        : "[]",
+      stepsJson: initialData?.steps ? JSON.stringify(initialData.steps, null, 2) : "[]",
     },
   });
 
@@ -108,18 +101,11 @@ export function WorkflowForm({
             Workflow Details
           </Heading>
 
-          <Field
-            label="Task"
-            required
-            invalid={!!errors.task}
-            errorText={errors.task?.message}
-          >
+          <Field label="Task" required invalid={!!errors.task} errorText={errors.task?.message}>
             <SelectRoot
               collection={collection}
               value={[initialData?.task ?? "turn_generation"]}
-              onValueChange={(d) =>
-                setValue("task", taskKindSchema.parse(d.value[0]))
-              }
+              onValueChange={(d) => setValue("task", taskKindSchema.parse(d.value[0]))}
             >
               <SelectTrigger>
                 <SelectValueText />
@@ -134,17 +120,8 @@ export function WorkflowForm({
             </SelectRoot>
           </Field>
 
-          <Field
-            label="Name"
-            required
-            invalid={!!errors.name}
-            errorText={errors.name?.message}
-          >
-            <Input
-              {...register("name")}
-              placeholder="Workflow name"
-              disabled={isSubmitting}
-            />
+          <Field label="Name" required invalid={!!errors.name} errorText={errors.name?.message}>
+            <Input {...register("name")} placeholder="Workflow name" disabled={isSubmitting} />
           </Field>
 
           <Field label="Description">
@@ -171,11 +148,7 @@ export function WorkflowForm({
           </Field>
 
           <HStack gap={3} justify="flex-end">
-            <Button
-              type="submit"
-              colorPalette="primary"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" colorPalette="primary" disabled={isSubmitting}>
               {submitLabel}
             </Button>
             <Button variant="ghost" onClick={onCancel}>

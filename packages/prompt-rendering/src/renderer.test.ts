@@ -217,12 +217,7 @@ describe("render function", () => {
       const compiled = compileTemplate(template);
 
       // Should still complete, but may have fewer messages due to budget
-      const messages = render(
-        compiled,
-        sampleContext,
-        restrictiveBudget,
-        registry
-      );
+      const messages = render(compiled, sampleContext, restrictiveBudget, registry);
 
       expect(messages).toBeDefined();
       expect(Array.isArray(messages)).toBe(true);

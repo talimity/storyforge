@@ -77,9 +77,7 @@ export interface ParsedCharacterCard {
   isV2: boolean;
 }
 
-export async function parseTavernCard(
-  buffer: ArrayBufferLike
-): Promise<ParsedCharacterCard> {
+export async function parseTavernCard(buffer: ArrayBufferLike): Promise<ParsedCharacterCard> {
   const chunks = pngExtract(new Uint8Array(buffer));
 
   const textChunk = chunks

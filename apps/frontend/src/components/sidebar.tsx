@@ -1,13 +1,4 @@
-import {
-  Box,
-  ClientOnly,
-  Flex,
-  HStack,
-  Separator,
-  Skeleton,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
+import { Box, ClientOnly, Flex, HStack, Separator, Skeleton, Stack, Text } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 import {
   LuBookOpen,
@@ -32,8 +23,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
-  const { activeScenarioId, scenarioQuery, hasValidActiveScenario } =
-    useActiveScenarioWithData();
+  const { activeScenarioId, scenarioQuery, hasValidActiveScenario } = useActiveScenarioWithData();
 
   const loading = scenarioQuery.isLoading;
 
@@ -69,14 +59,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       </Button>
 
       {/* Main Navigation */}
-      <Stack
-        gap="1"
-        flex="1"
-        py="4"
-        px="3"
-        overflowY="auto"
-        data-testid="sidebar-nav"
-      >
+      <Stack gap="1" flex="1" py="4" px="3" overflowY="auto" data-testid="sidebar-nav">
         {loading && (
           <HStack pl="4">
             <Skeleton h="6" w="6" rounded="md" />
@@ -134,19 +117,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           collapsed={collapsed}
         />
 
-        <SidebarLink
-          to="/models"
-          icon={<TbCubeSpark />}
-          label="Models"
-          collapsed={collapsed}
-        />
+        <SidebarLink to="/models" icon={<TbCubeSpark />} label="Models" collapsed={collapsed} />
 
         {/* Dev tools Section */}
-        {collapsed ? (
-          <Separator />
-        ) : (
-          <SectionHeader>Developer Tools</SectionHeader>
-        )}
+        {collapsed ? <Separator /> : <SectionHeader>Developer Tools</SectionHeader>}
 
         <SidebarLink
           to="/theme-demo"

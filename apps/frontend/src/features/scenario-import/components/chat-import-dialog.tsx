@@ -10,11 +10,7 @@ interface ChatImportDialogProps {
   onImportSuccess: (scenarioId: string) => void;
 }
 
-export function ChatImportDialog({
-  isOpen,
-  onClose,
-  onImportSuccess,
-}: ChatImportDialogProps) {
+export function ChatImportDialog({ isOpen, onClose, onImportSuccess }: ChatImportDialogProps) {
   const vm = useChatImport({ onClose, onImportSuccess });
 
   return (
@@ -28,9 +24,7 @@ export function ChatImportDialog({
       <Dialog.Content>
         <Dialog.Header>
           <Dialog.Title>
-            {vm.step === "upload"
-              ? "Import SillyTavern Chat"
-              : "Assign Characters"}
+            {vm.step === "upload" ? "Import SillyTavern Chat" : "Assign Characters"}
           </Dialog.Title>
         </Dialog.Header>
 
@@ -60,11 +54,7 @@ export function ChatImportDialog({
 
         <Dialog.Footer>
           <HStack justify="space-between" w="full">
-            <Button
-              variant="ghost"
-              onClick={vm.handleClose}
-              disabled={vm.isProcessing}
-            >
+            <Button variant="ghost" onClick={vm.handleClose} disabled={vm.isProcessing}>
               Cancel
             </Button>
 

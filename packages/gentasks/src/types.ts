@@ -1,14 +1,8 @@
 import type { z } from "zod";
 import type { taskKindSchema } from "./schemas.js";
-import type {
-  ChapterSummCtx,
-  ChapterSummSources,
-} from "./tasks/chapter-summarization.js";
+import type { ChapterSummCtx, ChapterSummSources } from "./tasks/chapter-summarization.js";
 import type { TurnGenCtx, TurnGenSources } from "./tasks/turn-generation.js";
-import type {
-  WritingAssistantCtx,
-  WritingAssistantSources,
-} from "./tasks/writing-assistant.js";
+import type { WritingAssistantCtx, WritingAssistantSources } from "./tasks/writing-assistant.js";
 
 export type TurnCtxDTO = {
   /** The 1-based turn number. */

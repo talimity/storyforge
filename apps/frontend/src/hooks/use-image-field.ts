@@ -94,9 +94,7 @@ export function useImageField({
   );
 
   const handleRemove = useCallback(() => {
-    setState(
-      state.type === "existing" ? { type: "removed" } : { type: "none" }
-    );
+    setState(state.type === "existing" ? { type: "removed" } : { type: "none" });
   }, [state.type]);
 
   const handleFiles = useCallback(

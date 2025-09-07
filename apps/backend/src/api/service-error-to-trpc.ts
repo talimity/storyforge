@@ -26,8 +26,7 @@ export function serviceErrorToTRPC(e: ServiceError): never {
       throw new TRPCError({
         code: "FORBIDDEN",
         cause,
-        message:
-          message || "You do not have permission to perform this action.",
+        message: message || "You do not have permission to perform this action.",
       });
     }
     case "Conflict": {

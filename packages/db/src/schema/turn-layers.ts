@@ -1,11 +1,5 @@
 import { createId } from "@storyforge/utils";
-import {
-  index,
-  integer,
-  sqliteTable,
-  text,
-  uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { turns } from "./turns.js";
 
 export const turnLayers = sqliteTable(

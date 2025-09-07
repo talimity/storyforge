@@ -19,10 +19,7 @@ export function compileLeaf(template: string): CompiledLeafFunction {
 /**
  * Recursive compileLeaf implementation.
  */
-function compileLeafInner(
-  template: string,
-  depth: number
-): CompiledLeafFunction {
+function compileLeafInner(template: string, depth: number): CompiledLeafFunction {
   // Base case
   if (depth > MAX_NESTED_EXPANSIONS) {
     return () => template;
@@ -81,11 +78,7 @@ function compileLeafInner(
 function toStringSafe(v: unknown): string {
   if (v == null) return "";
   if (typeof v === "string") return v;
-  if (
-    typeof v === "number" ||
-    typeof v === "boolean" ||
-    typeof v === "bigint"
-  ) {
+  if (typeof v === "number" || typeof v === "boolean" || typeof v === "bigint") {
     return String(v);
   }
   try {

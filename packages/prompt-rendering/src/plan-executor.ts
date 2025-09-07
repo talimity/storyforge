@@ -56,9 +56,7 @@ export function executePlanNode<Ctx extends object, S extends SourceSpec>(
     default: {
       // TypeScript should prevent this, but handle gracefully
       const _badKind = nodeKind satisfies never;
-      console.warn(
-        `prompt-rendering executor: Unsupported PlanNode '${_badKind}'.`
-      );
+      console.warn(`prompt-rendering executor: Unsupported PlanNode '${_badKind}'.`);
       return [];
     }
   }
@@ -68,10 +66,7 @@ export function executePlanNode<Ctx extends object, S extends SourceSpec>(
  * Execute a message node to produce a single chat message.
  * Resolves `from` via registry or uses literal `content`, applies leaf templating.
  */
-export function executeMessageNode<
-  Ctx extends CtxWithGlobals,
-  S extends SourceSpec,
->(
+export function executeMessageNode<Ctx extends CtxWithGlobals, S extends SourceSpec>(
   node: CompiledPlanNode<S> & { kind: "message" },
   ctx: Ctx,
   budget: BudgetManager,
@@ -92,8 +87,7 @@ export function executeMessageNode<
     if (resolved == null) {
       return []; // emit nothing per spec
     }
-    content =
-      typeof resolved === "string" ? resolved : JSON.stringify(resolved);
+    content = typeof resolved === "string" ? resolved : JSON.stringify(resolved);
   } else if (node.content) {
     // Use compiled leaf function
     content = node.content(scope);
@@ -211,13 +205,7 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
 
       // Execute child nodes with item in scope
       for (const childNode of node.map) {
-        const childResults = executePlanNode(
-          childNode,
-          ctx,
-          budget,
-          registry,
-          item
-        );
+        const childResults = executePlanNode(childNode, ctx, budget, registry, item);
         results.push(...childResults);
 
         // Check budget after each child

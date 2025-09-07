@@ -54,9 +54,9 @@ describe("ScenarioService", () => {
       );
 
       expect(activeCharacterParticipants).toHaveLength(3);
-      expect(
-        activeCharacterParticipants.map((p) => p.characterId).sort()
-      ).toEqual([char1.id, char2.id, char3.id].sort());
+      expect(activeCharacterParticipants.map((p) => p.characterId).sort()).toEqual(
+        [char1.id, char2.id, char3.id].sort()
+      );
     });
 
     it("should remove participants when updating scenario", async () => {
@@ -93,9 +93,7 @@ describe("ScenarioService", () => {
         .where(eq(schema.scenarioParticipants.scenarioId, scenario.id))
         .all();
 
-      const characterParticipants = participants.filter(
-        (p) => p.type === "character"
-      );
+      const characterParticipants = participants.filter((p) => p.type === "character");
 
       expect(characterParticipants).toHaveLength(2);
       expect(characterParticipants.map((p) => p.characterId).sort()).toEqual(
@@ -103,9 +101,7 @@ describe("ScenarioService", () => {
       );
 
       // Verify the removed participant is completely gone
-      const removedParticipant = participants.find(
-        (p) => p.characterId === char3.id
-      );
+      const removedParticipant = participants.find((p) => p.characterId === char3.id);
       expect(removedParticipant).toBeUndefined();
     });
 
@@ -143,12 +139,8 @@ describe("ScenarioService", () => {
         .where(eq(schema.scenarioParticipants.scenarioId, scenario.id))
         .all();
 
-      const char1Participant = participants.find(
-        (p) => p.characterId === char1.id
-      );
-      const char2Participant = participants.find(
-        (p) => p.characterId === char2.id
-      );
+      const char1Participant = participants.find((p) => p.characterId === char1.id);
+      const char2Participant = participants.find((p) => p.characterId === char2.id);
 
       expect(char1Participant?.role).toBe("Protagonist");
       expect(char1Participant?.isUserProxy).toBe(false);
@@ -182,9 +174,7 @@ describe("ScenarioService", () => {
         .where(eq(schema.scenarioParticipants.scenarioId, scenario.id))
         .all();
 
-      const char1Participant = participants.find(
-        (p) => p.characterId === char1.id
-      );
+      const char1Participant = participants.find((p) => p.characterId === char1.id);
 
       // Get the chapter
       const chapter = await db
@@ -218,9 +208,7 @@ describe("ScenarioService", () => {
         .where(eq(schema.scenarioParticipants.scenarioId, scenario.id))
         .all();
 
-      const characterParticipants = remainingParticipants.filter(
-        (p) => p.type === "character"
-      );
+      const characterParticipants = remainingParticipants.filter((p) => p.type === "character");
       expect(characterParticipants).toHaveLength(3);
     });
   });

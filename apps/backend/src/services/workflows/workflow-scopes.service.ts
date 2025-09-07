@@ -61,9 +61,7 @@ export class WorkflowScopesService {
         clauses.push(eq(schema.workflowScopes.characterId, data.characterId));
       }
       if (data.scopeKind === "participant" && data.participantId) {
-        clauses.push(
-          eq(schema.workflowScopes.participantId, data.participantId)
-        );
+        clauses.push(eq(schema.workflowScopes.participantId, data.participantId));
       }
       const existingRow = await tx
         .select()
@@ -113,10 +111,7 @@ export class WorkflowScopesService {
         throw new ServiceError("NotFound", { message: "Scope not found" });
       }
 
-      await tx
-        .delete(schema.workflowScopes)
-        .where(eq(schema.workflowScopes.id, id))
-        .execute();
+      await tx.delete(schema.workflowScopes).where(eq(schema.workflowScopes.id, id)).execute();
     };
     return outerTx ? op(outerTx) : this.db.transaction(op);
   }

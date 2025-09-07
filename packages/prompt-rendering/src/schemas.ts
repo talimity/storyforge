@@ -25,16 +25,15 @@ export const budgetSchema = z.object({
 
 /** ---------- Condition schemas ---------- */
 
-export const conditionRefSchema: z.ZodType<UnboundConditionRef> =
-  z.discriminatedUnion("type", [
-    z.object({ type: z.literal("exists"), ref: dataRefSchema }),
-    z.object({ type: z.literal("nonEmpty"), ref: dataRefSchema }),
-    z.object({
-      type: z.enum(["eq", "neq", "gt", "lt"]),
-      ref: dataRefSchema,
-      value: z.unknown(),
-    }),
-  ]);
+export const conditionRefSchema: z.ZodType<UnboundConditionRef> = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("exists"), ref: dataRefSchema }),
+  z.object({ type: z.literal("nonEmpty"), ref: dataRefSchema }),
+  z.object({
+    type: z.enum(["eq", "neq", "gt", "lt"]),
+    ref: dataRefSchema,
+    value: z.unknown(),
+  }),
+]);
 
 /** ---------- Message and layout schemas ---------- */
 
@@ -45,28 +44,23 @@ export const messageBlockSchema = z.object({
   prefix: z.boolean().optional(),
 });
 
-export const layoutNodeSchema: z.ZodType<UnboundLayoutNode> =
-  z.discriminatedUnion("kind", [
-    z.object({
-      kind: z.literal("message"),
-      name: z.string().optional(),
-      role: roleSchema,
-      content: z.string().optional(),
-      from: dataRefSchema.optional(),
-      prefix: z.boolean().optional(),
-    }),
-    z.object({
-      kind: z.literal("slot"),
-      name: z.string(),
-      header: z
-        .union([messageBlockSchema, z.array(messageBlockSchema)])
-        .optional(),
-      footer: z
-        .union([messageBlockSchema, z.array(messageBlockSchema)])
-        .optional(),
-      omitIfEmpty: z.boolean().optional(),
-    }),
-  ]);
+export const layoutNodeSchema: z.ZodType<UnboundLayoutNode> = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("message"),
+    name: z.string().optional(),
+    role: roleSchema,
+    content: z.string().optional(),
+    from: dataRefSchema.optional(),
+    prefix: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("slot"),
+    name: z.string(),
+    header: z.union([messageBlockSchema, z.array(messageBlockSchema)]).optional(),
+    footer: z.union([messageBlockSchema, z.array(messageBlockSchema)]).optional(),
+    omitIfEmpty: z.boolean().optional(),
+  }),
+]);
 
 /** ---------- Plan node schemas (recursive) ---------- */
 

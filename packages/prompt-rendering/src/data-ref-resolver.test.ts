@@ -162,12 +162,8 @@ describe("DataRef Resolution", () => {
       const intentRef = { args: undefined, source: "intent" };
 
       expect(resolveDataRef(turnsRef, mockCtx, registry)).toBe(mockCtx.turns);
-      expect(resolveDataRef(charactersRef, mockCtx, registry)).toBe(
-        mockCtx.characters
-      );
-      expect(resolveDataRef(intentRef, mockCtx, registry)).toBe(
-        mockCtx.currentIntent
-      );
+      expect(resolveDataRef(charactersRef, mockCtx, registry)).toBe(mockCtx.characters);
+      expect(resolveDataRef(intentRef, mockCtx, registry)).toBe(mockCtx.currentIntent);
     });
 
     it("should return undefined for unknown sources", () => {
@@ -193,9 +189,7 @@ describe("DataRef Resolution", () => {
       // Should return undefined for error case, not throw
       const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
       expect(resolveDataRef(errorRef, mockCtx, registry)).toBeUndefined();
-      expect(spy).toHaveBeenCalledWith(
-        expect.stringContaining("Unresolvable DataRef")
-      );
+      expect(spy).toHaveBeenCalledWith(expect.stringContaining("Unresolvable DataRef"));
       spy.mockRestore();
 
       // Other sources should still work
@@ -229,9 +223,7 @@ describe("DataRef Resolution", () => {
       const emptyRef = { args: undefined, source: "emptyArray" };
 
       expect(resolveAsArray(turnsRef, mockCtx, registry)).toBe(mockCtx.turns);
-      expect(resolveAsArray(charactersRef, mockCtx, registry)).toBe(
-        mockCtx.characters
-      );
+      expect(resolveAsArray(charactersRef, mockCtx, registry)).toBe(mockCtx.characters);
       expect(resolveAsArray(emptyRef, mockCtx, registry)).toEqual([]);
     });
 
@@ -244,21 +236,11 @@ describe("DataRef Resolution", () => {
         undefined: () => undefined,
       });
 
-      expect(
-        resolveAsArray({ source: "string" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsArray({ source: "number" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsArray({ source: "object" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsArray({ source: "null" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsArray({ source: "undefined" }, mockCtx, registry)
-      ).toBeUndefined();
+      expect(resolveAsArray({ source: "string" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsArray({ source: "number" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsArray({ source: "object" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsArray({ source: "null" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsArray({ source: "undefined" }, mockCtx, registry)).toBeUndefined();
     });
   });
 
@@ -288,21 +270,11 @@ describe("DataRef Resolution", () => {
         undefined: () => undefined,
       });
 
-      expect(
-        resolveAsString({ source: "number" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsString({ source: "array" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsString({ source: "object" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsString({ source: "null" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsString({ source: "undefined" }, mockCtx, registry)
-      ).toBeUndefined();
+      expect(resolveAsString({ source: "number" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsString({ source: "array" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsString({ source: "object" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsString({ source: "null" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsString({ source: "undefined" }, mockCtx, registry)).toBeUndefined();
     });
   });
 
@@ -317,15 +289,9 @@ describe("DataRef Resolution", () => {
       });
 
       expect(resolveAsNumber({ source: "zero" }, mockCtx, registry)).toBe(0);
-      expect(resolveAsNumber({ source: "positive" }, mockCtx, registry)).toBe(
-        123
-      );
-      expect(resolveAsNumber({ source: "negative" }, mockCtx, registry)).toBe(
-        -45
-      );
-      expect(resolveAsNumber({ source: "decimal" }, mockCtx, registry)).toBe(
-        3.14
-      );
+      expect(resolveAsNumber({ source: "positive" }, mockCtx, registry)).toBe(123);
+      expect(resolveAsNumber({ source: "negative" }, mockCtx, registry)).toBe(-45);
+      expect(resolveAsNumber({ source: "decimal" }, mockCtx, registry)).toBe(3.14);
       expect(resolveAsNumber({ source: "infinity" }, mockCtx, registry)).toBe(
         Number.POSITIVE_INFINITY
       );
@@ -341,24 +307,12 @@ describe("DataRef Resolution", () => {
         undefined: () => undefined,
       });
 
-      expect(
-        resolveAsNumber({ source: "nan" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsNumber({ source: "string" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsNumber({ source: "array" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsNumber({ source: "object" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsNumber({ source: "null" }, mockCtx, registry)
-      ).toBeUndefined();
-      expect(
-        resolveAsNumber({ source: "undefined" }, mockCtx, registry)
-      ).toBeUndefined();
+      expect(resolveAsNumber({ source: "nan" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsNumber({ source: "string" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsNumber({ source: "array" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsNumber({ source: "object" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsNumber({ source: "null" }, mockCtx, registry)).toBeUndefined();
+      expect(resolveAsNumber({ source: "undefined" }, mockCtx, registry)).toBeUndefined();
     });
   });
 

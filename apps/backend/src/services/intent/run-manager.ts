@@ -26,14 +26,7 @@ export class IntentRunManager {
     gen: IntentGenerator,
     abortCtl: AbortController
   ): IntentHandle {
-    const run = new IntentRunner(
-      this.deps,
-      intentId,
-      scenarioId,
-      kind,
-      gen,
-      abortCtl
-    );
+    const run = new IntentRunner(this.deps, intentId, scenarioId, kind, gen, abortCtl);
     this.runs.set(intentId, run);
     // noinspection JSIgnoredPromiseFromCall
     run.run();

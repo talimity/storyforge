@@ -1,8 +1,4 @@
-export const VALID_FILE_TYPES = [
-  "application/json",
-  "text/plain",
-  "application/x-ndjson",
-];
+export const VALID_FILE_TYPES = ["application/json", "text/plain", "application/x-ndjson"];
 
 export const VALID_FILE_EXTENSIONS = [".json", ".jsonl", ".txt"];
 
@@ -15,9 +11,7 @@ export interface FileValidationResult {
 
 export function validateFile(file: File): FileValidationResult {
   const hasValidType = VALID_FILE_TYPES.includes(file.type) || file.type === "";
-  const hasValidExtension = VALID_FILE_EXTENSIONS.some((ext) =>
-    file.name.endsWith(ext)
-  );
+  const hasValidExtension = VALID_FILE_EXTENSIONS.some((ext) => file.name.endsWith(ext));
 
   if (!hasValidType && !hasValidExtension) {
     return {

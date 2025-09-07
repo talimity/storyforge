@@ -2,10 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "../../budget-manager.js";
 import { compileTemplate } from "../../compiler.js";
 import { render } from "../../renderer.js";
-import {
-  noTurnsCtx,
-  standardTurnGenCtx,
-} from "../fixtures/contexts/turn-generation-contexts.js";
+import { noTurnsCtx, standardTurnGenCtx } from "../fixtures/contexts/turn-generation-contexts.js";
 import {
   type FakeTurnGenSourceSpec,
   makeSpecTurnGenerationRegistry,
@@ -19,9 +16,7 @@ describe("Slot Priority vs Layout Order", () => {
 
   it("should fill slots in priority order but display in layout order", () => {
     // Parse and compile the template
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Create budget manager with enough tokens for all content
     const budget = new DefaultBudgetManager({ maxTokens: 5000 });
@@ -39,13 +34,9 @@ describe("Slot Priority vs Layout Order", () => {
     const intentMsgIndex = messages.findIndex((m) =>
       m.content?.includes("Respect this player intent")
     );
-    const earlierEventsIndex = messages.findIndex(
-      (m) => m.content === "Earlier events:"
-    );
+    const earlierEventsIndex = messages.findIndex((m) => m.content === "Earlier events:");
 
-    const examplesIndex = messages.findIndex(
-      (m) => m.content === "Character writing examples:"
-    );
+    const examplesIndex = messages.findIndex((m) => m.content === "Character writing examples:");
     const finalInstructionIndex = messages.findIndex((m) =>
       m.content?.includes("Write the next turn")
     );
@@ -85,9 +76,7 @@ describe("Slot Priority vs Layout Order", () => {
   });
 
   it("should respect fill priority with limited budget", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Create a budget that allows turns (priority 0) but not summaries (priority 1)
     const budget = new DefaultBudgetManager({ maxTokens: 1200 });
@@ -95,9 +84,7 @@ describe("Slot Priority vs Layout Order", () => {
     const messages = render(compiled, standardTurnGenCtx, budget, registry);
 
     // Should have turns content but possibly limited summaries
-    const hasRecentTurns = messages.some((m) =>
-      m.content?.includes("Recent scene turns")
-    );
+    const hasRecentTurns = messages.some((m) => m.content?.includes("Recent scene turns"));
     const hasTurnContent = messages.some((m) => m.content?.includes("["));
 
     expect(hasRecentTurns || hasTurnContent).toBe(true);
@@ -107,9 +94,7 @@ describe("Slot Priority vs Layout Order", () => {
   });
 
   it("should maintain deterministic order with identical inputs", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Render twice with identical inputs
     const budget1 = new DefaultBudgetManager({ maxTokens: 3000 });

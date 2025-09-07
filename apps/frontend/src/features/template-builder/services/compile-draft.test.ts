@@ -32,8 +32,7 @@ describe("compileDraft", () => {
           params: {
             maxTurns: 5,
             order: "desc",
-            turnTemplate:
-              "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
+            turnTemplate: "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
             budget: 2000,
           },
           name: "timeline",
@@ -138,9 +137,7 @@ describe("validateDraft", () => {
     };
 
     const errors = validateDraft(draft);
-    expect(errors).toContain(
-      "Slot 'timeline' uses unknown recipe: unknown_recipe"
-    );
+    expect(errors).toContain("Slot 'timeline' uses unknown recipe: unknown_recipe");
   });
 
   it("should detect unreachable slots", () => {
@@ -173,9 +170,7 @@ describe("validateDraft", () => {
     };
 
     const errors = validateDraft(draft);
-    expect(errors).toContain(
-      "Slot 'unused_slot' is defined but never referenced in layout"
-    );
+    expect(errors).toContain("Slot 'unused_slot' is defined but never referenced in layout");
   });
 });
 

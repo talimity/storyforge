@@ -1,13 +1,4 @@
-import {
-  Box,
-  Card,
-  Container,
-  Grid,
-  Heading,
-  HStack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, Card, Container, Grid, Heading, HStack, Text, VStack } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import type React from "react";
 import { LuBookOpenText, LuFoldVertical, LuPenTool } from "react-icons/lu";
@@ -25,8 +16,7 @@ const taskOptions: TaskOption[] = [
   {
     value: "turn_generation",
     label: "Story Progression",
-    description:
-      "Prompts used by characters to generate the next turn in a scenario",
+    description: "Prompts used by characters to generate the next turn in a scenario",
     icon: LuBookOpenText,
   },
   {
@@ -38,8 +28,7 @@ const taskOptions: TaskOption[] = [
   {
     value: "writing_assistant",
     label: "Writing Assistant",
-    description:
-      "Prompts used to continue, rewrite, or enhance some input text",
+    description: "Prompts used to continue, rewrite, or enhance some input text",
     icon: LuPenTool,
   },
 ];
@@ -54,9 +43,9 @@ export function TemplateTaskSelectPage() {
         <VStack gap={2} align="center" textAlign="center">
           <Heading size="lg">Choose a Task Type</Heading>
           <Text color="content.muted" maxW="2xl">
-            Prompts are designed around specific generation tasks. Select the
-            type of task this prompt will perform to get started. This affects
-            the available content that can be inserted into the template.
+            Prompts are designed around specific generation tasks. Select the type of task this
+            prompt will perform to get started. This affects the available content that can be
+            inserted into the template.
           </Text>
         </VStack>
 

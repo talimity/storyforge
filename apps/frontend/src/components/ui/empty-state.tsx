@@ -1,8 +1,4 @@
-import {
-  Button,
-  EmptyState as ChakraEmptyState,
-  VStack,
-} from "@chakra-ui/react";
+import { Button, EmptyState as ChakraEmptyState, VStack } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 
 interface EmptyStateProps {
@@ -26,9 +22,7 @@ export function EmptyState({
         <ChakraEmptyState.Indicator>{icon}</ChakraEmptyState.Indicator>
         <VStack textAlign="center">
           <ChakraEmptyState.Title>{title}</ChakraEmptyState.Title>
-          <ChakraEmptyState.Description>
-            {description}
-          </ChakraEmptyState.Description>
+          <ChakraEmptyState.Description>{description}</ChakraEmptyState.Description>
         </VStack>
         {actionLabel && onActionClick && (
           <Button colorPalette="accent" onClick={onActionClick}>

@@ -70,9 +70,7 @@ function compileLayoutNode(node: LayoutNodeDraft): UnboundLayoutNode {
 
     default: {
       const badNodeKind = nodeKind satisfies never;
-      throw new Error(
-        `Unknown layout node kind: ${JSON.stringify(badNodeKind)}`
-      );
+      throw new Error(`Unknown layout node kind: ${JSON.stringify(badNodeKind)}`);
     }
   }
 }
@@ -80,9 +78,7 @@ function compileLayoutNode(node: LayoutNodeDraft): UnboundLayoutNode {
 /**
  * Convert slots draft to engine slot specs
  */
-function compileSlots(
-  slotsDraft: Record<string, SlotDraft>
-): Record<string, UnboundSlotSpec> {
+function compileSlots(slotsDraft: Record<string, SlotDraft>): Record<string, UnboundSlotSpec> {
   const slots: Record<string, UnboundSlotSpec> = {};
 
   for (const [name, slotDraft] of Object.entries(slotsDraft)) {
@@ -110,9 +106,7 @@ function compileSlot(slotDraft: SlotDraft): UnboundSlotSpec {
     // 2) Build the candidate spec
     const parsed = slotSpecSchema.safeParse({
       priority: slotDraft.priority,
-      ...(typeof slotDraft.budget === "number"
-        ? { budget: { maxTokens: slotDraft.budget } }
-        : {}),
+      ...(typeof slotDraft.budget === "number" ? { budget: { maxTokens: slotDraft.budget } } : {}),
       ...(custom as object),
     });
     if (!parsed.success) {
@@ -231,9 +225,7 @@ export function validateDraft({
 
     // Check for unreachable slots
     if (!referencedSlots.has(slotName)) {
-      errors.push(
-        `Slot '${slotName}' is defined but never referenced in layout`
-      );
+      errors.push(`Slot '${slotName}' is defined but never referenced in layout`);
     }
   }
 

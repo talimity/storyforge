@@ -18,38 +18,22 @@ describe("Budget Cut-off Behavior", () => {
   const registry = makeSpecTurnGenerationRegistry();
 
   it("should terminate forEach loops early when global budget exhausted", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Use constrained budget vs generous budget
     const smallBudget = new DefaultBudgetManager({ maxTokens: 800 });
     const largeBudget = new DefaultBudgetManager({ maxTokens: 5000 });
 
-    const smallResult = render(
-      compiled,
-      largeTurnGenCtx,
-      smallBudget,
-      registry
-    );
-    const largeResult = render(
-      compiled,
-      largeTurnGenCtx,
-      largeBudget,
-      registry
-    );
+    const smallResult = render(compiled, largeTurnGenCtx, smallBudget, registry);
+    const largeResult = render(compiled, largeTurnGenCtx, largeBudget, registry);
 
     // Both should have basic structure (layout messages should always render)
     expect(smallResult.some((m) => m.role === "system")).toBe(true);
     expect(largeResult.some((m) => m.role === "system")).toBe(true);
 
     // But small budget should have fewer slot-generated messages
-    const smallTurnMsgs = smallResult.filter((m) =>
-      m.content?.match(/^\[\d+]/)
-    );
-    const largeTurnMsgs = largeResult.filter((m) =>
-      m.content?.match(/^\[\d+]/)
-    );
+    const smallTurnMsgs = smallResult.filter((m) => m.content?.match(/^\[\d+]/));
+    const largeTurnMsgs = largeResult.filter((m) => m.content?.match(/^\[\d+]/));
 
     expect(smallTurnMsgs.length).toBeLessThanOrEqual(largeTurnMsgs.length);
 
@@ -58,9 +42,7 @@ describe("Budget Cut-off Behavior", () => {
   });
 
   it("should respect slot-level budget limits", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // The template has slot budgets:
     // turns: 900 tokens, summaries: 700 tokens, examples: 500 tokens
@@ -73,25 +55,19 @@ describe("Budget Cut-off Behavior", () => {
 
     // Count messages per slot type
     const turnMessages = messages.filter((m) => m.content?.match(/^\[\d+]/));
-    const summaryMessages = messages.filter((m) =>
-      m.content?.match(/^Ch \d+:/)
-    );
+    const summaryMessages = messages.filter((m) => m.content?.match(/^Ch \d+:/));
 
     // Turn messages should be limited by slot budget, not exceed what 900 tokens allows
     // (Exact count depends on content length, but should be reasonable)
     expect(turnMessages.length).toBeLessThan(largeTurnGenCtx.turns.length);
-    expect(summaryMessages.length).toBeLessThan(
-      largeTurnGenCtx.chapterSummaries.length
-    );
+    expect(summaryMessages.length).toBeLessThan(largeTurnGenCtx.chapterSummaries.length);
 
     // Snapshot for slot budget behavior
     expect(messages).toMatchSnapshot("slot-budget-limits");
   });
 
   it("should produce stable output with budget constraints", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Render multiple times with same budget constraint
     const budget1 = new DefaultBudgetManager({ maxTokens: 800 });
@@ -135,8 +111,7 @@ describe("Budget Cut-off Behavior", () => {
                 {
                   kind: "message",
                   role: "user",
-                  content:
-                    "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
+                  content: "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
                 },
               ],
               budget: { maxTokens: 200 },
@@ -147,9 +122,7 @@ describe("Budget Cut-off Behavior", () => {
       },
     };
 
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      customTemplate
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(customTemplate);
 
     const budget = new DefaultBudgetManager({ maxTokens: 10000 });
     const result = render(compiled, largeTurnGenCtx, budget, registry);
@@ -163,9 +136,7 @@ describe("Budget Cut-off Behavior", () => {
   });
 
   it("should handle zero budget gracefully", () => {
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
-      turnWriterV2Json
-    );
+    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 
     // Budget that's already exhausted
     const zeroBudget = new DefaultBudgetManager({ maxTokens: 0 });

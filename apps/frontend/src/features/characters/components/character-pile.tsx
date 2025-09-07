@@ -9,8 +9,7 @@ interface CharacterPileCharacter {
   avatarPath: string | null;
 }
 
-export interface CharacterPileProps
-  extends React.ComponentProps<typeof AvatarGroup> {
+export interface CharacterPileProps extends React.ComponentProps<typeof AvatarGroup> {
   characters: CharacterPileCharacter[];
   maxAvatars?: number;
   onCharacterClick?: (character: CharacterPileCharacter) => void;
@@ -48,12 +47,8 @@ export function CharacterPile({
           layerStyle={layerStyle}
           key={character.id}
           name={character.name}
-          src={
-            character.avatarPath ? getApiUrl(character.avatarPath) : undefined
-          }
-          onClick={
-            onCharacterClick ? () => onCharacterClick(character) : undefined
-          }
+          src={character.avatarPath ? getApiUrl(character.avatarPath) : undefined}
+          onClick={onCharacterClick ? () => onCharacterClick(character) : undefined}
           cursor={onCharacterClick ? "pointer" : undefined}
         />
       ))}
@@ -61,11 +56,7 @@ export function CharacterPile({
       {overflow.length > 0 && (
         <Menu.Root positioning={{ placement: "bottom" }}>
           <Menu.Trigger rounded="md" focusRing="mixed">
-            <Avatar
-              layerStyle={layerStyle}
-              fallback={`+${overflow.length}`}
-              variant="outline"
-            />
+            <Avatar layerStyle={layerStyle} fallback={`+${overflow.length}`} variant="outline" />
           </Menu.Trigger>
           <Portal>
             <Menu.Positioner>
@@ -76,11 +67,7 @@ export function CharacterPile({
                     my={1}
                     key={character.id}
                     value={character.id}
-                    onClick={
-                      onCharacterClick
-                        ? () => onCharacterClick(character)
-                        : undefined
-                    }
+                    onClick={onCharacterClick ? () => onCharacterClick(character) : undefined}
                   >
                     <CharacterListItem character={character} />
                   </Menu.Item>

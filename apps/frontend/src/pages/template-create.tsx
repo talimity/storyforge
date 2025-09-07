@@ -5,10 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { TemplateForm } from "@/features/template-builder/components/template-form";
 import { compileDraft } from "@/features/template-builder/services/compile-draft";
 import { createBlankTemplate } from "@/features/template-builder/services/template-conversion";
-import type {
-  LayoutNodeDraft,
-  SlotDraft,
-} from "@/features/template-builder/types";
+import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/types";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { trpc } from "@/lib/trpc";
 

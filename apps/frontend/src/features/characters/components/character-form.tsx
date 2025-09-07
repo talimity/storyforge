@@ -34,9 +34,7 @@ type CharacterFormData = z.infer<typeof characterFormSchema>;
 
 interface CharacterFormProps {
   initialData?: Partial<CharacterFormData> & { imageDataUri?: string };
-  onSubmit: (
-    data: CharacterFormData & { imageDataUri?: string | null | undefined }
-  ) => void;
+  onSubmit: (data: CharacterFormData & { imageDataUri?: string | null | undefined }) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
   submitLabel?: string;
@@ -76,9 +74,7 @@ export function CharacterForm({
     initialDisplayName: "Current Portrait",
   });
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length > 0) {
       await imageField.handleFiles(files);
@@ -89,9 +85,7 @@ export function CharacterForm({
     imageField.handleRemove();
 
     // Clear the file input
-    const fileInput = document.getElementById(
-      "image-input"
-    ) as HTMLInputElement;
+    const fileInput = document.getElementById("image-input") as HTMLInputElement;
     if (fileInput) {
       fileInput.value = "";
     }
@@ -107,16 +101,11 @@ export function CharacterForm({
   const hasUnsavedChanges = (isDirty || imageField.isDirty()) && !isSubmitting;
 
   // Add unsaved changes protection
-  const {
-    showDialog,
-    handleConfirmNavigation,
-    handleCancelNavigation,
-    confirmNavigation,
-  } = useUnsavedChangesProtection({
-    hasUnsavedChanges,
-    message:
-      "You have unsaved changes to this character. Are you sure you want to leave?",
-  });
+  const { showDialog, handleConfirmNavigation, handleCancelNavigation, confirmNavigation } =
+    useUnsavedChangesProtection({
+      hasUnsavedChanges,
+      message: "You have unsaved changes to this character. Are you sure you want to leave?",
+    });
 
   return (
     <>
@@ -167,10 +156,7 @@ export function CharacterForm({
                 />
               </Field>
 
-              <Field
-                label="Card Type"
-                helperText="Select the type of character card"
-              >
+              <Field label="Card Type" helperText="Select the type of character card">
                 <Controller
                   name="cardType"
                   control={control}

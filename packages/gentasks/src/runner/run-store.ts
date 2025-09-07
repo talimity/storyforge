@@ -1,11 +1,7 @@
 import type { ChatCompletionResponse } from "@storyforge/inference";
 import { AsyncQueue, createId } from "@storyforge/utils";
 import type { TaskKind } from "../types.js";
-import type {
-  WorkflowEvent,
-  WorkflowRunId,
-  WorkflowRunSnapshot,
-} from "./types.js";
+import type { WorkflowEvent, WorkflowRunId, WorkflowRunSnapshot } from "./types.js";
 
 interface RunData {
   /** Buffered event log */
@@ -106,11 +102,7 @@ export class RunStore {
   /**
    * Save a step's response
    */
-  saveStepResponse(
-    id: WorkflowRunId,
-    stepId: string,
-    response: ChatCompletionResponse
-  ) {
+  saveStepResponse(id: WorkflowRunId, stepId: string, response: ChatCompletionResponse) {
     const run = this.runs.get(id);
     if (!run) return;
 

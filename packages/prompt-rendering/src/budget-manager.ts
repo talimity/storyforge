@@ -13,8 +13,7 @@ export class DefaultBudgetManager implements BudgetManager {
 
   constructor(
     private readonly global: Budget,
-    private readonly estimate: TokenEstimator = (s) =>
-      Math.ceil((s?.length ?? 0) / 4)
+    private readonly estimate: TokenEstimator = (s) => Math.ceil((s?.length ?? 0) / 4)
   ) {}
 
   /** Global-only check per spec ("stop filling further slots" is a global gate). */

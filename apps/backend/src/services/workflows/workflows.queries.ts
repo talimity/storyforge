@@ -11,9 +11,7 @@ export async function listWorkflows(
 ) {
   const where = and(
     filters.task ? eq(schema.workflows.task, filters.task) : undefined,
-    filters.search
-      ? like(schema.workflows.name, `%${filters.search}%`)
-      : undefined
+    filters.search ? like(schema.workflows.name, `%${filters.search}%`) : undefined
   );
 
   const items = await db

@@ -74,360 +74,321 @@ interface SlotReferenceEditProps {
   style?: React.CSSProperties;
 }
 
-export const SlotReferenceEdit = forwardRef<
-  HTMLDivElement,
-  SlotReferenceEditProps
->((props, ref) => {
-  const {
-    node,
-    slot,
-    isDragging = false,
-    onSave,
-    onCancel,
-    dragHandleProps,
-    style,
-  } = props;
-  const NodeIcon = getNodeIcon(node);
+export const SlotReferenceEdit = forwardRef<HTMLDivElement, SlotReferenceEditProps>(
+  (props, ref) => {
+    const { node, slot, isDragging = false, onSave, onCancel, dragHandleProps, style } = props;
+    const NodeIcon = getNodeIcon(node);
 
-  // Get the recipe definition
-  const recipe =
-    slot.recipeId !== "custom" ? getRecipeById(slot.recipeId) : undefined;
-  const slotsDraft = useTemplateBuilderStore((s) => s.slotsDraft);
-  const currentName = slot.name;
+    // Get the recipe definition
+    const recipe = slot.recipeId !== "custom" ? getRecipeById(slot.recipeId) : undefined;
+    const slotsDraft = useTemplateBuilderStore((s) => s.slotsDraft);
+    const currentName = slot.name;
 
-  // Build memoized RHF zod resolver schemas
-  const paramsSchema = useMemo(
-    () => createRecipeParametersSchema(recipe?.parameters ?? []),
-    [recipe]
-  );
-  const formSchema = useMemo(
-    () =>
-      z.object({
-        name: slotNameSchema.refine(
-          (n) => n === currentName || !(n in slotsDraft),
-          { message: "Another content block already uses this ID" }
-        ),
-        priority: slotPrioritySchema,
-        budget: slotBudgetSchema.optional().transform((v) => v ?? undefined),
-        params: paramsSchema,
-        omitIfEmpty: z.boolean(),
-        headerContent: z.string().optional(),
-        headerRole: z.enum(["system", "user", "assistant"]),
-        footerContent: z.string().optional(),
-        footerRole: z.enum(["system", "user", "assistant"]),
-        customSpec: z
-          .string()
-          .optional()
-          .superRefine((val, ctx) => {
-            if (!val?.trim()) return;
-            let obj: unknown;
-            try {
-              obj = JSON.parse(val);
-            } catch {
-              ctx.addIssue({ code: "custom", message: "Invalid JSON" });
-              return;
-            }
-            const parsed = slotSpecSchema.safeParse(obj);
-            if (!parsed.success)
-              ctx.addIssue({ code: "custom", message: parsed.error.message });
+    // Build memoized RHF zod resolver schemas
+    const paramsSchema = useMemo(
+      () => createRecipeParametersSchema(recipe?.parameters ?? []),
+      [recipe]
+    );
+    const formSchema = useMemo(
+      () =>
+        z.object({
+          name: slotNameSchema.refine((n) => n === currentName || !(n in slotsDraft), {
+            message: "Another content block already uses this ID",
           }),
-      }),
-    [currentName, slotsDraft, paramsSchema]
-  );
+          priority: slotPrioritySchema,
+          budget: slotBudgetSchema.optional().transform((v) => v ?? undefined),
+          params: paramsSchema,
+          omitIfEmpty: z.boolean(),
+          headerContent: z.string().optional(),
+          headerRole: z.enum(["system", "user", "assistant"]),
+          footerContent: z.string().optional(),
+          footerRole: z.enum(["system", "user", "assistant"]),
+          customSpec: z
+            .string()
+            .optional()
+            .superRefine((val, ctx) => {
+              if (!val?.trim()) return;
+              let obj: unknown;
+              try {
+                obj = JSON.parse(val);
+              } catch {
+                ctx.addIssue({ code: "custom", message: "Invalid JSON" });
+                return;
+              }
+              const parsed = slotSpecSchema.safeParse(obj);
+              if (!parsed.success) ctx.addIssue({ code: "custom", message: parsed.error.message });
+            }),
+        }),
+      [currentName, slotsDraft, paramsSchema]
+    );
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    setFocus,
-    formState: { errors },
-  } = useForm<SlotEditFormValues>({
-    resolver: zodResolver(formSchema),
-    mode: "onBlur",
-    shouldUnregister: true,
-    criteriaMode: "all",
-    defaultValues: {
-      // Layout node properties
-      omitIfEmpty: node.omitIfEmpty ?? true,
-      headerContent: node.header?.content || "",
-      headerRole: node.header?.role || "user",
-      footerContent: node.footer?.content || "",
-      footerRole: node.footer?.role || "user",
-      name: node.name || "",
-      // Slot properties
-      priority: slot.priority,
-      budget: slot.budget,
-      params: slot.params,
-      // Custom slot properties
-      customSpec: slot.customSpec || "{}",
-    },
-  });
+    const {
+      register,
+      control,
+      handleSubmit,
+      setFocus,
+      formState: { errors },
+    } = useForm<SlotEditFormValues>({
+      resolver: zodResolver(formSchema),
+      mode: "onBlur",
+      shouldUnregister: true,
+      criteriaMode: "all",
+      defaultValues: {
+        // Layout node properties
+        omitIfEmpty: node.omitIfEmpty ?? true,
+        headerContent: node.header?.content || "",
+        headerRole: node.header?.role || "user",
+        footerContent: node.footer?.content || "",
+        footerRole: node.footer?.role || "user",
+        name: node.name || "",
+        // Slot properties
+        priority: slot.priority,
+        budget: slot.budget,
+        params: slot.params,
+        // Custom slot properties
+        customSpec: slot.customSpec || "{}",
+      },
+    });
 
-  const saveCallback = useCallback(
-    (v: SlotEditFormValues) => {
-      // Create updated layout node
-      const updatedNode: SlotLayoutDraft = {
-        ...node,
-        name: v.name,
-        omitIfEmpty: v.omitIfEmpty,
-        header: v.headerContent
-          ? { role: v.headerRole, content: v.headerContent }
-          : undefined,
-        footer: v.footerContent
-          ? { role: v.footerRole, content: v.footerContent }
-          : undefined,
-      };
+    const saveCallback = useCallback(
+      (v: SlotEditFormValues) => {
+        // Create updated layout node
+        const updatedNode: SlotLayoutDraft = {
+          ...node,
+          name: v.name,
+          omitIfEmpty: v.omitIfEmpty,
+          header: v.headerContent ? { role: v.headerRole, content: v.headerContent } : undefined,
+          footer: v.footerContent ? { role: v.footerRole, content: v.footerContent } : undefined,
+        };
 
-      // Create updated slot
-      const isCustomRecipe = (slot.recipeId ?? "custom") === "custom";
-      const updatedSlot: SlotDraft = {
-        recipeId: slot.recipeId,
-        name: v.name,
-        priority: v.priority,
-        budget: v.budget,
-        params: v.params,
-        customSpec:
-          isCustomRecipe && v.customSpec?.trim() ? v.customSpec : undefined,
-      };
+        // Create updated slot
+        const isCustomRecipe = (slot.recipeId ?? "custom") === "custom";
+        const updatedSlot: SlotDraft = {
+          recipeId: slot.recipeId,
+          name: v.name,
+          priority: v.priority,
+          budget: v.budget,
+          params: v.params,
+          customSpec: isCustomRecipe && v.customSpec?.trim() ? v.customSpec : undefined,
+        };
 
-      onSave?.(updatedNode, updatedSlot);
-    },
-    [node, slot, onSave]
-  );
+        onSave?.(updatedNode, updatedSlot);
+      },
+      [node, slot, onSave]
+    );
 
-  const availableVariables = useMemo(() => {
-    return recipe?.availableVariables || [];
-  }, [recipe]);
+    const availableVariables = useMemo(() => {
+      return recipe?.availableVariables || [];
+    }, [recipe]);
 
-  return (
-    <NodeFrame
-      ref={ref}
-      node={node}
-      isDragging={isDragging}
-      dragHandleProps={dragHandleProps}
-      style={style}
-    >
-      <VStack align="stretch" gap={4}>
-        {/* Header */}
-        <HStack gap={2} align="center">
-          <Icon as={NodeIcon} />
-          <Badge size="sm">Content Block</Badge>
-          <Text fontSize="sm" fontWeight="medium" flex={1}>
-            Editing '{node.name}'
-          </Text>
-          <HStack gap={1}>
-            <IconButton
-              size="xs"
-              colorPalette="green"
-              onClick={handleSubmit(saveCallback, () => {
-                // Focus a likely-invalid field to guide the user
-                try {
-                  setFocus("name");
-                } catch {}
-              })}
-              aria-label="Save changes"
-            >
-              <LuCheck />
-            </IconButton>
-            <IconButton
-              size="xs"
-              variant="ghost"
-              onClick={onCancel}
-              aria-label="Cancel edit"
-            >
-              <LuX />
-            </IconButton>
-          </HStack>
-        </HStack>
-
-        {/* Form Fields */}
+    return (
+      <NodeFrame
+        ref={ref}
+        node={node}
+        isDragging={isDragging}
+        dragHandleProps={dragHandleProps}
+        style={style}
+      >
         <VStack align="stretch" gap={4}>
-          {recipe?.name && recipe?.description && (
-            <Text fontSize="xs" color="content.muted">
-              {recipe.name}: {recipe.description}
+          {/* Header */}
+          <HStack gap={2} align="center">
+            <Icon as={NodeIcon} />
+            <Badge size="sm">Content Block</Badge>
+            <Text fontSize="sm" fontWeight="medium" flex={1}>
+              Editing '{node.name}'
             </Text>
-          )}
-
-          {/* Common parameters */}
-          <Stack gap={3} direction={{ base: "column", lg: "row" }}>
-            <Field
-              label="Template ID"
-              required
-              helperText="Unique ID within template (does not appear in prompt)"
-              flex={1}
-              errorText={errors.name?.message}
-              invalid={!!errors.name}
-            >
-              <Input
-                {...register("name")}
-                placeholder="e.g., 'recent-turns'"
-                autoComplete="off"
-              />
-            </Field>
-
-            {recipe && (
-              <Field
-                label="Token Budget Priority"
-                helperText="Blocks with lower priority numbers consume tokens first"
-                flex={1}
-                errorText={errors.priority?.message}
-                invalid={!!errors.priority}
+            <HStack gap={1}>
+              <IconButton
+                size="xs"
+                colorPalette="green"
+                onClick={handleSubmit(saveCallback, () => {
+                  // Focus a likely-invalid field to guide the user
+                  try {
+                    setFocus("name");
+                  } catch {}
+                })}
+                aria-label="Save changes"
               >
-                <Controller
-                  name="priority"
-                  control={control}
-                  render={({ field }) => (
-                    <NumberInput.Root
-                      value={field.value.toString()}
-                      onValueChange={({ valueAsNumber }) => {
-                        const n = Number.isFinite(valueAsNumber)
-                          ? valueAsNumber
-                          : 0;
-                        field.onChange(n);
-                      }}
-                      min={0}
-                      max={10}
-                      width="full"
-                    >
-                      <NumberInput.Input />
-                    </NumberInput.Root>
-                  )}
-                />
-              </Field>
-            )}
-            <Separator />
-          </Stack>
+                <LuCheck />
+              </IconButton>
+              <IconButton size="xs" variant="ghost" onClick={onCancel} aria-label="Cancel edit">
+                <LuX />
+              </IconButton>
+            </HStack>
+          </HStack>
 
-          {/* Recipe Configuration */}
-          {recipe && (
-            <VStack align="stretch" gap={3}>
-              {/* Recipe parameters */}
-              {recipe.parameters.length > 0 && (
-                <Accordion.Root
-                  collapsible
-                  defaultValue={["recipe-params"]}
-                  width="full"
-                >
-                  <Accordion.Item value="recipe-params">
-                    <Accordion.ItemTrigger>
-                      <Span flex="1">Block Configuration</Span>
-                      <Accordion.ItemIndicator />
-                    </Accordion.ItemTrigger>
-                    <Accordion.ItemContent>
-                      <Accordion.ItemBody px={0}>
-                        <VStack align="stretch" gap={3} width="full">
-                          {recipe.parameters.map((param) => (
-                            <ParamField
-                              key={param.key}
-                              name={`params.${param.key}`}
-                              param={param}
-                              availableVariables={availableVariables}
-                              control={control}
-                            />
-                          ))}
-                        </VStack>
-                      </Accordion.ItemBody>
-                    </Accordion.ItemContent>
-                  </Accordion.Item>
-                </Accordion.Root>
-              )}
-            </VStack>
-          )}
-
-          {!recipe && (
-            <>
+          {/* Form Fields */}
+          <VStack align="stretch" gap={4}>
+            {recipe?.name && recipe?.description && (
               <Text fontSize="xs" color="content.muted">
-                This content block does not use a predefined recipe. You can
-                manually write the slot definition below.
+                {recipe.name}: {recipe.description}
               </Text>
+            )}
 
+            {/* Common parameters */}
+            <Stack gap={3} direction={{ base: "column", lg: "row" }}>
               <Field
-                label="Content JSON"
-                errorText={errors.customSpec?.message}
-                invalid={!!errors.customSpec}
+                label="Template ID"
+                required
+                helperText="Unique ID within template (does not appear in prompt)"
+                flex={1}
+                errorText={errors.name?.message}
+                invalid={!!errors.name}
               >
-                <Textarea
-                  {...register("customSpec")}
-                  rows={2}
-                  autoresize
-                  fontFamily="mono"
-                  placeholder="Enter custom block JSON here"
-                  // onChange={(e) => {
-                  //   setValue("customSpec", e.target.value);
-                  // }}
+                <Input
+                  {...register("name")}
+                  placeholder="e.g., 'recent-turns'"
+                  autoComplete="off"
                 />
               </Field>
-            </>
-          )}
 
-          <Accordion.Root collapsible width="full">
-            <Accordion.Item value="headers-footers">
-              <Accordion.ItemTrigger>
-                <Span flex="1">Headers & Footers</Span>
-                <Accordion.ItemIndicator />
-              </Accordion.ItemTrigger>
-              <Accordion.ItemContent>
-                <Accordion.ItemBody px={0}>
-                  <VStack align="stretch" gap={4} width="full">
-                    <Stack gap={3} direction={{ base: "column", lg: "row" }}>
-                      <Field
-                        label="Header"
-                        helperText="Text displayed before content"
-                        flex={2}
+              {recipe && (
+                <Field
+                  label="Token Budget Priority"
+                  helperText="Blocks with lower priority numbers consume tokens first"
+                  flex={1}
+                  errorText={errors.priority?.message}
+                  invalid={!!errors.priority}
+                >
+                  <Controller
+                    name="priority"
+                    control={control}
+                    render={({ field }) => (
+                      <NumberInput.Root
+                        value={field.value.toString()}
+                        onValueChange={({ valueAsNumber }) => {
+                          const n = Number.isFinite(valueAsNumber) ? valueAsNumber : 0;
+                          field.onChange(n);
+                        }}
+                        min={0}
+                        max={10}
+                        width="full"
                       >
-                        <Input
-                          {...register("headerContent")}
-                          placeholder="e.g., 'Recent turns:'"
-                        />
-                      </Field>
+                        <NumberInput.Input />
+                      </NumberInput.Root>
+                    )}
+                  />
+                </Field>
+              )}
+              <Separator />
+            </Stack>
 
-                      <Field label="Header Role" flex={1}>
-                        <RoleSelect name="headerRole" control={control} />
-                      </Field>
-                    </Stack>
+            {/* Recipe Configuration */}
+            {recipe && (
+              <VStack align="stretch" gap={3}>
+                {/* Recipe parameters */}
+                {recipe.parameters.length > 0 && (
+                  <Accordion.Root collapsible defaultValue={["recipe-params"]} width="full">
+                    <Accordion.Item value="recipe-params">
+                      <Accordion.ItemTrigger>
+                        <Span flex="1">Block Configuration</Span>
+                        <Accordion.ItemIndicator />
+                      </Accordion.ItemTrigger>
+                      <Accordion.ItemContent>
+                        <Accordion.ItemBody px={0}>
+                          <VStack align="stretch" gap={3} width="full">
+                            {recipe.parameters.map((param) => (
+                              <ParamField
+                                key={param.key}
+                                name={`params.${param.key}`}
+                                param={param}
+                                availableVariables={availableVariables}
+                                control={control}
+                              />
+                            ))}
+                          </VStack>
+                        </Accordion.ItemBody>
+                      </Accordion.ItemContent>
+                    </Accordion.Item>
+                  </Accordion.Root>
+                )}
+              </VStack>
+            )}
 
-                    <Stack gap={3} direction={{ base: "column", lg: "row" }}>
-                      <Field
-                        label="Footer"
-                        helperText="Text displayed after content"
-                        flex={2}
-                      >
-                        <Input
-                          {...register("footerContent")}
-                          placeholder="e.g., '---'"
-                        />
-                      </Field>
+            {!recipe && (
+              <>
+                <Text fontSize="xs" color="content.muted">
+                  This content block does not use a predefined recipe. You can manually write the
+                  slot definition below.
+                </Text>
 
-                      <Field label="Footer Role" flex={1}>
-                        <RoleSelect name="footerRole" control={control} />
-                      </Field>
-                    </Stack>
+                <Field
+                  label="Content JSON"
+                  errorText={errors.customSpec?.message}
+                  invalid={!!errors.customSpec}
+                >
+                  <Textarea
+                    {...register("customSpec")}
+                    rows={2}
+                    autoresize
+                    fontFamily="mono"
+                    placeholder="Enter custom block JSON here"
+                    // onChange={(e) => {
+                    //   setValue("customSpec", e.target.value);
+                    // }}
+                  />
+                </Field>
+              </>
+            )}
 
-                    <Controller
-                      name="omitIfEmpty"
-                      control={control}
-                      render={({ field }) => (
-                        <Switch
-                          colorPalette="primary"
-                          checked={!!field.value}
-                          onCheckedChange={({ checked }) => {
-                            field.onChange(checked);
-                          }}
-                        >
-                          Skip header/footer if block has no content
-                        </Switch>
-                      )}
-                    />
-                  </VStack>
-                </Accordion.ItemBody>
-              </Accordion.ItemContent>
-            </Accordion.Item>
-          </Accordion.Root>
+            <Accordion.Root collapsible width="full">
+              <Accordion.Item value="headers-footers">
+                <Accordion.ItemTrigger>
+                  <Span flex="1">Headers & Footers</Span>
+                  <Accordion.ItemIndicator />
+                </Accordion.ItemTrigger>
+                <Accordion.ItemContent>
+                  <Accordion.ItemBody px={0}>
+                    <VStack align="stretch" gap={4} width="full">
+                      <Stack gap={3} direction={{ base: "column", lg: "row" }}>
+                        <Field label="Header" helperText="Text displayed before content" flex={2}>
+                          <Input
+                            {...register("headerContent")}
+                            placeholder="e.g., 'Recent turns:'"
+                          />
+                        </Field>
+
+                        <Field label="Header Role" flex={1}>
+                          <RoleSelect name="headerRole" control={control} />
+                        </Field>
+                      </Stack>
+
+                      <Stack gap={3} direction={{ base: "column", lg: "row" }}>
+                        <Field label="Footer" helperText="Text displayed after content" flex={2}>
+                          <Input {...register("footerContent")} placeholder="e.g., '---'" />
+                        </Field>
+
+                        <Field label="Footer Role" flex={1}>
+                          <RoleSelect name="footerRole" control={control} />
+                        </Field>
+                      </Stack>
+
+                      <Controller
+                        name="omitIfEmpty"
+                        control={control}
+                        render={({ field }) => (
+                          <Switch
+                            colorPalette="primary"
+                            checked={!!field.value}
+                            onCheckedChange={({ checked }) => {
+                              field.onChange(checked);
+                            }}
+                          >
+                            Skip header/footer if block has no content
+                          </Switch>
+                        )}
+                      />
+                    </VStack>
+                  </Accordion.ItemBody>
+                </Accordion.ItemContent>
+              </Accordion.Item>
+            </Accordion.Root>
+          </VStack>
         </VStack>
-      </VStack>
-    </NodeFrame>
-  );
-});
+      </NodeFrame>
+    );
+  }
+);
 
 function ParamField(props: {
   name: string;

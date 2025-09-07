@@ -213,9 +213,7 @@ describe("walkers", () => {
               {
                 kind: "if",
                 when: { type: "exists", ref: { source: "condition" } },
-                then: [
-                  { kind: "message", role: "user", content: "Then message" },
-                ],
+                then: [{ kind: "message", role: "user", content: "Then message" }],
                 else: [
                   {
                     kind: "message",
@@ -245,9 +243,7 @@ describe("walkers", () => {
         from: undefined,
         prefix: undefined,
       });
-      expect(blocks[0].path).toBe(
-        "slots.conditionalSlot.plan[0].if.then[0].plan[0]"
-      );
+      expect(blocks[0].path).toBe("slots.conditionalSlot.plan[0].if.then[0].plan[0]");
 
       // Else branch - first message
       expect(blocks[1].block).toEqual({
@@ -256,9 +252,7 @@ describe("walkers", () => {
         from: undefined,
         prefix: undefined,
       });
-      expect(blocks[1].path).toBe(
-        "slots.conditionalSlot.plan[0].if.else[0].plan[0]"
-      );
+      expect(blocks[1].path).toBe("slots.conditionalSlot.plan[0].if.else[0].plan[0]");
 
       // Else branch - second message
       expect(blocks[2].block).toEqual({
@@ -267,9 +261,7 @@ describe("walkers", () => {
         from: { source: "fallback" },
         prefix: undefined,
       });
-      expect(blocks[2].path).toBe(
-        "slots.conditionalSlot.plan[0].if.else[1].plan[0]"
-      );
+      expect(blocks[2].path).toBe("slots.conditionalSlot.plan[0].if.else[1].plan[0]");
     });
 
     it("should handle deeply nested structures", () => {
@@ -340,9 +332,7 @@ describe("walkers", () => {
 
     it("should handle templates with no slots", () => {
       const template = createTemplate({
-        layout: [
-          { kind: "message", role: "system", content: "Only layout message" },
-        ],
+        layout: [{ kind: "message", role: "system", content: "Only layout message" }],
         slots: {},
       });
 
@@ -517,9 +507,7 @@ describe("walkers", () => {
       expect(refs[0].path).toBe("slots.conditionalSlot.plan[0].if.when.ref");
 
       expect(refs[1].ref).toEqual({ source: "fallbackData" });
-      expect(refs[1].path).toBe(
-        "slots.conditionalSlot.plan[0].if.else[0].plan[0].from"
-      );
+      expect(refs[1].path).toBe("slots.conditionalSlot.plan[0].if.else[0].plan[0].from");
     });
 
     it("should handle nested DataRefs in complex structures", () => {
@@ -569,9 +557,7 @@ describe("walkers", () => {
       expect(refs[1].path).toBe("slots.complex.plan[0].forEach.source");
 
       expect(refs[2].ref).toEqual({ source: "innerCondition" });
-      expect(refs[2].path).toBe(
-        "slots.complex.plan[0].forEach.map[0].plan[0].if.when.ref"
-      );
+      expect(refs[2].path).toBe("slots.complex.plan[0].forEach.map[0].plan[0].if.when.ref");
 
       expect(refs[3].ref).toEqual({ source: "innerItems" });
       expect(refs[3].path).toBe(
@@ -586,16 +572,12 @@ describe("walkers", () => {
 
     it("should handle templates without DataRefs", () => {
       const template = createTemplate({
-        layout: [
-          { kind: "message", role: "system", content: "Static content" },
-        ],
+        layout: [{ kind: "message", role: "system", content: "Static content" }],
         slots: {
           simple: {
             priority: 0,
             meta: {},
-            plan: [
-              { kind: "message", role: "user", content: "Static message" },
-            ],
+            plan: [{ kind: "message", role: "user", content: "Static message" }],
           },
         },
       });
@@ -657,14 +639,10 @@ describe("walkers", () => {
       expect(refs[0].path).toBe("slots.items.plan[0].forEach.source");
 
       expect(refs[1].ref).toEqual({ source: "prefix" });
-      expect(refs[1].path).toBe(
-        "slots.items.plan[0].forEach.map[0].plan[0].from"
-      );
+      expect(refs[1].path).toBe("slots.items.plan[0].forEach.map[0].plan[0].from");
 
       expect(refs[2].ref).toEqual({ source: "suffix" });
-      expect(refs[2].path).toBe(
-        "slots.items.plan[0].forEach.map[2].plan[0].from"
-      );
+      expect(refs[2].path).toBe("slots.items.plan[0].forEach.map[2].plan[0].from");
     });
   });
 
@@ -700,9 +678,7 @@ describe("walkers", () => {
       expect(messageBlocks[0].path).toMatch(
         /^slots\.test\.plan\[\d+\]\.forEach\.map\[\d+\]\.plan\[\d+\]\.if\.then\[\d+\]\.plan\[\d+\]$/
       );
-      expect(dataRefs[0].path).toMatch(
-        /^slots\.test\.plan\[\d+\]\.forEach\.source$/
-      );
+      expect(dataRefs[0].path).toMatch(/^slots\.test\.plan\[\d+\]\.forEach\.source$/);
       expect(dataRefs[1].path).toMatch(
         /^slots\.test\.plan\[\d+\]\.forEach\.map\[\d+\]\.plan\[\d+\]\.if\.when\.ref$/
       );

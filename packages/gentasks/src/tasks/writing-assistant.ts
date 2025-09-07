@@ -52,14 +52,8 @@ export type WritingAssistantSources = {
 };
 
 // Convenience type aliases
-export type WritingAssistantTemplate = PromptTemplate<
-  "writing_assistant",
-  WritingAssistantSources
->;
-export type WritingAssistantRegistry = SourceRegistry<
-  WritingAssistantCtx,
-  WritingAssistantSources
->;
+export type WritingAssistantTemplate = PromptTemplate<"writing_assistant", WritingAssistantSources>;
+export type WritingAssistantRegistry = SourceRegistry<WritingAssistantCtx, WritingAssistantSources>;
 
 const makeWritingAssistRegistry = (
   handlers: SourceHandlerMap<WritingAssistantCtx, WritingAssistantSources>
@@ -69,11 +63,9 @@ export const writingAssistRegistry = makeWritingAssistRegistry({
   userText: (_ref, ctx) => ctx.userText,
   context: (_ref, ctx) => ctx.context,
   stylePrefs: (_ref, ctx) => ctx.stylePrefs,
-  stepOutput: (ref, ctx) =>
-    ctx.stepInputs ? ctx.stepInputs[ref.args.key] : undefined,
+  stepOutput: (ref, ctx) => (ctx.stepInputs ? ctx.stepInputs[ref.args.key] : undefined),
   globals: (_ref, ctx) => ctx.globals,
-  styleGuide: (_ref, ctx) =>
-    ctx.stylePrefs ? ctx.stylePrefs.styleGuide : undefined,
+  styleGuide: (_ref, ctx) => (ctx.stylePrefs ? ctx.stylePrefs.styleGuide : undefined),
   tone: (_ref, ctx) => (ctx.stylePrefs ? ctx.stylePrefs.tone : undefined),
 });
 

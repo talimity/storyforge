@@ -22,23 +22,15 @@ describe("Step Chaining via stepOutput", () => {
 
   it("should chain planner output to writer input", () => {
     // Step 1: Render planner template
-    const compiledPlanner = compileTemplate<
-      "fake_turn_gen",
-      FakeTurnGenSourceSpec
-    >(turnPlannerV1Json);
+    const compiledPlanner = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnPlannerV1Json
+    );
 
     const plannerBudget = new DefaultBudgetManager({ maxTokens: 3000 });
-    const plannerMessages = render(
-      compiledPlanner,
-      standardTurnGenCtx,
-      plannerBudget,
-      registry
-    );
+    const plannerMessages = render(compiledPlanner, standardTurnGenCtx, plannerBudget, registry);
 
     // Verify planner produces assistant prefix
-    const assistantMsg = plannerMessages.find(
-      (m) => m.role === "assistant" && m.prefix
-    );
+    const assistantMsg = plannerMessages.find((m) => m.role === "assistant" && m.prefix);
     expect(assistantMsg).toBeDefined();
     expect(assistantMsg?.content).toBe('{"goals":');
 
@@ -62,25 +54,17 @@ describe("Step Chaining via stepOutput", () => {
     };
 
     // Step 4: Render writer template with injected plan
-    const compiledWriter = compileTemplate<
-      "fake_turn_gen",
-      FakeTurnGenSourceSpec
-    >(turnWriterFromPlanV1Json);
+    const compiledWriter = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterFromPlanV1Json
+    );
 
     const writerBudget = new DefaultBudgetManager({ maxTokens: 3000 });
-    const writerMessages = render(
-      compiledWriter,
-      contextWithPlan,
-      writerBudget,
-      registry
-    );
+    const writerMessages = render(compiledWriter, contextWithPlan, writerBudget, registry);
 
     // Step 6: Verify plan content appears in writer messages
     const planMessages = writerMessages.filter(
       (m) =>
-        m.content?.includes("goals") ||
-        m.content?.includes("beats") ||
-        m.content?.includes("risks")
+        m.content?.includes("goals") || m.content?.includes("beats") || m.content?.includes("risks")
     );
 
     expect(planMessages.length).toBeGreaterThan(0);
@@ -91,16 +75,8 @@ describe("Step Chaining via stepOutput", () => {
     expect(planContent).toMatch(/Alice discovers a clue/);
 
     // Verify writer has proper structure
-    expect(
-      writerMessages.some((m) =>
-        m.content?.includes("Player intent to respect")
-      )
-    ).toBe(true);
-    expect(
-      writerMessages.some((m) =>
-        m.content?.includes("Planner guidance follows")
-      )
-    ).toBe(true);
+    expect(writerMessages.some((m) => m.content?.includes("Player intent to respect"))).toBe(true);
+    expect(writerMessages.some((m) => m.content?.includes("Planner guidance follows"))).toBe(true);
 
     // Complete step chain snapshot
     expect(writerMessages).toMatchSnapshot("step-chaining-planner-to-writer");
@@ -158,18 +134,12 @@ describe("Step Chaining via stepOutput", () => {
       },
     };
 
-    const compiledWriter = compileTemplate<
-      "fake_turn_gen",
-      FakeTurnGenSourceSpec
-    >(turnWriterFromPlanV1Json);
+    const compiledWriter = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterFromPlanV1Json
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 3000 });
-    const messages = render(
-      compiledWriter,
-      contextMissingPlan,
-      budget,
-      registry
-    );
+    const messages = render(compiledWriter, contextMissingPlan, budget, registry);
 
     // Should render without crashing, but plan slot should be empty
     const hasPlanContent = messages.some(
@@ -180,9 +150,7 @@ describe("Step Chaining via stepOutput", () => {
 
     // Should still have other structure
     expect(messages.some((m) => m.role === "system")).toBe(true);
-    expect(messages.some((m) => m.content?.includes("Player intent"))).toBe(
-      true
-    );
+    expect(messages.some((m) => m.content?.includes("Player intent"))).toBe(true);
   });
 
   it("should preserve step data types through chaining", () => {
@@ -233,10 +201,9 @@ describe("Step Chaining via stepOutput", () => {
 
   it("should work with pre-configured step chained context", () => {
     // Use the stepChainedCtx fixture which already has step data
-    const compiledWriter = compileTemplate<
-      "fake_turn_gen",
-      FakeTurnGenSourceSpec
-    >(turnWriterFromPlanV1Json);
+    const compiledWriter = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterFromPlanV1Json
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 3000 });
     const messages = render(compiledWriter, stepChainedCtx, budget, registry);
@@ -300,18 +267,15 @@ describe("Step Chaining via stepOutput", () => {
     expect(plannerOutput).toMatch(/Build on analyzer insights/);
 
     // Render writer with multi-step inputs
-    const compiledWriter = compileTemplate<
-      "fake_turn_gen",
-      FakeTurnGenSourceSpec
-    >(turnWriterFromPlanV1Json);
+    const compiledWriter = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(
+      turnWriterFromPlanV1Json
+    );
 
     const budget = new DefaultBudgetManager({ maxTokens: 3000 });
     const messages = render(compiledWriter, multiStepContext, budget, registry);
 
     // Should have content from the planner step
-    const hasPlanContent = messages.some((m) =>
-      m.content?.includes("Build on analyzer insights")
-    );
+    const hasPlanContent = messages.some((m) => m.content?.includes("Build on analyzer insights"));
     expect(hasPlanContent).toBe(true);
   });
 });

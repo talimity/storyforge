@@ -376,9 +376,7 @@ describe("TimelineService.deleteTurn", () => {
       /* b */ await createTurn(db, { parent: a.id });
       /* c */ await createTurn(db, { parent: a.id, siblingOrder: "1" });
 
-      await expect(service.deleteTurn(a.id, false)).rejects.toThrow(
-        "CannotPromoteMultipleToRoot"
-      );
+      await expect(service.deleteTurn(a.id, false)).rejects.toThrow("CannotPromoteMultipleToRoot");
     });
   });
 
@@ -405,26 +403,15 @@ describe("TimelineService.deleteTurn", () => {
   });
 });
 
-async function getTurnsByParent(
-  db: SqliteDatabase,
-  parentId: string | null
-): Promise<Turn[]> {
+async function getTurnsByParent(db: SqliteDatabase, parentId: string | null): Promise<Turn[]> {
   return db
     .select()
     .from(schema.turns)
-    .where(
-      parentId
-        ? eq(schema.turns.parentTurnId, parentId)
-        : isNull(schema.turns.parentTurnId)
-    )
+    .where(parentId ? eq(schema.turns.parentTurnId, parentId) : isNull(schema.turns.parentTurnId))
     .orderBy(schema.turns.siblingOrder);
 }
 
-async function setAnchor(
-  db: SqliteDatabase,
-  scenarioId: string,
-  turnId: string
-) {
+async function setAnchor(db: SqliteDatabase, scenarioId: string, turnId: string) {
   await db
     .update(schema.scenarios)
     .set({ anchorTurnId: turnId })
@@ -432,12 +419,7 @@ async function setAnchor(
 }
 
 async function getTurn(db: SqliteDatabase, id: string) {
-  return db
-    .select()
-    .from(schema.turns)
-    .where(eq(schema.turns.id, id))
-    .limit(1)
-    .get();
+  return db.select().from(schema.turns).where(eq(schema.turns.id, id)).limit(1).get();
 }
 
 async function getTurnIds(db: SqliteDatabase): Promise<string[]> {

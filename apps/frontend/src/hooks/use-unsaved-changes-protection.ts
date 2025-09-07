@@ -11,9 +11,7 @@ export function useUnsavedChangesProtection({
   message = "You have unsaved changes. Are you sure you want to leave?",
 }: UseUnsavedChangesProtectionOptions) {
   const [showDialog, setShowDialog] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<
-    (() => void) | null
-  >(null);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
 
   // Handle browser refresh/close
   useEffect(() => {

@@ -2,11 +2,7 @@ import { textInferenceCapabilitiesSchema } from "@storyforge/inference";
 import { z } from "zod";
 
 // Core schemas
-export const providerKindSchema = z.enum([
-  "openrouter",
-  "deepseek",
-  "openai-compatible",
-]);
+export const providerKindSchema = z.enum(["openrouter", "deepseek", "openai-compatible"]);
 
 export const providerAuthOutputSchema = z.object({ hasApiKey: z.boolean() });
 export const providerAuthInputSchema = z.object({
@@ -40,9 +36,7 @@ export const createProviderConfigSchema = z.object({
 
 export const updateProviderConfigSchema = z.object({
   id: z.string(),
-  data: createProviderConfigSchema
-    .extend({ auth: providerAuthInputSchema.partial() })
-    .partial(),
+  data: createProviderConfigSchema.extend({ auth: providerAuthInputSchema.partial() }).partial(),
 });
 
 export const listProvidersOutputSchema = z.object({
@@ -110,18 +104,12 @@ export type ProviderConfig = z.infer<typeof providerConfigSchema>;
 export type CreateProviderConfig = z.infer<typeof createProviderConfigSchema>;
 export type UpdateProviderConfig = z.infer<typeof updateProviderConfigSchema>;
 export type ListProvidersOutput = z.infer<typeof listProvidersOutputSchema>;
-export type TestProviderConnectionInput = z.infer<
-  typeof testProviderConnectionInputSchema
->;
-export type TestProviderConnectionOutput = z.infer<
-  typeof testProviderConnectionOutputSchema
->;
+export type TestProviderConnectionInput = z.infer<typeof testProviderConnectionInputSchema>;
+export type TestProviderConnectionOutput = z.infer<typeof testProviderConnectionOutputSchema>;
 export type ModelProfile = z.infer<typeof modelProfileSchema>;
 export type CreateModelProfile = z.infer<typeof createModelProfileSchema>;
 export type UpdateModelProfile = z.infer<typeof updateModelProfileSchema>;
-export type ListModelProfilesOutput = z.infer<
-  typeof listModelProfilesOutputSchema
->;
+export type ListModelProfilesOutput = z.infer<typeof listModelProfilesOutputSchema>;
 
 // Model Profile search (server-side)
 export const searchModelProfilesInputSchema = z.object({
@@ -131,12 +119,8 @@ export const searchModelProfilesInputSchema = z.object({
 
 export const searchModelProfilesOutputSchema = listModelProfilesOutputSchema;
 
-export type SearchModelProfilesInput = z.infer<
-  typeof searchModelProfilesInputSchema
->;
-export type SearchModelProfilesOutput = z.infer<
-  typeof searchModelProfilesOutputSchema
->;
+export type SearchModelProfilesInput = z.infer<typeof searchModelProfilesInputSchema>;
+export type SearchModelProfilesOutput = z.infer<typeof searchModelProfilesOutputSchema>;
 export type ModelSearchResult = z.infer<typeof modelSearchResultSchema>;
 export type SearchModelsInput = z.infer<typeof searchModelsInputSchema>;
 export type SearchModelsOutput = z.infer<typeof searchModelsOutputSchema>;

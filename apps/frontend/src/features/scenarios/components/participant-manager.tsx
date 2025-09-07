@@ -1,12 +1,4 @@
-import {
-  Card,
-  Grid,
-  HStack,
-  IconButton,
-  Input,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
+import { Card, Grid, HStack, IconButton, Input, Stack, Text } from "@chakra-ui/react";
 import { LuX } from "react-icons/lu";
 import { Avatar, Field, Radio, RadioGroup } from "@/components/ui/index";
 import { CharacterMultiSelect } from "@/features/characters/components/character-selector";
@@ -133,18 +125,14 @@ export function ParticipantManager({
                           : undefined
                       }
                     />
-                    <Text fontWeight="medium">
-                      {participant.character.name}
-                    </Text>
+                    <Text fontWeight="medium">{participant.character.name}</Text>
                   </HStack>
                   <IconButton
                     aria-label="Remove participant"
                     size="xs"
                     variant="ghost"
                     colorPalette="red"
-                    onClick={() =>
-                      handleRemoveParticipant(participant.characterId)
-                    }
+                    onClick={() => handleRemoveParticipant(participant.characterId)}
                     disabled={isDisabled}
                   >
                     <LuX />
@@ -157,9 +145,7 @@ export function ParticipantManager({
                     size="sm"
                     placeholder="e.g., Player, NPC, Antagonist..."
                     value={participant.role || ""}
-                    onChange={(e) =>
-                      handleRoleChange(participant.characterId, e.target.value)
-                    }
+                    onChange={(e) => handleRoleChange(participant.characterId, e.target.value)}
                     disabled={isDisabled}
                   />
                 </Field>
@@ -167,9 +153,7 @@ export function ParticipantManager({
                 {/* User Proxy Selection */}
                 <RadioGroup
                   value={userProxyId || ""}
-                  onValueChange={(details) =>
-                    handleUserProxyChange(details.value)
-                  }
+                  onValueChange={(details) => handleUserProxyChange(details.value)}
                   disabled={isDisabled}
                 >
                   <Radio value={participant.characterId}>

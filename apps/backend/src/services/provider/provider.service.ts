@@ -30,10 +30,7 @@ const logger = createChildLogger("provider-service");
 export class ProviderService {
   constructor(private db: SqliteDatabase) {}
 
-  async createProvider(
-    input: CreateProviderConfig,
-    outerTx?: SqliteTransaction
-  ) {
+  async createProvider(input: CreateProviderConfig, outerTx?: SqliteTransaction) {
     const op = async (tx: SqliteTransaction) => {
       if (input.kind === "openai-compatible") {
         if (!input.baseUrl) {
@@ -55,10 +52,7 @@ export class ProviderService {
           : { capabilities: null }),
       };
 
-      const [created] = await tx
-        .insert(providerConfigs)
-        .values(newProvider)
-        .returning();
+      const [created] = await tx.insert(providerConfigs).values(newProvider).returning();
 
       return created;
     };
@@ -127,10 +121,7 @@ export class ProviderService {
     const op = async (tx: SqliteTransaction) => {
       await this.getProviderByIdOrFail(tx, input.providerId);
 
-      const [created] = await tx
-        .insert(modelProfiles)
-        .values(input)
-        .returning();
+      const [created] = await tx.insert(modelProfiles).values(input).returning();
       return created;
     };
 
@@ -168,10 +159,7 @@ export class ProviderService {
     return outerTx ? op(outerTx) : this.db.transaction(op);
   }
 
-  async deleteModelProfile(
-    id: string,
-    outerTx?: SqliteTransaction
-  ): Promise<void> {
+  async deleteModelProfile(id: string, outerTx?: SqliteTransaction): Promise<void> {
     const op = async (tx: SqliteTransaction) => {
       await this.getModelProfileByIdOrFail(tx, id);
 
@@ -187,16 +175,13 @@ export class ProviderService {
   ): Promise<{ success: boolean; payload: unknown }> {
     const provider = await this.getProviderByIdOrFail(this.db, id);
     const model = await this.getModelProfileByIdOrFail(this.db, modelProfileId);
-    const adapter = createAdapter(stripNulls(provider)).withOverrides(
-      model.capabilityOverrides
-    );
+    const adapter = createAdapter(stripNulls(provider)).withOverrides(model.capabilityOverrides);
 
     const req: ChatCompletionRequest = {
       messages: [
         {
           role: "user",
-          content:
-            "This is an API connection test. Respond with simply 'success'.",
+          content: "This is an API connection test. Respond with simply 'success'.",
         },
       ],
       model: model.modelId,
@@ -227,11 +212,7 @@ export class ProviderService {
   }
 
   private async getModelProfileByIdOrFail(tx: SqliteTxLike, id: string) {
-    const [model] = await tx
-      .select()
-      .from(modelProfiles)
-      .where(eq(modelProfiles.id, id))
-      .limit(1);
+    const [model] = await tx.select().from(modelProfiles).where(eq(modelProfiles.id, id)).limit(1);
     if (!model) {
       throw new ServiceError("NotFound", {
         message: `Model profile ${id} not found`,

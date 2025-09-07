@@ -29,9 +29,7 @@ export async function loadCharacterFixtures(): Promise<CharacterFixture[]> {
   }
 
   const files = await readdir(dataPath);
-  const cardFiles = files.filter(
-    (file) => file.endsWith(".png") && file.startsWith("main_")
-  );
+  const cardFiles = files.filter((file) => file.endsWith(".png") && file.startsWith("main_"));
 
   const fixtures: CharacterFixture[] = [];
 
@@ -42,9 +40,7 @@ export async function loadCharacterFixtures(): Promise<CharacterFixture[]> {
       const card = await parseTavernCard(buffer.buffer);
 
       // Extract character name from card for ID generation
-      const name = card.isV2
-        ? (card.cardData as any).data.name
-        : (card.cardData as any).name;
+      const name = card.isV2 ? (card.cardData as any).data.name : (card.cardData as any).name;
       const id = name.toLowerCase().replace(/[^a-z0-9]/g, "_");
 
       fixtures.push({ id, name, card, buffer });
@@ -57,9 +53,7 @@ export async function loadCharacterFixtures(): Promise<CharacterFixture[]> {
   return fixtures;
 }
 
-export async function seedCharacterFixtures(
-  db: SqliteDatabase
-): Promise<CharacterFixture[]> {
+export async function seedCharacterFixtures(db: SqliteDatabase): Promise<CharacterFixture[]> {
   const fixtures = await loadCharacterFixtures();
 
   const service = new CharacterService(db);
@@ -72,13 +66,9 @@ export async function seedCharacterFixtures(
 }
 
 // Helper to get a specific fixture by name
-export async function getCharacterFixture(
-  name: string
-): Promise<CharacterFixture | undefined> {
+export async function getCharacterFixture(name: string): Promise<CharacterFixture | undefined> {
   const fixtures = await loadCharacterFixtures();
-  return fixtures.find((f) =>
-    f.name.toLowerCase().includes(name.toLowerCase())
-  );
+  return fixtures.find((f) => f.name.toLowerCase().includes(name.toLowerCase()));
 }
 
 // Helper to get fixture count for test assertions

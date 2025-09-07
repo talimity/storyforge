@@ -50,9 +50,7 @@ export function makeCommands(deps: IntentExecDeps) {
       return { turnId: newTurn.id };
     },
 
-    chooseActor: async function* (args: {
-      afterTurnId?: string;
-    }): IntentCommandGenerator<string> {
+    chooseActor: async function* (args: { afterTurnId?: string }): IntentCommandGenerator<string> {
       let afterAuthor: string | undefined;
       if (args.afterTurnId) {
         const turn = await db.query.turns.findFirst({
@@ -62,11 +60,7 @@ export function makeCommands(deps: IntentExecDeps) {
         afterAuthor = turn?.authorParticipantId ?? undefined;
       }
 
-      const participantId = await chooseNextActorRoundRobin(
-        db,
-        scenarioId,
-        afterAuthor
-      );
+      const participantId = await chooseNextActorRoundRobin(db, scenarioId, afterAuthor);
 
       yield {
         type: "actor_selected",

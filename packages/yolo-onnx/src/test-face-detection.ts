@@ -30,12 +30,8 @@ const padding = parseFloat(args[1]) || 1.2; // Default padding multiplier
     }
 
     console.log("\n✅ Face detected!");
-    console.log(
-      `Center: ${(focal.x * 100).toFixed(1)}%, ${(focal.y * 100).toFixed(1)}%`
-    );
-    console.log(
-      `Size: ${(focal.width * 100).toFixed(1)}% x ${(focal.height * 100).toFixed(1)}%`
-    );
+    console.log(`Center: ${(focal.x * 100).toFixed(1)}%, ${(focal.y * 100).toFixed(1)}%`);
+    console.log(`Size: ${(focal.width * 100).toFixed(1)}% x ${(focal.height * 100).toFixed(1)}%`);
     console.log(`Confidence: ${(focal.confidence * 100).toFixed(1)}%`);
 
     // Convert back to pixel coordinates for visualization
@@ -58,11 +54,7 @@ const padding = parseFloat(args[1]) || 1.2; // Default padding multiplier
     const top = Math.max(0, Math.round(cy - size / 2));
 
     // Ensure crop doesn't exceed image bounds
-    const cropSize = Math.min(
-      size,
-      metadata.width! - left,
-      metadata.height! - top
-    );
+    const cropSize = Math.min(size, metadata.width! - left, metadata.height! - top);
 
     // Create side-by-side preview
     // Calculate scale for resizing

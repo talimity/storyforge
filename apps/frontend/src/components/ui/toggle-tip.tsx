@@ -16,31 +16,14 @@ export interface ToggleTipProps extends ChakraPopover.RootProps {
 
 export const ToggleTip = React.forwardRef<HTMLDivElement, ToggleTipProps>(
   function ToggleTip(props, ref) {
-    const {
-      showArrow,
-      children,
-      portalled = true,
-      content,
-      portalRef,
-      ...rest
-    } = props;
+    const { showArrow, children, portalled = true, content, portalRef, ...rest } = props;
 
     return (
-      <ChakraPopover.Root
-        {...rest}
-        positioning={{ ...rest.positioning, gutter: 4 }}
-      >
+      <ChakraPopover.Root {...rest} positioning={{ ...rest.positioning, gutter: 4 }}>
         <ChakraPopover.Trigger asChild>{children}</ChakraPopover.Trigger>
         <Portal disabled={!portalled} container={portalRef}>
           <ChakraPopover.Positioner>
-            <ChakraPopover.Content
-              width="auto"
-              px="2"
-              py="1"
-              textStyle="xs"
-              rounded="sm"
-              ref={ref}
-            >
+            <ChakraPopover.Content width="auto" px="2" py="1" textStyle="xs" rounded="sm" ref={ref}>
               {showArrow && (
                 <ChakraPopover.Arrow>
                   <ChakraPopover.ArrowTip />
@@ -59,21 +42,13 @@ export interface InfoTipProps extends Partial<ToggleTipProps> {
   buttonProps?: IconButtonProps | undefined;
 }
 
-export const InfoTip = React.forwardRef<HTMLDivElement, InfoTipProps>(
-  function InfoTip(props, ref) {
-    const { children, buttonProps, ...rest } = props;
-    return (
-      <ToggleTip content={children} {...rest} ref={ref}>
-        <IconButton
-          variant="ghost"
-          aria-label="info"
-          size="2xs"
-          colorPalette="gray"
-          {...buttonProps}
-        >
-          <HiOutlineInformationCircle />
-        </IconButton>
-      </ToggleTip>
-    );
-  }
-);
+export const InfoTip = React.forwardRef<HTMLDivElement, InfoTipProps>(function InfoTip(props, ref) {
+  const { children, buttonProps, ...rest } = props;
+  return (
+    <ToggleTip content={children} {...rest} ref={ref}>
+      <IconButton variant="ghost" aria-label="info" size="2xs" colorPalette="gray" {...buttonProps}>
+        <HiOutlineInformationCircle />
+      </IconButton>
+    </ToggleTip>
+  );
+});

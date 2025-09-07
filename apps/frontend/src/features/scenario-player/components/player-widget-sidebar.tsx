@@ -31,21 +31,10 @@ interface WidgetToggleProps {
   collapsed?: boolean;
 }
 
-function WidgetToggle({
-  icon,
-  label,
-  isActive,
-  onClick,
-  collapsed = false,
-}: WidgetToggleProps) {
+function WidgetToggle({ icon, label, isActive, onClick, collapsed = false }: WidgetToggleProps) {
   if (collapsed) {
     return (
-      <IconButton
-        variant={isActive ? "solid" : "ghost"}
-        size="sm"
-        onClick={onClick}
-        title={label}
-      >
+      <IconButton variant={isActive ? "solid" : "ghost"} size="sm" onClick={onClick} title={label}>
         {icon}
       </IconButton>
     );
@@ -65,15 +54,9 @@ function WidgetToggle({
   );
 }
 
-export function PlayerWidgetSidebar({
-  expanded,
-  onToggle,
-  characters,
-}: PlayerWidgetSidebarProps) {
+export function PlayerWidgetSidebar({ expanded, onToggle, characters }: PlayerWidgetSidebarProps) {
   // Track which widgets are active
-  const [activeWidgets, setActiveWidgets] = useState<Set<string>>(
-    new Set(["characters"])
-  );
+  const [activeWidgets, setActiveWidgets] = useState<Set<string>>(new Set(["characters"]));
 
   const toggleWidget = (widgetId: string) => {
     setActiveWidgets((prev) => {
@@ -161,9 +144,7 @@ export function PlayerWidgetSidebar({
       </Stack>
 
       {/* Widget Panels (only shown when expanded) */}
-      {expanded && (
-        <WidgetPanels activeWidgets={activeWidgets} characters={characters} />
-      )}
+      {expanded && <WidgetPanels activeWidgets={activeWidgets} characters={characters} />}
     </Flex>
   );
 }
