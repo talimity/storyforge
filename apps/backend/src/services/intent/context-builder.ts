@@ -16,7 +16,7 @@ interface BuildContextArgs {
   intent: { kind: NewIntent["kind"]; constraint?: string };
 }
 
-export class TurngenContextBuilder {
+export class IntentContextBuilder {
   constructor(
     private db: SqliteTxLike,
     private scenarioId: string

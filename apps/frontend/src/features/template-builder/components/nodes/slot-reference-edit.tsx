@@ -15,6 +15,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { slotSpecSchema } from "@storyforge/prompt-rendering";
 import type React from "react";
 import { forwardRef, useCallback, useMemo } from "react";
 import { Controller, useController, useForm } from "react-hook-form";
@@ -118,13 +119,17 @@ export const SlotReferenceEdit = forwardRef<
           .string()
           .optional()
           .superRefine((val, ctx) => {
-            if (val?.trim()) {
-              try {
-                JSON.parse(val);
-              } catch {
-                ctx.addIssue({ code: "custom", message: "Invalid JSON" });
-              }
+            if (!val?.trim()) return;
+            let obj: unknown;
+            try {
+              obj = JSON.parse(val);
+            } catch {
+              ctx.addIssue({ code: "custom", message: "Invalid JSON" });
+              return;
             }
+            const parsed = slotSpecSchema.safeParse(obj);
+            if (!parsed.success)
+              ctx.addIssue({ code: "custom", message: parsed.error.message });
           }),
       }),
     [currentName, slotsDraft, paramsSchema]

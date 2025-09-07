@@ -6,16 +6,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   GenWorkflow,
   ModelProfileResolved,
-  RunnerDeps,
-  RunnerEvent,
   TurnGenCtx,
+  WorkflowDeps,
+  WorkflowEvent,
 } from "../index.js";
 import { turnGenRegistry } from "../tasks/turn-generation.js";
 import { makeWorkflowRunner } from "./runner.js";
 
 describe("Workflow Runner", () => {
-  let mockDeps: RunnerDeps<"turn_generation">;
-  let capturedEvents: RunnerEvent[] = [];
+  let mockDeps: WorkflowDeps<"turn_generation">;
+  let capturedEvents: WorkflowEvent[] = [];
 
   beforeEach(() => {
     capturedEvents = [];
@@ -367,7 +367,7 @@ describe("Workflow Runner", () => {
     await expect(handle.result).rejects.toThrow("Workflow cancelled");
 
     // Collect events to verify cancellation event
-    const events: RunnerEvent[] = [];
+    const events: WorkflowEvent[] = [];
     for await (const event of handle.events()) {
       events.push(event);
       if (event.type === "run_cancelled" || event.type === "run_error") {
@@ -567,7 +567,7 @@ describe("Workflow Runner", () => {
 
   it("should only emit input_transformed when content actually changes", async () => {
     const runner = makeWorkflowRunner(mockDeps);
-    const events: RunnerEvent[] = [];
+    const events: WorkflowEvent[] = [];
 
     const workflow: GenWorkflow<"turn_generation"> = {
       id: "transform-event-workflow",
@@ -660,7 +660,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const events2: RunnerEvent[] = [];
+    const events2: WorkflowEvent[] = [];
     const handle2 = await runner.startRun(workflow2, context);
 
     const eventCollection2 = (async () => {

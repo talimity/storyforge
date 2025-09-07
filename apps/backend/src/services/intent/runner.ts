@@ -2,12 +2,11 @@ import type { SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { AsyncQueue } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
-import type { IntentEvent } from "./events.js";
-import type { IntentSaga } from "./sagas.js";
+import { IntentCancelledError } from "./errors.js";
+import type { IntentEvent, IntentGenerator } from "./types.js";
 
 export class IntentRunner {
   private queue = new AsyncQueue<IntentEvent>();
-  private aborted = new AbortController();
   // The accumulated text from the last generated turn
   private partial: string | undefined;
   private closedAt?: number;
@@ -17,14 +16,15 @@ export class IntentRunner {
     private intentId: string,
     private scenarioId: string,
     private kind: string,
-    private saga: IntentSaga
+    private generator: IntentGenerator,
+    private abortCtl: AbortController
   ) {}
 
   events() {
     return this.queue.iterate();
   }
   cancel() {
-    this.aborted.abort();
+    this.abortCtl.abort();
   }
 
   isClosed() {
@@ -36,25 +36,24 @@ export class IntentRunner {
 
   async run() {
     const { db, now } = this.deps;
-    // Mark intent as running as early as possible
 
     await db
       .update(schema.intents)
       .set({ status: "running" })
       .where(eq(schema.intents.id, this.intentId));
 
-    const startEv: IntentEvent = {
+    this.queue.push({
       type: "intent_started",
       intentId: this.intentId,
       scenarioId: this.scenarioId,
       kind: this.kind,
       ts: now(),
-    };
-    this.queue.push(startEv);
+    });
 
     try {
-      for await (const ev of this.saga) {
-        if (this.aborted.signal.aborted) throw new Error("Intent cancelled");
+      for await (const ev of this.generator) {
+        if (this.abortCtl.signal.aborted) throw new IntentCancelledError();
+
         if (ev.type === "gen_token") {
           this.partial = (this.partial ?? "") + ev.delta;
         }
@@ -81,8 +80,10 @@ export class IntentRunner {
         partialText: this.partial,
         ts: now(),
       });
+
       const cancelled =
-        this.aborted.signal.aborted || String(error).includes("cancelled");
+        this.abortCtl.signal.aborted || e instanceof IntentCancelledError;
+
       await db
         .update(schema.intents)
         .set({ status: cancelled ? "cancelled" : "failed" })

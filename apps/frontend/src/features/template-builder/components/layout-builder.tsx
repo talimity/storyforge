@@ -62,24 +62,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
     dndContextProps,
     sortableContextProps,
     DragOverlayComponent,
-  } = useLayoutDnd({
-    layout,
-    onLayoutChange: (newLayout) => {
-      // Calculate the movements needed
-      const oldIndexMap = new Map(layout.map((node, idx) => [node.id, idx]));
-      const newIndexMap = new Map(newLayout.map((node, idx) => [node.id, idx]));
-
-      // Find the node that moved
-      for (const [nodeId, newIdx] of newIndexMap) {
-        const oldIdx = oldIndexMap.get(nodeId);
-        if (oldIdx !== undefined && oldIdx !== newIdx) {
-          // This node moved from oldIdx to newIdx
-          reorderNodes(oldIdx, newIdx);
-          break;
-        }
-      }
-    },
-  });
+  } = useLayoutDnd({ layout, reorderNodes });
 
   const handleDeleteNode = useCallback(
     (id: string) => deleteNode(id, true),

@@ -31,9 +31,7 @@ export const intents = sqliteTable(
       () => scenarioParticipants.id,
       { onDelete: "restrict" }
     ),
-    parameters: text("parameters", { mode: "json" })
-      .$type<Record<string, unknown>>()
-      .notNull(),
+    inputText: text("input_text"),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),
@@ -44,7 +42,7 @@ export const intents = sqliteTable(
   (t) => [
     uniqueIndex("idx_one_pending_intent_per_scenario")
       .on(t.scenarioId)
-      .where(sql`status = 'pending'`),
+      .where(sql`status IN ('pending','running')`),
   ]
 );
 

@@ -7,46 +7,24 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useMemo, useState } from "react";
 import type { LayoutNodeDraft } from "@/features/template-builder/types";
 
 interface UseLayoutDndProps {
   layout: LayoutNodeDraft[];
-  onLayoutChange: (newLayout: LayoutNodeDraft[]) => void;
-}
-
-interface UseLayoutDndReturn {
-  activeNode: LayoutNodeDraft | null;
-  sensors: ReturnType<typeof useSensors>;
-  handleDragStart: (event: DragStartEvent) => void;
-  handleDragEnd: (event: DragEndEvent) => void;
-  dndContextProps: {
-    sensors: ReturnType<typeof useSensors>;
-    collisionDetection: typeof closestCenter;
-    onDragStart: (event: DragStartEvent) => void;
-    onDragEnd: (event: DragEndEvent) => void;
-  };
-  sortableContextProps: {
-    items: string[];
-    strategy: typeof verticalListSortingStrategy;
-  };
-  DragOverlayComponent: React.ComponentType<{
-    children: React.ReactNode;
-  }>;
+  reorderNodes: (oldIndex: number, newIndex: number) => void;
 }
 
 /**
  * Provides drag and drop functionality for layout nodes
  */
-export function useLayoutDnd({
-  layout,
-  onLayoutChange,
-}: UseLayoutDndProps): UseLayoutDndReturn {
+export function useLayoutDnd(props: UseLayoutDndProps) {
+  const { layout, reorderNodes } = props;
   const [activeNode, setActiveNode] = useState<LayoutNodeDraft | null>(null);
 
-  // Configure sensors for drag detection
-  // PointerSensor with activation distance to prevent accidental drags
+  // Configure PointerSensor with activation distance to prevent accidental drags
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -72,8 +50,7 @@ export function useLayoutDnd({
       const newIndex = layout.findIndex((node) => node.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        const newLayout = arrayMove(layout, oldIndex, newIndex);
-        onLayoutChange(newLayout);
+        reorderNodes(oldIndex, newIndex);
       }
     }
 
@@ -130,14 +107,7 @@ export function useSortableNode(id: string, isDragging?: boolean) {
   return {
     ref: setNodeRef,
     style,
-    dragHandleProps: {
-      ...attributes,
-      ...listeners,
-    },
+    dragHandleProps: { ...attributes, ...listeners },
     isDragging: isDragging || sortableIsDragging,
   };
 }
-
-// Import dependencies for the sortable hook
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";

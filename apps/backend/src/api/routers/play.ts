@@ -166,6 +166,7 @@ export const playRouter = router({
     .input(intentProgressInputSchema)
     .subscription(async function* ({ input, ctx }) {
       const { intentId } = input;
+      // todo: move to service
 
       const intent = await ctx.db.query.intents.findFirst({
         where: { id: intentId },
@@ -208,6 +209,7 @@ export const playRouter = router({
     .output(intentResultOutputSchema)
     .query(async ({ input, ctx }) => {
       const { intentId } = input;
+      // todo: move to service
       const intent = await ctx.db.query.intents.findFirst({
         where: { id: intentId },
       });
@@ -229,7 +231,13 @@ export const playRouter = router({
 
       const effects = await ctx.db.query.intentEffects.findMany({
         where: { intentId },
-        columns: { turnId: true, createdAt: true },
+        columns: {
+          intentId: true,
+          turnId: true,
+          sequence: true,
+          kind: true,
+          createdAt: true,
+        },
         orderBy: (t, { asc }) => [asc(t.createdAt)],
       });
 
@@ -237,7 +245,7 @@ export const playRouter = router({
         id: intent.id,
         scenarioId: intent.scenarioId,
         status: intent.status,
-        effects: effects.map((e, i) => ({ turnId: e.turnId, sequence: i + 1 })),
+        effects,
         // Schema expects non-null string; in practice scenarios will have an anchor by the time
         // results are fetched. Fall back to empty string to satisfy schema.
         anchorTurnId: scenario.anchorTurnId ?? "",
@@ -258,6 +266,7 @@ export const playRouter = router({
     .output(intentInterruptOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const { intentId } = input;
+      // todo: move to service
       const intent = await ctx.db.query.intents.findFirst({
         where: { id: intentId },
       });

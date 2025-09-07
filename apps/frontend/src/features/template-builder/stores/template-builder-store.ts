@@ -1,9 +1,9 @@
 import type { TaskKind } from "@storyforge/gentasks";
 import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
+import { createId } from "@storyforge/utils";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import {
-  generateNodeId,
   generateSlotName,
   getDefaultMessageContent,
 } from "@/features/template-builder/services/builder-utils";
@@ -90,7 +90,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
     addMessageNode: (role, index) =>
       set((state) => {
         const newNode: LayoutNodeDraft = {
-          id: generateNodeId(),
+          id: createId(),
           kind: "message",
           role,
           content: getDefaultMessageContent(role),
@@ -197,7 +197,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
 
         // Add a reference to the layout
         const newNode: LayoutNodeDraft = {
-          id: generateNodeId(),
+          id: createId(),
           kind: "slot",
           name: slotName,
           omitIfEmpty: true,

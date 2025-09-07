@@ -173,10 +173,15 @@ export const createIntentOutputSchema = z.object({ intentId: z.string() });
 
 export const intentEffectSchema = z
   .object({
-    turnId: z.string().describe("ID of the turn created by this effect"),
+    intentId: z.string().describe("ID of the intent that created this effect"),
     sequence: z
       .number()
-      .describe("Order of this effect among all effects in the intent"),
+      .describe("Order of this effect among all created by this intent"),
+    kind: z.enum(["new_turn"]).describe("Type of effect on the timeline"),
+    turnId: z
+      .string()
+      .nullable()
+      .describe("ID of the turn created by this effect"),
   })
   .describe("Representation of an effect of player's intent (ie. new turns)");
 

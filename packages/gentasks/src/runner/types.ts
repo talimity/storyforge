@@ -53,7 +53,7 @@ export type ModelProfileResolved = {
 };
 
 // Runner dependencies with proper typing
-export type RunnerDeps<K extends TaskKind> = {
+export type WorkflowDeps<K extends TaskKind> = {
   loadTemplate: (id: string) => Promise<UnboundTemplate>;
   loadModelProfile: (id: string) => Promise<ModelProfileResolved>;
   makeAdapter: (cfg: ProviderConfig) => ProviderAdapter;
@@ -62,41 +62,41 @@ export type RunnerDeps<K extends TaskKind> = {
 };
 
 // Run identification
-export type RunId = string;
+export type WorkflowRunId = string;
 
 // Event types for workflow execution
-export type RunnerEvent =
+export type WorkflowEvent =
   | {
       type: "run_started";
-      runId: RunId;
+      runId: WorkflowRunId;
       workflowId: string;
       task: TaskKind;
       ts: number;
     }
   | {
       type: "step_started";
-      runId: RunId;
+      runId: WorkflowRunId;
       stepId: string;
       name?: string;
       ts: number;
     }
   | {
       type: "prompt_rendered";
-      runId: RunId;
+      runId: WorkflowRunId;
       stepId: string;
       messages: ChatCompletionMessage[];
       ts: number;
     }
   | {
       type: "input_transformed";
-      runId: RunId;
+      runId: WorkflowRunId;
       stepId: string;
       messages: ChatCompletionMessage[];
       ts: number;
     }
   | {
       type: "step_prompt";
-      runId: RunId;
+      runId: WorkflowRunId;
       stepId: string;
       modelProfileId: string;
       modelId: string;
@@ -105,52 +105,52 @@ export type RunnerEvent =
     }
   | {
       type: "stream_delta";
-      runId: RunId;
+      runId: WorkflowRunId;
       stepId: string;
       delta: string;
       ts: number;
     }
   | {
       type: "step_captured";
-      runId: RunId;
+      runId: WorkflowRunId;
       stepId: string;
       outputs: Record<string, unknown>;
       ts: number;
     }
   | {
       type: "step_finished";
-      runId: RunId;
+      runId: WorkflowRunId;
       stepId: string;
-      result: StepResult;
+      result: GenStepResult;
       ts: number;
     }
   | {
       type: "run_finished";
-      runId: RunId;
+      runId: WorkflowRunId;
       output: Record<string, unknown>;
       ts: number;
     }
-  | { type: "run_cancelled"; runId: RunId; ts: number }
+  | { type: "run_cancelled"; runId: WorkflowRunId; ts: number }
   | {
       type: "run_error";
-      runId: RunId;
+      runId: WorkflowRunId;
       stepId?: string;
       error: string;
       ts: number;
     };
 
 // Step execution result
-export type StepResult = {
+export type GenStepResult = {
   response: ChatCompletionResponse;
   captured: Record<string, unknown>;
 };
 
 // Snapshot of a run's current state
-export type RunSnapshot = {
-  runId: RunId;
+export type WorkflowRunSnapshot = {
+  runId: WorkflowRunId;
   workflowId: string;
   task: TaskKind;
-  events: RunnerEvent[];
+  events: WorkflowEvent[];
   stepOutputs: Record<string, unknown>;
   stepResponses: Record<string, ChatCompletionResponse>;
   final?: Record<string, unknown>;
@@ -159,18 +159,22 @@ export type RunSnapshot = {
 };
 
 // Handle for controlling and observing a run
-export type RunHandle = {
-  id: RunId;
-  events(): AsyncIterable<RunnerEvent>;
+export type WorkflowRunHandle = {
+  id: WorkflowRunId;
+  events(): AsyncIterable<WorkflowEvent>;
   result: Promise<{
     finalOutputs: Record<string, unknown>;
     stepResponses: Record<string, ChatCompletionResponse>;
   }>;
   cancel(): void;
-  snapshot(): RunSnapshot;
+  snapshot(): WorkflowRunSnapshot;
 };
 
 // Workflow runner interface
 export interface WorkflowRunner<K extends TaskKind> {
-  startRun(workflow: GenWorkflow<K>, ctx: ContextFor<K>): Promise<RunHandle>;
+  startRun(
+    workflow: GenWorkflow<K>,
+    ctx: ContextFor<K>,
+    opts: { parentSignal?: AbortSignal }
+  ): Promise<WorkflowRunHandle>;
 }

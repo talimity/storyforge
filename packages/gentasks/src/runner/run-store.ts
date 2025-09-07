@@ -1,11 +1,15 @@
 import type { ChatCompletionResponse } from "@storyforge/inference";
 import { AsyncQueue, createId } from "@storyforge/utils";
 import type { TaskKind } from "../types.js";
-import type { RunId, RunnerEvent, RunSnapshot } from "./types.js";
+import type {
+  WorkflowEvent,
+  WorkflowRunId,
+  WorkflowRunSnapshot,
+} from "./types.js";
 
 interface RunData {
   /** Buffered event log */
-  events: RunnerEvent[];
+  events: WorkflowEvent[];
   /** Signal queue for new events */
   ticks: AsyncQueue<void>;
   /** Abort controller for cancellation */
@@ -27,7 +31,7 @@ interface RunData {
  * Handles event buffering, cancellation, and result promises.
  */
 export class RunStore {
-  private runs = new Map<RunId, RunData>();
+  private runs = new Map<WorkflowRunId, RunData>();
 
   /**
    * Create a new run with a unique ID
@@ -36,7 +40,7 @@ export class RunStore {
     workflowId: string,
     task: TaskKind
   ): {
-    id: RunId;
+    id: WorkflowRunId;
     signal: AbortSignal;
     resultPromise: Promise<{
       finalOutputs: Record<string, unknown>;
@@ -79,7 +83,7 @@ export class RunStore {
   /**
    * Push a new event to a run's event log
    */
-  push(id: RunId, event: RunnerEvent) {
+  push(id: WorkflowRunId, event: WorkflowEvent) {
     const run = this.runs.get(id);
     if (!run) throw new Error(`Run ${id} not found`);
 
@@ -92,7 +96,7 @@ export class RunStore {
   /**
    * Update step outputs for a run
    */
-  updateStepOutputs(id: RunId, patch: Record<string, unknown>) {
+  updateStepOutputs(id: WorkflowRunId, patch: Record<string, unknown>) {
     const run = this.runs.get(id);
     if (!run) return;
 
@@ -103,7 +107,7 @@ export class RunStore {
    * Save a step's response
    */
   saveStepResponse(
-    id: RunId,
+    id: WorkflowRunId,
     stepId: string,
     response: ChatCompletionResponse
   ) {
@@ -116,7 +120,7 @@ export class RunStore {
   /**
    * Mark a run as successfully completed
    */
-  finalize(id: RunId, final: Record<string, unknown>) {
+  finalize(id: WorkflowRunId, final: Record<string, unknown>) {
     const run = this.runs.get(id);
     if (!run) return;
 
@@ -131,7 +135,7 @@ export class RunStore {
   /**
    * Mark a run as failed
    */
-  fail(id: RunId, message: string) {
+  fail(id: WorkflowRunId, message: string) {
     const run = this.runs.get(id);
     if (!run) return;
 
@@ -143,7 +147,7 @@ export class RunStore {
   /**
    * Cancel a run
    */
-  cancel(id: RunId) {
+  cancel(id: WorkflowRunId) {
     const run = this.runs.get(id);
     if (!run) return;
 
@@ -154,7 +158,7 @@ export class RunStore {
   /**
    * Close a run's event queue (no more events will be accepted)
    */
-  closeQueue(id: RunId) {
+  closeQueue(id: WorkflowRunId) {
     const run = this.runs.get(id);
     if (!run) return;
 
@@ -165,7 +169,7 @@ export class RunStore {
    * Get an async iterator over a run's events.
    * Replays buffered events first, then streams live events.
    */
-  async *events(id: RunId): AsyncIterable<RunnerEvent> {
+  async *events(id: WorkflowRunId): AsyncIterable<WorkflowEvent> {
     const run = this.runs.get(id);
     if (!run) throw new Error(`Run ${id} not found`);
 
@@ -189,7 +193,7 @@ export class RunStore {
   /**
    * Get a snapshot of a run's current state
    */
-  snapshot(id: RunId): RunSnapshot | undefined {
+  snapshot(id: WorkflowRunId): WorkflowRunSnapshot | undefined {
     const run = this.runs.get(id);
     if (!run) return undefined;
 
@@ -209,21 +213,21 @@ export class RunStore {
   /**
    * Get the abort signal for a run
    */
-  getSignal(id: RunId): AbortSignal | undefined {
+  getSignal(id: WorkflowRunId): AbortSignal | undefined {
     return this.runs.get(id)?.aborted.signal;
   }
 
   /**
    * Check if a run exists
    */
-  has(id: RunId): boolean {
+  has(id: WorkflowRunId): boolean {
     return this.runs.has(id);
   }
 
   /**
    * Delete a run from the store (cleanup)
    */
-  delete(id: RunId): boolean {
+  delete(id: WorkflowRunId): boolean {
     const run = this.runs.get(id);
     if (!run) return false;
 
@@ -234,7 +238,7 @@ export class RunStore {
   /**
    * Get all active run IDs
    */
-  getActiveRunIds(): RunId[] {
+  getActiveRunIds(): WorkflowRunId[] {
     return Array.from(this.runs.keys());
   }
 }

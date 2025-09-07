@@ -77,13 +77,6 @@ export function getRoleLabel(role: ChatCompletionMessageRole): string {
 }
 
 /**
- * Generate a unique ID for new layout nodes
- */
-export function generateNodeId(): string {
-  return `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-/**
  * Generate a unique name for new slots
  */
 export function generateSlotName(

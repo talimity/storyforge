@@ -1,13 +1,6 @@
 import type { SqliteDatabase } from "@storyforge/db";
-import type { IntentEvent } from "./events.js";
 import { IntentRunner } from "./runner.js";
-import type { IntentSaga } from "./sagas.js";
-
-export type IntentHandle = {
-  id: string;
-  events: () => AsyncIterable<IntentEvent>;
-  cancel: () => void;
-};
+import type { IntentGenerator, IntentHandle } from "./types.js";
 
 export class IntentRunManager {
   private runs = new Map<string, IntentRunner>();
@@ -30,9 +23,17 @@ export class IntentRunManager {
     intentId: string,
     scenarioId: string,
     kind: string,
-    saga: IntentSaga
+    gen: IntentGenerator,
+    abortCtl: AbortController
   ): IntentHandle {
-    const run = new IntentRunner(this.deps, intentId, scenarioId, kind, saga);
+    const run = new IntentRunner(
+      this.deps,
+      intentId,
+      scenarioId,
+      kind,
+      gen,
+      abortCtl
+    );
     this.runs.set(intentId, run);
     // noinspection JSIgnoredPromiseFromCall
     run.run();

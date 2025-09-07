@@ -19,13 +19,13 @@ import { RunStore } from "./run-store.js";
 import { validateWorkflow } from "./schemas.js";
 import type {
   GenStep,
+  GenStepResult,
   GenWorkflow,
   OutputCapture,
-  RunHandle,
-  RunnerDeps,
-  RunnerEvent,
-  StepResult,
   TransformSpec,
+  WorkflowDeps,
+  WorkflowEvent,
+  WorkflowRunHandle,
   WorkflowRunner,
 } from "./types.js";
 
@@ -33,7 +33,7 @@ import type {
  * Creates a workflow runner for a specific task kind
  */
 export function makeWorkflowRunner<K extends TaskKind>(
-  deps: RunnerDeps<K>
+  deps: WorkflowDeps<K>
 ): WorkflowRunner<K> {
   const store = new RunStore();
   // Reap terminal runs periodically to keep memory usage bounded
@@ -63,9 +63,18 @@ export function makeWorkflowRunner<K extends TaskKind>(
 
   async function startRun(
     workflow: GenWorkflow<K>,
-    baseCtx: ContextFor<K>
-  ): Promise<RunHandle> {
+    baseCtx: ContextFor<K>,
+    opts: { parentSignal?: AbortSignal } = {}
+  ): Promise<WorkflowRunHandle> {
     const validatedWorkflow = validateWorkflow(workflow);
+
+    // Attach this workflow to parent abortsignal (and unregister on completion)
+    let cleanup: (() => void) | undefined;
+    if (opts?.parentSignal) {
+      const onAbort = () => store.cancel(runId); // propagate parent signal to workflow run's controller
+      opts.parentSignal.addEventListener("abort", onAbort);
+      cleanup = () => opts.parentSignal?.removeEventListener("abort", onAbort);
+    }
 
     // Create the run
     const {
@@ -73,7 +82,7 @@ export function makeWorkflowRunner<K extends TaskKind>(
       signal,
       resultPromise,
     } = store.create(validatedWorkflow.id, validatedWorkflow.task);
-    const emit = (event: RunnerEvent) => store.push(runId, event);
+    const emit = (event: WorkflowEvent) => store.push(runId, event);
     const now = () => Date.now();
 
     // Start execution in background
@@ -144,6 +153,9 @@ export function makeWorkflowRunner<K extends TaskKind>(
           emit({ type: "run_error", runId, error: message, ts: now() });
           store.fail(runId, message);
         }
+      } finally {
+        // Maybe unregister from parent signal
+        cleanup?.();
       }
     })();
 
@@ -172,11 +184,11 @@ export function makeWorkflowRunner<K extends TaskKind>(
     stepOutputs: Record<string, unknown>,
     helpers: {
       runId: string;
-      emit: (event: RunnerEvent) => void;
+      emit: (event: WorkflowEvent) => void;
       now: () => number;
       signal: AbortSignal;
     }
-  ): Promise<StepResult> {
+  ): Promise<GenStepResult> {
     const { runId, emit, now, signal } = helpers;
 
     // 1. Load and compile the prompt template

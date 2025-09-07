@@ -19,6 +19,18 @@ export async function getTurngenWorkflowForScope(
     participantId?: string;
   }
 ): Promise<GenWorkflow<"turn_generation">> {
+  let characterId = scope.characterId;
+
+  if (scope.participantId && !scope.characterId) {
+    // providing participantId should also imply characterId
+    const [participant] = await db
+      .select({ characterId: schema.scenarioParticipants.characterId })
+      .from(schema.scenarioParticipants)
+      .where(eq(schema.scenarioParticipants.id, scope.participantId))
+      .limit(1);
+    characterId = participant?.characterId ?? undefined;
+  }
+
   const orClauses: (SQL<unknown> | undefined)[] = [
     eq(workflowScopes.scopeKind, "default"),
   ];
@@ -30,11 +42,11 @@ export async function getTurngenWorkflowForScope(
       )
     );
   }
-  if (scope.characterId) {
+  if (characterId) {
     orClauses.push(
       and(
         eq(workflowScopes.scopeKind, "character"),
-        eq(workflowScopes.characterId, scope.characterId)
+        eq(workflowScopes.characterId, characterId)
       )
     );
   }

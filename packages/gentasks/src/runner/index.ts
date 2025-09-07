@@ -21,15 +21,15 @@ export {
 // Types
 export type {
   GenStep,
+  GenStepResult,
   GenWorkflow,
   ModelProfileResolved,
   OutputCapture,
-  RunHandle,
-  RunId,
-  RunnerDeps,
-  RunnerEvent,
-  RunSnapshot,
-  StepResult,
   TransformSpec,
+  WorkflowDeps,
+  WorkflowEvent,
+  WorkflowRunHandle,
+  WorkflowRunId,
   WorkflowRunner,
+  WorkflowRunSnapshot,
 } from "./types.js";
