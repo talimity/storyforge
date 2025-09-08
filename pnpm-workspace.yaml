@@ -3,9 +3,10 @@ packages:
   - packages/*
 
 catalog:
-  '@trpc/client': 11.5.0
-  '@trpc/react-query': 11.5.0
-  '@trpc/server': 11.5.0
+  '@trpc/client': 11.5.1
+  '@trpc/react-query': 11.5.1
+  '@trpc/tanstack-react-query': 11.5.1
+  '@trpc/server': 11.5.1
   '@types/node': ^24.1.0
   '@libsql/client': ^0.15.10
   drizzle-kit: beta

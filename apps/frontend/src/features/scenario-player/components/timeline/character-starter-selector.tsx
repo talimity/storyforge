@@ -9,7 +9,7 @@ import { getApiUrl } from "@/lib/get-api-url";
 
 interface CharacterStarterSelectorProps {
   charactersWithStarters: CharacterWithStarters[];
-  onStarterSelect: (characterId: string, starterId: string) => void;
+  onStarterSelect: (characterId: string, message: string) => void;
 }
 
 export function CharacterStarterSelector({
@@ -53,7 +53,7 @@ export function CharacterStarterSelector({
 
   const handleSelect = () => {
     if (currentStarter) {
-      onStarterSelect(currentCharacter.character.id, currentStarter.id);
+      onStarterSelect(currentCharacter.character.id, currentStarter.message);
     }
   };
 

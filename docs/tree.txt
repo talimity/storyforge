@@ -192,11 +192,11 @@
 │      │  │  │  │  ├── use-scenario-environment.ts
 │      │  │  │  │  ├── use-scenario-intent-actions.ts
 │      │  │  │  │  ├── use-scenario-timeline.ts
-│      │  │  │  │  └── use-turn-actions.tsx
+│      │  │  │  │  └── use-turn-actions.ts
 │      │  │  │  ├── providers
 │      │  │  │  │  └── scenario-provider.tsx
 │      │  │  │  └── stores
-│      │  │  │      └── scenario-store.ts
+│      │  │  │      └── scenario-player-store.ts
 │      │  │  ├── scenarios
 │      │  │  │  ├── components
 │      │  │  │  │  ├── participant-manager.tsx

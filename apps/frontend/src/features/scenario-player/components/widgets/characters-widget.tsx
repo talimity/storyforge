@@ -2,7 +2,7 @@ import { Box, Heading, Stack, Text } from "@chakra-ui/react";
 import { memo } from "react";
 import { LuCheck } from "react-icons/lu";
 import { CharacterListItem } from "@/features/characters/components/character-list-item";
-import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-store";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 
 interface Character {
   id: string;

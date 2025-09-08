@@ -20,12 +20,13 @@ The vision is something akin a turn-based/text-based version of The Sims, which 
 
 ```bash
 # Rebuild type declarations after changing shared packages
+# ⚠️ IMPORTANT: DO NOT pass `-w`, it will run the build in watch mode and block your terminal.
 pnpm build
 # Lint, fix imports, and check for type errors
-# ⚠️ IMPORTANT: Do NOT pass `-w`, it will run tsc in watch mode and block your terminal.
+# ⚠️ IMPORTANT: DO NOT pass `-w`, it will run tsc in watch mode and block your terminal.
 pnpm check
-# Run tests (backend, integration-only)
-# ⚠️ IMPORTANT: Do NOT pass `-w`, it will run vitest in watch mode and block your terminal. 
+# Run tests
+# ⚠️ IMPORTANT: DO NOT pass `-w`, it will run vitest in watch mode and block your terminal. 
 pnpm test
 
 # Remember to generate migrations when changing database schema in packages/db
@@ -33,7 +34,6 @@ pnpm db:generate # Drizzle migration generation
 pnpm db:migrate --name=descriptive-name # Run migrations against the database
 
 # Dev servers
-# ⚠️ IMPORTANT: If you use `pnpm dev` it will block your terminal.
 # If you need to start the servers in the background, you MUST use the `devctl` helper:
 devctl start      # Starts frontend/backend in the background
 devctl status     # "running" | "stopped"
@@ -41,6 +41,8 @@ devctl logs 100   # Show last n lines of dev server logs (default 30)
 devctl restart    # Restart both dev servers (this should not be necessary in most cases)
 devctl stop       # Stop both dev servers
 ```
+
+Again, DO NOT use `-w` flags for any of these commands. If you're trying to run a command in a specific workspace, use `pnpm --filter=frontend build`. `-w` is not valid for pnpm and will instead trigger blocking watch mode which is not what you want.
 
 ### Technical Choices
 
@@ -123,5 +125,7 @@ When in doubt, skip the comment.
 - You MUST follow existing conventions and patterns as much as possible
 - You SHOULD run checks and address diagnostics incrementally; it will be easier than fixing dozens of errors at the end
 - You MUST run the build and check commands before a task can be considered finished
-- You MUST NOT run any commands in watch mode or you will get stuck until the user manually interrupts the process
-- You MUST NOT 
+
+### At ALL TIMES
+- You MUST NOT run any blocking commands. 
+  - That includes watch mode! DO NOT add `-w` flags to any of the build or code quality commands.

@@ -8,7 +8,7 @@ import { TimelineView } from "@/features/scenario-player/components/timeline/tim
 import { useScenarioIntentActions } from "@/features/scenario-player/hooks/use-scenario-intent-actions";
 import { useScenarioTimeline } from "@/features/scenario-player/hooks/use-scenario-timeline";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
-import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-store";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { useActiveScenario } from "@/hooks/use-active-scenario";
 
 export function PlayerPage() {
@@ -64,9 +64,12 @@ export function PlayerPage() {
     }
   };
 
-  const handleStarterSelect = async (characterId: string, starterId: string) => {
-    // TODO: Implement starter selection behavior
-    console.log("Selected starter:", { characterId, starterId });
+  const handleStarterSelect = async (characterId: string, message: string) => {
+    const actor = participants.find((p) => p.characterId === characterId);
+    const chapter = chapters[0];
+    if (!actor || !chapter) return;
+
+    await addTurn(scenario.id, message, actor.id, chapter.id);
   };
 
   const timelineView = (

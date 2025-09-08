@@ -17,7 +17,7 @@ interface TimelineProps {
   isFetchingNextPage?: boolean;
   onLoadMore?: () => void;
   onTurnDeleted?: () => void;
-  onStarterSelect?: (characterId: string, starterId: string) => void;
+  onStarterSelect?: (characterId: string, message: string) => void;
 }
 
 export function TimelineView({
@@ -61,8 +61,8 @@ export function TimelineView({
     )
   );
 
-  const handleStarterSelect = (characterId: string, starterId: string) => {
-    onStarterSelect?.(characterId, starterId);
+  const handleStarterSelect = (characterId: string, message: string) => {
+    onStarterSelect?.(characterId, message);
   };
 
   return (

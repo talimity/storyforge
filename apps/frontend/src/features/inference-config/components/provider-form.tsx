@@ -39,6 +39,7 @@ const providerKindOptions = createListCollection({
     { label: "OpenRouter", value: "openrouter" },
     { label: "DeepSeek", value: "deepseek" },
     { label: "OpenAI Compatible", value: "openai-compatible" },
+    { label: "Mock", value: "mock" },
   ],
 });
 

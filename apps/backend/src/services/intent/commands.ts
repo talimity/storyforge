@@ -82,6 +82,13 @@ export function makeCommands(deps: IntentExecDeps) {
         participantId: args.actorId,
       });
 
+      yield {
+        type: "gen_start",
+        intentId,
+        participantId: args.actorId,
+        workflowId: workflow.id,
+        ts: now(),
+      };
       const handle = await runner.startRun(workflow, ctx, { parentSignal: deps.signal });
 
       for await (const ev of handle.events()) {
@@ -96,6 +103,7 @@ export function makeCommands(deps: IntentExecDeps) {
       const { finalOutputs } = await handle.result;
       const text = String(finalOutputs.presentation ?? partial ?? "").trim();
       if (!text) throw new Error("Empty generation output");
+      yield { type: "gen_finish", intentId, workflowId: workflow.id, text, ts: now() };
 
       return { presentation: text, outputs: finalOutputs };
     },

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 export interface ScenarioPlayerState {
+  /** Character selected in the sidebar, the target for new intents */
   selectedCharacterId: string | null;
 
   // Actions

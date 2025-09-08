@@ -2,7 +2,7 @@ import { textInferenceCapabilitiesSchema } from "@storyforge/inference";
 import { z } from "zod";
 
 // Core schemas
-export const providerKindSchema = z.enum(["openrouter", "deepseek", "openai-compatible"]);
+export const providerKindSchema = z.enum(["openrouter", "deepseek", "openai-compatible", "mock"]);
 
 export const providerAuthOutputSchema = z.object({ hasApiKey: z.boolean() });
 export const providerAuthInputSchema = z.object({

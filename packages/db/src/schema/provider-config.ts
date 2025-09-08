@@ -8,7 +8,7 @@ export const providerConfigs = sqliteTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => createId()),
-    kind: text("kind").notNull().$type<"openrouter" | "deepseek" | "openai-compatible">(),
+    kind: text("kind").notNull().$type<"openrouter" | "deepseek" | "openai-compatible" | "mock">(),
     name: text("name").notNull(),
     auth: text("auth", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
     baseUrl: text("base_url"),

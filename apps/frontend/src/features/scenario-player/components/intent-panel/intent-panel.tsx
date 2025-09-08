@@ -33,9 +33,14 @@ export function IntentPanel(props: IntentPanelProps) {
         onValueChange={(e) => setInputMode(e.value as InputMode)}
         size="sm"
       >
-        <SegmentGroup.Item value="direct">Direct Control</SegmentGroup.Item>
-        <SegmentGroup.Item value="constraints">Story Constraints</SegmentGroup.Item>
-        <SegmentGroup.Item value="quick">Quick Actions</SegmentGroup.Item>
+        <SegmentGroup.Indicator />
+        <SegmentGroup.Items
+          items={[
+            { value: "direct", label: "Direct Control" },
+            { value: "constraints", label: "Story Constraints" },
+            { value: "quick", label: "Quick Actions" },
+          ]}
+        />
       </SegmentGroup.Root>
 
       {/* Mode-specific panels */}
