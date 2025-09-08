@@ -1,5 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const ACTIVE_SCENARIO_KEY = "storyforge:activeScenario";
 
@@ -50,13 +51,16 @@ export function useActiveScenario() {
 }
 
 export function useActiveScenarioWithData() {
+  const trpc = useTRPC();
   const { activeScenarioId, setActiveScenario, clearActiveScenario, hasActiveScenario } =
     useActiveScenario();
 
   // Fetch the active scenario data if there is one
-  const scenarioQuery = trpc.scenarios.getById.useQuery(
-    { id: activeScenarioId || "" },
-    { enabled: !!activeScenarioId }
+  const scenarioQuery = useQuery(
+    trpc.scenarios.getById.queryOptions(
+      { id: activeScenarioId || "" },
+      { enabled: !!activeScenarioId }
+    )
   );
 
   const hasValidActiveScenario = activeScenarioId && !scenarioQuery.error && scenarioQuery.data;

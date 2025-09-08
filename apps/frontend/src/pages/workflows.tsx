@@ -9,6 +9,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { taskKindSchema } from "@storyforge/gentasks";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { LuImport, LuListPlus, LuMapPin, LuPlus, LuWorkflow } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +27,7 @@ import { AssignmentDialog } from "@/features/workflows/components/assignment-dia
 import { AssignmentList } from "@/features/workflows/components/assignment-list";
 import { WorkflowCard, WorkflowCardSkeleton } from "@/features/workflows/components/workflow-card";
 import { WorkflowImportDialog } from "@/features/workflows/components/workflow-import-dialog";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const taskOptions = [
   { value: "", label: "All Tasks" },
@@ -37,19 +38,24 @@ const taskOptions = [
 type TaskFilter = (typeof taskOptions)[number]["value"];
 
 export function WorkflowsPage() {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [tab, setTab] = useState("workflows");
   const [assignOpen, setAssignOpen] = useState(false);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("");
   const [importOpen, setImportOpen] = useState(false);
 
-  const workflowsQuery = trpc.workflows.list.useQuery({
-    task: taskFilter || undefined,
-  });
+  const workflowsQuery = useQuery(
+    trpc.workflows.list.queryOptions({
+      task: taskFilter || undefined,
+    })
+  );
   const selectedTask = taskKindSchema.parse(taskFilter || "turn_generation");
-  const assignmentsQuery = trpc.workflows.listScopes.useQuery(
-    { task: selectedTask },
-    { enabled: tab === "assignments" }
+  const assignmentsQuery = useQuery(
+    trpc.workflows.listScopes.queryOptions(
+      { task: selectedTask },
+      { enabled: tab === "assignments" }
+    )
   );
 
   const workflows = workflowsQuery.data?.workflows ?? [];

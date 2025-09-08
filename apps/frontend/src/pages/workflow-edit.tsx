@@ -1,23 +1,26 @@
 import { Container, Skeleton } from "@chakra-ui/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
 import { WorkflowForm } from "@/features/workflows/components/workflow-form";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function WorkflowEditPage() {
+  const trpc = useTRPC();
   const { id } = useParams();
   const navigate = useNavigate();
-  const utils = trpc.useUtils();
-  const { data, isLoading, error } = trpc.workflows.getById.useQuery(
-    { id: String(id) },
-    { enabled: Boolean(id) }
+  const queryClient = useQueryClient();
+  const { data, isLoading, error } = useQuery(
+    trpc.workflows.getById.queryOptions({ id: String(id) }, { enabled: Boolean(id) })
   );
-  const update = trpc.workflows.update.useMutation({
-    onSuccess: async () => {
-      await utils.workflows.invalidate();
-      navigate("/workflows");
-    },
-  });
+  const update = useMutation(
+    trpc.workflows.update.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.workflows.pathFilter());
+        navigate("/workflows");
+      },
+    })
+  );
 
   if (isLoading)
     return (

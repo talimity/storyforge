@@ -20,7 +20,8 @@ import {
 import { Avatar } from "@/components/ui/index";
 import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
-import { getApiUrl } from "@/lib/trpc";
+
+import { getApiUrl } from "@/lib/get-api-url";
 
 interface CompactCharacterCardProps {
   character: {

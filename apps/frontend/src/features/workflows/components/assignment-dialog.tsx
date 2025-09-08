@@ -1,6 +1,7 @@
 import { createListCollection, HStack, Input, Stack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -16,7 +17,7 @@ import {
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
 import { ScenarioSingleSelect } from "@/features/scenarios/components/scenario-selector";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const taskOptions = [
   { value: "turn_generation", label: "Turn Generation" },
@@ -61,14 +62,17 @@ export function AssignmentDialog({
   onOpenChange,
   defaultTask = "turn_generation",
 }: AssignmentDialogProps) {
-  const utils = trpc.useUtils();
-  const upsert = trpc.workflows.upsertScope.useMutation({
-    onSuccess: async () => {
-      showSuccessToast({ title: "Assignment saved" });
-      await utils.workflows.listScopes.invalidate();
-      onOpenChange(false);
-    },
-  });
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const upsert = useMutation(
+    trpc.workflows.upsertScope.mutationOptions({
+      onSuccess: async () => {
+        showSuccessToast({ title: "Assignment saved" });
+        await queryClient.invalidateQueries(trpc.workflows.listScopes.pathFilter());
+        onOpenChange(false);
+      },
+    })
+  );
 
   const {
     register,
@@ -86,7 +90,7 @@ export function AssignmentDialog({
   const selectedWorkflowId = watch("workflowId");
 
   // Load workflows for the selected task for the workflow selector
-  const workflowsQuery = trpc.workflows.list.useQuery({ task: selectedTask });
+  const workflowsQuery = useQuery(trpc.workflows.list.queryOptions({ task: selectedTask }));
   const workflowCollection = createListCollection({
     items: (workflowsQuery.data?.workflows ?? []).map((wf) => ({
       value: wf.id,

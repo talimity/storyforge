@@ -1,8 +1,9 @@
 import { Text } from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface DeleteWorkflowDialogProps {
   workflow: { id: string; name: string };
@@ -15,15 +16,18 @@ export function DeleteWorkflowDialog({
   isOpen,
   onOpenChange,
 }: DeleteWorkflowDialogProps) {
+  const trpc = useTRPC();
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const utils = trpc.useUtils();
-  const del = trpc.workflows.delete.useMutation({
-    onSuccess: async () => {
-      showSuccessToast({ title: "Workflow deleted" });
-      await utils.workflows.list.invalidate();
-      onOpenChange(false);
-    },
-  });
+  const queryClient = useQueryClient();
+  const del = useMutation(
+    trpc.workflows.delete.mutationOptions({
+      onSuccess: async () => {
+        showSuccessToast({ title: "Workflow deleted" });
+        await queryClient.invalidateQueries(trpc.workflows.list.pathFilter());
+        onOpenChange(false);
+      },
+    })
+  );
 
   return (
     <Dialog.Root

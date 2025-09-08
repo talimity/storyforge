@@ -1,4 +1,5 @@
 import { ActionBar, Center, Container, Flex, Grid, Text, VStack } from "@chakra-ui/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { LuLayoutGrid, LuLayoutList, LuPlay, LuUsersRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
@@ -20,8 +21,7 @@ import {
   CompactCharacterCard,
   CompactCharacterCardSkeleton,
 } from "@/features/characters/components/compact-character-card";
-
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const viewModeOptions = [
   { value: "list", label: <LuLayoutList /> },
@@ -29,6 +29,7 @@ const viewModeOptions = [
 ];
 
 export function CharacterLibraryPage() {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
@@ -36,8 +37,8 @@ export function CharacterLibraryPage() {
     return saved !== null ? JSON.parse(saved) : "grid";
   });
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([]);
-  const charactersQuery = trpc.characters.list.useQuery();
-  const utils = trpc.useUtils();
+  const charactersQuery = useQuery(trpc.characters.list.queryOptions());
+  const queryClient = useQueryClient();
 
   // Persist view mode to localStorage
   useEffect(() => {
@@ -92,7 +93,6 @@ export function CharacterLibraryPage() {
           />
         </PageHeader.Controls>
       </PageHeader.Root>
-
       {charactersQuery.isLoading &&
         (viewMode === "grid" ? (
           <Grid
@@ -116,7 +116,6 @@ export function CharacterLibraryPage() {
             ))}
           </Grid>
         ))}
-
       {charactersQuery.error && (
         <Center p={8}>
           <VStack>
@@ -130,7 +129,6 @@ export function CharacterLibraryPage() {
           </VStack>
         </Center>
       )}
-
       {charactersQuery.data && charactersQuery.data.characters.length === 0 && (
         <EmptyState
           icon={<LuUsersRound />}
@@ -140,7 +138,6 @@ export function CharacterLibraryPage() {
           onActionClick={() => setIsImportModalOpen(true)}
         />
       )}
-
       {charactersQuery.data &&
         charactersQuery.data.characters.length > 0 &&
         (viewMode === "grid" ? (
@@ -172,13 +169,11 @@ export function CharacterLibraryPage() {
             ))}
           </Grid>
         ))}
-
       <CharacterImportDialog
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        onImportSuccess={() => utils.characters.list.invalidate()}
+        onImportSuccess={() => queryClient.invalidateQueries(trpc.characters.list.pathFilter())}
       />
-
       <ActionBar.Root open={selectedCharacterIds.length > 1} closeOnEscape={true}>
         <ActionBarContent layerStyle="contrast" colorPalette="contrast">
           <Container>

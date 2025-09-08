@@ -1,4 +1,5 @@
 import { Container, Spinner, Stack, Text } from "@chakra-ui/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui";
@@ -6,48 +7,54 @@ import { SimplePageHeader } from "@/components/ui/page-header";
 import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
 import { CharacterForm } from "@/features/characters/components/character-form";
 import { showSuccessToast } from "@/lib/error-handling";
-import { getApiUrl, trpc } from "@/lib/trpc";
+import { getApiUrl } from "@/lib/get-api-url";
+import { useTRPC } from "@/lib/trpc";
 
 export function CharacterEditPage() {
+  const trpc = useTRPC();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const {
     data: character,
     isPending: isLoadingCharacter,
     error: loadError,
-  } = trpc.characters.getById.useQuery({ id: id ?? "" }, { enabled: !!id });
+  } = useQuery(trpc.characters.getById.queryOptions({ id: id ?? "" }, { enabled: !!id }));
 
-  const updateCharacterMutation = trpc.characters.update.useMutation({
-    onSuccess: (updatedCharacter) => {
-      showSuccessToast({
-        title: "Character updated",
-        description: `Changes to character '${updatedCharacter.name}' saved.`,
-      });
+  const updateCharacterMutation = useMutation(
+    trpc.characters.update.mutationOptions({
+      onSuccess: (updatedCharacter) => {
+        showSuccessToast({
+          title: "Character updated",
+          description: `Changes to character '${updatedCharacter.name}' saved.`,
+        });
 
-      utils.characters.list.invalidate();
-      if (id) {
-        utils.characters.getById.invalidate({ id });
-      }
+        queryClient.invalidateQueries(trpc.characters.list.pathFilter());
+        if (id) {
+          queryClient.invalidateQueries(trpc.characters.getById.queryFilter({ id }));
+        }
 
-      navigate("/characters");
-    },
-  });
+        navigate("/characters");
+      },
+    })
+  );
 
-  const deleteCharacterMutation = trpc.characters.delete.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Character deleted",
-        description: `Character '${character?.name}' deleted from your library.`,
-      });
+  const deleteCharacterMutation = useMutation(
+    trpc.characters.delete.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Character deleted",
+          description: `Character '${character?.name}' deleted from your library.`,
+        });
 
-      utils.characters.list.invalidate();
+        queryClient.invalidateQueries(trpc.characters.list.pathFilter());
 
-      navigate("/characters");
-    },
-  });
+        navigate("/characters");
+      },
+    })
+  );
 
   const handleSubmit = (formData: {
     name: string;

@@ -1,8 +1,9 @@
 import { Box, HStack, Icon, Text, VStack } from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog } from "@/components/ui/index";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface WorkflowImportDialogProps {
   isOpen: boolean;
@@ -10,18 +11,21 @@ interface WorkflowImportDialogProps {
 }
 
 export function WorkflowImportDialog({ isOpen, onOpenChange }: WorkflowImportDialogProps) {
+  const trpc = useTRPC();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const browseButtonRef = useRef<HTMLButtonElement>(null);
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const importWorkflowMutation = trpc.workflows.import.useMutation({
-    onSuccess: async () => {
-      await utils.workflows.list.invalidate();
-      handleClose();
-    },
-    onError: (error) => setImportError(error.message || "Failed to import workflow"),
-  });
+  const importWorkflowMutation = useMutation(
+    trpc.workflows.import.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.workflows.list.pathFilter());
+        handleClose();
+      },
+      onError: (error) => setImportError(error.message || "Failed to import workflow"),
+    })
+  );
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

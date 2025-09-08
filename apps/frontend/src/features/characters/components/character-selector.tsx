@@ -12,7 +12,7 @@ import type React from "react";
 import { Fragment, useEffect, useMemo, useRef } from "react";
 import { Avatar } from "@/components/ui/index";
 import { useCharacterSearch } from "@/features/characters/hooks/use-character-search";
-import { getApiUrl } from "@/lib/trpc";
+import { getApiUrl } from "@/lib/get-api-url";
 import { CharacterListItem } from "./character-list-item";
 
 type CharacterSearchCharacter = ReturnType<typeof useCharacterSearch>["characters"][number];

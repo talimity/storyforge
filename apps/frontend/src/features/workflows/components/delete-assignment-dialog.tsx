@@ -1,8 +1,9 @@
 import { Text } from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface DeleteAssignmentDialogProps {
   id: string;
@@ -17,15 +18,18 @@ export function DeleteAssignmentDialog({
   isOpen,
   onOpenChange,
 }: DeleteAssignmentDialogProps) {
+  const trpc = useTRPC();
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const utils = trpc.useUtils();
-  const del = trpc.workflows.deleteScope.useMutation({
-    onSuccess: async () => {
-      showSuccessToast({ title: "Assignment deleted" });
-      await utils.workflows.listScopes.invalidate();
-      onOpenChange(false);
-    },
-  });
+  const queryClient = useQueryClient();
+  const del = useMutation(
+    trpc.workflows.deleteScope.mutationOptions({
+      onSuccess: async () => {
+        showSuccessToast({ title: "Assignment deleted" });
+        await queryClient.invalidateQueries(trpc.workflows.listScopes.pathFilter());
+        onOpenChange(false);
+      },
+    })
+  );
 
   return (
     <Dialog.Root

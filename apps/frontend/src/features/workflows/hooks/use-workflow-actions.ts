@@ -1,23 +1,26 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { showErrorToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function useWorkflowActions(workflowId: string) {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const deleteWorkflowMutation = trpc.workflows.delete.useMutation({
-    onSuccess: async () => {
-      await utils.workflows.list.invalidate();
-      setIsDeleteDialogOpen(false);
-    },
-  });
+  const deleteWorkflowMutation = useMutation(
+    trpc.workflows.delete.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.workflows.list.pathFilter());
+        setIsDeleteDialogOpen(false);
+      },
+    })
+  );
 
-  const exportWorkflowQuery = trpc.workflows.export.useQuery(
-    { id: workflowId },
-    { enabled: false }
+  const exportWorkflowQuery = useQuery(
+    trpc.workflows.export.queryOptions({ id: workflowId }, { enabled: false })
   );
 
   const handleDelete = () => deleteWorkflowMutation.mutate({ id: workflowId });

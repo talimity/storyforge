@@ -1,4 +1,5 @@
 import { Container, Spinner, Stack, Text } from "@chakra-ui/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui";
@@ -6,48 +7,53 @@ import { SimplePageHeader } from "@/components/ui/page-header";
 import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
 import { ScenarioForm } from "@/features/scenarios/components/scenario-form";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function ScenarioEditPage() {
+  const trpc = useTRPC();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const {
     data: scenario,
     isPending: isLoadingScenario,
     error: loadError,
-  } = trpc.scenarios.getById.useQuery({ id: id ?? "" }, { enabled: !!id });
+  } = useQuery(trpc.scenarios.getById.queryOptions({ id: id ?? "" }, { enabled: !!id }));
 
-  const updateScenarioMutation = trpc.scenarios.update.useMutation({
-    onSuccess: (updatedScenario) => {
-      showSuccessToast({
-        title: "Scenario updated",
-        description: `Changes to scenario '${updatedScenario.name}' saved.`,
-      });
+  const updateScenarioMutation = useMutation(
+    trpc.scenarios.update.mutationOptions({
+      onSuccess: (updatedScenario) => {
+        showSuccessToast({
+          title: "Scenario updated",
+          description: `Changes to scenario '${updatedScenario.name}' saved.`,
+        });
 
-      utils.scenarios.list.invalidate();
-      if (id) {
-        utils.scenarios.getById.invalidate({ id });
-      }
+        queryClient.invalidateQueries(trpc.scenarios.list.pathFilter());
+        if (id) {
+          queryClient.invalidateQueries(trpc.scenarios.getById.queryFilter({ id }));
+        }
 
-      navigate("/scenarios");
-    },
-  });
+        navigate("/scenarios");
+      },
+    })
+  );
 
-  const deleteScenarioMutation = trpc.scenarios.delete.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Scenario deleted",
-        description: `Scenario '${scenario?.name}' deleted from your library.`,
-      });
+  const deleteScenarioMutation = useMutation(
+    trpc.scenarios.delete.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Scenario deleted",
+          description: `Scenario '${scenario?.name}' deleted from your library.`,
+        });
 
-      utils.scenarios.list.invalidate();
+        queryClient.invalidateQueries(trpc.scenarios.list.pathFilter());
 
-      navigate("/scenarios");
-    },
-  });
+        navigate("/scenarios");
+      },
+    })
+  );
 
   const handleSubmit = (formData: {
     name: string;

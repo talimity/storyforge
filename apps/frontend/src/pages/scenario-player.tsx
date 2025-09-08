@@ -7,12 +7,12 @@ import { PlayerLayout } from "@/features/scenario-player/components/player-layou
 import { TimelineView } from "@/features/scenario-player/components/timeline/timeline-view";
 import { useScenarioIntentActions } from "@/features/scenario-player/hooks/use-scenario-intent-actions";
 import { useScenarioTimeline } from "@/features/scenario-player/hooks/use-scenario-timeline";
-import { useScenarioCtx } from "@/features/scenario-player/providers/scenario-provider";
+import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-store";
 import { useActiveScenario } from "@/hooks/use-active-scenario";
 
 export function PlayerPage() {
-  const { scenario, participants, chapters } = useScenarioCtx();
+  const { scenario, participants, chapters } = useScenarioContext();
   const { setActiveScenario } = useActiveScenario();
   const { selectedCharacterId, setSelectedCharacter, reset } = useScenarioPlayerStore();
 

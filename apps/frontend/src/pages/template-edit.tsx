@@ -1,5 +1,6 @@
 import { Container, Heading, Text, VStack } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, SimplePageHeader } from "@/components/ui";
 import { TemplateForm } from "@/features/template-builder/components/template-form";
@@ -7,25 +8,30 @@ import { compileDraft } from "@/features/template-builder/services/compile-draft
 import { templateToDraft } from "@/features/template-builder/services/template-conversion";
 import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/types";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function TemplateEditPage() {
+  const trpc = useTRPC();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const templateQuery = trpc.templates.getById.useQuery({ id: id ?? "" }, { enabled: !!id });
+  const templateQuery = useQuery(
+    trpc.templates.getById.queryOptions({ id: id ?? "" }, { enabled: !!id })
+  );
 
-  const updateMutation = trpc.templates.update.useMutation({
-    onSuccess: async () => {
-      showSuccessToast({
-        title: "Template updated",
-        description: `Changes saved.`,
-      });
-      await utils.templates.invalidate();
-      templateQuery.refetch();
-    },
-  });
+  const updateMutation = useMutation(
+    trpc.templates.update.mutationOptions({
+      onSuccess: async () => {
+        showSuccessToast({
+          title: "Template updated",
+          description: `Changes saved.`,
+        });
+        await queryClient.invalidateQueries(trpc.templates.pathFilter());
+        templateQuery.refetch();
+      },
+    })
+  );
 
   const handleSubmit = (data: {
     metadata: { name: string; task: TaskKind; description?: string };

@@ -51,8 +51,8 @@ export function ScenarioProvider({
   );
 }
 
-export function useScenarioCtx() {
+export function useScenarioContext() {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useScenarioCtx called outside ScenarioProvider");
+  if (!ctx) throw new Error("useScenarioContext called outside ScenarioProvider");
   return ctx;
 }

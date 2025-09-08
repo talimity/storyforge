@@ -1,7 +1,8 @@
 import type { ProviderConfig } from "@storyforge/contracts";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { ProviderForm, type ProviderFormData } from "./provider-form";
 
 interface EditProviderDialogProps {
@@ -11,18 +12,21 @@ interface EditProviderDialogProps {
 }
 
 export function EditProviderDialog({ provider, isOpen, onOpenChange }: EditProviderDialogProps) {
-  const utils = trpc.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
-  const updateProviderMutation = trpc.providers.updateProvider.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Provider updated successfully",
-        description: "Provider configuration has been updated",
-      });
-      utils.providers.listProviders.invalidate();
-      onOpenChange(false);
-    },
-  });
+  const updateProviderMutation = useMutation(
+    trpc.providers.updateProvider.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Provider updated successfully",
+          description: "Provider configuration has been updated",
+        });
+        queryClient.invalidateQueries(trpc.providers.listProviders.pathFilter());
+        onOpenChange(false);
+      },
+    })
+  );
 
   const handleSubmit = (data: ProviderFormData) => {
     updateProviderMutation.mutate({ id: provider.id, data });

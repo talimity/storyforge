@@ -1,21 +1,25 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { showSuccessToast } from "@/lib/error-handling";
 import { nonBubblingHandler } from "@/lib/non-bubbling-handler";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function useCharacterActions(characterId: string) {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const deleteCharacterMutation = trpc.characters.delete.useMutation({
-    onSuccess: () => {
-      utils.characters.list.invalidate();
-      setIsDeleteDialogOpen(false);
-      showSuccessToast({ title: "Character deleted" });
-    },
-  });
+  const deleteCharacterMutation = useMutation(
+    trpc.characters.delete.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.characters.list.pathFilter());
+        setIsDeleteDialogOpen(false);
+        showSuccessToast({ title: "Character deleted" });
+      },
+    })
+  );
 
   const handleDelete = () => {
     deleteCharacterMutation.mutate({ id: characterId });

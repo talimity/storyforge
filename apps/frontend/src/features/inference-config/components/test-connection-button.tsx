@@ -1,9 +1,10 @@
 import { IconButton } from "@chakra-ui/react";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { FaPlug, FaPlugCircleCheck, FaPlugCircleXmark } from "react-icons/fa6";
 import { Tooltip } from "@/components/ui/index";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface TestConnectionButtonProps {
   providerId: string;
@@ -11,30 +12,33 @@ interface TestConnectionButtonProps {
 }
 
 export function TestConnectionButton({ providerId, modelProfileId }: TestConnectionButtonProps) {
+  const trpc = useTRPC();
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
 
-  const testConnectionMutation = trpc.providers.testConnection.useMutation({
-    onSuccess: (result) => {
-      if (result.success) {
-        setTestResult("success");
-        showSuccessToast({
-          title: "Connection successful",
-          description: "Provider connection test passed",
-        });
-      } else {
+  const testConnectionMutation = useMutation(
+    trpc.providers.testConnection.mutationOptions({
+      onSuccess: (result) => {
+        if (result.success) {
+          setTestResult("success");
+          showSuccessToast({
+            title: "Connection successful",
+            description: "Provider connection test passed",
+          });
+        } else {
+          setTestResult("error");
+          showErrorToast({ title: "Connection failed", error: "Unknown error" });
+        }
+        // Reset the status after 3 seconds
+        setTimeout(() => setTestResult(null), 3000);
+      },
+      onError: (error) => {
         setTestResult("error");
-        showErrorToast({ title: "Connection failed", error: "Unknown error" });
-      }
-      // Reset the status after 3 seconds
-      setTimeout(() => setTestResult(null), 3000);
-    },
-    onError: (error) => {
-      setTestResult("error");
-      showErrorToast({ title: "Connection test failed", error: error.message });
-      // Reset the status after 3 seconds
-      setTimeout(() => setTestResult(null), 3000);
-    },
-  });
+        showErrorToast({ title: "Connection test failed", error: error.message });
+        // Reset the status after 3 seconds
+        setTimeout(() => setTestResult(null), 3000);
+      },
+    })
+  );
 
   const getIcon = () => {
     if (testConnectionMutation.isPending) return <FaPlug />;

@@ -1,6 +1,6 @@
-import { keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface UseCharacterSearchOptions {
   filterMode?: "all" | "inScenario" | "notInScenario";
@@ -9,20 +9,23 @@ interface UseCharacterSearchOptions {
 }
 
 export function useCharacterSearch(options: UseCharacterSearchOptions = {}) {
+  const trpc = useTRPC();
   const { filterMode = "all", scenarioId, enabled = true } = options;
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, isLoading, error } = trpc.characters.search.useQuery(
-    {
-      name: searchQuery,
-      filterMode,
-      scenarioId,
-    },
-    {
-      placeholderData: keepPreviousData,
-      enabled,
-      staleTime: 5000,
-    }
+  const { data, isLoading, error } = useQuery(
+    trpc.characters.search.queryOptions(
+      {
+        name: searchQuery,
+        filterMode,
+        scenarioId,
+      },
+      {
+        placeholderData: keepPreviousData,
+        enabled,
+        staleTime: 5000,
+      }
+    )
   );
 
   const characters = useMemo(() => data?.characters ?? [], [data?.characters]);

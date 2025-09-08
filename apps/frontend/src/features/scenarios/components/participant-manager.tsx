@@ -2,7 +2,8 @@ import { Card, Grid, HStack, IconButton, Input, Stack, Text } from "@chakra-ui/r
 import { LuX } from "react-icons/lu";
 import { Avatar, Field, Radio, RadioGroup } from "@/components/ui/index";
 import { CharacterMultiSelect } from "@/features/characters/components/character-selector";
-import { getApiUrl } from "@/lib/trpc";
+
+import { getApiUrl } from "@/lib/get-api-url";
 
 export interface ParticipantData {
   characterId: string;

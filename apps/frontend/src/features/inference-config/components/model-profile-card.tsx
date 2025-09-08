@@ -12,10 +12,10 @@ import {
 } from "@chakra-ui/react";
 import type { ModelProfile } from "@storyforge/contracts";
 import type { TextInferenceCapabilities } from "@storyforge/inference";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuCog, LuEllipsisVertical, LuPencilLine, LuTrash } from "react-icons/lu";
-
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { DeleteModelProfileDialog } from "./delete-model-profile-dialog";
 import { EditModelProfileDialog } from "./edit-model-profile-dialog";
 import { TestConnectionButton } from "./test-connection-button";
@@ -37,12 +37,15 @@ function getCapabilityBadges(capabilities: Partial<TextInferenceCapabilities> | 
 }
 
 export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
+  const trpc = useTRPC();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const providerQuery = trpc.providers.getProvider.useQuery(
-    { id: modelProfile.providerId },
-    { enabled: !!modelProfile.providerId }
+  const providerQuery = useQuery(
+    trpc.providers.getProvider.queryOptions(
+      { id: modelProfile.providerId },
+      { enabled: !!modelProfile.providerId }
+    )
   );
 
   const provider = providerQuery.data;

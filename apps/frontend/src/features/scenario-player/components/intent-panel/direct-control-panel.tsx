@@ -1,9 +1,9 @@
 import { HStack, Stack, Text, Textarea } from "@chakra-ui/react";
 import { RiQuillPenLine } from "react-icons/ri";
 import { Avatar, Button } from "@/components/ui/index";
-import { useScenarioCtx } from "@/features/scenario-player/providers/scenario-provider";
+import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-store";
-import { getApiUrl } from "@/lib/trpc";
+import { getApiUrl } from "@/lib/get-api-url";
 
 interface DirectControlPanelProps {
   inputText: string;
@@ -18,7 +18,7 @@ export function DirectControlPanel({
   onGenerate,
   isGenerating,
 }: DirectControlPanelProps) {
-  const { charactersById } = useScenarioCtx();
+  const { charactersById } = useScenarioContext();
   const { selectedCharacterId } = useScenarioPlayerStore();
   if (!selectedCharacterId) {
     console.warn("Invariant violation: No character selected");

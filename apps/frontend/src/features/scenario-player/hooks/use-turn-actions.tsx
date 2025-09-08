@@ -1,6 +1,7 @@
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export interface UseTurnActionsOptions {
   onTurnDeleted?: () => void;
@@ -8,6 +9,7 @@ export interface UseTurnActionsOptions {
 }
 
 export function useTurnActions(options: UseTurnActionsOptions = {}) {
+  const trpc = useTRPC();
   const { onTurnDeleted, onTurnUpdated } = options;
 
   const [turnToDelete, setTurnToDelete] = useState<{
@@ -17,28 +19,32 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingTurnId, setEditingTurnId] = useState<string | null>(null);
 
-  const deleteTurnMutation = trpc.play.deleteTurn.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Turn deleted",
-        description: "Turn deleted from the scenario timeline.",
-      });
-      onTurnDeleted?.();
-      setShowDeleteDialog(false);
-      setTurnToDelete(null);
-    },
-  });
+  const deleteTurnMutation = useMutation(
+    trpc.play.deleteTurn.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Turn deleted",
+          description: "Turn deleted from the scenario timeline.",
+        });
+        onTurnDeleted?.();
+        setShowDeleteDialog(false);
+        setTurnToDelete(null);
+      },
+    })
+  );
 
-  const updateTurnContentMutation = trpc.play.updateTurnContent.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Turn updated",
-        description: "Changes saved.",
-      });
-      setEditingTurnId(null);
-      onTurnUpdated?.();
-    },
-  });
+  const updateTurnContentMutation = useMutation(
+    trpc.play.updateTurnContent.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Turn updated",
+          description: "Changes saved.",
+        });
+        setEditingTurnId(null);
+        onTurnUpdated?.();
+      },
+    })
+  );
 
   const handleDeleteTurn = useCallback((turnId: string, cascade: boolean) => {
     setTurnToDelete({ id: turnId, cascade });

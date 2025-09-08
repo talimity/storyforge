@@ -1,33 +1,41 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { showErrorToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function useTemplateActions(templateId: string) {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const deleteTemplateMutation = trpc.templates.delete.useMutation({
-    onSuccess: () => {
-      utils.templates.list.invalidate();
-      setIsDeleteDialogOpen(false);
-    },
-  });
+  const deleteTemplateMutation = useMutation(
+    trpc.templates.delete.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.templates.list.pathFilter());
+        setIsDeleteDialogOpen(false);
+      },
+    })
+  );
 
-  const duplicateTemplateMutation = trpc.templates.duplicate.useMutation({
-    onSuccess: () => {
-      utils.templates.list.invalidate();
-      setIsDuplicateDialogOpen(false);
-    },
-  });
+  const duplicateTemplateMutation = useMutation(
+    trpc.templates.duplicate.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.templates.list.pathFilter());
+        setIsDuplicateDialogOpen(false);
+      },
+    })
+  );
 
-  const exportTemplateQuery = trpc.templates.export.useQuery(
-    { id: templateId },
-    {
-      enabled: false, // Only run when manually triggered
-    }
+  const exportTemplateQuery = useQuery(
+    trpc.templates.export.queryOptions(
+      { id: templateId },
+      {
+        enabled: false, // Only run when manually triggered
+      }
+    )
   );
 
   const handleDelete = () => {

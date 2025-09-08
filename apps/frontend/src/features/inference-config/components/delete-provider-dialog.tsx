@@ -1,9 +1,10 @@
 import { Text } from "@chakra-ui/react";
 import type { ProviderConfig } from "@storyforge/contracts";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface DeleteProviderDialogProps {
   provider: ProviderConfig;
@@ -16,20 +17,23 @@ export function DeleteProviderDialog({
   isOpen,
   onOpenChange,
 }: DeleteProviderDialogProps) {
+  const trpc = useTRPC();
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const deleteProviderMutation = trpc.providers.deleteProvider.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Provider deleted successfully",
-        description: "Provider configuration has been removed",
-      });
-      utils.providers.listProviders.invalidate();
-      utils.providers.listModelProfiles.invalidate();
-      onOpenChange(false);
-    },
-  });
+  const deleteProviderMutation = useMutation(
+    trpc.providers.deleteProvider.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Provider deleted successfully",
+          description: "Provider configuration has been removed",
+        });
+        queryClient.invalidateQueries(trpc.providers.listProviders.pathFilter());
+        queryClient.invalidateQueries(trpc.providers.listModelProfiles.pathFilter());
+        onOpenChange(false);
+      },
+    })
+  );
 
   const handleDelete = () => {
     deleteProviderMutation.mutate({ id: provider.id });

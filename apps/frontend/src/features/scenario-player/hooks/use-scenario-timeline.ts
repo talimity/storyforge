@@ -1,6 +1,7 @@
 import type { TimelineTurn } from "@storyforge/contracts";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface UseScenarioTimelineOptions {
   scenarioId: string;
@@ -13,13 +14,16 @@ export function useScenarioTimeline({
   windowSize = 10,
   layer = "presentation",
 }: UseScenarioTimelineOptions) {
-  const query = trpc.play.timeline.useInfiniteQuery(
-    { scenarioId, layer, windowSize },
-    {
-      getNextPageParam: (last) => last.cursors.nextLeafTurnId ?? undefined,
-      initialCursor: undefined,
-      refetchOnWindowFocus: false,
-    }
+  const trpc = useTRPC();
+  const query = useInfiniteQuery(
+    trpc.play.timeline.infiniteQueryOptions(
+      { scenarioId, layer, windowSize },
+      {
+        getNextPageParam: (last) => last.cursors.nextLeafTurnId ?? undefined,
+        initialCursor: undefined,
+        refetchOnWindowFocus: false,
+      }
+    )
   );
 
   const turns = useMemo(() => {

@@ -16,8 +16,9 @@ import {
 import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialog";
 import { Avatar, Button, Prose } from "@/components/ui/index";
-import { useScenarioCtx } from "@/features/scenario-player/providers/scenario-provider";
-import { getApiUrl } from "@/lib/trpc";
+import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
+
+import { getApiUrl } from "@/lib/get-api-url";
 
 interface TurnItemProps {
   turn: TimelineTurn;
@@ -31,7 +32,7 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(turn.content.text);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
-  const { getCharacterByParticipantId } = useScenarioCtx();
+  const { getCharacterByParticipantId } = useScenarioContext();
   const authorChar = getCharacterByParticipantId(turn.authorParticipantId);
   const authorName = authorChar?.name ?? "Narrator";
   const avatarSrc = getApiUrl(authorChar?.avatarPath ?? undefined);

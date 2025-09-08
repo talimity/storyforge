@@ -1,5 +1,6 @@
 import { Container } from "@chakra-ui/react";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TemplateForm } from "@/features/template-builder/components/template-form";
@@ -7,13 +8,14 @@ import { compileDraft } from "@/features/template-builder/services/compile-draft
 import { createBlankTemplate } from "@/features/template-builder/services/template-conversion";
 import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/types";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function TemplateCreatePage() {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const taskType = searchParams.get("type") as TaskKind | null;
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
   // Redirect if no task type or invalid task type
   useEffect(() => {
@@ -22,16 +24,18 @@ export function TemplateCreatePage() {
     }
   }, [taskType, navigate]);
 
-  const createMutation = trpc.templates.create.useMutation({
-    onSuccess: async ({ name }) => {
-      showSuccessToast({
-        title: "Template created",
-        description: `New template "${name}" created.`,
-      });
-      await utils.templates.invalidate();
-      navigate(`/templates`);
-    },
-  });
+  const createMutation = useMutation(
+    trpc.templates.create.mutationOptions({
+      onSuccess: async ({ name }) => {
+        showSuccessToast({
+          title: "Template created",
+          description: `New template "${name}" created.`,
+        });
+        await queryClient.invalidateQueries(trpc.templates.pathFilter());
+        navigate(`/templates`);
+      },
+    })
+  );
 
   const handleTemplateSubmit = (data: {
     metadata: {

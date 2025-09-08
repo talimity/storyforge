@@ -1,29 +1,33 @@
 import { Container } from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
 import { ScenarioForm } from "@/features/scenarios/components/scenario-form";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function ScenarioCreatePage() {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
   const selectedCharacterIds = searchParams.get("characterIds")?.split(",") || [];
 
-  const createScenarioMutation = trpc.scenarios.create.useMutation({
-    onSuccess: (scenario) => {
-      showSuccessToast({
-        title: "Scenario created",
-        description: `New scenario '${scenario.name}' saved.`,
-      });
+  const createScenarioMutation = useMutation(
+    trpc.scenarios.create.mutationOptions({
+      onSuccess: (scenario) => {
+        showSuccessToast({
+          title: "Scenario created",
+          description: `New scenario '${scenario.name}' saved.`,
+        });
 
-      utils.scenarios.list.invalidate();
+        queryClient.invalidateQueries(trpc.scenarios.list.pathFilter());
 
-      navigate("/scenarios");
-    },
-  });
+        navigate("/scenarios");
+      },
+    })
+  );
 
   const handleSubmit = (formData: {
     name: string;

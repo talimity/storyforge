@@ -1,21 +1,25 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function useScenarioActions(scenarioId: string) {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const deleteScenarioMutation = trpc.scenarios.delete.useMutation({
-    onSuccess: () => {
-      utils.scenarios.list.invalidate();
-      setIsDeleteDialogOpen(false);
-    },
-    onError: (error) => {
-      console.error("Failed to delete scenario:", error);
-    },
-  });
+  const deleteScenarioMutation = useMutation(
+    trpc.scenarios.delete.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.scenarios.list.pathFilter());
+        setIsDeleteDialogOpen(false);
+      },
+      onError: (error) => {
+        console.error("Failed to delete scenario:", error);
+      },
+    })
+  );
 
   const handleDelete = () => {
     deleteScenarioMutation.mutate({ id: scenarioId });

@@ -1,7 +1,8 @@
 import { HStack, Text } from "@chakra-ui/react";
 import type { ComponentProps, ReactNode } from "react";
 import { Avatar } from "@/components/ui/index";
-import { getApiUrl } from "@/lib/trpc";
+
+import { getApiUrl } from "@/lib/get-api-url";
 
 interface CharacterListItemCharacter {
   id: string;

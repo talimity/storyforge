@@ -1,11 +1,12 @@
 import { Box, Heading, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
+import { useQuery } from "@tanstack/react-query";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
 import { TurnItem } from "@/features/scenario-player/components/timeline/turn-item";
 import { useTurnActions } from "@/features/scenario-player/hooks/use-turn-actions";
 import { useAutoLoadMore } from "@/hooks/use-auto-load-more";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface TimelineProps {
   scenarioId: string;
@@ -30,6 +31,7 @@ export function TimelineView({
   onTurnDeleted,
   onStarterSelect,
 }: TimelineProps) {
+  const trpc = useTRPC();
   const {
     turnToDelete,
     showDeleteDialog,
@@ -52,9 +54,11 @@ export function TimelineView({
     rootMargin: "200px 0px 0px 0px",
   });
 
-  const { data: startersData } = trpc.scenarios.getCharacterStarters.useQuery(
-    { id: scenarioId },
-    { enabled: turns.length === 0 } // skip if timeline is already populated
+  const { data: startersData } = useQuery(
+    trpc.scenarios.getCharacterStarters.queryOptions(
+      { id: scenarioId },
+      { enabled: turns.length === 0 } // skip if timeline is already populated
+    )
   );
 
   const handleStarterSelect = (characterId: string, starterId: string) => {

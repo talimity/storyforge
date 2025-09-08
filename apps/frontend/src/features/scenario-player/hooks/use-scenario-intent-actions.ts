@@ -1,25 +1,31 @@
 import type { createIntentInputSchema } from "@storyforge/contracts";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { z } from "zod";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 type CreateIntentInput = z.infer<typeof createIntentInputSchema>;
 
 export function useScenarioIntentActions() {
-  const utils = trpc.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
-  const createIntentMutation = trpc.play.createIntent.useMutation({
-    onSuccess: (_data) => {
-      utils.play.timeline.invalidate();
-      utils.play.environment.invalidate();
-    },
-  });
+  const createIntentMutation = useMutation(
+    trpc.play.createIntent.mutationOptions({
+      onSuccess: (_data) => {
+        queryClient.invalidateQueries(trpc.play.timeline.pathFilter());
+        queryClient.invalidateQueries(trpc.play.environment.pathFilter());
+      },
+    })
+  );
 
-  const addTurnMutation = trpc.play.addTurn.useMutation({
-    onSuccess: () => {
-      utils.play.timeline.invalidate();
-      utils.play.environment.invalidate();
-    },
-  });
+  const addTurnMutation = useMutation(
+    trpc.play.addTurn.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.play.timeline.pathFilter());
+        queryClient.invalidateQueries(trpc.play.environment.pathFilter());
+      },
+    })
+  );
 
   const createIntent = async (input: CreateIntentInput) => {
     return createIntentMutation.mutateAsync(input);

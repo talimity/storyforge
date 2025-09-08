@@ -1,9 +1,10 @@
 import { Box, HStack, Icon, Image, Progress, Text, VStack } from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, toaster } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface CharacterImportDialog {
   isOpen: boolean;
@@ -12,14 +13,15 @@ interface CharacterImportDialog {
 }
 
 export function CharacterImportDialog({ isOpen, onClose, onImportSuccess }: CharacterImportDialog) {
+  const trpc = useTRPC();
   const [isUploading, setIsUploading] = useState(false);
   const browseButtonRef = useRef<HTMLButtonElement>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>({});
 
-  const utils = trpc.useUtils();
-  const importMutation = trpc.characters.import.useMutation();
+  const queryClient = useQueryClient();
+  const importMutation = useMutation(trpc.characters.import.mutationOptions());
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -131,7 +133,7 @@ export function CharacterImportDialog({ isOpen, onClose, onImportSuccess }: Char
         description: `Successfully imported ${successCount} character${successCount !== 1 ? "s" : ""}.`,
       });
 
-      utils.characters.list.invalidate();
+      queryClient.invalidateQueries(trpc.characters.list.pathFilter());
       onImportSuccess();
       handleClose();
     } catch (err) {

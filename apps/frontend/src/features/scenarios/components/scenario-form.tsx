@@ -1,12 +1,13 @@
 import { Card, Heading, HStack, Input, Separator, Stack, Textarea } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
 import { Button, Field } from "@/components/ui/index";
 import { ParticipantManager } from "@/features/scenarios/components/participant-manager";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 const scenarioFormSchema = z.object({
   name: z.string().min(1).max(255),
@@ -43,6 +44,7 @@ export function ScenarioForm({
   isSubmitting = false,
   submitLabel = "Save Scenario",
 }: ScenarioFormProps) {
+  const trpc = useTRPC();
   const {
     register,
     handleSubmit,
@@ -67,9 +69,11 @@ export function ScenarioForm({
 
   const participants = watch("participants");
 
-  const charactersQuery = trpc.characters.getByIds.useQuery(
-    { ids: participants.map((p) => p.characterId) },
-    { enabled: participants.length > 0 }
+  const charactersQuery = useQuery(
+    trpc.characters.getByIds.queryOptions(
+      { ids: participants.map((p) => p.characterId) },
+      { enabled: participants.length > 0 }
+    )
   );
 
   const participantsWithDetails = participants.map((p) => ({

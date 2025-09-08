@@ -19,7 +19,7 @@ import { PlayerWidgetSidebar } from "@/features/scenario-player/components/playe
 
 import {
   ScenarioProvider,
-  useScenarioCtx,
+  useScenarioContext,
 } from "@/features/scenario-player/providers/scenario-provider";
 
 export function PlayerShell() {
@@ -43,7 +43,7 @@ function PlayerShellInner() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const isMobile = useBreakpointValue({ base: true, lg: false });
 
-  const { scenario, characters } = useScenarioCtx();
+  const { scenario, characters } = useScenarioContext();
 
   const handleBack = () => {
     navigate("/scenarios");

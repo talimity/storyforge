@@ -1,26 +1,30 @@
 import { Container } from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
 import { CharacterForm } from "@/features/characters/components/character-form";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function CharacterCreatePage() {
+  const trpc = useTRPC();
   const navigate = useNavigate();
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const createCharacterMutation = trpc.characters.create.useMutation({
-    onSuccess: (character) => {
-      showSuccessToast({
-        title: "Character created",
-        description: `New character '${character.name}' saved.`,
-      });
+  const createCharacterMutation = useMutation(
+    trpc.characters.create.mutationOptions({
+      onSuccess: (character) => {
+        showSuccessToast({
+          title: "Character created",
+          description: `New character '${character.name}' saved.`,
+        });
 
-      utils.characters.list.invalidate();
+        queryClient.invalidateQueries(trpc.characters.list.pathFilter());
 
-      navigate("/characters");
-    },
-  });
+        navigate("/characters");
+      },
+    })
+  );
 
   const handleSubmit = (formData: {
     name: string;

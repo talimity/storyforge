@@ -1,6 +1,7 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { ProviderForm, type ProviderFormData } from "./provider-form";
 
 interface CreateProviderDialogProps {
@@ -9,18 +10,21 @@ interface CreateProviderDialogProps {
 }
 
 export function CreateProviderDialog({ isOpen, onOpenChange }: CreateProviderDialogProps) {
-  const utils = trpc.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
-  const createProviderMutation = trpc.providers.createProvider.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Provider created successfully",
-        description: "New provider configuration has been added",
-      });
-      utils.providers.listProviders.invalidate();
-      onOpenChange(false);
-    },
-  });
+  const createProviderMutation = useMutation(
+    trpc.providers.createProvider.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Provider created successfully",
+          description: "New provider configuration has been added",
+        });
+        queryClient.invalidateQueries(trpc.providers.listProviders.pathFilter());
+        onOpenChange(false);
+      },
+    })
+  );
 
   const handleSubmit = (data: ProviderFormData) => {
     // Undefined is not allowed in create operations

@@ -1,9 +1,10 @@
 import { Text } from "@chakra-ui/react";
 import type { ModelProfile } from "@storyforge/contracts";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface DeleteModelProfileDialogProps {
   modelProfile: ModelProfile;
@@ -16,19 +17,22 @@ export function DeleteModelProfileDialog({
   isOpen,
   onOpenChange,
 }: DeleteModelProfileDialogProps) {
+  const trpc = useTRPC();
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const deleteModelProfileMutation = trpc.providers.deleteModelProfile.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Model profile deleted successfully",
-        description: "Model profile has been removed",
-      });
-      utils.providers.listModelProfiles.invalidate();
-      onOpenChange(false);
-    },
-  });
+  const deleteModelProfileMutation = useMutation(
+    trpc.providers.deleteModelProfile.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Model profile deleted successfully",
+          description: "Model profile has been removed",
+        });
+        queryClient.invalidateQueries(trpc.providers.listModelProfiles.pathFilter());
+        onOpenChange(false);
+      },
+    })
+  );
 
   const handleDelete = () => {
     deleteModelProfileMutation.mutate({ id: modelProfile.id });

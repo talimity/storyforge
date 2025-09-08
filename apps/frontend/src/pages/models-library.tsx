@@ -1,4 +1,5 @@
 import { Box, Container, Grid, Tabs, Text } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuPlugZap, LuPlus } from "react-icons/lu";
 import { TbCube } from "react-icons/tb";
@@ -13,13 +14,14 @@ import {
   ProviderCard,
   ProviderCardSkeleton,
 } from "@/features/inference-config/components/provider-card";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function ModelsPage() {
+  const trpc = useTRPC();
   const [isCreateModelDialogOpen, setIsCreateModelDialogOpen] = useState(false);
   const [isCreateProviderDialogOpen, setIsCreateProviderDialogOpen] = useState(false);
-  const modelProfilesQuery = trpc.providers.listModelProfiles.useQuery();
-  const providersQuery = trpc.providers.listProviders.useQuery();
+  const modelProfilesQuery = useQuery(trpc.providers.listModelProfiles.queryOptions());
+  const providersQuery = useQuery(trpc.providers.listProviders.queryOptions());
 
   const { data: modelProfiles, isLoading: modelsLoading } = modelProfilesQuery;
   const { data: providers, isLoading: providersLoading } = providersQuery;

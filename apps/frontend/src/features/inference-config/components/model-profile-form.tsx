@@ -1,6 +1,7 @@
 import { createListCollection, HStack, Input, Spinner, Text, VStack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createModelProfileSchema } from "@storyforge/contracts";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -13,7 +14,7 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui/index";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { CapabilitiesSelector } from "./capabilities-selector";
 
 const modelProfileFormSchema = createModelProfileSchema.pick({
@@ -46,16 +47,19 @@ export function ModelProfileForm({
   isSubmitting = false,
   submitLabel = "Save Model Profile",
 }: ModelProfileFormProps) {
+  const trpc = useTRPC();
   const [selectedProviderId, setSelectedProviderId] = useState(initialData?.providerId || "");
   const [modelSearchQuery, setModelSearchQuery] = useState("");
 
-  const providersQuery = trpc.providers.listProviders.useQuery();
+  const providersQuery = useQuery(trpc.providers.listProviders.queryOptions());
   const providers = providersQuery.data?.providers || [];
 
   // Search models when provider is selected
-  const searchModelsQuery = trpc.providers.searchModels.useQuery(
-    { providerId: selectedProviderId, query: modelSearchQuery },
-    { enabled: !!selectedProviderId }
+  const searchModelsQuery = useQuery(
+    trpc.providers.searchModels.queryOptions(
+      { providerId: selectedProviderId, query: modelSearchQuery },
+      { enabled: !!selectedProviderId }
+    )
   );
 
   const {

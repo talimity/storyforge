@@ -4,7 +4,8 @@ import { useState } from "react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import Markdown from "react-markdown";
 import { Button, Prose } from "@/components/ui/index";
-import { getApiUrl } from "@/lib/trpc";
+
+import { getApiUrl } from "@/lib/get-api-url";
 
 interface CharacterStarterSelectorProps {
   charactersWithStarters: CharacterWithStarters[];

@@ -1,7 +1,8 @@
 import type { ModelProfile } from "@storyforge/contracts";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { ModelProfileForm, type ModelProfileFormData } from "./model-profile-form";
 
 interface EditModelProfileDialogProps {
@@ -15,18 +16,21 @@ export function EditModelProfileDialog({
   isOpen,
   onOpenChange,
 }: EditModelProfileDialogProps) {
-  const utils = trpc.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
-  const updateModelProfileMutation = trpc.providers.updateModelProfile.useMutation({
-    onSuccess: () => {
-      showSuccessToast({
-        title: "Model profile updated successfully",
-        description: "Model profile has been updated",
-      });
-      utils.providers.listModelProfiles.invalidate();
-      onOpenChange(false);
-    },
-  });
+  const updateModelProfileMutation = useMutation(
+    trpc.providers.updateModelProfile.mutationOptions({
+      onSuccess: () => {
+        showSuccessToast({
+          title: "Model profile updated successfully",
+          description: "Model profile has been updated",
+        });
+        queryClient.invalidateQueries(trpc.providers.listModelProfiles.pathFilter());
+        onOpenChange(false);
+      },
+    })
+  );
 
   const handleSubmit = (data: ModelProfileFormData) => {
     updateModelProfileMutation.mutate({ id: modelProfile.id, data });

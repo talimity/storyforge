@@ -1,8 +1,12 @@
+import type { AppRouter } from "@storyforge/backend";
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import { useState } from "react";
+import superjson from "superjson";
+import { getBaseUrl } from "@/lib/get-api-url";
 import { makeQueryClient } from "@/lib/query-client";
-import { createTRPCClient, trpc } from "@/lib/trpc";
+import { TRPCProvider } from "@/lib/trpc";
 
 let browserQueryClient: QueryClient | undefined;
 
@@ -23,10 +27,28 @@ interface TRPCReactProviderProps {
 
 export function TRPCReactProvider({ children }: TRPCReactProviderProps) {
   const queryClient = getQueryClient();
-  const [trpcClient] = useState(() => createTRPCClient());
+  const [trpcClient] = useState(() =>
+    createTRPCClient<AppRouter>({
+      links: [
+        ...(import.meta.env.DEV
+          ? [
+              loggerLink({
+                enabled: (opts) =>
+                  (opts.direction === "down" && opts.result instanceof Error) ||
+                  opts.direction === "up",
+              }),
+            ]
+          : []),
+        httpBatchLink({
+          transformer: superjson,
+          url: `${getBaseUrl()}/trpc`,
+        }),
+      ],
+    })
+  );
 
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+    <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         {children}
         {/* Add React Query Devtools in development */}
@@ -34,6 +56,6 @@ export function TRPCReactProvider({ children }: TRPCReactProviderProps) {
           <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
         )}
       </QueryClientProvider>
-    </trpc.Provider>
+    </TRPCProvider>
   );
 }

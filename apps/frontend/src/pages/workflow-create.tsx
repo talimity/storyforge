@@ -1,18 +1,22 @@
 import { Container } from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
 import { WorkflowForm } from "@/features/workflows/components/workflow-form";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 export function WorkflowCreatePage() {
+  const trpc = useTRPC();
   const navigate = useNavigate();
-  const utils = trpc.useUtils();
-  const create = trpc.workflows.create.useMutation({
-    onSuccess: async () => {
-      await utils.workflows.list.invalidate();
-      navigate("/workflows");
-    },
-  });
+  const queryClient = useQueryClient();
+  const create = useMutation(
+    trpc.workflows.create.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.workflows.list.pathFilter());
+        navigate("/workflows");
+      },
+    })
+  );
 
   return (
     <Container maxW="800px">

@@ -10,6 +10,7 @@ import {
   Stack,
   VStack,
 } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuFileText, LuGrid3X3, LuList, LuPlus, LuSearch, LuUpload } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
@@ -27,7 +28,7 @@ import {
 import { TemplateCard } from "@/features/templates/components/template-card";
 import { TemplateImportDialog } from "@/features/templates/components/template-import-dialog";
 import { TemplateListItem } from "@/features/templates/components/template-list-item";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 type ViewMode = "grid" | "list";
 
@@ -56,6 +57,7 @@ function toViewMode(mode: string | null): ViewMode {
 }
 
 export function TemplatesPage() {
+  const trpc = useTRPC();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     return toViewMode(localStorage.getItem("template-view-mode"));
@@ -68,10 +70,12 @@ export function TemplatesPage() {
     data: templatesData,
     isLoading,
     error,
-  } = trpc.templates.list.useQuery({
-    task: taskFilter || undefined,
-    search: searchQuery || undefined,
-  });
+  } = useQuery(
+    trpc.templates.list.queryOptions({
+      task: taskFilter || undefined,
+      search: searchQuery || undefined,
+    })
+  );
 
   const templates = templatesData?.templates || [];
 

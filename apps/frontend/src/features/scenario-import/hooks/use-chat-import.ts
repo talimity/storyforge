@@ -1,10 +1,11 @@
 import type { CharacterMapping, ChatImportAnalyzeOutput } from "@storyforge/contracts";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type React from "react";
 import { useRef, useState } from "react";
 import { toaster } from "@/components/ui/index";
 import { validateFile } from "@/features/scenario-import/services/file-validation";
 import { showSuccessToast } from "@/lib/error-handling";
-import { trpc } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 
 interface UseChatImportProps {
   onClose: () => void;
@@ -14,6 +15,7 @@ interface UseChatImportProps {
 export type ImportStep = "upload" | "mapping";
 
 export function useChatImport({ onClose, onImportSuccess }: UseChatImportProps) {
+  const trpc = useTRPC();
   const [step, setStep] = useState<ImportStep>("upload");
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,9 +26,9 @@ export function useChatImport({ onClose, onImportSuccess }: UseChatImportProps) 
   const [scenarioDescription, setScenarioDescription] = useState("");
   const [characterMappings, setCharacterMappings] = useState<CharacterMapping[]>([]);
 
-  const utils = trpc.useUtils();
-  const analyzeMutation = trpc.chatImport.analyzeChat.useMutation();
-  const importMutation = trpc.chatImport.importChat.useMutation();
+  const queryClient = useQueryClient();
+  const analyzeMutation = useMutation(trpc.chatImport.analyzeChat.mutationOptions());
+  const importMutation = useMutation(trpc.chatImport.importChat.mutationOptions());
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -124,7 +126,7 @@ export function useChatImport({ onClose, onImportSuccess }: UseChatImportProps) 
         description: `Created scenario with ${result.turnCount} turns.`,
       });
 
-      await utils.scenarios.list.invalidate();
+      await queryClient.invalidateQueries(trpc.scenarios.list.pathFilter());
 
       if (result.scenarioId) {
         onImportSuccess(result.scenarioId);
