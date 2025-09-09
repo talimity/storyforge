@@ -34,7 +34,17 @@ export function render<K extends string, Ctx extends object, S extends SourceSpe
     const slotBuffers = executeSlots(template.slots, ctx, budget, registry);
 
     // Phase B: Assemble the final message array using the layout
-    return assembleLayout(template.layout, slotBuffers, ctx, budget, registry);
+    const layout = assembleLayout(template.layout, slotBuffers, ctx, budget, registry);
+
+    // Post process by squashing consecutive messages with the same role
+    // TODO: Make this use a configurable delimeter
+    const messages: ChatCompletionMessage[] = [];
+    for (const msg of layout) {
+      const last = messages[messages.length - 1];
+      if (last && last.role === msg.role) last.content += `\n${msg.content}`;
+      else messages.push(msg);
+    }
+    return messages;
   } catch (error) {
     // If it's already a known error type, re-throw as-is
     if (

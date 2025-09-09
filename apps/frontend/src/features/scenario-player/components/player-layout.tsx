@@ -1,20 +1,28 @@
 import { Box, Flex } from "@chakra-ui/react";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 interface PlayerLayoutProps {
   timeline: ReactNode;
   intentPanel: ReactNode;
+  /** Ref to the scrollable history container */
+  scrollRef: RefObject<HTMLDivElement | null>;
 }
 
 /**
  * The main layout for the scenario player content area.
  * This component handles the vertical split between turn history and input panel.
  */
-export function PlayerLayout({ timeline, intentPanel }: PlayerLayoutProps) {
+export function PlayerLayout({ timeline, intentPanel, scrollRef }: PlayerLayoutProps) {
   return (
     <Flex direction="column" h="100%" position="relative">
       {/* Turn History Slot */}
-      <Box flex="1" overflow="auto" px={{ base: 4, md: 8, lg: 12 }} py={{ base: 4, md: 6 }}>
+      <Box
+        ref={scrollRef}
+        flex="1"
+        overflow="auto"
+        px={{ base: 4, md: 8, lg: 12 }}
+        py={{ base: 4, md: 6 }}
+      >
         <Box maxW="3xl" mx="auto">
           {timeline}
         </Box>

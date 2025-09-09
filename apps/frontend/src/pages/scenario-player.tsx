@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   type InputMode,
   IntentPanel,
@@ -91,6 +91,8 @@ export function PlayerPage() {
     await addTurn(scenario.id, message, actor.id, chapter.id);
   };
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   const timelineView = (
     <TimelineView
       scenarioId={scenario.id}
@@ -102,6 +104,7 @@ export function PlayerPage() {
       onLoadMore={fetchNextPage}
       onTurnDeleted={refetch}
       onStarterSelect={handleStarterSelect}
+      scrollRef={scrollRef}
     />
   );
 
@@ -115,5 +118,5 @@ export function PlayerPage() {
     />
   );
 
-  return <PlayerLayout timeline={timelineView} intentPanel={intentPanel} />;
+  return <PlayerLayout timeline={timelineView} intentPanel={intentPanel} scrollRef={scrollRef} />;
 }

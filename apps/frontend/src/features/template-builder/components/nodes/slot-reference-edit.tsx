@@ -342,8 +342,10 @@ export const SlotReferenceEdit = forwardRef<HTMLDivElement, SlotReferenceEditPro
                     <VStack align="stretch" gap={4} width="full">
                       <Stack gap={3} direction={{ base: "column", lg: "row" }}>
                         <Field label="Header" helperText="Text displayed before content" flex={2}>
-                          <Input
+                          <Textarea
                             {...register("headerContent")}
+                            rows={2}
+                            autoresize
                             placeholder="e.g., 'Recent turns:'"
                           />
                         </Field>
@@ -355,7 +357,12 @@ export const SlotReferenceEdit = forwardRef<HTMLDivElement, SlotReferenceEditPro
 
                       <Stack gap={3} direction={{ base: "column", lg: "row" }}>
                         <Field label="Footer" helperText="Text displayed after content" flex={2}>
-                          <Input {...register("footerContent")} placeholder="e.g., '---'" />
+                          <Textarea
+                            {...register("footerContent")}
+                            rows={2}
+                            autoresize
+                            placeholder="e.g., '---'"
+                          />
                         </Field>
 
                         <Field label="Footer Role" flex={1}>

@@ -115,7 +115,6 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
       index: c.index,
       title: c.name,
     })),
-    generatingIntent: null, // TODO: Implement when intent system is ready
   };
 }
 

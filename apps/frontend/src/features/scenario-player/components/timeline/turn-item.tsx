@@ -74,7 +74,7 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
 
   return (
     <>
-      <Box layerStyle="surface" p={4} borderRadius="md">
+      <Box layerStyle="surface" p={4} borderRadius="md" data-turn-id={turn.id}>
         <Stack gap={2}>
           <HStack justify="space-between" mb={1}>
             <HStack alignItems="center">

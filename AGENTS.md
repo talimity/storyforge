@@ -42,7 +42,11 @@ devctl restart    # Restart both dev servers (this should not be necessary in mo
 devctl stop       # Stop both dev servers
 ```
 
-Again, DO NOT use `-w` flags for any of these commands. If you're trying to run a command in a specific workspace, use `pnpm --filter=frontend build`. `-w` is not valid for pnpm and will instead trigger blocking watch mode which is not what you want.
+**⚠️ IMPORTANT - Regarding pnpm flags**
+- DO NOT use `-w` flags for any of these commands.
+  - If you're trying to run a command in a specific workspace, use `pnpm --filter=frontend build`.
+  - `-w` is not valid for pnpm and will instead trigger blocking watch mode which is not what you want.
+- DO NOT use `-s` either, it will suppress the output of the command which is unlikely to be helpful if you're trying to check for diagnostic errors.
 
 ### Technical Choices
 
@@ -114,7 +118,7 @@ When in doubt, skip the comment.
 
 ### BEFORE starting a task
 - You MUST examine files from adjacent features to get a sense of the overall project structure
-- You SHOULD check the `docs/` folder for anything that seems relevant to your feature, to better understand its architecture and design decisions
+- You MUST check the `docs/` folder for anything that seems relevant to your feature, to better understand its architecture and design decisions
 - You SHOULD check for `types.ts` files nearby or in shared packages you'll rely on, to better understand their APIs
 - You MUST refer to package-specific AGENTS.md files for the app you're working in, if applicable:
   - [Backend](apps/backend/AGENTS.md)

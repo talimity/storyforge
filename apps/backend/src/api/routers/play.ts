@@ -37,7 +37,11 @@ export const playRouter = router({
     .output(environmentOutputSchema)
     .query(async ({ input, ctx }) => {
       const { scenarioId } = input;
-      return getScenarioEnvironment(ctx.db, scenarioId);
+      const env = await getScenarioEnvironment(ctx.db, scenarioId);
+      return {
+        ...env,
+        generatingIntent: null,
+      };
     }),
 
   timeline: publicProcedure
