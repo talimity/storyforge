@@ -1,5 +1,4 @@
 import { Badge, Box, Flex, HStack, Icon, IconButton, Span, Text, VStack } from "@chakra-ui/react";
-import { forwardRef } from "react";
 import { LuPencil, LuTrash2 } from "react-icons/lu";
 import { NodeFrame } from "@/features/template-builder/components/nodes/node-frame";
 import { getNodeIcon } from "@/features/template-builder/services/builder-utils";
@@ -13,91 +12,90 @@ interface SlotReferenceViewProps {
   onDelete?: (nodeId: string) => void;
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
+  ref: React.ForwardedRef<HTMLDivElement>;
 }
 
-export const SlotReferenceView = forwardRef<HTMLDivElement, SlotReferenceViewProps>(
-  (props, ref) => {
-    const { node, slot, isDragging = false, onEdit, onDelete, dragHandleProps, style } = props;
-    const NodeIcon = getNodeIcon(node);
-    if (!slot) {
-      return <Text color="red.500">Cannot resolve slot reference from node ID: {node.id}</Text>;
-    }
+export const SlotReferenceView = (props: SlotReferenceViewProps) => {
+  const { node, slot, isDragging = false, onEdit, onDelete, dragHandleProps, style, ref } = props;
+  const NodeIcon = getNodeIcon(node);
+  if (!slot) {
+    return <Text color="red.500">Cannot resolve slot reference from node ID: {node.id}</Text>;
+  }
 
-    return (
-      <NodeFrame
-        ref={ref}
-        node={node}
-        isDragging={isDragging}
-        dragHandleProps={dragHandleProps}
-        style={style}
-      >
-        <VStack align="start" gap={2}>
-          <HStack gap={2} align="center" w="full">
-            <Icon as={NodeIcon} />
+  return (
+    <NodeFrame
+      ref={ref}
+      node={node}
+      isDragging={isDragging}
+      dragHandleProps={dragHandleProps}
+      style={style}
+    >
+      <VStack align="start" gap={2}>
+        <HStack gap={2} align="center" w="full">
+          <Icon as={NodeIcon} />
 
-            {/* Node Type Badge */}
-            <Badge size="sm">Content Block</Badge>
+          {/* Node Type Badge */}
+          <Badge size="sm">Content Block</Badge>
 
-            {/* Node Name/Title */}
-            <Text fontSize="sm" fontWeight="medium" flex={1}>
-              {node.name}
-            </Text>
+          {/* Node Name/Title */}
+          <Text fontSize="sm" fontWeight="medium" flex={1}>
+            {node.name}
+          </Text>
 
-            {/* Actions */}
-            <HStack gap={1}>
+          {/* Actions */}
+          <HStack gap={1}>
+            <IconButton
+              size="xs"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.(node);
+              }}
+              aria-label="Edit block"
+            >
+              <LuPencil />
+            </IconButton>
+            {onDelete && (
               <IconButton
                 size="xs"
                 variant="ghost"
+                colorPalette="red"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEdit?.(node);
+                  onDelete(node.id);
                 }}
-                aria-label="Edit block"
+                aria-label="Delete block"
               >
-                <LuPencil />
+                <LuTrash2 />
               </IconButton>
-              {onDelete && (
-                <IconButton
-                  size="xs"
-                  variant="ghost"
-                  colorPalette="red"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(node.id);
-                  }}
-                  aria-label="Delete block"
-                >
-                  <LuTrash2 />
-                </IconButton>
-              )}
-            </HStack>
+            )}
           </HStack>
+        </HStack>
 
-          {/* Slot Info */}
-          <Box fontSize="xs" color="content.muted">
-            <Flex gap="2">
-              <Span>Block Type: {slot.recipeId}</Span>
-              <Span>•</Span>
-              <Span>Budget Priority: {slot.priority}</Span>
-              {slot.budget && (
-                <>
-                  <Span>•</Span>
-                  <Span>Budget: {slot.budget} tokens</Span>
-                </>
-              )}
-            </Flex>
-          </Box>
+        {/* Slot Info */}
+        <Box fontSize="xs" color="content.muted">
+          <Flex gap="2">
+            <Span>Block Type: {slot.recipeId}</Span>
+            <Span>•</Span>
+            <Span>Budget Priority: {slot.priority}</Span>
+            {slot.budget && (
+              <>
+                <Span>•</Span>
+                <Span>Budget: {slot.budget} tokens</Span>
+              </>
+            )}
+          </Flex>
+        </Box>
 
-          {/* Reference-specific info */}
-          <HStack gap={2} fontSize="xs" color="content.subtle">
-            {node.header && <Text>Has header</Text>}
-            {node.footer && <Text>Has footer</Text>}
-            {node.omitIfEmpty && <Text>Hidden when empty</Text>}
-          </HStack>
-        </VStack>
-      </NodeFrame>
-    );
-  }
-);
+        {/* Reference-specific info */}
+        <HStack gap={2} fontSize="xs" color="content.subtle">
+          {node.header && <Text>Has header</Text>}
+          {node.footer && <Text>Has footer</Text>}
+          {node.omitIfEmpty && <Text>Hidden when empty</Text>}
+        </HStack>
+      </VStack>
+    </NodeFrame>
+  );
+};
 
 SlotReferenceView.displayName = "SlotReferenceView";

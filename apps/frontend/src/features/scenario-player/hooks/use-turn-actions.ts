@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
@@ -17,7 +18,8 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
     cascade: boolean;
   } | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [editingTurnId, setEditingTurnId] = useState<string | null>(null);
+  const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
+  const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
 
   const deleteTurnMutation = useMutation(
     trpc.play.deleteTurn.mutationOptions({
@@ -36,10 +38,7 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
   const updateTurnContentMutation = useMutation(
     trpc.play.updateTurnContent.mutationOptions({
       onSuccess: () => {
-        showSuccessToast({
-          title: "Turn updated",
-          description: "Changes saved.",
-        });
+        showSuccessToast({ title: "Turn updated", description: "Changes saved." });
         setEditingTurnId(null);
         onTurnUpdated?.();
       },
@@ -67,12 +66,7 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
 
   const handleEditTurn = useCallback(
     (turnId: string, content: string) => {
-      setEditingTurnId(turnId);
-      updateTurnContentMutation.mutate({
-        turnId,
-        layer: "presentation",
-        content,
-      });
+      updateTurnContentMutation.mutate({ turnId, layer: "presentation", content });
     },
     [updateTurnContentMutation]
   );

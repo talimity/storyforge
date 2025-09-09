@@ -11,7 +11,7 @@ interface UseScenarioTimelineOptions {
 
 export function useScenarioTimeline({
   scenarioId,
-  windowSize = 10,
+  windowSize = 15,
   layer = "presentation",
 }: UseScenarioTimelineOptions) {
   const trpc = useTRPC();
@@ -49,7 +49,8 @@ export function useScenarioTimeline({
     turns,
     timelineDepth,
     hasNextPage: !!query.hasNextPage,
-    isFetchingNextPage: query.isFetchingNextPage || query.isPending,
+    isPending: query.isPending,
+    isFetching: query.isFetchingNextPage || query.isPending,
     fetchNextPage: query.fetchNextPage,
     refetch: query.refetch,
   };

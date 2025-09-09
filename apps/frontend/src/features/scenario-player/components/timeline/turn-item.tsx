@@ -17,7 +17,7 @@ import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialog";
 import { Avatar, Button, Prose } from "@/components/ui/index";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
-
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { getApiUrl } from "@/lib/get-api-url";
 
 interface TurnItemProps {
@@ -29,7 +29,9 @@ interface TurnItemProps {
 }
 
 function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
+  const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
+  const isEditing = editingTurnId === turn.id;
   const [editedContent, setEditedContent] = useState(turn.content.text);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const { getCharacterByParticipantId } = useScenarioContext();
@@ -45,13 +47,12 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
   );
 
   const handleEditClick = useCallback(() => {
-    setIsEditing(true);
+    setEditingTurnId(turn.id);
     setEditedContent(turn.content.text);
-  }, [turn.content.text]);
+  }, [turn.content.text, turn.id, setEditingTurnId]);
 
   const handleSave = useCallback(() => {
     onEdit?.(turn.id, editedContent);
-    setIsEditing(false);
   }, [onEdit, turn.id, editedContent]);
 
   const handleCancel = useCallback(() => {
@@ -59,24 +60,30 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
     if (isDirty) {
       setShowDiscardDialog(true);
     } else {
-      setIsEditing(false);
+      setEditingTurnId(null);
       setEditedContent(turn.content.text);
     }
-  }, [turn.content.text, isDirty]);
+  }, [turn.content.text, isDirty, setEditingTurnId]);
 
   const handleConfirmDiscard = useCallback(() => {
-    setIsEditing(false);
+    setEditingTurnId(null);
     setEditedContent(turn.content.text);
     setShowDiscardDialog(false);
-  }, [turn.content.text]);
+  }, [turn.content.text, setEditingTurnId]);
 
   const doNothing = useCallback(() => {}, []);
 
   return (
     <>
-      <Box layerStyle="surface" p={4} borderRadius="md" data-turn-id={turn.id}>
+      <Box
+        layerStyle="surface"
+        p={4}
+        borderRadius="md"
+        data-turn-id={turn.id}
+        data-testid="turn-item"
+      >
         <Stack gap={2}>
-          <HStack justify="space-between" mb={1}>
+          <HStack justify="space-between" pb={1}>
             <HStack alignItems="center">
               {avatarSrc && (
                 <Avatar
@@ -84,18 +91,20 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
                   layerStyle="surface"
                   name={authorName}
                   src={avatarSrc}
-                  size="xs"
+                  size="md"
                 />
               )}
-              <Text fontSize="md" fontWeight="bold" color="content.emphasized">
-                {authorName}
-              </Text>
+              <Stack gap={0}>
+                <Text fontSize="md" fontWeight="bold">
+                  {authorName}
+                </Text>
+                <Text fontSize="xs" color="content.muted">
+                  #{turn.turnNo}
+                </Text>
+              </Stack>
             </HStack>
 
             <HStack gap={2}>
-              <Text fontSize="xs" color="content.muted">
-                #{turn.turnNo}
-              </Text>
               {isEditing ? (
                 <HStack gap={1}>
                   <Button
@@ -235,7 +244,7 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
             />
           ) : (
             // TODO: Make maxW configurable
-            <Prose size="lg" maxW="70ch">
+            <Prose maxW="80ch" size="lg" data-testid="turn-content">
               <Markdown>{turn.content.text}</Markdown>
             </Prose>
           )}

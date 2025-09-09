@@ -1,5 +1,4 @@
 import { Box, Card, HStack, Icon, VStack } from "@chakra-ui/react";
-import { forwardRef } from "react";
 import { LuGripVertical } from "react-icons/lu";
 import type { LayoutNodeDraft } from "@/features/template-builder/types";
 
@@ -9,10 +8,11 @@ interface NodeFrameProps {
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
   children: React.ReactNode;
+  ref: React.ForwardedRef<HTMLDivElement>;
 }
 
-export const NodeFrame = forwardRef<HTMLDivElement, NodeFrameProps>((props, ref) => {
-  const { isDragging = false, dragHandleProps, style, children } = props;
+export const NodeFrame = (props: NodeFrameProps) => {
+  const { isDragging = false, dragHandleProps, style, children, ref } = props;
   return (
     <Card.Root
       ref={ref}
@@ -56,6 +56,6 @@ export const NodeFrame = forwardRef<HTMLDivElement, NodeFrameProps>((props, ref)
       </HStack>
     </Card.Root>
   );
-});
+};
 
 NodeFrame.displayName = "NodeFrame";

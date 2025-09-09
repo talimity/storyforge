@@ -18,8 +18,14 @@ export const Prose = chakra("div", {
     maxWidth: "65ch",
     fontSize: "sm",
     lineHeight: "1.7em",
+    "& :where(*):first-child": {
+      marginTop: "0 !important",
+    },
+    "& :where(*):last-child": {
+      marginBottom: "0 !important",
+    },
     [inWhere("& p")]: {
-      // marginTop: "1em",
+      marginTop: "1em",
       marginBottom: "1em",
     },
     [inWhere("& blockquote")]: {

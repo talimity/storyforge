@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import {
   type InputMode,
   IntentPanel,
 } from "@/features/scenario-player/components/intent-panel/intent-panel";
 import { PlayerLayout } from "@/features/scenario-player/components/player-layout";
-import { TimelineView } from "@/features/scenario-player/components/timeline/timeline-view";
+import { VirtualizedTimeline } from "@/features/scenario-player/components/timeline/virtualized-timeline";
 import { useIntentEngine } from "@/features/scenario-player/hooks/use-intent-engine";
 import { useScenarioIntentActions } from "@/features/scenario-player/hooks/use-scenario-intent-actions";
 import { useScenarioTimeline } from "@/features/scenario-player/hooks/use-scenario-timeline";
@@ -30,9 +30,9 @@ export function PlayerPage() {
   const { startIntent, cancelIntent } = useIntentEngine(scenario.id);
   const currentRunId = useIntentRunsStore((s) => s.currentRunId);
 
-  const { turns, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } = useScenarioTimeline({
-    scenarioId: scenario.id,
-  });
+  const { turns, hasNextPage, isFetching, isPending, fetchNextPage, refetch } = useScenarioTimeline(
+    { scenarioId: scenario.id }
+  );
 
   // Auto-select first character when available
   useEffect(() => {
@@ -54,28 +54,25 @@ export function PlayerPage() {
   // Click handlers
   const handleSubmitIntent = async (mode: InputMode, text: string) => {
     if (!scenario) return;
-    try {
-      switch (mode) {
-        case "direct": {
-          if (!selectedParticipant) return;
-          await startIntent({
-            kind: "manual_control",
-            text,
-            targetParticipantId: selectedParticipant.id,
-          });
-          break;
-        }
-        case "constraints": {
-          await startIntent({ kind: "narrative_constraint", text });
-          break;
-        }
-        case "quick": {
-          await startIntent({ kind: "continue_story" });
-          break;
-        }
+
+    switch (mode) {
+      case "direct": {
+        if (!selectedParticipant) return;
+        await startIntent({
+          kind: "manual_control",
+          text,
+          targetParticipantId: selectedParticipant.id,
+        });
+        break;
       }
-    } catch (error) {
-      console.error("Failed to submit intent:", error);
+      case "constraints": {
+        await startIntent({ kind: "narrative_constraint", text });
+        break;
+      }
+      case "quick": {
+        await startIntent({ kind: "continue_story" });
+        break;
+      }
     }
   };
 
@@ -91,20 +88,18 @@ export function PlayerPage() {
     await addTurn(scenario.id, message, actor.id, chapter.id);
   };
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const timelineView = (
-    <TimelineView
+  const timeline = (
+    <VirtualizedTimeline
       scenarioId={scenario.id}
       scenarioTitle={scenario.title}
       chapterTitle={chapters.length > 0 ? chapters[0].title || "Chapter 1" : undefined}
       turns={turns}
       hasNextPage={hasNextPage}
-      isFetchingNextPage={isFetchingNextPage}
+      isFetching={isFetching}
+      isPending={isPending}
       onLoadMore={fetchNextPage}
       onTurnDeleted={refetch}
       onStarterSelect={handleStarterSelect}
-      scrollRef={scrollRef}
     />
   );
 
@@ -118,5 +113,5 @@ export function PlayerPage() {
     />
   );
 
-  return <PlayerLayout timeline={timelineView} intentPanel={intentPanel} scrollRef={scrollRef} />;
+  return <PlayerLayout timeline={timeline} intentPanel={intentPanel} />;
 }

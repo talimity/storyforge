@@ -10,7 +10,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
-import { forwardRef, useCallback } from "react";
+import { useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { LuCheck, LuX } from "react-icons/lu";
 import {
@@ -38,10 +38,11 @@ interface MessageNodeEditProps {
   onCancel?: () => void;
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
+  ref: React.ForwardedRef<HTMLDivElement>;
 }
 
-export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>((props, ref) => {
-  const { node, isDragging = false, onSave, onCancel, dragHandleProps, style } = props;
+export const MessageNodeEdit = (props: MessageNodeEditProps) => {
+  const { node, isDragging = false, onSave, onCancel, dragHandleProps, style, ref } = props;
   const { register, control, setValue, getValues } = useForm({
     defaultValues: {
       role: node.role,
@@ -194,6 +195,6 @@ export const MessageNodeEdit = forwardRef<HTMLDivElement, MessageNodeEditProps>(
       </VStack>
     </NodeFrame>
   );
-});
+};
 
 MessageNodeEdit.displayName = "MessageNodeEdit";

@@ -24,6 +24,7 @@
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/utils": "workspace:*",
     "@tanstack/react-query": "^5.87.1",
+    "@tanstack/react-virtual": "^3.13.12",
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
     "@trpc/tanstack-react-query": "catalog:",

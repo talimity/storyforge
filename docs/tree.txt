@@ -180,7 +180,7 @@
 │      │  │  │  │  ├── timeline
 │      │  │  │  │  │  ├── character-starter-selector.tsx
 │      │  │  │  │  │  ├── draft-turn.tsx
-│      │  │  │  │  │  ├── timeline-view.tsx
+│      │  │  │  │  │  ├── timeline.tsx
 │      │  │  │  │  │  ├── turn-delete-dialog.tsx
 │      │  │  │  │  │  └── turn-item.tsx
 │      │  │  │  │  └── widgets

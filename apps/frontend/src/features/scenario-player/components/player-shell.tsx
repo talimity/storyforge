@@ -52,7 +52,7 @@ function PlayerShellInner() {
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
 
   return (
-    <Flex direction="column" h="100vh" colorPalette="neutral">
+    <Flex direction="column" h="100vh" colorPalette="neutral" data-testid="player-shell">
       {/* Top Scenario Title Bar */}
       <Flex
         as="header"
@@ -62,6 +62,7 @@ function PlayerShellInner() {
         align="center"
         justify="space-between"
         flexShrink={0}
+        data-testid="player-shell-header"
       >
         {/* Left Section */}
         <HStack gap={3}>
@@ -98,7 +99,7 @@ function PlayerShellInner() {
       </Flex>
 
       {/* Main Layout */}
-      <Flex flex="1" overflow="hidden">
+      <Flex flex="1" overflow="hidden" data-testid="player-shell-content-wrapper">
         {/* Desktop Widget Sidebar */}
         <Show when={!isMobile}>
           <PlayerWidgetSidebar
@@ -134,12 +135,13 @@ function PlayerShellInner() {
         <Box
           as="main"
           flex="1"
-          overflow="auto"
+          // overflow="auto"
+          minH="0" // allow content to shrink to fit
           layerStyle="surface"
           borderRadius="0"
           borderTopLeftRadius={isMobile ? "0" : "sm"}
           boxShadow="inset 0 0 8px rgba(0, 0, 0, 0.1)"
-          data-testid="scenario-main-content"
+          data-testid="player-shell-content"
         >
           <Outlet />
         </Box>

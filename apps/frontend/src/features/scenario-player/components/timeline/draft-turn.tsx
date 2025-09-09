@@ -38,7 +38,7 @@ export function DraftTurn() {
         </HStack>
 
         {previewText ? (
-          <Prose size="lg" maxW="70ch" color="content.muted">
+          <Prose size="lg" color="content.muted">
             <Markdown>{previewText}</Markdown>
           </Prose>
         ) : (

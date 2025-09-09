@@ -1,26 +1,38 @@
 import { Box, Flex, Image, Text, VStack } from "@chakra-ui/react";
-import type { CharacterWithStarters } from "@storyforge/contracts";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import Markdown from "react-markdown";
 import { Button, Prose } from "@/components/ui/index";
-
 import { getApiUrl } from "@/lib/get-api-url";
+import { useTRPC } from "@/lib/trpc";
 
 interface CharacterStarterSelectorProps {
-  charactersWithStarters: CharacterWithStarters[];
+  enabled: boolean;
+  scenarioId: string;
   onStarterSelect: (characterId: string, message: string) => void;
 }
 
 export function CharacterStarterSelector({
-  charactersWithStarters,
+  enabled,
+  scenarioId,
   onStarterSelect,
 }: CharacterStarterSelectorProps) {
+  const trpc = useTRPC();
   const [currentCharacterIndex, setCurrentCharacterIndex] = useState(0);
   const [currentStarterIndex, setCurrentStarterIndex] = useState(0);
 
+  const { data } = useQuery(
+    trpc.scenarios.getCharacterStarters.queryOptions({ id: scenarioId }, { enabled })
+  );
+  const charactersWithStarters = data?.charactersWithStarters || [];
+
   if (charactersWithStarters.length === 0) {
-    return null;
+    return (
+      <Box textAlign="center" color="content.muted" py={8}>
+        <Text>Nothing here yet.</Text>
+      </Box>
+    );
   }
 
   const currentCharacter = charactersWithStarters[currentCharacterIndex];
@@ -142,7 +154,7 @@ export function CharacterStarterSelector({
                 border="1px solid"
                 borderColor="border"
               >
-                <Prose size="lg" maxW="66ch">
+                <Prose size="lg" maxW="80ch">
                   <Markdown>{currentStarter.message}</Markdown>
                 </Prose>
               </Box>

@@ -1,5 +1,4 @@
 import { Badge, HStack, Icon, IconButton, Text, VStack } from "@chakra-ui/react";
-import { forwardRef } from "react";
 import { LuPencil, LuTrash2 } from "react-icons/lu";
 import { NodeFrame } from "@/features/template-builder/components/nodes/node-frame";
 import { getNodeIcon, getRoleLabel } from "@/features/template-builder/services/builder-utils";
@@ -12,10 +11,11 @@ interface MessageNodeViewProps {
   onDelete?: (nodeId: string) => void;
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
+  ref: React.ForwardedRef<HTMLDivElement>;
 }
 
-export const MessageNodeView = forwardRef<HTMLDivElement, MessageNodeViewProps>((props, ref) => {
-  const { node, isDragging = false, onEdit, onDelete, dragHandleProps, style } = props;
+export const MessageNodeView = (props: MessageNodeViewProps) => {
+  const { node, isDragging = false, onEdit, onDelete, dragHandleProps, style, ref } = props;
   const NodeIcon = getNodeIcon(node);
   const hasContent = node.content || node.from;
 
@@ -94,6 +94,6 @@ export const MessageNodeView = forwardRef<HTMLDivElement, MessageNodeViewProps>(
       </VStack>
     </NodeFrame>
   );
-});
+};
 
 MessageNodeView.displayName = "MessageNodeView";
