@@ -19,7 +19,7 @@ export function useScenarioTimeline({
     trpc.play.timeline.infiniteQueryOptions(
       { scenarioId, layer, windowSize },
       {
-        getNextPageParam: (last) => last.cursors.nextLeafTurnId ?? undefined,
+        getNextPageParam: (prev) => prev.cursors.nextLeafTurnId ?? undefined,
         initialCursor: undefined,
         refetchOnWindowFocus: false,
       }

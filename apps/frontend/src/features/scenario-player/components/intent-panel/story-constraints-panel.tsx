@@ -1,11 +1,11 @@
 import { HStack, Stack, Text, Textarea } from "@chakra-ui/react";
-import { RiQuillPenLine } from "react-icons/ri";
-import { Button } from "@/components/ui/index";
+import { GenerateOrCancelButton } from "./generate-or-cancel-button";
 
 interface StoryConstraintsPanelProps {
   inputText: string;
   onInputChange: (text: string) => void;
   onGenerate: () => void;
+  onCancel: () => void;
   isGenerating: boolean;
 }
 
@@ -13,6 +13,7 @@ export function StoryConstraintsPanel({
   inputText,
   onInputChange,
   onGenerate,
+  onCancel,
   isGenerating,
 }: StoryConstraintsPanelProps) {
   return (
@@ -37,17 +38,15 @@ export function StoryConstraintsPanel({
           onChange={(e) => onInputChange(e.target.value)}
           flex="1"
         />
-        <Button
-          colorScheme="primary"
+        <GenerateOrCancelButton
+          colorPalette="primary"
           variant="solid"
           size="sm"
-          onClick={onGenerate}
-          disabled={!inputText.trim() || isGenerating}
-          loading={isGenerating}
-        >
-          <RiQuillPenLine />
-          Generate
-        </Button>
+          onGenerate={onGenerate}
+          onCancel={onCancel}
+          isGenerating={isGenerating}
+          disabled={!isGenerating && !inputText.trim()}
+        />
       </HStack>
     </Stack>
   );

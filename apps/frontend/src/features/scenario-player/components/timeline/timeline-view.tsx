@@ -2,6 +2,7 @@ import { Box, Heading, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
 import { useQuery } from "@tanstack/react-query";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
+import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-turn";
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
 import { TurnItem } from "@/features/scenario-player/components/timeline/turn-item";
 import { useTurnActions } from "@/features/scenario-player/hooks/use-turn-actions";
@@ -57,7 +58,7 @@ export function TimelineView({
   const { data: startersData } = useQuery(
     trpc.scenarios.getCharacterStarters.queryOptions(
       { id: scenarioId },
-      { enabled: turns.length === 0 } // skip if timeline is already populated
+      { enabled: turns.length === 0 }
     )
   );
 
@@ -112,6 +113,11 @@ export function TimelineView({
             ))}
           </Stack>
         )}
+
+        {/* Draft turn for in-progress generations */}
+        <Box px={2} pb={2}>
+          <DraftTurn />
+        </Box>
       </Stack>
 
       <TurnDeleteDialog

@@ -76,9 +76,9 @@ export class MockAdapter extends ProviderAdapter {
         },
         "mock-slow": {
           text: "This is a deliberately slow mock response to simulate high-latency scenarios and test timeout handling.",
-          delay: 500,
+          delay: 1500,
           chunkDelay: 200,
-          wordsPerChunk: 2,
+          wordsPerChunk: 1,
         },
         "mock-creative": {
           text: "Once upon a time, in a digital realm far, far away, there lived a mock provider who dreamed of generating the most creative and engaging responses. This provider had the magical ability to simulate any LLM behavior, making it perfect for testing narrative engines and story generation systems.",

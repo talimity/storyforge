@@ -112,9 +112,9 @@ describe("Workflow Runner", () => {
       currentIntent: { kind: "turn_generation", description: "Test intent" },
       stepInputs: {},
       globals: {
-        stCurrentCharName: "Alice",
-        stPersonaName: "Bob",
-        scenarioDescription: "Test scenario",
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
       },
     };
 
@@ -201,9 +201,9 @@ describe("Workflow Runner", () => {
       },
       stepInputs: {},
       globals: {
-        stCurrentCharName: "Alice",
-        stPersonaName: "Bob",
-        scenarioDescription: "Test scenario",
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
       },
     };
 
@@ -259,9 +259,9 @@ describe("Workflow Runner", () => {
       currentIntent: { description: "Transform test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
-        stCurrentCharName: "Alice",
-        stPersonaName: "Bob",
-        scenarioDescription: "Test scenario",
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
       },
     };
 
@@ -349,9 +349,9 @@ describe("Workflow Runner", () => {
       currentIntent: { description: "Cancel test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
-        stCurrentCharName: "Alice",
-        stPersonaName: "Bob",
-        scenarioDescription: "Test scenario",
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
       },
     };
 
@@ -429,9 +429,9 @@ describe("Workflow Runner", () => {
       currentIntent: { description: "JSON test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
-        stCurrentCharName: "Alice",
-        stPersonaName: "Bob",
-        scenarioDescription: "Test scenario",
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
       },
     };
 
@@ -475,9 +475,9 @@ describe("Workflow Runner", () => {
       currentIntent: { description: "Snapshot test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
-        stCurrentCharName: "Alice",
-        stPersonaName: "Bob",
-        scenarioDescription: "Test scenario",
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
       },
     };
 
@@ -545,9 +545,9 @@ describe("Workflow Runner", () => {
       },
       stepInputs: {},
       globals: {
-        stCurrentCharName: "Alice",
-        stPersonaName: "Bob",
-        scenarioDescription: "Test scenario",
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
       },
     };
 
@@ -599,9 +599,9 @@ describe("Workflow Runner", () => {
       },
       stepInputs: {},
       globals: {
-        stCurrentCharName: "Alice",
-        stPersonaName: "Bob",
-        scenarioDescription: "Test scenario",
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
       },
     };
 

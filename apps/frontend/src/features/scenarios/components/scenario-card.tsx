@@ -1,4 +1,4 @@
-import { Badge, Box, Card, HStack, IconButton, Menu, Portal, Text, VStack } from "@chakra-ui/react";
+import { Box, Card, HStack, IconButton, Menu, Portal, Text, VStack } from "@chakra-ui/react";
 import type { ScenarioWithCharacters } from "@storyforge/contracts";
 import {
   LuCalendar,
@@ -46,20 +46,9 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
         <VStack align="start" gap={4}>
           {/* Header */}
           <VStack align="start" gap={2} width="100%">
-            <HStack justify="space-between" width="100%">
-              <Text fontSize="lg" fontWeight="semibold" color="content.emphasized">
-                {scenario.name}
-              </Text>
-              <Badge colorPalette={scenario.status === "active" ? "green" : "gray"} variant="solid">
-                {scenario.status}
-              </Badge>
-            </HStack>
-
-            {scenario.description && (
-              <Text fontSize="sm" color="content.muted" lineClamp={3} minH={12}>
-                {scenario.description}
-              </Text>
-            )}
+            <Text fontSize="lg" fontWeight="semibold" color="content.emphasized">
+              {scenario.name}
+            </Text>
           </VStack>
 
           {/* Characters */}

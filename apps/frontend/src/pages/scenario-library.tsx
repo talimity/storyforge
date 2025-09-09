@@ -80,7 +80,7 @@ export function ScenarioLibraryPage() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImportSuccess={(scenarioId) => {
-          navigate(`/scenarios/${scenarioId}`);
+          navigate(`/play/${scenarioId}`);
         }}
       />
     </Container>

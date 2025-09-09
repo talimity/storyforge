@@ -92,7 +92,7 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
 
             <VStack align="stretch" gap={2}>
               <Text fontSize="sm" color="content.muted" truncate>
-                Model: {modelProfile.modelId}
+                Model: {modelProfile.modelId} (ID {modelProfile.id})
               </Text>
 
               {provider && (

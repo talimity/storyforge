@@ -33,7 +33,7 @@ export function CharacterMappingStep({
         />
       </Field>
 
-      <Field label="Description" optionalText="(optional)">
+      <Field label="Description">
         <Input
           value={scenarioDescription}
           onChange={(e) => setScenarioDescription(e.target.value)}

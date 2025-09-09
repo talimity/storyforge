@@ -13,10 +13,10 @@ export const chapters = sqliteTable(
       .references(() => scenarios.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     index: integer("index").notNull().default(0),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
       .notNull()
       .$onUpdate(() => new Date()),
   },

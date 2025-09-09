@@ -1,13 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import {
   type InputMode,
   IntentPanel,
 } from "@/features/scenario-player/components/intent-panel/intent-panel";
 import { PlayerLayout } from "@/features/scenario-player/components/player-layout";
 import { TimelineView } from "@/features/scenario-player/components/timeline/timeline-view";
+import { useIntentEngine } from "@/features/scenario-player/hooks/use-intent-engine";
 import { useScenarioIntentActions } from "@/features/scenario-player/hooks/use-scenario-intent-actions";
 import { useScenarioTimeline } from "@/features/scenario-player/hooks/use-scenario-timeline";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
+import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { useActiveScenario } from "@/hooks/use-active-scenario";
 
@@ -17,32 +19,28 @@ export function PlayerPage() {
   const { selectedCharacterId, setSelectedCharacter, reset } = useScenarioPlayerStore();
 
   // Reset store when scenario changes
-  // biome-ignore lint/correctness/useExhaustiveDependencies: "hook specifies more dependencies than necessary" but we want to trigger reset only on scenarioId change???
   useEffect(() => {
     return () => {
-      console.debug("Resetting scenario player store");
+      console.debug("Resetting scenario player store", scenario.id);
       reset();
     };
   }, [scenario.id, reset]);
 
-  const { addTurn, isAddingTurn } = useScenarioIntentActions();
+  const { addTurn } = useScenarioIntentActions();
+  const { startIntent, cancelIntent } = useIntentEngine(scenario.id);
+  const currentRunId = useIntentRunsStore((s) => s.currentRunId);
 
   const { turns, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } = useScenarioTimeline({
     scenarioId: scenario.id,
   });
 
   // Auto-select first character when available
-  const firstCharacterParticipant = useMemo(
-    () => participants.find((p) => p.type === "character" && p.characterId),
-    [participants]
-  );
-
-  // Auto-select first character when available
   useEffect(() => {
-    if (!selectedCharacterId && firstCharacterParticipant?.characterId) {
-      setSelectedCharacter(firstCharacterParticipant.characterId);
+    const firstChara = participants.find((p) => p.type === "character" && p.characterId);
+    if (!selectedCharacterId && firstChara?.characterId) {
+      setSelectedCharacter(firstChara.characterId);
     }
-  }, [selectedCharacterId, firstCharacterParticipant, setSelectedCharacter]);
+  }, [selectedCharacterId, participants, setSelectedCharacter]);
 
   // Set scenario as active when loaded
   useEffect(() => {
@@ -54,21 +52,42 @@ export function PlayerPage() {
     : null;
 
   // Click handlers
-  const handleSubmitIntent = async (_mode: InputMode, text: string) => {
-    if (!selectedParticipant || !scenario || !chapters[0]) return;
-
+  const handleSubmitIntent = async (mode: InputMode, text: string) => {
+    if (!scenario) return;
     try {
-      await addTurn(scenario.id, text, selectedParticipant.id, chapters[0].id);
+      switch (mode) {
+        case "direct": {
+          if (!selectedParticipant) return;
+          await startIntent({
+            kind: "manual_control",
+            text,
+            targetParticipantId: selectedParticipant.id,
+          });
+          break;
+        }
+        case "constraints": {
+          await startIntent({ kind: "narrative_constraint", text });
+          break;
+        }
+        case "quick": {
+          await startIntent({ kind: "continue_story" });
+          break;
+        }
+      }
     } catch (error) {
       console.error("Failed to submit intent:", error);
     }
+  };
+
+  const handleCancelIntent = async () => {
+    if (!currentRunId) return;
+    await cancelIntent(currentRunId);
   };
 
   const handleStarterSelect = async (characterId: string, message: string) => {
     const actor = participants.find((p) => p.characterId === characterId);
     const chapter = chapters[0];
     if (!actor || !chapter) return;
-
     await addTurn(scenario.id, message, actor.id, chapter.id);
   };
 
@@ -87,7 +106,13 @@ export function PlayerPage() {
   );
 
   const intentPanel = (
-    <IntentPanel onSubmitIntent={handleSubmitIntent} isGenerating={isAddingTurn} />
+    <IntentPanel
+      onSubmitIntent={handleSubmitIntent}
+      onCancelIntent={handleCancelIntent}
+      onQuickContinue={() => {
+        void startIntent({ kind: "continue_story" });
+      }}
+    />
   );
 
   return <PlayerLayout timeline={timelineView} intentPanel={intentPanel} />;

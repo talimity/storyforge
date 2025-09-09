@@ -32,10 +32,10 @@ export const characters = sqliteTable("characters", {
     }>()
     .notNull()
     .default(sql`'{"x":0.5,"y":0.3,"w":0.5,"h":0.5,"c":0}'`), // default for portrait images
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
     .notNull()
     .$onUpdate(() => new Date()),
 });

@@ -22,10 +22,10 @@ export const turns = sqliteTable(
     authorParticipantId: text("author_participant_id")
       .notNull()
       .references(() => scenarioParticipants.id, { onDelete: "restrict" }),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
       .notNull()
       .$onUpdate(() => new Date()),
   },

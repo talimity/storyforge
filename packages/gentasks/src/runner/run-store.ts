@@ -56,6 +56,13 @@ export class RunStore {
       resultReject = reject;
     });
 
+    // Attach a no-op rejection handler immediately to avoid process-level
+    // unhandled rejection crashes when a run is cancelled before any consumer
+    // awaits `resultPromise`. The original promise remains rejectable and
+    // awaiting code must still handle the rejection.
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    void resultPromise.catch(() => {});
+
     const abortCtrl = new AbortController();
     const run: RunData = {
       events: [],

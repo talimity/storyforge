@@ -4,9 +4,27 @@ import { exactKeys } from "@storyforge/utils";
 import type { CharacterCtxDTO, TurnCtxDTO } from "../types.js";
 
 type TurnGenGlobals = {
-  stCurrentCharName: string; // SillyTavern macro {{char}}
-  stPersonaName: string; // SillyTavern macro {{user}}
-  scenarioDescription?: string; // SillyTavern macro {{scenario}}
+  // SillyTavern-style global accessors to make imported characters and prompts
+  // work without modification
+  // https://docs.sillytavern.app/usage/core-concepts/macros/#general-macros
+  // There are many more macros, including impure ones that return random values
+  // or timestamps, but these are the most common ones.
+  /**
+   * Resolves to the character authoring the current turn, per SillyTavern
+   * conventions
+   */
+  char: string;
+  /**
+   * Resolves to the players's persona name, per SillyTavern conventions. We
+   * do not have personas but the user can designate a character in a scenario
+   * as the {{user}} proxy.
+   */
+  user: string; // SillyTavern macro {{user}}
+  /**
+   * Resolves to the scenario's description. In SillyTavern, this maps to the
+   * Scenario field on a TavernCard, which we do not use.
+   */
+  scenario?: string; // SillyTavern macro {{scenario}}
 };
 
 // Turn generation context
@@ -34,28 +52,6 @@ export type TurnGenSources = {
   };
   stepOutput: { args: { key: string }; out: unknown };
   globals: { args: never; out: TurnGenGlobals };
-
-  // SillyTavern-style global accessors to make imported characters and prompts
-  // work without modification
-  // https://docs.sillytavern.app/usage/core-concepts/macros/#general-macros
-  // There are many more macros, including impure ones that return random values
-  // or timestamps, but these are the most common ones.
-  /**
-   * Resolves to the character authoring the current turn, per SillyTavern
-   * conventions.
-   */
-  char: { args: never; out: string };
-  /**
-   * Resolves to the players's persona name, per SillyTavern conventions. We
-   * do not have personas but the user can designate a character in a scenario
-   * as the {{user}} proxy.
-   */
-  user: { args: never; out: string };
-  /**
-   * Resolves to the scenario's description. In SillyTavern, this maps to the
-   * Scenario field on a TavernCard, which we do not use.
-   */
-  scenario: { args: never; out: string | undefined };
 };
 
 const makeTurnGenRegistry = (handlers: SourceHandlerMap<TurnGenCtx, TurnGenSources>) =>
@@ -96,9 +92,6 @@ export const turnGenRegistry = makeTurnGenRegistry({
   currentIntent: (_ref, ctx) => ctx.currentIntent,
   stepOutput: (ref, ctx) => ctx.stepInputs[ref.args.key],
   globals: (_ref, ctx) => ctx.globals,
-  char: (_ref, ctx) => ctx.globals.stCurrentCharName,
-  user: (_ref, ctx) => ctx.globals.stPersonaName,
-  scenario: (_ref, ctx) => stringOrUndefined(ctx.globals.scenarioDescription),
 });
 
 export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
@@ -106,16 +99,9 @@ export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
   "characters",
   "currentIntent",
   "stepOutput",
-  "globals",
-  "char",
-  "user",
-  "scenario"
+  "globals"
 );
 
 // Convenience type aliases
 export type TurnGenTemplate = PromptTemplate<"turn_generation", TurnGenSources>;
 export type TurnGenRegistry = typeof turnGenRegistry;
-
-function stringOrUndefined(val: unknown): string | undefined {
-  return typeof val === "string" ? val : undefined;
-}

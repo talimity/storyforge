@@ -3,6 +3,7 @@ import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/reac
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { useCallback } from "react";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
+import { showErrorToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
 export function useIntentEngine(scenarioId: string) {
@@ -13,8 +14,16 @@ export function useIntentEngine(scenarioId: string) {
   const clearActiveIntent = useIntentRunsStore((s) => s.clearActiveRun);
   const currentRunId = useIntentRunsStore((s) => s.currentRunId);
 
-  const createIntent = useMutation(trpc.play.createIntent.mutationOptions());
-  const interruptIntent = useMutation(trpc.play.interruptIntent.mutationOptions({}));
+  const createIntent = useMutation(
+    trpc.play.createIntent.mutationOptions({
+      onError: (err) => showErrorToast({ title: "Failed to start intent", error: err }),
+    })
+  );
+  const interruptIntent = useMutation(
+    trpc.play.interruptIntent.mutationOptions({
+      onError: (err) => showErrorToast({ title: "Failed to cancel intent", error: err }),
+    })
+  );
   const { data: env } = useQuery(trpc.play.environment.queryOptions({ scenarioId }));
 
   const startIntent = useCallback(
@@ -36,29 +45,33 @@ export function useIntentEngine(scenarioId: string) {
   //  - a run we just started (runs.currentId), or
   //  - an existing generating intent from the server (resume after refresh)
   const activeIntentId = currentRunId ?? env?.generatingIntent?.id ?? null;
-  const progressSubscription = useSubscription(
-    trpc.play.intentProgress.subscriptionOptions(
-      activeIntentId ? { intentId: activeIntentId } : skipToken,
-      {
-        onData: (event) => {
-          applyEvent(event);
+  const subscriptionEnabled = Boolean(activeIntentId);
+  const subscriptionInput = subscriptionEnabled ? { intentId: String(activeIntentId) } : skipToken;
+  useSubscription(
+    trpc.play.intentProgress.subscriptionOptions(subscriptionInput, {
+      enabled: subscriptionEnabled,
+      onData: (event) => {
+        applyEvent(event);
 
-          if (event.type === "effect_committed") {
-            // Get the next authoritative data from server
-            queryClient.invalidateQueries({ queryKey: [["play", "timeline"]] });
-            queryClient.invalidateQueries({ queryKey: [["play", "environment"]] });
-          }
-          if (event.type === "intent_finished") {
-            clearActiveIntent();
-          }
-          if (event.type === "intent_failed") {
-            // Keep the run visible for UI; do not clear immediately
-            // (Let UI clear on explicit action or scenario change)
-          }
-        },
-      }
-    )
+        if (event.type === "effect_committed") {
+          // Get the next authoritative data from server
+          queryClient.invalidateQueries({ queryKey: [["play", "timeline"]] });
+          queryClient.invalidateQueries({ queryKey: [["play", "environment"]] });
+        }
+        if (event.type === "intent_finished") {
+          clearActiveIntent();
+        }
+        if (event.type === "intent_failed") {
+          showErrorToast({ title: "Intent failed", error: event.error });
+          // Keep the run visible for UI; do not clear immediately
+        }
+      },
+      onError: (err) => {
+        // Subscription transport error or server error shape
+        showErrorToast({ title: "Intent progress error", error: err });
+      },
+    })
   );
 
-  return { startIntent, progressSubscription, cancelIntent };
+  return { startIntent, cancelIntent };
 }

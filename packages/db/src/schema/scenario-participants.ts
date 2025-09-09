@@ -24,10 +24,10 @@ export const scenarioParticipants = sqliteTable(
     role: text("role"), // Free-form role description (e.g., "Player", "GM", etc.)
     isUserProxy: integer("is_user_proxy", { mode: "boolean" }).notNull().default(false), // Indicates if this participant replaces {{user}} macros
     orderIndex: integer("order_index").notNull().default(0), // Display order
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
       .notNull()
       .$onUpdate(() => new Date()),
   },

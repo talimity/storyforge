@@ -209,3 +209,14 @@ function reduceRunnerEvent(run: IntentRun, e: WorkflowEvent) {
       break;
   }
 }
+
+// Selectors
+export const selectCurrentRun = (s: IntentRunsState) => {
+  const id = s.currentRunId;
+  return id ? s.runsById[id] : undefined;
+};
+
+export const selectCurrentRunStatus = (s: IntentRunsState) => {
+  const run = selectCurrentRun(s);
+  return run?.status ?? "finished";
+};

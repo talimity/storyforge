@@ -10,7 +10,7 @@ type ScenarioCtx = ScenarioEnvironment & {
   charactersById: Record<string, ScenarioCharacter>;
   getCharacterByParticipantId: (participantId: string) => ScenarioCharacter | null;
 };
-const Ctx = createContext<ScenarioCtx | null>(null);
+const ScenarioContext = createContext<ScenarioCtx | null>(null);
 
 export function ScenarioProvider({
   scenarioId,
@@ -38,21 +38,16 @@ export function ScenarioProvider({
   );
 
   return (
-    <Ctx.Provider
-      value={{
-        ...env,
-        participantsById,
-        charactersById,
-        getCharacterByParticipantId,
-      }}
+    <ScenarioContext.Provider
+      value={{ ...env, participantsById, charactersById, getCharacterByParticipantId }}
     >
       {children}
-    </Ctx.Provider>
+    </ScenarioContext.Provider>
   );
 }
 
 export function useScenarioContext() {
-  const ctx = useContext(Ctx);
+  const ctx = useContext(ScenarioContext);
   if (!ctx) throw new Error("useScenarioContext called outside ScenarioProvider");
   return ctx;
 }

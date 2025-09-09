@@ -1,7 +1,13 @@
 import type { AppRouter } from "@storyforge/backend";
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
+import {
+  createTRPCClient,
+  httpBatchLink,
+  httpSubscriptionLink,
+  loggerLink,
+  splitLink,
+} from "@trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 import { getBaseUrl } from "@/lib/get-api-url";
@@ -39,9 +45,10 @@ export function TRPCReactProvider({ children }: TRPCReactProviderProps) {
               }),
             ]
           : []),
-        httpBatchLink({
-          transformer: superjson,
-          url: `${getBaseUrl()}/trpc`,
+        splitLink({
+          condition: (op) => op.type === "subscription",
+          true: httpSubscriptionLink({ url: `${getBaseUrl()}/trpc`, transformer: superjson }),
+          false: httpBatchLink({ url: `${getBaseUrl()}/trpc`, transformer: superjson }),
         }),
       ],
     })

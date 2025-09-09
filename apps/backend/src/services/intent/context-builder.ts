@@ -45,9 +45,9 @@ export class IntentContextBuilder {
       },
       stepInputs: {},
       globals: {
-        stCurrentCharName: currentActorName,
-        stPersonaName: userProxyName,
-        scenarioDescription: scenario.description,
+        char: currentActorName,
+        user: userProxyName,
+        scenario: scenario.description,
       },
     };
   }

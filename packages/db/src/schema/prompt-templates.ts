@@ -15,10 +15,10 @@ export const promptTemplates = sqliteTable("prompt_templates", {
   // version of the template.
   layout: text("layout", { mode: "json" }).$type<Record<string, unknown>[]>().notNull(),
   slots: text("slots", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
     .notNull()
     .$onUpdate(() => new Date()),
 });

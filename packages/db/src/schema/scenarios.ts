@@ -26,10 +26,10 @@ export const scenarios = sqliteTable("scenarios", {
     .$type<Record<string, unknown>>()
     .notNull()
     .default(sql`'{}'`),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
     .notNull()
     .$onUpdate(() => new Date()),
 });

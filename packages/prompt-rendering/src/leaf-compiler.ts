@@ -91,27 +91,51 @@ function toStringSafe(v: unknown): string {
 /**
  * Resolves a dotted path like "item.summary" or "intent.description" against a scope object.
  * Also supports bracketed array access like "item.examples[0]".
+ *
+ * If scope object contains a "globals" property, paths which don't exist in the main scope
+ * will be resolved against that.
  * @param scope - The object to resolve against
  * @param path - Dotted path like "item.summary" or "item.examples[0]"
  * @returns The resolved value or undefined if not found
  */
 function resolvePath(scope: unknown, path: string): unknown {
-  if (!scope || typeof scope !== "object") {
-    return undefined;
-  }
+  const isRecord = (v: unknown): v is Record<string | number | symbol, unknown> =>
+    !!v && typeof v === "object";
 
-  const parts = parsePath(path);
-  let current = scope;
+  // Try to resolve the path from a given root, returning whether the path existed.
+  const resolveFrom = (
+    root: Record<string | number | symbol, unknown> | undefined
+  ): { found: boolean; value: unknown } => {
+    if (!root) return { found: false, value: undefined };
 
-  for (const part of parts) {
-    if (current == null || typeof current !== "object") {
-      return undefined;
+    let current: unknown = root;
+    const parts = parsePath(path);
+
+    for (const part of parts) {
+      if (!isRecord(current)) return { found: false, value: undefined };
+
+      const container = current;
+      if (!Object.hasOwn(container, part)) {
+        return { found: false, value: undefined };
+      }
+      current = container[part];
     }
-    // biome-ignore lint/suspicious/noExplicitAny: scopes not known at compile time
-    current = (current as any)[part];
-  }
 
-  return current;
+    return { found: true, value: current };
+  };
+
+  if (!isRecord(scope)) return undefined;
+
+  // 1) Try as given (normal precedence)
+  const direct = resolveFrom(scope);
+  if (direct.found) return direct.value;
+
+  // 2) Fall back to scope.globals if present
+  const globals = scope.globals;
+  const viaGlobals = resolveFrom(isRecord(globals) ? globals : undefined);
+  if (viaGlobals.found) return viaGlobals.value;
+
+  return undefined;
 }
 
 /**

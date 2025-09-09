@@ -10,10 +10,10 @@ export const characterExamples = sqliteTable("character_examples", {
     .notNull()
     .references(() => characters.id, { onDelete: "cascade" }),
   exampleTemplate: text("example_template").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
     .notNull()
     .$onUpdate(() => new Date()),
 });

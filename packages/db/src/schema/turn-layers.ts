@@ -13,10 +13,10 @@ export const turnLayers = sqliteTable(
       .references(() => turns.id, { onDelete: "cascade" }),
     key: text("key").notNull(),
     content: text("content").notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
       .notNull()
       .$onUpdate(() => new Date()),
   },

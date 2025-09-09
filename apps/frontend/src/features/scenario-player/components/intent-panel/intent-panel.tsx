@@ -1,5 +1,9 @@
 import { SegmentGroup, Stack } from "@chakra-ui/react";
 import { useState } from "react";
+import {
+  selectCurrentRunStatus,
+  useIntentRunsStore,
+} from "@/features/scenario-player/stores/intent-run-store";
 import { DirectControlPanel } from "./direct-control-panel";
 import { QuickActionsPanel } from "./quick-actions-panel";
 import { StoryConstraintsPanel } from "./story-constraints-panel";
@@ -8,13 +12,16 @@ export type InputMode = "direct" | "constraints" | "quick";
 
 interface IntentPanelProps {
   onSubmitIntent: (mode: InputMode, text: string) => Promise<void>;
-  isGenerating: boolean;
+  onCancelIntent: () => Promise<void> | void;
+  onQuickContinue?: () => Promise<void> | void;
 }
 
 export function IntentPanel(props: IntentPanelProps) {
-  const { onSubmitIntent, isGenerating } = props;
+  const { onSubmitIntent, onCancelIntent, onQuickContinue } = props;
   const [inputMode, setInputMode] = useState<InputMode>("direct");
   const [inputText, setInputText] = useState("");
+  const currentIntentStatus = useIntentRunsStore(selectCurrentRunStatus);
+  const isGenerating = ["pending", "running"].includes(currentIntentStatus);
 
   const handleGenerate = async () => {
     // TODO: This should only empty input if the intent was successfully
@@ -22,7 +29,6 @@ export function IntentPanel(props: IntentPanelProps) {
     // generation.
     if (!inputText.trim()) return;
     await onSubmitIntent(inputMode, inputText.trim());
-    setInputText("");
   };
 
   return (
@@ -49,6 +55,7 @@ export function IntentPanel(props: IntentPanelProps) {
           inputText={inputText}
           onInputChange={setInputText}
           onGenerate={handleGenerate}
+          onCancel={onCancelIntent}
           isGenerating={isGenerating}
         />
       )}
@@ -58,11 +65,14 @@ export function IntentPanel(props: IntentPanelProps) {
           inputText={inputText}
           onInputChange={setInputText}
           onGenerate={handleGenerate}
+          onCancel={onCancelIntent}
           isGenerating={isGenerating}
         />
       )}
 
-      {inputMode === "quick" && <QuickActionsPanel isGenerating={isGenerating} />}
+      {inputMode === "quick" && (
+        <QuickActionsPanel isGenerating={isGenerating} onContinue={onQuickContinue} />
+      )}
     </Stack>
   );
 }

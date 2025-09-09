@@ -11,10 +11,10 @@ export const characterStarters = sqliteTable("character_starters", {
     .references(() => characters.id, { onDelete: "cascade" }),
   message: text("message").notNull(),
   isPrimary: integer("is_primary", { mode: "boolean" }).notNull().default(false),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
     .notNull()
     .$onUpdate(() => new Date()),
 });

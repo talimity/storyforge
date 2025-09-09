@@ -170,6 +170,7 @@
 │      │  │  │  ├── components
 │      │  │  │  │  ├── intent-panel
 │      │  │  │  │  │  ├── direct-control-panel.tsx
+│      │  │  │  │  │  ├── generate-or-cancel-button.tsx
 │      │  │  │  │  │  ├── intent-panel.tsx
 │      │  │  │  │  │  ├── quick-actions-panel.tsx
 │      │  │  │  │  │  └── story-constraints-panel.tsx
@@ -178,6 +179,7 @@
 │      │  │  │  │  ├── player-widget-sidebar.tsx
 │      │  │  │  │  ├── timeline
 │      │  │  │  │  │  ├── character-starter-selector.tsx
+│      │  │  │  │  │  ├── draft-turn.tsx
 │      │  │  │  │  │  ├── timeline-view.tsx
 │      │  │  │  │  │  ├── turn-delete-dialog.tsx
 │      │  │  │  │  │  └── turn-item.tsx
@@ -189,6 +191,7 @@
 │      │  │  │  │      ├── tools-widget.tsx
 │      │  │  │  │      └── widget-panels.tsx
 │      │  │  │  ├── hooks
+│      │  │  │  │  ├── use-intent-engine.ts
 │      │  │  │  │  ├── use-scenario-environment.ts
 │      │  │  │  │  ├── use-scenario-intent-actions.ts
 │      │  │  │  │  ├── use-scenario-timeline.ts
@@ -196,6 +199,7 @@
 │      │  │  │  ├── providers
 │      │  │  │  │  └── scenario-provider.tsx
 │      │  │  │  └── stores
+│      │  │  │      ├── intent-run-store.ts
 │      │  │  │      └── scenario-player-store.ts
 │      │  │  ├── scenarios
 │      │  │  │  ├── components
@@ -271,6 +275,7 @@
 │      │  │  ├── empty-to-null.ts
 │      │  │  ├── error-handling.ts
 │      │  │  ├── formatting.ts
+│      │  │  ├── get-api-url.ts
 │      │  │  ├── non-bubbling-handler.ts
 │      │  │  ├── query-client.ts
 │      │  │  ├── trpc-react-provider.tsx
@@ -491,7 +496,7 @@
 │  │  ├── src
 │  │  │  ├── assert-defined.ts
 │  │  │  ├── assert-never.ts
-│  │  │  ├── async-queue.ts
+│  │  │  ├── async-broadcast.ts
 │  │  │  ├── exact-keys.ts
 │  │  │  ├── fractional-order.ts
 │  │  │  ├── index.ts
@@ -518,4 +523,4 @@
 ├── todos
 └── tsconfig.base.json
 
-108 directories, 411 files
+108 directories, 416 files

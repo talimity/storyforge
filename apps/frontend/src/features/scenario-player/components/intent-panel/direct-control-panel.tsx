@@ -1,14 +1,15 @@
 import { HStack, Stack, Text, Textarea } from "@chakra-ui/react";
-import { RiQuillPenLine } from "react-icons/ri";
-import { Avatar, Button } from "@/components/ui/index";
+import { Avatar } from "@/components/ui/index";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { getApiUrl } from "@/lib/get-api-url";
+import { GenerateOrCancelButton } from "./generate-or-cancel-button";
 
 interface DirectControlPanelProps {
   inputText: string;
   onInputChange: (text: string) => void;
   onGenerate: () => void;
+  onCancel: () => void;
   isGenerating: boolean;
 }
 
@@ -16,6 +17,7 @@ export function DirectControlPanel({
   inputText,
   onInputChange,
   onGenerate,
+  onCancel,
   isGenerating,
 }: DirectControlPanelProps) {
   const { charactersById } = useScenarioContext();
@@ -63,16 +65,14 @@ export function DirectControlPanel({
           onChange={(e) => onInputChange(e.target.value)}
           disabled={!selectedCharacterName}
         />
-        <Button
+        <GenerateOrCancelButton
           colorPalette="accent"
           size="md"
-          onClick={onGenerate}
-          disabled={isDisabled}
-          loading={isGenerating}
-        >
-          <RiQuillPenLine />
-          Generate
-        </Button>
+          onGenerate={onGenerate}
+          onCancel={onCancel}
+          isGenerating={isGenerating}
+          disabled={!isGenerating && isDisabled}
+        />
       </HStack>
     </Stack>
   );
