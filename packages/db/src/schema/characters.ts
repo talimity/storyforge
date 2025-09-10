@@ -17,7 +17,7 @@ export const characters = sqliteTable("characters", {
   creator: text("creator"),
   creatorNotes: text("creator_notes"),
   customSystemPrompt: text("custom_system_prompt"),
-  customPostHistoryInstructions: text("custom_post_history_instructions"),
+  styleInstructions: text("style_instructions"),
   tags: text("tags", { mode: "json" }).$type<string[]>().default(sql`'[]'`),
   revision: text("revision"),
   tavernCardData: text("tavern_card_data", { mode: "json" }),

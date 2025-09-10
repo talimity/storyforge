@@ -29,7 +29,13 @@ import { CharacterImageField } from "./character-image-field";
 import { CharacterStartersEditor } from "./character-starters-editor";
 
 const characterFormSchema = createCharacterSchema
-  .pick({ name: true, description: true, cardType: true, starters: true })
+  .pick({
+    name: true,
+    description: true,
+    cardType: true,
+    starters: true,
+    styleInstructions: true,
+  })
   .extend({
     cardType: createCharacterSchema.shape.cardType.unwrap(), // remove default
     starters: createCharacterSchema.shape.starters.unwrap(),
@@ -49,7 +55,7 @@ const cardTypeOptions = [
   { label: "Character", value: "character" },
   { label: "Group", value: "group" },
   { label: "Persona", value: "persona" },
-  { label: "Scenario", value: "scenario" },
+  { label: "Narrator", value: "scenario" },
 ];
 
 export function CharacterForm({
@@ -67,6 +73,7 @@ export function CharacterForm({
       description: initialData?.description || "",
       cardType: initialData?.cardType || "character",
       starters: initialData?.starters || [],
+      styleInstructions: initialData?.styleInstructions || "",
     },
   });
   const {
@@ -157,6 +164,20 @@ export function CharacterForm({
                   <Textarea
                     {...register("description")}
                     placeholder="Enter character description..."
+                    rows={4}
+                    autoresize
+                    disabled={isSubmitting}
+                    autoComplete="off"
+                  />
+                </Field>
+
+                <Field
+                  label="Style Instructions"
+                  helperText="Optional: guidance to influence this character's writing style (tone, formatting, POV, etc.)"
+                >
+                  <Textarea
+                    {...register("styleInstructions")}
+                    placeholder="e.g., Speak in clipped sentences, use dry humor; avoid emojis."
                     rows={4}
                     autoresize
                     disabled={isSubmitting}

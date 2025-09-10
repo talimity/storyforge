@@ -23,7 +23,7 @@ export const createCharacterSchema = z.object({
   creator: z.string().nullish(),
   creatorNotes: z.string().nullish(),
   customSystemPrompt: z.string().nullish(),
-  customPostHistoryInstructions: z.string().nullish(),
+  styleInstructions: z.string().nullish(),
   tags: z.array(z.string()).default([]),
   revision: z.string().default("1.0"),
   // Form-provided starters for create
@@ -44,6 +44,7 @@ export const updateCharacterSchema = z.object({
   description: z.string().optional(),
   cardType: cardTypeSchema.optional(),
   imageDataUri: imageDataUriSchema.nullish(),
+  styleInstructions: z.string().optional().nullable(),
   // Form-provided starters for update (optional)
   starters: z
     .array(
@@ -90,7 +91,7 @@ export const characterSchema = z.object({
   creator: z.string().nullable(),
   creatorNotes: z.string().nullable(),
   customSystemPrompt: z.string().nullable(),
-  customPostHistoryInstructions: z.string().nullable(),
+  styleInstructions: z.string().nullable(),
   tags: z.array(z.string()),
   revision: z.string().nullable(),
   tavernCardData: z.any().nullable(),

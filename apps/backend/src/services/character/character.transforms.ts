@@ -25,7 +25,7 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
     creator: dbCharacter.creator,
     creatorNotes: dbCharacter.creatorNotes,
     customSystemPrompt: dbCharacter.customSystemPrompt,
-    customPostHistoryInstructions: dbCharacter.customPostHistoryInstructions,
+    styleInstructions: dbCharacter.styleInstructions ?? null,
     tags: dbCharacter.tags || [],
     revision: dbCharacter.revision,
     tavernCardData: dbCharacter.tavernCardData

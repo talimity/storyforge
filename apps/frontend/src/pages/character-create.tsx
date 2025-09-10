@@ -31,6 +31,7 @@ export function CharacterCreatePage() {
     description: string;
     cardType: "character" | "group" | "persona" | "scenario";
     starters: { id?: string; message: string; isPrimary: boolean }[];
+    styleInstructions?: string | null;
     imageDataUri?: string | null | undefined;
   }) => {
     createCharacterMutation.mutate({
@@ -38,6 +39,7 @@ export function CharacterCreatePage() {
       description: formData.description,
       cardType: formData.cardType,
       starters: formData.starters,
+      styleInstructions: formData.styleInstructions ?? undefined,
       imageDataUri: formData.imageDataUri ?? undefined,
     });
   };
