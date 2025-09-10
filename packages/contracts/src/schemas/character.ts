@@ -26,6 +26,16 @@ export const createCharacterSchema = z.object({
   customPostHistoryInstructions: z.string().nullish(),
   tags: z.array(z.string()).default([]),
   revision: z.string().default("1.0"),
+  // Form-provided starters for create
+  starters: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        message: z.string().min(1),
+        isPrimary: z.boolean(),
+      })
+    )
+    .default([]),
 });
 
 export const updateCharacterSchema = z.object({
@@ -34,6 +44,16 @@ export const updateCharacterSchema = z.object({
   description: z.string().optional(),
   cardType: cardTypeSchema.optional(),
   imageDataUri: imageDataUriSchema.nullish(),
+  // Form-provided starters for update (optional)
+  starters: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        message: z.string().min(1),
+        isPrimary: z.boolean(),
+      })
+    )
+    .optional(),
 });
 
 // Core entity schemas
@@ -44,6 +64,12 @@ export const characterStarterSchema = z.object({
   isPrimary: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
+});
+// Input DTO used by forms/routers
+export const characterStarterInputSchema = z.object({
+  id: z.string().optional(),
+  message: z.string().min(1),
+  isPrimary: z.boolean(),
 });
 
 export const characterExampleSchema = z.object({
@@ -137,3 +163,4 @@ export type CharactersListResponse = z.infer<typeof charactersListResponseSchema
 export type CharacterAutocompleteInput = z.infer<typeof characterAutocompleteInputSchema>;
 export type CharacterAutocompleteItem = z.infer<typeof characterAutocompleteItemSchema>;
 export type CharacterAutocompleteResponse = z.infer<typeof characterAutocompleteResponseSchema>;
+export type CharacterStarterInput = z.infer<typeof characterStarterInputSchema>;

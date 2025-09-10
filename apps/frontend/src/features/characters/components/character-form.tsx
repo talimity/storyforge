@@ -10,7 +10,8 @@ import {
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createCharacterSchema } from "@storyforge/contracts";
-import { Controller, useForm } from "react-hook-form";
+import type * as React from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
 import {
@@ -25,10 +26,14 @@ import {
 import { useImageField } from "@/hooks/use-image-field";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
 import { CharacterImageField } from "./character-image-field";
+import { CharacterStartersEditor } from "./character-starters-editor";
 
 const characterFormSchema = createCharacterSchema
-  .pick({ name: true, description: true, cardType: true })
-  .extend({ cardType: createCharacterSchema.shape.cardType.unwrap() }); // remove default
+  .pick({ name: true, description: true, cardType: true, starters: true })
+  .extend({
+    cardType: createCharacterSchema.shape.cardType.unwrap(), // remove default
+    starters: createCharacterSchema.shape.starters.unwrap(),
+  });
 
 type CharacterFormData = z.infer<typeof characterFormSchema>;
 
@@ -54,20 +59,22 @@ export function CharacterForm({
   isSubmitting = false,
   submitLabel = "Save Character",
 }: CharacterFormProps) {
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors, isDirty },
-  } = useForm<CharacterFormData>({
+  const methods = useForm<CharacterFormData>({
     resolver: zodResolver(characterFormSchema),
     mode: "onBlur",
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
       cardType: initialData?.cardType || "character",
+      starters: initialData?.starters || [],
     },
   });
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isDirty },
+  } = methods;
 
   const imageField = useImageField({
     initialUrl: initialData?.imageDataUri,
@@ -110,106 +117,111 @@ export function CharacterForm({
   return (
     <>
       <Card.Root layerStyle="surface" maxW="900px" mx="auto">
-        <form onSubmit={handleSubmit(onFormSubmit)}>
-          <Stack gap={6} p={6}>
-            {/* Portrait Image Section */}
-            <CharacterImageField
-              imageField={imageField}
-              isDisabled={isSubmitting}
-              onFileChange={handleFileChange}
-              onRemove={handleRemoveImage}
-            />
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(onFormSubmit)}>
+            <Stack gap={6} p={6}>
+              {/* Portrait Image Section */}
+              <CharacterImageField
+                imageField={imageField}
+                isDisabled={isSubmitting}
+                onFileChange={handleFileChange}
+                onRemove={handleRemoveImage}
+              />
 
-            <Separator />
+              <Separator />
 
-            {/* Basic Information Section */}
-            <Stack gap={4}>
-              <Heading size="md" textStyle="heading">
-                Basic Information
-              </Heading>
+              {/* Basic Information Section */}
+              <Stack gap={4}>
+                <Heading size="md" textStyle="heading">
+                  Basic Information
+                </Heading>
 
-              <Field
-                label="Character Name"
-                required
-                errorText="Please enter a name for the character"
-                invalid={!!errors.name}
-              >
-                <Input
-                  {...register("name")}
-                  placeholder="Enter character name"
+                <Field
+                  label="Character Name"
+                  required
+                  errorText="Please enter a name for the character"
+                  invalid={!!errors.name}
+                >
+                  <Input
+                    {...register("name")}
+                    placeholder="Enter character name"
+                    disabled={isSubmitting}
+                    autoComplete="off"
+                  />
+                </Field>
+
+                <Field
+                  label="Description"
+                  helperText="Provide a detailed description of the character"
+                >
+                  <Textarea
+                    {...register("description")}
+                    placeholder="Enter character description..."
+                    rows={4}
+                    autoresize
+                    disabled={isSubmitting}
+                    autoComplete="off"
+                  />
+                </Field>
+
+                <Field label="Card Type" helperText="Select the type of character card">
+                  <Controller
+                    name="cardType"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectRoot
+                        collection={createListCollection({
+                          items: cardTypeOptions,
+                        })}
+                        value={[field.value]}
+                        onValueChange={(details) => {
+                          field.onChange(details.value[0]);
+                        }}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger>
+                          <SelectValueText placeholder="Select card type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cardTypeOptions.map((option) => (
+                            <SelectItem key={option.value} item={option}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </SelectRoot>
+                    )}
+                  />
+                </Field>
+              </Stack>
+
+              <Separator />
+
+              {/* Starters Section */}
+              <CharacterStartersEditor disabled={isSubmitting} />
+
+              {/* Form Actions */}
+              <HStack justify="space-between" width="full">
+                <Button
+                  variant="ghost"
+                  onClick={() => confirmNavigation(onCancel)}
                   disabled={isSubmitting}
-                  autoComplete="off"
-                />
-              </Field>
-
-              <Field
-                label="Description"
-                helperText="Provide a detailed description of the character"
-              >
-                <Textarea
-                  {...register("description")}
-                  placeholder="Enter character description..."
-                  rows={4}
-                  autoresize
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="solid"
+                  colorPalette="primary"
                   disabled={isSubmitting}
-                  autoComplete="off"
-                />
-              </Field>
-
-              <Field label="Card Type" helperText="Select the type of character card">
-                <Controller
-                  name="cardType"
-                  control={control}
-                  render={({ field }) => (
-                    <SelectRoot
-                      collection={createListCollection({
-                        items: cardTypeOptions,
-                      })}
-                      value={[field.value]}
-                      onValueChange={(details) => {
-                        field.onChange(details.value[0]);
-                      }}
-                      disabled={isSubmitting}
-                    >
-                      <SelectTrigger>
-                        <SelectValueText placeholder="Select card type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cardTypeOptions.map((option) => (
-                          <SelectItem key={option.value} item={option}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
-                  )}
-                />
-              </Field>
+                  loading={isSubmitting}
+                >
+                  {submitLabel}
+                </Button>
+              </HStack>
             </Stack>
-
-            <Separator />
-
-            {/* Form Actions */}
-            <HStack justify="space-between" width="full">
-              <Button
-                variant="ghost"
-                onClick={() => confirmNavigation(onCancel)}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="solid"
-                colorPalette="primary"
-                disabled={isSubmitting}
-                loading={isSubmitting}
-              >
-                {submitLabel}
-              </Button>
-            </HStack>
-          </Stack>
-        </form>
+          </form>
+        </FormProvider>
       </Card.Root>
 
       {/* Unsaved Changes Dialog */}

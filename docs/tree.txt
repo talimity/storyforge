@@ -136,6 +136,7 @@
 │      │  │  │  │  ├── character-list-item.tsx
 │      │  │  │  │  ├── character-pile.tsx
 │      │  │  │  │  ├── character-selector.tsx
+│      │  │  │  │  ├── character-starters-editor.tsx
 │      │  │  │  │  └── compact-character-card.tsx
 │      │  │  │  └── hooks
 │      │  │  │      ├── use-character-actions.ts
@@ -180,9 +181,9 @@
 │      │  │  │  │  ├── timeline
 │      │  │  │  │  │  ├── character-starter-selector.tsx
 │      │  │  │  │  │  ├── draft-turn.tsx
-│      │  │  │  │  │  ├── timeline.tsx
 │      │  │  │  │  │  ├── turn-delete-dialog.tsx
-│      │  │  │  │  │  └── turn-item.tsx
+│      │  │  │  │  │  ├── turn-item.tsx
+│      │  │  │  │  │  └── virtualized-timeline.tsx
 │      │  │  │  │  └── widgets
 │      │  │  │  │      ├── characters-widget.tsx
 │      │  │  │  │      ├── director-widget.tsx
@@ -195,6 +196,11 @@
 │      │  │  │  │  ├── use-scenario-environment.ts
 │      │  │  │  │  ├── use-scenario-intent-actions.ts
 │      │  │  │  │  ├── use-scenario-timeline.ts
+│      │  │  │  │  ├── use-timeline-auto-load-more.ts
+│      │  │  │  │  ├── use-timeline-follow-output-mode.ts
+│      │  │  │  │  ├── use-timeline-follow-output.ts
+│      │  │  │  │  ├── use-timeline-initial-scroll-to-bottom.ts
+│      │  │  │  │  ├── use-timeline-keep-bottom-distance.ts
 │      │  │  │  │  └── use-turn-actions.ts
 │      │  │  │  ├── providers
 │      │  │  │  │  └── scenario-provider.tsx
@@ -267,7 +273,6 @@
 │      │  │          └── use-workflow-actions.ts
 │      │  ├── hooks
 │      │  │  ├── use-active-scenario.ts
-│      │  │  ├── use-auto-load-more.tsx
 │      │  │  ├── use-debounced-callback.ts
 │      │  │  ├── use-image-field.ts
 │      │  │  └── use-unsaved-changes-protection.ts
@@ -523,4 +528,4 @@
 ├── todos
 └── tsconfig.base.json
 
-108 directories, 416 files
+108 directories, 421 files

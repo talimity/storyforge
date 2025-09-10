@@ -30,12 +30,14 @@ export function CharacterCreatePage() {
     name: string;
     description: string;
     cardType: "character" | "group" | "persona" | "scenario";
+    starters: { id?: string; message: string; isPrimary: boolean }[];
     imageDataUri?: string | null | undefined;
   }) => {
     createCharacterMutation.mutate({
       name: formData.name,
       description: formData.description,
       cardType: formData.cardType,
+      starters: formData.starters,
       imageDataUri: formData.imageDataUri ?? undefined,
     });
   };

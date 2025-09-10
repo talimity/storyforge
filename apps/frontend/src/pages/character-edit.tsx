@@ -60,6 +60,7 @@ export function CharacterEditPage() {
     name: string;
     description: string;
     cardType: "character" | "group" | "persona" | "scenario";
+    starters: { id?: string; message: string; isPrimary: boolean }[];
     imageDataUri?: string | null | undefined;
   }) => {
     if (!id) return;
@@ -69,6 +70,7 @@ export function CharacterEditPage() {
       name: formData.name,
       description: formData.description,
       cardType: formData.cardType,
+      starters: formData.starters,
       imageDataUri: formData.imageDataUri,
     });
   };
@@ -121,6 +123,11 @@ export function CharacterEditPage() {
     description: character.description,
     cardType: character.cardType,
     imageDataUri: character.avatarPath ? getApiUrl(character.avatarPath) || undefined : undefined,
+    starters: character.starters.map((s) => ({
+      id: s.id,
+      message: s.message,
+      isPrimary: s.isPrimary,
+    })),
   };
 
   return (

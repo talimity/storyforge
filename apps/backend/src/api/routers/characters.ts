@@ -153,7 +153,11 @@ export const charactersRouter = router({
     .input(createCharacterSchema)
     .output(characterWithRelationsSchema)
     .mutation(async ({ input: rawInput, ctx }) => {
-      const { imageDataUri, ...input } = rawInput;
+      const {
+        imageDataUri,
+        starters = [],
+        ...input
+      } = rawInput as z.infer<typeof createCharacterSchema>;
 
       const charaSvc = new CharacterService(ctx.db);
       const newCharacter = await charaSvc.createCharacter({
@@ -161,6 +165,7 @@ export const charactersRouter = router({
           ...input,
           ...(await maybeProcessCharaImage(imageDataUri)),
         },
+        starters: starters.map((s) => ({ message: s.message, isPrimary: s.isPrimary })),
       });
 
       return {
@@ -183,7 +188,7 @@ export const charactersRouter = router({
     .output(characterSchema)
     .mutation(async ({ input, ctx }) => {
       const charaSvc = new CharacterService(ctx.db);
-      const { id, imageDataUri, ...updates } = input;
+      const { id, imageDataUri, starters, ...updates } = input;
 
       const updatedCharacter = await charaSvc.updateCharacter(id, {
         ...updates,
@@ -195,6 +200,10 @@ export const charactersRouter = router({
           code: "NOT_FOUND",
           message: "Character not found",
         });
+      }
+
+      if (starters) {
+        await charaSvc.setCharacterStarters(id, starters);
       }
 
       return transformCharacter(updatedCharacter);

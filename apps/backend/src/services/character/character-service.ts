@@ -76,6 +76,50 @@ export class CharacterService {
     });
   }
 
+  async setCharacterStarters(
+    characterId: string,
+    starters: Array<Pick<NewCharacterStarter, "message" | "isPrimary"> & { id?: string }>
+  ) {
+    return this.db.transaction(async (tx) => {
+      const existing = await tx
+        .select()
+        .from(schema.characterStarters)
+        .where(eq(schema.characterStarters.characterId, characterId));
+
+      const existingById = new Map(existing.map((s) => [s.id, s] as const));
+      const incomingIds = new Set(starters.map((s) => s.id).filter((v): v is string => !!v));
+
+      // Delete starters that are not present anymore (precise per-id delete)
+      const toDelete = existing.filter((s) => !incomingIds.has(s.id));
+      for (const s of toDelete) {
+        await tx.delete(schema.characterStarters).where(eq(schema.characterStarters.id, s.id));
+      }
+
+      // Upsert remaining
+      for (const starter of starters) {
+        if (starter.id && existingById.has(starter.id)) {
+          await tx
+            .update(schema.characterStarters)
+            .set({ message: starter.message, isPrimary: starter.isPrimary })
+            .where(eq(schema.characterStarters.id, starter.id));
+        } else {
+          await tx.insert(schema.characterStarters).values({
+            characterId,
+            message: starter.message,
+            isPrimary: starter.isPrimary,
+          });
+        }
+      }
+
+      const refreshed = await tx
+        .select()
+        .from(schema.characterStarters)
+        .where(eq(schema.characterStarters.characterId, characterId))
+        .orderBy(schema.characterStarters.isPrimary, schema.characterStarters.createdAt);
+
+      return refreshed;
+    });
+  }
   async updateCharacter(id: string, data: Partial<NewCharacter>) {
     const [updated] = await this.db
       .update(schema.characters)
