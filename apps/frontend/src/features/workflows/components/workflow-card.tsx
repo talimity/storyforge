@@ -10,9 +10,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
-import { LuEllipsisVertical, LuPencilLine, LuShare, LuTrash } from "react-icons/lu";
+import { LuCopy, LuEllipsisVertical, LuPencilLine, LuShare, LuTrash } from "react-icons/lu";
 import { useWorkflowActions } from "../hooks/use-workflow-actions";
 import { DeleteWorkflowDialog } from "./delete-workflow-dialog";
+import { WorkflowDuplicateDialog } from "./workflow-duplicate-dialog";
 
 export interface WorkflowSummaryView {
   id: string;
@@ -56,6 +57,10 @@ export function WorkflowCard({ workflow }: { workflow: WorkflowSummaryView }) {
                         <LuPencilLine />
                         Edit
                       </Menu.Item>
+                      <Menu.Item value="duplicate" onClick={actions.openDuplicateDialog}>
+                        <LuCopy />
+                        Duplicate
+                      </Menu.Item>
                       <Menu.Item value="export" onClick={actions.handleExport}>
                         <LuShare />
                         Export
@@ -88,6 +93,15 @@ export function WorkflowCard({ workflow }: { workflow: WorkflowSummaryView }) {
         workflow={{ id: workflow.id, name: workflow.name }}
         isOpen={actions.isDeleteDialogOpen}
         onOpenChange={(open) => (open ? actions.openDeleteDialog() : actions.closeDeleteDialog())}
+      />
+      <WorkflowDuplicateDialog
+        isOpen={actions.isDuplicateDialogOpen}
+        onOpenChange={(open) =>
+          open ? actions.openDuplicateDialog() : actions.closeDuplicateDialog()
+        }
+        originalName={workflow.name}
+        onConfirmDuplicate={actions.handleDuplicate}
+        isDuplicating={actions.duplicateWorkflowMutation.isPending}
       />
     </>
   );

@@ -1,12 +1,18 @@
 import { Box, HStack, IconButton, Menu, Portal, Text } from "@chakra-ui/react";
+import type { TaskKind } from "@storyforge/gentasks";
 import { useState } from "react";
-import { LuEllipsisVertical, LuTrash } from "react-icons/lu";
+import { LuEllipsisVertical, LuPencil, LuTrash } from "react-icons/lu";
+import { AssignmentDialog } from "./assignment-dialog";
 import { DeleteAssignmentDialog } from "./delete-assignment-dialog";
 
 export interface AssignmentItemView {
   id: string;
-  scopeKind: string;
-  workflowTask: string;
+  scopeKind: "default" | "scenario" | "character" | "participant";
+  workflowTask: TaskKind;
+  workflowId: string;
+  scenarioId?: string | null;
+  characterId?: string | null;
+  participantId?: string | null;
   workflow?: { name: string };
 }
 
@@ -22,6 +28,7 @@ export function AssignmentList({ items }: { items: AssignmentItemView[] }) {
 
 function AssignmentItem({ item }: { item: AssignmentItemView }) {
   const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   return (
     <>
       <Box layerStyle="surface" borderRadius="md" p={3} mb={3}>
@@ -40,6 +47,10 @@ function AssignmentItem({ item }: { item: AssignmentItemView }) {
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
+                    <Menu.Item value="edit" onClick={() => setEditOpen(true)}>
+                      <LuPencil />
+                      Edit
+                    </Menu.Item>
                     <Menu.Item value="delete" onClick={() => setOpen(true)} color="red.500">
                       <LuTrash />
                       Delete
@@ -56,6 +67,19 @@ function AssignmentItem({ item }: { item: AssignmentItemView }) {
         label={item.workflow?.name}
         isOpen={open}
         onOpenChange={setOpen}
+      />
+      <AssignmentDialog
+        isOpen={editOpen}
+        onOpenChange={setEditOpen}
+        isEditMode
+        initialAssignment={{
+          workflowId: item.workflowId,
+          task: item.workflowTask,
+          scopeKind: item.scopeKind,
+          scenarioId: item.scenarioId ?? undefined,
+          characterId: item.characterId ?? undefined,
+          participantId: item.participantId ?? undefined,
+        }}
       />
     </>
   );

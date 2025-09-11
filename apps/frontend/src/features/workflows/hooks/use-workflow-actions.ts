@@ -8,6 +8,7 @@ export function useWorkflowActions(workflowId: string) {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const deleteWorkflowMutation = useMutation(
@@ -52,14 +53,33 @@ export function useWorkflowActions(workflowId: string) {
     }
   };
 
+  const duplicateWorkflowMutation = useMutation(
+    trpc.workflows.duplicate.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.workflows.list.pathFilter());
+        setIsDuplicateDialogOpen(false);
+      },
+    })
+  );
+
+  const handleDuplicate = (newName: string) =>
+    duplicateWorkflowMutation.mutate({ id: workflowId, name: newName });
+  const openDuplicateDialog = () => setIsDuplicateDialogOpen(true);
+  const closeDuplicateDialog = () => setIsDuplicateDialogOpen(false);
+
   return {
     isDeleteDialogOpen,
+    isDuplicateDialogOpen,
     deleteWorkflowMutation,
+    duplicateWorkflowMutation,
     exportWorkflowQuery,
     handleDelete,
     handleEdit,
+    handleDuplicate,
     handleExport,
     openDeleteDialog,
     closeDeleteDialog,
+    openDuplicateDialog,
+    closeDuplicateDialog,
   };
 }

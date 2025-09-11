@@ -2,6 +2,7 @@ import { createListCollection, HStack, Input, Stack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -55,12 +56,18 @@ interface AssignmentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   defaultTask?: TaskKind;
+  /** Enables restricted editing: only workflow can change; scope + target are read-only */
+  isEditMode?: boolean;
+  /** Initial values when editing an existing assignment */
+  initialAssignment?: AssignmentValues;
 }
 
 export function AssignmentDialog({
   isOpen,
   onOpenChange,
   defaultTask = "turn_generation",
+  isEditMode = false,
+  initialAssignment,
 }: AssignmentDialogProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -80,10 +87,22 @@ export function AssignmentDialog({
     formState: { errors },
     watch,
     setValue,
+    reset,
   } = useForm<AssignmentValues>({
     resolver: zodResolver(assignmentSchema),
-    defaultValues: { task: defaultTask, scopeKind: "default" },
+    defaultValues: initialAssignment || { task: defaultTask, scopeKind: "default" },
   });
+
+  // Keep form in sync when switching between create/edit payloads
+  // or when dialog is reopened with different item
+  const syncDefaults = useCallback(() => {
+    reset(initialAssignment || { task: defaultTask, scopeKind: "default" });
+  }, [initialAssignment, defaultTask, reset]);
+
+  // Reset values when dialog opens or payload changes
+  useEffect(() => {
+    if (isOpen) syncDefaults();
+  }, [isOpen, syncDefaults]);
 
   const selectedTask = watch("task");
   const selectedScope = watch("scopeKind");
@@ -114,7 +133,7 @@ export function AssignmentDialog({
     >
       <Dialog.Content>
         <Dialog.Header>
-          <Dialog.Title>New Assignment</Dialog.Title>
+          <Dialog.Title>{isEditMode ? "Edit Assignment" : "New Assignment"}</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
           <Stack gap={4}>
@@ -123,6 +142,7 @@ export function AssignmentDialog({
                 collection={taskCollection}
                 value={[selectedTask]}
                 onValueChange={(d) => setValue("task", d.value[0] as TaskKind)}
+                disabled={isEditMode}
               >
                 <SelectTrigger>
                   <SelectValueText />
@@ -179,6 +199,7 @@ export function AssignmentDialog({
                       d.value[0] as "default" | "scenario" | "character" | "participant"
                     )
                   }
+                  disabled={isEditMode}
                 >
                   <SelectTrigger>
                     <SelectValueText />
@@ -204,6 +225,7 @@ export function AssignmentDialog({
                     inDialog
                     value={watch("scenarioId") ?? null}
                     onChange={(id) => setValue("scenarioId", id ?? undefined)}
+                    disabled={isEditMode}
                   />
                 </Field>
               )}
@@ -218,6 +240,7 @@ export function AssignmentDialog({
                     inDialog
                     value={watch("characterId") ?? null}
                     onChange={(id) => setValue("characterId", id ?? undefined)}
+                    disabled={isEditMode}
                   />
                 </Field>
               )}
@@ -228,7 +251,11 @@ export function AssignmentDialog({
                   invalid={!!errors.participantId}
                   errorText={errors.participantId?.message}
                 >
-                  <Input placeholder="participant id" {...register("participantId")} />
+                  <Input
+                    placeholder="participant id"
+                    {...register("participantId")}
+                    disabled={isEditMode}
+                  />
                 </Field>
               )}
             </HStack>
@@ -250,7 +277,7 @@ export function AssignmentDialog({
             loading={upsert.isPending}
             disabled={upsert.isPending}
           >
-            Save Assignment
+            {isEditMode ? "Save Changes" : "Save Assignment"}
           </Button>
         </Dialog.Footer>
       </Dialog.Content>
