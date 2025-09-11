@@ -34,26 +34,57 @@ describe("Slot Priority vs Layout Order", () => {
     const intentMsgIndex = messages.findIndex((m) =>
       m.content?.includes("Respect this player intent")
     );
-    const earlierEventsIndex = messages.findIndex((m) => m.content === "Earlier events:");
+    const earlierEventsIndex = messages.findIndex((m) => m.content?.includes("Earlier events:"));
 
-    const examplesIndex = messages.findIndex((m) => m.content === "Character writing examples:");
+    const examplesIndex = messages.findIndex((m) =>
+      m.content?.includes("Character writing examples:")
+    );
     const finalInstructionIndex = messages.findIndex((m) =>
       m.content?.includes("Write the next turn")
     );
 
-    // Verify basic layout order
+    // Verify basic layout order (allow same-message merging by checking substring order)
     expect(systemMsgIndex).toBeLessThan(intentMsgIndex);
-    expect(intentMsgIndex).toBeLessThan(finalInstructionIndex);
+    if (intentMsgIndex === finalInstructionIndex) {
+      const merged = messages[intentMsgIndex]?.content ?? "";
+      expect(merged.indexOf("Respect this player intent")).toBeLessThan(
+        merged.indexOf("Write the next turn")
+      );
+    } else {
+      expect(intentMsgIndex).toBeLessThan(finalInstructionIndex);
+    }
 
     // Verify summaries appear if present
     if (earlierEventsIndex !== -1) {
-      expect(intentMsgIndex).toBeLessThan(earlierEventsIndex);
-      expect(earlierEventsIndex).toBeLessThan(finalInstructionIndex);
+      if (earlierEventsIndex === intentMsgIndex) {
+        const merged = messages[intentMsgIndex]?.content ?? "";
+        expect(merged.indexOf("Respect this player intent")).toBeLessThan(
+          merged.indexOf("Earlier events:")
+        );
+      } else {
+        expect(intentMsgIndex).toBeLessThan(earlierEventsIndex);
+      }
+
+      if (earlierEventsIndex === finalInstructionIndex) {
+        const merged = messages[finalInstructionIndex]?.content ?? "";
+        expect(merged.indexOf("Earlier events:")).toBeLessThan(
+          merged.indexOf("Write the next turn")
+        );
+      } else {
+        expect(earlierEventsIndex).toBeLessThan(finalInstructionIndex);
+      }
     }
 
     // Verify examples appear (should be present due to empty turns)
     expect(examplesIndex).toBeGreaterThan(-1);
-    expect(examplesIndex).toBeLessThan(finalInstructionIndex);
+    if (examplesIndex === finalInstructionIndex) {
+      const merged = messages[finalInstructionIndex]?.content ?? "";
+      expect(merged.indexOf("Character writing examples:")).toBeLessThan(
+        merged.indexOf("Write the next turn")
+      );
+    } else {
+      expect(examplesIndex).toBeLessThan(finalInstructionIndex);
+    }
 
     // Should have summaries content
     expect(messages).toContainEqual(

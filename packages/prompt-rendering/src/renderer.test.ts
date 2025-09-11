@@ -78,22 +78,13 @@ describe("render function", () => {
 
       const messages = render(compiled, sampleContext, budget, registry);
 
-      expect(messages.length).toBeGreaterThan(3); // system + header + slot content + user message
       expect(messages[0]).toEqual({
         role: "system",
-        content: "You are a helpful assistant.",
-      });
-
-      // Should include the context slot header
-      expect(messages).toContainEqual({
-        role: "system",
-        content: "Context:",
-      });
-
-      // Should include slot content
-      expect(messages).toContainEqual({
-        role: "system",
-        content: "Current context information.",
+        content:
+          "You are a helpful assistant.\n" +
+          "Context:\n" +
+          "Current context information.\n" +
+          "Example interaction.",
       });
 
       // Should include final user message
@@ -135,19 +126,17 @@ describe("render function", () => {
       // Should include system message
       expect(messages[0]).toEqual({
         role: "system",
-        content: "You are a helpful assistant.",
+        content:
+          "You are a helpful assistant.\n" +
+          "Characters:\n" +
+          "Alice: A friendly character\n" +
+          "Bob: Another character",
       });
 
       // Should include final user message
       expect(messages[messages.length - 1]).toEqual({
         role: "user",
-        content: "Continue the story.",
-      });
-
-      // Should include character information from forEach loop
-      expect(messages).toContainEqual({
-        role: "system",
-        content: "Alice: A friendly character",
+        content: "Turn: Hello world!\n" + "Turn: Hi there!\n" + "Continue the story.",
       });
     });
 

@@ -218,8 +218,15 @@ describe("Determinism & Immutability", () => {
     // First and third renders should be identical (no side effects from second)
     expect(result1).toEqual(result3);
 
-    // Second render should be different (more turns = more messages)
-    expect(result1.length).not.toBe(result2.length);
+    // Second render should be different (more turns => more turn markers)
+    const countTurnMarkers = (msgs: { content?: string }[]) =>
+      (
+        msgs
+          .map((m) => m.content ?? "")
+          .join("\n")
+          .match(/\[\d+\]/g) || []
+      ).length;
+    expect(countTurnMarkers(result2)).toBeGreaterThan(countTurnMarkers(result1));
   });
 
   it("should maintain determinism with budget constraints", () => {

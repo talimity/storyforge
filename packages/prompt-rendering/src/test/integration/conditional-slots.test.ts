@@ -27,8 +27,8 @@ describe("Conditional Slot Omission", () => {
     const messagesWithTurns = render(compiled, standardTurnGenCtx, budget, registry);
 
     // Should NOT contain examples header or content
-    const hasExamplesHeader = messagesWithTurns.some(
-      (m) => m.content === "Character writing examples:"
+    const hasExamplesHeader = messagesWithTurns.some((m) =>
+      m.content?.includes("Character writing examples:")
     );
     const hasExampleContent = messagesWithTurns.some((m) => m.content?.includes(" — Example:"));
 
@@ -36,7 +36,7 @@ describe("Conditional Slot Omission", () => {
     expect(hasExampleContent).toBe(false);
 
     // Should still have turns content
-    const hasTurnContent = messagesWithTurns.some((m) => m.content?.match(/^\[\d+\]/));
+    const hasTurnContent = messagesWithTurns.some((m) => m.content?.match(/\[\d+\]/));
     expect(hasTurnContent).toBe(true);
 
     // Snapshot for context with turns (no examples)
@@ -51,8 +51,8 @@ describe("Conditional Slot Omission", () => {
     const messagesWithoutTurns = render(compiled, noTurnsCtx, budget, registry);
 
     // Should contain examples header and content
-    const hasExamplesHeader = messagesWithoutTurns.some(
-      (m) => m.content === "Character writing examples:"
+    const hasExamplesHeader = messagesWithoutTurns.some((m) =>
+      m.content?.includes("Character writing examples:")
     );
     const hasExampleContent = messagesWithoutTurns.some((m) => m.content?.includes(" — Example:"));
 
@@ -60,11 +60,11 @@ describe("Conditional Slot Omission", () => {
     expect(hasExampleContent).toBe(true);
 
     // Should NOT have turn content (since there are no turns)
-    const hasTurnContent = messagesWithoutTurns.some((m) => m.content?.match(/^\[\d+\]/));
+    const hasTurnContent = messagesWithoutTurns.some((m) => m.content?.match(/\[\d+\]/));
     expect(hasTurnContent).toBe(false);
 
     // Should still have other content like summaries
-    const hasSummaryContent = messagesWithoutTurns.some((m) => m.content?.match(/^Ch \d+:/));
+    const hasSummaryContent = messagesWithoutTurns.some((m) => m.content?.match(/\bCh \d+:/));
     expect(hasSummaryContent).toBe(true);
 
     // Snapshot for context without turns (with examples)

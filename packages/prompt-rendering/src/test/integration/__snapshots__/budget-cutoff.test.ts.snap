@@ -7,71 +7,23 @@ exports[`Budget Cut-off Behavior > should produce stable output with budget cons
     "role": "system",
   },
   {
-    "content": "Respect this player intent: ",
-    "role": "user",
-  },
-  {
-    "content": "Earlier events:",
-    "role": "user",
-  },
-  {
-    "content": "Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 13: Chapter 13: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 12: Chapter 12: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 11: Chapter 11: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Recent scene turns (newest first):",
-    "role": "user",
-  },
-  {
-    "content": "[26] Bob: Turn 26: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[25] Alice: Turn 25: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[24] Bob: Turn 24: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[23] Alice: Turn 23: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[22] Bob: Turn 22: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[21] Alice: Turn 21: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[20] Bob: Turn 20: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[19] Alice: Turn 19: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "Write the next turn as prose. 200–350 words. No meta commentary.",
+    "content": "Respect this player intent: 
+Earlier events:
+Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 13: Chapter 13: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 12: Chapter 12: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 11: Chapter 11: Additional chapter summary for testing budget limits and array truncation behavior.
+Recent scene turns (newest first):
+[26] Bob: Turn 26: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[25] Alice: Turn 25: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[24] Bob: Turn 24: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[23] Alice: Turn 23: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[22] Bob: Turn 22: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[21] Alice: Turn 21: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[20] Bob: Turn 20: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[19] Alice: Turn 19: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+Write the next turn as prose. 200–350 words. No meta commentary.",
     "role": "user",
   },
 ]
@@ -84,71 +36,23 @@ exports[`Budget Cut-off Behavior > should respect slot-level budget limits > slo
     "role": "system",
   },
   {
-    "content": "Respect this player intent: ",
-    "role": "user",
-  },
-  {
-    "content": "Earlier events:",
-    "role": "user",
-  },
-  {
-    "content": "Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 13: Chapter 13: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 12: Chapter 12: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 11: Chapter 11: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Recent scene turns (newest first):",
-    "role": "user",
-  },
-  {
-    "content": "[26] Bob: Turn 26: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[25] Alice: Turn 25: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[24] Bob: Turn 24: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[23] Alice: Turn 23: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[22] Bob: Turn 22: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[21] Alice: Turn 21: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[20] Bob: Turn 20: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[19] Alice: Turn 19: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "Write the next turn as prose. 200–350 words. No meta commentary.",
+    "content": "Respect this player intent: 
+Earlier events:
+Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 13: Chapter 13: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 12: Chapter 12: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 11: Chapter 11: Additional chapter summary for testing budget limits and array truncation behavior.
+Recent scene turns (newest first):
+[26] Bob: Turn 26: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[25] Alice: Turn 25: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[24] Bob: Turn 24: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[23] Alice: Turn 23: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[22] Bob: Turn 22: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[21] Alice: Turn 21: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[20] Bob: Turn 20: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[19] Alice: Turn 19: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+Write the next turn as prose. 200–350 words. No meta commentary.",
     "role": "user",
   },
 ]
@@ -161,71 +65,23 @@ exports[`Budget Cut-off Behavior > should terminate forEach loops early when glo
     "role": "system",
   },
   {
-    "content": "Respect this player intent: ",
-    "role": "user",
-  },
-  {
-    "content": "Earlier events:",
-    "role": "user",
-  },
-  {
-    "content": "Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 13: Chapter 13: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 12: Chapter 12: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 11: Chapter 11: Additional chapter summary for testing budget limits and array truncation behavior.",
-    "role": "user",
-  },
-  {
-    "content": "Recent scene turns (newest first):",
-    "role": "user",
-  },
-  {
-    "content": "[26] Bob: Turn 26: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[25] Alice: Turn 25: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[24] Bob: Turn 24: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[23] Alice: Turn 23: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[22] Bob: Turn 22: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[21] Alice: Turn 21: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[20] Bob: Turn 20: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "[19] Alice: Turn 19: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.",
-    "role": "user",
-  },
-  {
-    "content": "Write the next turn as prose. 200–350 words. No meta commentary.",
+    "content": "Respect this player intent: 
+Earlier events:
+Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 13: Chapter 13: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 12: Chapter 12: Additional chapter summary for testing budget limits and array truncation behavior.
+Ch 11: Chapter 11: Additional chapter summary for testing budget limits and array truncation behavior.
+Recent scene turns (newest first):
+[26] Bob: Turn 26: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[25] Alice: Turn 25: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[24] Bob: Turn 24: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[23] Alice: Turn 23: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[22] Bob: Turn 22: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[21] Alice: Turn 21: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[20] Bob: Turn 20: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+[19] Alice: Turn 19: This is additional content for budget testing. It contains enough text to consume meaningful tokens during rendering.
+Write the next turn as prose. 200–350 words. No meta commentary.",
     "role": "user",
   },
 ]

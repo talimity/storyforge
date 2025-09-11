@@ -7,11 +7,8 @@ exports[`Assistant Prefix Emission > should handle prefix with minimal context >
     "role": "system",
   },
   {
-    "content": "Constraint: ",
-    "role": "user",
-  },
-  {
-    "content": "Now produce a plan (bullets). Return JSON with keys: goals, beats, risks.",
+    "content": "Constraint: 
+Now produce a plan (bullets). Return JSON with keys: goals, beats, risks.",
     "role": "user",
   },
   {

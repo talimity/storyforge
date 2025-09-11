@@ -65,7 +65,8 @@ describe("Assistant Prefix Emission", () => {
     const prefixIndex = messages.findIndex((m) => m.role === "assistant" && m.prefix === true);
 
     // Should have slot content before the prefix
-    const hasTurnContent = messages.slice(0, prefixIndex).some((m) => m.content?.match(/^\[\d+\]/));
+    // With merged messages, turn lines may not start the message
+    const hasTurnContent = messages.slice(0, prefixIndex).some((m) => m.content?.match(/\[\d+\]/));
     const hasCharContent = messages.slice(0, prefixIndex).some((m) => m.content?.includes(" — "));
 
     expect(hasTurnContent).toBe(true);

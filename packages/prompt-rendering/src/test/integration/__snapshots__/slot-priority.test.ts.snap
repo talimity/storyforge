@@ -7,39 +7,15 @@ exports[`Slot Priority vs Layout Order > should fill slots in priority order but
     "role": "system",
   },
   {
-    "content": "Respect this player intent: ",
-    "role": "user",
-  },
-  {
-    "content": "Earlier events:",
-    "role": "user",
-  },
-  {
-    "content": "Ch 2: The mysterious stranger Charlie appears with cryptic warnings about the approaching dark season and the need to find the lost artifacts.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 1: Alice and Bob first encounter each other in the Academy's great library, where they discover a shared interest in ancient magical texts.",
-    "role": "user",
-  },
-  {
-    "content": "Character writing examples:",
-    "role": "user",
-  },
-  {
-    "content": "Alice — Example: A determined young mage with auburn hair and emerald eyes. Known for her analytical mind and unwavering moral compass. She specializes in protective magic and has a natural talent for seeing through illusions.",
-    "role": "user",
-  },
-  {
-    "content": "Bob — Example: A scholarly wizard who carries himself with quiet confidence. His expertise lies in ancient languages and historical magic. Bob often serves as the voice of caution and wisdom in the group.",
-    "role": "user",
-  },
-  {
-    "content": "Charlie — Example: An enigmatic figure whose past remains largely mysterious. Charlie appears to have connections to powerful magical forces and often knows more than they reveal. Their motives are unclear but seem aligned with the greater good.",
-    "role": "user",
-  },
-  {
-    "content": "Write the next turn as prose. 200–350 words. No meta commentary.",
+    "content": "Respect this player intent: 
+Earlier events:
+Ch 2: The mysterious stranger Charlie appears with cryptic warnings about the approaching dark season and the need to find the lost artifacts.
+Ch 1: Alice and Bob first encounter each other in the Academy's great library, where they discover a shared interest in ancient magical texts.
+Character writing examples:
+Alice — Example: A determined young mage with auburn hair and emerald eyes. Known for her analytical mind and unwavering moral compass. She specializes in protective magic and has a natural talent for seeing through illusions.
+Bob — Example: A scholarly wizard who carries himself with quiet confidence. His expertise lies in ancient languages and historical magic. Bob often serves as the voice of caution and wisdom in the group.
+Charlie — Example: An enigmatic figure whose past remains largely mysterious. Charlie appears to have connections to powerful magical forces and often knows more than they reveal. Their motives are unclear but seem aligned with the greater good.
+Write the next turn as prose. 200–350 words. No meta commentary.",
     "role": "user",
   },
 ]
@@ -52,63 +28,21 @@ exports[`Slot Priority vs Layout Order > should respect fill priority with limit
     "role": "system",
   },
   {
-    "content": "Respect this player intent: ",
-    "role": "user",
-  },
-  {
-    "content": "Earlier events:",
-    "role": "user",
-  },
-  {
-    "content": "Ch 5: The temple reveals its secrets, but at a cost that will change the relationship between all the characters forever.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 4: A betrayal within their group forces Alice and Bob to question who they can trust as they near the ancient temple.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 3: Our heroes venture into the Whispering Woods, where they face their first magical challenges and learn to work as a team.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 2: The mysterious stranger Charlie appears with cryptic warnings about the approaching dark season and the need to find the lost artifacts.",
-    "role": "user",
-  },
-  {
-    "content": "Ch 1: Alice and Bob first encounter each other in the Academy's great library, where they discover a shared interest in ancient magical texts.",
-    "role": "user",
-  },
-  {
-    "content": "Recent scene turns (newest first):",
-    "role": "user",
-  },
-  {
-    "content": "[6] Bob: Bob closed his book carefully and stood up, brushing dust from his robes.",
-    "role": "user",
-  },
-  {
-    "content": "[5] Alice: "I wasn't expecting to find anyone else here," Alice said, her voice echoing softly in the courtyard.",
-    "role": "user",
-  },
-  {
-    "content": "[4] Charlie: Charlie emerged from behind the pillar, a mysterious smile playing on their lips.",
-    "role": "user",
-  },
-  {
-    "content": "[3] Narrator: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
-    "role": "user",
-  },
-  {
-    "content": "[2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
-    "role": "user",
-  },
-  {
-    "content": "[1] Alice: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.",
-    "role": "user",
-  },
-  {
-    "content": "Write the next turn as prose. 200–350 words. No meta commentary.",
+    "content": "Respect this player intent: 
+Earlier events:
+Ch 5: The temple reveals its secrets, but at a cost that will change the relationship between all the characters forever.
+Ch 4: A betrayal within their group forces Alice and Bob to question who they can trust as they near the ancient temple.
+Ch 3: Our heroes venture into the Whispering Woods, where they face their first magical challenges and learn to work as a team.
+Ch 2: The mysterious stranger Charlie appears with cryptic warnings about the approaching dark season and the need to find the lost artifacts.
+Ch 1: Alice and Bob first encounter each other in the Academy's great library, where they discover a shared interest in ancient magical texts.
+Recent scene turns (newest first):
+[6] Bob: Bob closed his book carefully and stood up, brushing dust from his robes.
+[5] Alice: "I wasn't expecting to find anyone else here," Alice said, her voice echoing softly in the courtyard.
+[4] Charlie: Charlie emerged from behind the pillar, a mysterious smile playing on their lips.
+[3] Narrator: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.
+[2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.
+[1] Alice: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.
+Write the next turn as prose. 200–350 words. No meta commentary.",
     "role": "user",
   },
 ]

@@ -132,7 +132,8 @@ describe("Budget Cut-off Behavior", () => {
     expect(turnMessages.length).toBeLessThan(10); // Should be much less than the 20+ turns available
 
     // Should still have valid structure
-    expect(result.length).toBeGreaterThan(2); // At least system + user messages
+    // With merged user messages, structure can be exactly 2 (system + user)
+    expect(result.length).toBeGreaterThanOrEqual(2);
   });
 
   it("should handle zero budget gracefully", () => {
