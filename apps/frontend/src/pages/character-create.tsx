@@ -2,7 +2,10 @@ import { Container } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
-import { CharacterForm } from "@/features/characters/components/character-form";
+import {
+  CharacterForm,
+  type CharacterFormData,
+} from "@/features/characters/components/character-form";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
@@ -26,14 +29,7 @@ export function CharacterCreatePage() {
     })
   );
 
-  const handleSubmit = (formData: {
-    name: string;
-    description: string;
-    cardType: "character" | "group" | "persona" | "scenario";
-    starters: { id?: string; message: string; isPrimary: boolean }[];
-    styleInstructions?: string | null;
-    imageDataUri?: string | null | undefined;
-  }) => {
+  const handleSubmit = (formData: CharacterFormData) => {
     createCharacterMutation.mutate({
       name: formData.name,
       description: formData.description,

@@ -5,7 +5,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
 import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
-import { CharacterForm } from "@/features/characters/components/character-form";
+import {
+  CharacterForm,
+  type CharacterFormData,
+} from "@/features/characters/components/character-form";
 import { showSuccessToast } from "@/lib/error-handling";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
@@ -56,14 +59,7 @@ export function CharacterEditPage() {
     })
   );
 
-  const handleSubmit = (formData: {
-    name: string;
-    description: string;
-    cardType: "character" | "group" | "persona" | "scenario";
-    starters: { id?: string; message: string; isPrimary: boolean }[];
-    styleInstructions?: string | null;
-    imageDataUri?: string | null | undefined;
-  }) => {
+  const handleSubmit = (formData: CharacterFormData) => {
     if (!id) return;
 
     updateCharacterMutation.mutate({

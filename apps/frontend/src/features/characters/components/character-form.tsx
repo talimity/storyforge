@@ -11,6 +11,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createCharacterSchema } from "@storyforge/contracts";
 import type * as React from "react";
+import { useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
@@ -35,17 +36,19 @@ const characterFormSchema = createCharacterSchema
     cardType: true,
     starters: true,
     styleInstructions: true,
+    imageDataUri: true,
   })
   .extend({
-    cardType: createCharacterSchema.shape.cardType.unwrap(), // remove default
+    // removes ZodDefault for proper RHF control
+    cardType: createCharacterSchema.shape.cardType.unwrap(),
     starters: createCharacterSchema.shape.starters.unwrap(),
   });
 
-type CharacterFormData = z.infer<typeof characterFormSchema>;
+export type CharacterFormData = z.infer<typeof characterFormSchema>;
 
 interface CharacterFormProps {
-  initialData?: Partial<CharacterFormData> & { imageDataUri?: string };
-  onSubmit: (data: CharacterFormData & { imageDataUri?: string | null | undefined }) => void;
+  initialData?: Partial<CharacterFormData>;
+  onSubmit: (data: CharacterFormData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
   submitLabel?: string;
@@ -74,17 +77,20 @@ export function CharacterForm({
       cardType: initialData?.cardType || "character",
       starters: initialData?.starters || [],
       styleInstructions: initialData?.styleInstructions || "",
+      imageDataUri: undefined, // keep existing image by default
     },
   });
   const {
     register,
     handleSubmit,
     control,
+    setValue,
+    getValues,
     formState: { errors, isDirty },
   } = methods;
 
   const imageField = useImageField({
-    initialUrl: initialData?.imageDataUri,
+    initialUrl: initialData?.imageDataUri || undefined,
     initialDisplayName: "Current Portrait",
   });
 
@@ -92,6 +98,8 @@ export function CharacterForm({
     const files = Array.from(event.target.files || []);
     if (files.length > 0) {
       await imageField.handleFiles(files);
+      // Sync RHF value (string data URI)
+      setValue("imageDataUri", imageField.getSubmissionValue(), { shouldDirty: true });
     }
   };
 
@@ -103,18 +111,27 @@ export function CharacterForm({
     if (fileInput) {
       fileInput.value = "";
     }
+
+    // Sync RHF value (null to explicitly remove)
+    setValue("imageDataUri", imageField.getSubmissionValue(), { shouldDirty: true });
   };
 
   const onFormSubmit = (data: CharacterFormData) => {
     onSubmit({
       ...data,
-      imageDataUri: imageField.getSubmissionValue(),
     });
   };
 
-  const hasUnsavedChanges = (isDirty || imageField.isDirty()) && !isSubmitting;
+  // Keep RHF value in sync with image hook on drag-and-drop or other state changes
+  useEffect(() => {
+    const next = imageField.getSubmissionValue();
+    const current = getValues("imageDataUri");
+    if (next !== current) {
+      setValue("imageDataUri", next, { shouldDirty: true });
+    }
+  }, [getValues, imageField.getSubmissionValue, setValue]);
 
-  // Add unsaved changes protection
+  const hasUnsavedChanges = isDirty && !isSubmitting;
   const { showDialog, handleConfirmNavigation, handleCancelNavigation, confirmNavigation } =
     useUnsavedChangesProtection({
       hasUnsavedChanges,

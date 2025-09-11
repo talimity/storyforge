@@ -455,6 +455,31 @@ describe("characters router integration", () => {
       expect(result.name).toBe(updateData.name);
       expect(result.creatorNotes).toBe(originalCreatorNotes); // Should remain unchanged
     });
+
+    it("should clear portrait when imageDataUri is null", async () => {
+      const fixtures = await loadCharacterFixtures();
+      expect(fixtures.length).toBeGreaterThan(0);
+
+      // Create a character with an image first
+      const base64Data = fixtures[0]!.buffer.toString("base64");
+      const imageDataUri = `data:image/png;base64,${base64Data}`;
+
+      const created = await caller.characters.create({
+        name: "Image Test",
+        description: "Has an image to start",
+        imageDataUri,
+      });
+
+      // Sanity check the image paths exist initially
+      expect(created.imagePath).toBe(`/assets/characters/${created.id}/card`);
+      expect(created.avatarPath).toBe(`/assets/characters/${created.id}/avatar`);
+
+      // Now clear the image
+      const updated = await caller.characters.update({ id: created.id, imageDataUri: null });
+
+      expect(updated.imagePath).toBeNull();
+      expect(updated.avatarPath).toBeNull();
+    });
   });
 
   describe("characters.delete", () => {

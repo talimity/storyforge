@@ -190,9 +190,20 @@ export const charactersRouter = router({
       const charaSvc = new CharacterService(ctx.db);
       const { id, imageDataUri, starters, ...updates } = input;
 
+      // Map imageDataUri tri-state to DB updates:
+      // - undefined: keep existing portrait
+      // - null: remove portrait
+      // - string: new portrait (processed)
+      const imageUpdate =
+        imageDataUri === undefined
+          ? {}
+          : imageDataUri === null
+            ? { portrait: null }
+            : await maybeProcessCharaImage(imageDataUri);
+
       const updatedCharacter = await charaSvc.updateCharacter(id, {
         ...updates,
-        ...(await maybeProcessCharaImage(imageDataUri)),
+        ...(imageUpdate ?? {}),
       });
 
       if (!updatedCharacter) {
