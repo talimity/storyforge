@@ -21,7 +21,7 @@ export function ModelsPage() {
   const [isCreateModelDialogOpen, setIsCreateModelDialogOpen] = useState(false);
   const [isCreateProviderDialogOpen, setIsCreateProviderDialogOpen] = useState(false);
   const modelProfilesQuery = useQuery(trpc.providers.listModelProfiles.queryOptions());
-  const providersQuery = useQuery(trpc.providers.listProviders.queryOptions());
+  const providersQuery = useQuery(trpc.providers.list.queryOptions());
 
   const { data: modelProfiles, isLoading: modelsLoading } = modelProfilesQuery;
   const { data: providers, isLoading: providersLoading } = providersQuery;

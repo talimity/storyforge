@@ -62,13 +62,13 @@ export function useIntentEngine(scenarioId: string) {
           clearActiveIntent();
         }
         if (event.type === "intent_failed") {
-          showErrorToast({ title: "Intent failed", error: event.error });
+          showErrorToast({ title: "Generation failed", error: event.error });
           // Keep the run visible for UI; do not clear immediately
         }
       },
       onError: (err) => {
         // Subscription transport error or server error shape
-        showErrorToast({ title: "Intent progress error", error: err });
+        showErrorToast({ title: "Generation progress error", error: err });
       },
     })
   );

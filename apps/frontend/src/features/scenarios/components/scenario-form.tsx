@@ -106,9 +106,7 @@ export function ScenarioForm({
           <Stack gap={6} p={6}>
             {/* Basic Information Section */}
             <Stack gap={4}>
-              <Heading size="md" textStyle="heading">
-                Scenario Details
-              </Heading>
+              <Heading size="md">Scenario Details</Heading>
 
               <Field
                 label="Scenario Name"
@@ -145,9 +143,7 @@ export function ScenarioForm({
 
             {/* Participants Section */}
             <Stack gap={4}>
-              <Heading size="md" textStyle="heading">
-                Participants
-              </Heading>
+              <Heading size="md">Participants</Heading>
 
               <ParticipantManager
                 participants={participantsWithDetails}

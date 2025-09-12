@@ -51,7 +51,7 @@ export function ModelProfileForm({
   const [selectedProviderId, setSelectedProviderId] = useState(initialData?.providerId || "");
   const [modelSearchQuery, setModelSearchQuery] = useState("");
 
-  const providersQuery = useQuery(trpc.providers.listProviders.queryOptions());
+  const providersQuery = useQuery(trpc.providers.list.queryOptions());
   const providers = providersQuery.data?.providers || [];
 
   // Search models when provider is selected

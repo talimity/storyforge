@@ -15,16 +15,8 @@ export function useCharacterSearch(options: UseCharacterSearchOptions = {}) {
 
   const { data, isLoading, error } = useQuery(
     trpc.characters.search.queryOptions(
-      {
-        name: searchQuery,
-        filterMode,
-        scenarioId,
-      },
-      {
-        placeholderData: keepPreviousData,
-        enabled,
-        staleTime: 5000,
-      }
+      { name: searchQuery, filterMode, scenarioId },
+      { placeholderData: keepPreviousData, enabled, staleTime: 60000 }
     )
   );
 

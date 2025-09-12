@@ -1,6 +1,7 @@
 import type { SqliteDatabase } from "@storyforge/db";
+import { promptTemplates } from "@storyforge/db";
 import type { TaskKind } from "@storyforge/gentasks";
-import { desc } from "drizzle-orm";
+import { and, desc, eq, like } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { fromDbPromptTemplate } from "./utils/marshalling.js";
 
@@ -11,26 +12,26 @@ export async function listTemplates(
   filters: { task?: TaskKind; search?: string }
 ) {
   const { task, search } = filters;
+  const where = and(
+    task ? eq(promptTemplates.kind, task) : undefined,
+    search?.length ? like(promptTemplates.name, `%${search}%`) : undefined
+  );
 
-  const whereObj: Record<string, unknown> = {};
-  if (task) whereObj.task = task;
-  if (search) whereObj.name = { contains: search };
+  const rows = await db
+    .select({
+      id: promptTemplates.id,
+      name: promptTemplates.name,
+      kind: promptTemplates.kind,
+      version: promptTemplates.version,
+      createdAt: promptTemplates.createdAt,
+      updatedAt: promptTemplates.updatedAt,
+      layout: promptTemplates.layout,
+    })
+    .from(promptTemplates)
+    .where(where)
+    .orderBy(desc(promptTemplates.updatedAt));
 
-  const templates = await db.query.promptTemplates.findMany({
-    columns: {
-      id: true,
-      name: true,
-      kind: true,
-      version: true,
-      createdAt: true,
-      updatedAt: true,
-      layout: true, // We need this to count layout nodes
-    },
-    where: whereObj,
-    orderBy: (t) => [desc(t.updatedAt)],
-  });
-
-  return templates.map((template) => ({
+  return rows.map((template) => ({
     id: template.id,
     name: template.name,
     kind: template.kind as TaskKind,

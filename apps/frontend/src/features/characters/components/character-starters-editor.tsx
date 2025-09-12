@@ -38,9 +38,7 @@ export function CharacterStartersEditor({ disabled }: CharacterStartersEditorPro
   return (
     <VStack align="stretch">
       <HStack justify="space-between" align="center">
-        <Heading size="md" textStyle="heading">
-          Scenario Starters
-        </Heading>
+        <Heading size="md">Scenario Starters</Heading>
         <Button
           onClick={() => append({ message: "", isPrimary: false })}
           variant="outline"

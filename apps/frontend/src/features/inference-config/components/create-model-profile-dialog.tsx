@@ -40,6 +40,8 @@ export function CreateModelProfileDialog({ isOpen, onOpenChange }: CreateModelPr
       onOpenChange={({ open }) => !open && handleCancel()}
       placement="center"
       size="lg"
+      closeOnEscape={false}
+      closeOnInteractOutside={false}
     >
       <Dialog.Content>
         <Dialog.Header>

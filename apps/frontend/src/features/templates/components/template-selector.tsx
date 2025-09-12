@@ -7,30 +7,30 @@ import {
   useCombobox,
   useListCollection,
 } from "@chakra-ui/react";
+import type { TaskKind } from "@storyforge/gentasks";
 import { Fragment, useEffect, useMemo, useRef } from "react";
-import { useModelProfileSearch } from "@/features/inference-config/hooks/use-model-profile-search";
+import { useTemplateSearch } from "@/features/templates/hooks/use-template-search";
 
-type ModelProfileItem = ReturnType<typeof useModelProfileSearch>["modelProfiles"][number];
+type TemplateItem = ReturnType<typeof useTemplateSearch>["templates"][number];
 
-function useModelProfileCollection(enabled: boolean) {
-  const { modelProfiles, isLoading, updateSearch } = useModelProfileSearch({
-    enabled,
-  });
-  const { collection, set } = useListCollection<ModelProfileItem>({
+function useTemplateCollection(enabled: boolean, task?: TaskKind) {
+  const { templates, isLoading, updateSearch } = useTemplateSearch({ enabled, task });
+  const { collection, set } = useListCollection<TemplateItem>({
     initialItems: [],
-    itemToString: (p) => p.displayName,
-    itemToValue: (p) => p.id,
+    itemToString: (t) => t.name,
+    itemToValue: (t) => t.id,
   });
   useEffect(() => {
-    set(modelProfiles);
-  }, [modelProfiles, set]);
+    set(templates);
+  }, [templates, set]);
   return { collection, isLoading, updateSearch };
 }
 
-export function ModelProfileSingleSelect({
+export function TemplateSingleSelect({
   value,
   onChange,
-  placeholder = "Search model profiles…",
+  task,
+  placeholder = "Search templates…",
   disabled = false,
   size = "md",
   inDialog = false,
@@ -38,12 +38,13 @@ export function ModelProfileSingleSelect({
 }: {
   value: string | null;
   onChange: (id: string | null) => void;
+  task?: TaskKind;
   placeholder?: string;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
   inDialog?: boolean;
 } & Omit<Combobox.RootProviderProps, "value" | "onValueChange" | "collection" | "onChange">) {
-  const { collection, isLoading, updateSearch } = useModelProfileCollection(!disabled);
+  const { collection, isLoading, updateSearch } = useTemplateCollection(!disabled, task);
   const internalValue = useMemo(() => (value ? [value] : []), [value]);
   const combobox = useCombobox({
     collection,
@@ -59,7 +60,9 @@ export function ModelProfileSingleSelect({
     combobox.syncSelectedItems();
     hydratedRef.current = true;
   }
+
   const PortalComponent = inDialog ? Fragment : Portal;
+
   return (
     <Combobox.RootProvider value={combobox} width="full" size={size} {...props}>
       <Combobox.Control>
@@ -77,14 +80,14 @@ export function ModelProfileSingleSelect({
           <Combobox.Content>
             <Combobox.Empty>
               <Text color="content.muted" fontSize="sm" px={3} py={2}>
-                No model profiles found
+                No templates found
               </Text>
             </Combobox.Empty>
-            {collection.items.map((p) => (
-              <Combobox.Item key={p.id} item={p}>
-                <Text>{p.displayName}</Text>
+            {collection.items.map((t) => (
+              <Combobox.Item key={t.id} item={t}>
+                <Text>{t.name}</Text>
                 <Text fontSize="xs" color="content.muted">
-                  {p.modelId}
+                  v{t.version}
                 </Text>
                 <Combobox.ItemIndicator />
               </Combobox.Item>

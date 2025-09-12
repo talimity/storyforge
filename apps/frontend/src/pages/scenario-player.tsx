@@ -16,23 +16,26 @@ import { useActiveScenario } from "@/hooks/use-active-scenario";
 export function PlayerPage() {
   const { scenario, participants, chapters } = useScenarioContext();
   const { setActiveScenario } = useActiveScenario();
-  const { selectedCharacterId, setSelectedCharacter, reset } = useScenarioPlayerStore();
-
-  // Reset store when scenario changes
-  useEffect(() => {
-    return () => {
-      console.debug("Resetting scenario player store", scenario.id);
-      reset();
-    };
-  }, [scenario.id, reset]);
-
+  const selectedCharacterId = useScenarioPlayerStore((s) => s.selectedCharacterId);
+  const setSelectedCharacter = useScenarioPlayerStore((s) => s.setSelectedCharacter);
+  const resetPlayerStore = useScenarioPlayerStore((s) => s.reset);
+  const currentRunId = useIntentRunsStore((s) => s.currentRunId);
+  const resetRunStore = useIntentRunsStore((s) => s.clearAllRuns);
   const { addTurn } = useScenarioIntentActions();
   const { startIntent, cancelIntent } = useIntentEngine(scenario.id);
-  const currentRunId = useIntentRunsStore((s) => s.currentRunId);
-
   const { turns, hasNextPage, isFetching, isPending, fetchNextPage, refetch } = useScenarioTimeline(
     { scenarioId: scenario.id }
   );
+
+  useEffect(() => {
+    return () => {
+      // Reset stores when scenario changes
+      resetPlayerStore();
+      resetRunStore();
+      // Set active scenario
+      setActiveScenario(scenario.id);
+    };
+  }, [scenario.id, resetPlayerStore, resetRunStore, setActiveScenario]);
 
   // Auto-select first character when available
   useEffect(() => {
@@ -41,11 +44,6 @@ export function PlayerPage() {
       setSelectedCharacter(firstChara.characterId);
     }
   }, [selectedCharacterId, participants, setSelectedCharacter]);
-
-  // Set scenario as active when loaded
-  useEffect(() => {
-    setActiveScenario(scenario.id);
-  }, [scenario.id, setActiveScenario]);
 
   const selectedParticipant = selectedCharacterId
     ? participants.find((p) => p.characterId === selectedCharacterId)

@@ -85,7 +85,7 @@ const tokens = defineTokens({
   },
   fonts: {
     heading: { value: "'Aleo', serif" },
-    body: { value: "'Funnel Sans', -apple-system, sans-serif" },
+    body: { value: "'Overpass', -apple-system, sans-serif" },
   },
   shadows: {
     subtle: { value: "0 2px 8px -2px hsl(25 15% 15% / 0.2)" },

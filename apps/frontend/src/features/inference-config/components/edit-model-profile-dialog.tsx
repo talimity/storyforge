@@ -46,6 +46,8 @@ export function EditModelProfileDialog({
       onOpenChange={({ open }) => !open && handleCancel()}
       placement="center"
       size="lg"
+      closeOnEscape={false}
+      closeOnInteractOutside={false}
     >
       <Dialog.Content>
         <Dialog.Header>

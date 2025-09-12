@@ -15,16 +15,11 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui/index";
+import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
 import { ScenarioSingleSelect } from "@/features/scenarios/components/scenario-selector";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
-
-const taskOptions = [
-  { value: "turn_generation", label: "Turn Generation" },
-  { value: "chapter_summarization", label: "Chapter Summarization" },
-  { value: "writing_assistant", label: "Writing Assistant" },
-] as const;
 
 const scopeOptions = [
   { value: "default", label: "Default" },
@@ -117,7 +112,6 @@ export function AssignmentDialog({
     })),
   });
 
-  const taskCollection = createListCollection({ items: taskOptions });
   const scopeCollection = createListCollection({ items: scopeOptions });
 
   const onSubmit = (vals: AssignmentValues) => {
@@ -130,6 +124,8 @@ export function AssignmentDialog({
       onOpenChange={({ open }) => onOpenChange(open)}
       placement="center"
       size="lg"
+      closeOnEscape={false}
+      closeOnInteractOutside={false}
     >
       <Dialog.Content>
         <Dialog.Header>
@@ -138,23 +134,12 @@ export function AssignmentDialog({
         <Dialog.Body>
           <Stack gap={4}>
             <Field label="Task" required invalid={!!errors.task} errorText={errors.task?.message}>
-              <SelectRoot
-                collection={taskCollection}
-                value={[selectedTask]}
-                onValueChange={(d) => setValue("task", d.value[0] as TaskKind)}
+              <TaskKindSelect
+                value={selectedTask}
+                onChange={(v) => setValue("task", taskKindSchema.parse(v))}
                 disabled={isEditMode}
-              >
-                <SelectTrigger>
-                  <SelectValueText />
-                </SelectTrigger>
-                <SelectContent portalled={false}>
-                  {taskOptions.map((opt) => (
-                    <SelectItem key={opt.value} item={opt}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </SelectRoot>
+                inDialog
+              />
             </Field>
 
             <Field

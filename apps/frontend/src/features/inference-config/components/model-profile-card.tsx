@@ -42,7 +42,7 @@ export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const providerQuery = useQuery(
-    trpc.providers.getProvider.queryOptions(
+    trpc.providers.getById.queryOptions(
       { id: modelProfile.providerId },
       { enabled: !!modelProfile.providerId }
     )

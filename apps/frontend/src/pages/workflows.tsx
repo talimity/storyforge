@@ -1,41 +1,18 @@
-import {
-  Box,
-  Container,
-  createListCollection,
-  Grid,
-  HStack,
-  Skeleton,
-  Tabs,
-  Text,
-} from "@chakra-ui/react";
-import { taskKindSchema } from "@storyforge/gentasks";
+import { Box, Container, Grid, HStack, Skeleton, Tabs, Text } from "@chakra-ui/react";
+import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { LuImport, LuListPlus, LuMapPin, LuPlus, LuWorkflow } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import {
-  Button,
-  EmptyState,
-  PageHeader,
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValueText,
-} from "@/components/ui";
+import { Button, EmptyState, PageHeader } from "@/components/ui";
+import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { AssignmentDialog } from "@/features/workflows/components/assignment-dialog";
 import { AssignmentList } from "@/features/workflows/components/assignment-list";
 import { WorkflowCard, WorkflowCardSkeleton } from "@/features/workflows/components/workflow-card";
 import { WorkflowImportDialog } from "@/features/workflows/components/workflow-import-dialog";
 import { useTRPC } from "@/lib/trpc";
 
-const taskOptions = [
-  { value: "", label: "All Tasks" },
-  { value: "turn_generation", label: "Turn Generation" },
-  { value: "chapter_summarization", label: "Chapter Summarization" },
-  { value: "writing_assistant", label: "Writing Assistant" },
-] as const;
-type TaskFilter = (typeof taskOptions)[number]["value"];
+type TaskFilter = "" | TaskKind;
 
 export function WorkflowsPage() {
   const trpc = useTRPC();
@@ -64,8 +41,6 @@ export function WorkflowsPage() {
   const workflowCount = workflows.length;
   const assignmentCount = scopes.length;
 
-  const taskCollection = useMemo(() => createListCollection({ items: taskOptions }), []);
-
   return (
     <Container>
       <PageHeader.Root>
@@ -93,23 +68,12 @@ export function WorkflowsPage() {
         >
           <PageHeader.Controls>
             <HStack gap={3}>
-              <SelectRoot
-                collection={taskCollection}
-                value={[taskFilter]}
-                onValueChange={(d) => setTaskFilter(d.value[0] as TaskFilter)}
-              >
-                <SelectTrigger>
-                  <SelectValueText placeholder="Filter by task" />
-                </SelectTrigger>
-                <SelectContent>
-                  {taskOptions.map((opt) => (
-                    <SelectItem key={opt.value} item={opt}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </SelectRoot>
-
+              <TaskKindSelect
+                includeAll
+                value={taskFilter}
+                onChange={(v) => setTaskFilter(v)}
+                placeholder="Filter by task"
+              />
               <Tabs.Context>
                 {(ctx) =>
                   ctx.value === "workflows" ? (

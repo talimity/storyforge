@@ -60,7 +60,7 @@ function mapModelProfile(model: DbModelProfile): ApiModelProfile {
 }
 
 export const providersRouter = router({
-  listProviders: publicProcedure
+  list: publicProcedure
     .meta({
       openapi: {
         method: "GET",
@@ -76,7 +76,7 @@ export const providersRouter = router({
       return { providers: providers.map(mapProvider) };
     }),
 
-  getProvider: publicProcedure
+  getById: publicProcedure
     .meta({
       openapi: {
         method: "GET",
@@ -92,7 +92,7 @@ export const providersRouter = router({
       return mapProvider(provider);
     }),
 
-  createProvider: publicProcedure
+  create: publicProcedure
     .meta({
       openapi: {
         method: "POST",
@@ -109,7 +109,7 @@ export const providersRouter = router({
       return mapProvider(newProvider);
     }),
 
-  updateProvider: publicProcedure
+  update: publicProcedure
     .meta({
       openapi: {
         method: "PUT",
@@ -127,7 +127,7 @@ export const providersRouter = router({
       return mapProvider(updatedProvider);
     }),
 
-  deleteProvider: publicProcedure
+  delete: publicProcedure
     .meta({
       openapi: {
         method: "DELETE",
@@ -230,7 +230,7 @@ export const providersRouter = router({
       return { modelProfiles: modelProfiles.map(mapModelProfile) };
     }),
 
-  getModelProfile: publicProcedure
+  getModelProfileById: publicProcedure
     .meta({
       openapi: {
         method: "GET",

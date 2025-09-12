@@ -12,7 +12,7 @@ export function useScenarioSearch(
   const { data, isLoading, error } = useQuery(
     trpc.scenarios.search.queryOptions(
       { q: searchQuery, status },
-      { placeholderData: keepPreviousData, enabled, staleTime: 5000 }
+      { placeholderData: keepPreviousData, enabled, staleTime: 60000 }
     )
   );
 

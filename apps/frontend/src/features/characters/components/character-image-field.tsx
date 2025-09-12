@@ -28,9 +28,7 @@ export function CharacterImageField({
 
   return (
     <Stack gap={4}>
-      <Heading size="md" textStyle="heading">
-        Portrait Image
-      </Heading>
+      <Heading size="md">Portrait Image</Heading>
 
       {!imageField.hasImage && (
         <Box

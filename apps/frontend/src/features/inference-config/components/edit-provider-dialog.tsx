@@ -16,13 +16,13 @@ export function EditProviderDialog({ provider, isOpen, onOpenChange }: EditProvi
   const queryClient = useQueryClient();
 
   const updateProviderMutation = useMutation(
-    trpc.providers.updateProvider.mutationOptions({
+    trpc.providers.update.mutationOptions({
       onSuccess: () => {
         showSuccessToast({
           title: "Provider updated successfully",
           description: "Provider configuration has been updated",
         });
-        queryClient.invalidateQueries(trpc.providers.listProviders.pathFilter());
+        queryClient.invalidateQueries(trpc.providers.list.pathFilter());
         onOpenChange(false);
       },
     })
@@ -42,6 +42,8 @@ export function EditProviderDialog({ provider, isOpen, onOpenChange }: EditProvi
       onOpenChange={({ open }) => !open && handleCancel()}
       placement="center"
       size="lg"
+      closeOnEscape={false}
+      closeOnInteractOutside={false}
     >
       <Dialog.Content>
         <Dialog.Header>

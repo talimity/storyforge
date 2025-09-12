@@ -14,13 +14,13 @@ export function CreateProviderDialog({ isOpen, onOpenChange }: CreateProviderDia
   const queryClient = useQueryClient();
 
   const createProviderMutation = useMutation(
-    trpc.providers.createProvider.mutationOptions({
+    trpc.providers.create.mutationOptions({
       onSuccess: () => {
         showSuccessToast({
           title: "Provider created successfully",
           description: "New provider configuration has been added",
         });
-        queryClient.invalidateQueries(trpc.providers.listProviders.pathFilter());
+        queryClient.invalidateQueries(trpc.providers.list.pathFilter());
         onOpenChange(false);
       },
     })
@@ -45,6 +45,8 @@ export function CreateProviderDialog({ isOpen, onOpenChange }: CreateProviderDia
       onOpenChange={({ open }) => !open && handleCancel()}
       placement="center"
       size="lg"
+      closeOnEscape={false}
+      closeOnInteractOutside={false}
     >
       <Dialog.Content>
         <Dialog.Header>

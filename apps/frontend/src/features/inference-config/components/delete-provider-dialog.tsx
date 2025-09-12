@@ -22,13 +22,13 @@ export function DeleteProviderDialog({
   const queryClient = useQueryClient();
 
   const deleteProviderMutation = useMutation(
-    trpc.providers.deleteProvider.mutationOptions({
+    trpc.providers.delete.mutationOptions({
       onSuccess: () => {
         showSuccessToast({
           title: "Provider deleted successfully",
           description: "Provider configuration has been removed",
         });
-        queryClient.invalidateQueries(trpc.providers.listProviders.pathFilter());
+        queryClient.invalidateQueries(trpc.providers.list.pathFilter());
         queryClient.invalidateQueries(trpc.providers.listModelProfiles.pathFilter());
         onOpenChange(false);
       },

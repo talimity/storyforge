@@ -156,9 +156,7 @@ export function CharacterForm({
 
               {/* Basic Information Section */}
               <Stack gap={4}>
-                <Heading size="md" textStyle="heading">
-                  Basic Information
-                </Heading>
+                <Heading size="md">Basic Information</Heading>
 
                 <Field
                   label="Character Name"
@@ -237,6 +235,8 @@ export function CharacterForm({
 
               {/* Starters Section */}
               <CharacterStartersEditor disabled={isSubmitting} />
+
+              <Separator />
 
               {/* Form Actions */}
               <HStack justify="space-between" width="full">

@@ -61,6 +61,8 @@ interface IntentRunsState {
   applyEvent: (event: IntentEvent) => void;
   /** clears current intent run */
   clearActiveRun: () => void;
+  /** clears all intent runs */
+  clearAllRuns: () => void;
 }
 
 export const useIntentRunsStore = create<IntentRunsState>()(
@@ -178,6 +180,12 @@ export const useIntentRunsStore = create<IntentRunsState>()(
     clearActiveRun: () =>
       set((s) => {
         s.currentRunId = null;
+      }),
+
+    clearAllRuns: () =>
+      set((s) => {
+        s.currentRunId = null;
+        s.runsById = {};
       }),
   }))
 );
