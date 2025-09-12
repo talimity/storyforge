@@ -1,13 +1,15 @@
-import { Card, Heading, HStack, Input, Separator, Stack } from "@chakra-ui/react";
+import { Card, HStack, Stack, Tabs } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
+import type { TaskKind } from "@storyforge/gentasks";
 import { FormProvider, useForm } from "react-hook-form";
+import { LuEye, LuInfo, LuListOrdered } from "react-icons/lu";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
-import { Button, Field } from "@/components/ui";
-import { TaskKindSelect } from "@/components/ui/task-kind-select";
+import { Button } from "@/components/ui";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
 import { type WorkflowFormValues, workflowFormSchema } from "./schemas";
 import { StepsEditor } from "./steps-editor";
+import { WorkflowDetailsTab } from "./workflow-details";
+import { WorkflowPreviewTab } from "./workflow-preview";
 
 export interface WorkflowFormProps {
   initialData?: Partial<WorkflowFormValues>;
@@ -44,7 +46,7 @@ export function WorkflowForm(props: WorkflowFormProps) {
     },
   });
 
-  const { handleSubmit, setValue, getValues, formState } = methods;
+  const { handleSubmit, getValues, formState } = methods;
 
   const submit = (values: WorkflowFormValues) => onSubmit(values);
 
@@ -60,63 +62,36 @@ export function WorkflowForm(props: WorkflowFormProps) {
       <Card.Root layerStyle="surface" maxW="900px" mx="auto">
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(submit)}>
-            <Stack gap={6} p={6}>
-              <Heading size="md">Workflow Details</Heading>
+            <Tabs.Root defaultValue="metadata">
+              <Tabs.List>
+                <Tabs.Trigger value="metadata">
+                  <LuInfo />
+                  Metadata
+                </Tabs.Trigger>
+                <Tabs.Trigger value="steps">
+                  <LuListOrdered />
+                  Steps
+                </Tabs.Trigger>
+                <Tabs.Trigger value="preview">
+                  <LuEye />
+                  Preview
+                </Tabs.Trigger>
+              </Tabs.List>
 
-              <Field
-                label="Task"
-                required
-                invalid={!!formState.errors.task}
-                errorText={formState.errors.task?.message}
-              >
-                <TaskKindSelect
-                  value={methods.getValues("task")}
-                  onChange={(val) => {
-                    const next = taskKindSchema.parse(val);
-                    setValue("task", next, { shouldDirty: true });
-                    const steps = getValues("steps");
-                    if (steps?.length) {
-                      setValue(
-                        "steps",
-                        steps.map((s) => ({ ...s, promptTemplateId: "" })),
-                        { shouldDirty: true }
-                      );
-                    }
-                  }}
-                  disabled={isEditMode}
-                  placeholder="Select task kind"
-                />
-              </Field>
+              <Tabs.Content value="metadata" p={6}>
+                <WorkflowDetailsTab isEditMode={isEditMode} isSubmitting={!!isSubmitting} />
+              </Tabs.Content>
 
-              <Field
-                label="Name"
-                required
-                invalid={!!formState.errors.name}
-                errorText={formState.errors.name?.message}
-              >
-                <Input
-                  {...methods.register("name")}
-                  placeholder="Workflow name"
-                  disabled={isSubmitting}
-                />
-              </Field>
+              <Tabs.Content value="steps" p={6}>
+                <StepsEditor isSubmitting={!!isSubmitting} />
+              </Tabs.Content>
 
-              <Field label="Description">
-                <Input
-                  {...methods.register("description")}
-                  placeholder="Optional description"
-                  disabled={isSubmitting}
-                />
-              </Field>
+              <Tabs.Content value="preview" p={6}>
+                <WorkflowPreviewTab values={getValues()} />
+              </Tabs.Content>
+            </Tabs.Root>
 
-              <Separator />
-
-              {/* Steps Editor */}
-              <StepsEditor isSubmitting={!!isSubmitting} />
-
-              <Separator />
-
-              {/* Form Actions */}
+            <Stack p={6} pt={0}>
               <HStack justify="space-between" width="full">
                 <Button variant="ghost" onClick={() => confirmNavigation(onCancel)}>
                   Cancel

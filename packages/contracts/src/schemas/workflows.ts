@@ -1,4 +1,6 @@
+import type { WorkflowEvent } from "@storyforge/gentasks";
 import { genStepSchema, genWorkflowSchema, taskKindSchema } from "@storyforge/gentasks";
+import type { ChatCompletionMessage, ChatCompletionResponse } from "@storyforge/inference";
 import { z } from "zod";
 
 // Basic identifiers
@@ -109,6 +111,86 @@ export const workflowScopeRecordSchema = z.object({
 export const listWorkflowScopesResponseSchema = z.object({
   scopes: z.array(workflowScopeRecordSchema),
 });
+
+/*
+ * Workflow Test Run – schemas
+ * Allows running an ad-hoc workflow against a real scenario/character using the Mock provider.
+ */
+
+const chatMessageUnknownSchema = z.custom<ChatCompletionMessage>();
+const completionResponseUnknownSchema = z.custom<ChatCompletionResponse>();
+const workflowEventUnknownSchema = z.custom<WorkflowEvent>();
+
+// Intent input for test run: fixed to guided_control with optional guidance text
+export const workflowTestIntentSchema = z.object({
+  kind: z.literal("guided_control"),
+  text: z.string().optional(),
+});
+
+// Mock provider configuration schema
+const workflowTestMockResponseSchema = z.object({
+  text: z.string(),
+  delay: z.number().int().nonnegative().optional(),
+  chunkDelay: z.number().int().nonnegative().optional(),
+  wordsPerChunk: z.number().int().positive().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const workflowTestMockConfigSchema = z.object({
+  defaultResponseText: z.string().optional(),
+  stepResponses: z
+    .record(z.string(), z.union([z.string(), workflowTestMockResponseSchema]))
+    .optional(),
+  modelIds: z.record(z.string(), z.string()).optional(),
+  streaming: z
+    .object({
+      defaultChunkDelay: z.number().int().nonnegative().optional(),
+      defaultWordsPerChunk: z.number().int().positive().optional(),
+    })
+    .optional(),
+  patterns: z
+    .array(
+      z.object({
+        pattern: z.string(),
+        response: workflowTestMockResponseSchema,
+      })
+    )
+    .optional(),
+});
+
+// Input for test run
+export const workflowTestRunInputSchema = z.object({
+  scenarioId: z.string(),
+  characterId: z.string(),
+  task: taskKindSchema.default("turn_generation"),
+  // accept either a persisted workflow (full) or an unsaved draft (create shape)
+  workflow: z.union([genWorkflowSchema, createWorkflowSchema]),
+  intent: workflowTestIntentSchema.default({ kind: "guided_control" }),
+  mock: workflowTestMockConfigSchema.optional(),
+  options: z.object({ captureTransformedPrompts: z.boolean().default(true) }).optional(),
+});
+
+// Output for test run
+export const workflowTestRunOutputSchema = z.object({
+  workflowId: z.string(),
+  task: taskKindSchema,
+  stepOrder: z.array(z.string()),
+  prompts: z.record(
+    z.string(),
+    z.object({
+      rendered: z.array(chatMessageUnknownSchema),
+      transformed: z.array(chatMessageUnknownSchema).optional(),
+    })
+  ),
+  stepResponses: z.record(z.string(), completionResponseUnknownSchema),
+  finalOutputs: z.record(z.string(), z.unknown()),
+  events: z.array(workflowEventUnknownSchema),
+  meta: z.object({ scenarioId: z.string(), participantId: z.string() }),
+});
+
+// Type exports for consumers
+export type WorkflowTestRunInput = z.infer<typeof workflowTestRunInputSchema>;
+export type WorkflowTestRunOutput = z.infer<typeof workflowTestRunOutputSchema>;
 
 export type WorkflowSummary = z.infer<typeof workflowSummarySchema>;
 export type WorkflowDetail = z.infer<typeof workflowDetailSchema>;

@@ -10,6 +10,7 @@ import { logger } from "./logging.js";
 import { resources } from "./resources.js";
 
 const fastify = Fastify({
+  maxParamLength: 5000,
   bodyLimit: 1024 * 1024 * 15, // 15MB
   logger: config.logging.pretty
     ? {

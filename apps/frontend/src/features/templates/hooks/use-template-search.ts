@@ -1,6 +1,6 @@
 import type { TaskKind } from "@storyforge/gentasks";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTRPC } from "@/lib/trpc";
 
 export function useTemplateSearch(options: { task?: TaskKind; enabled?: boolean } = {}) {
@@ -17,8 +17,11 @@ export function useTemplateSearch(options: { task?: TaskKind; enabled?: boolean 
 
   const updateSearch = useCallback((q: string) => setSearchQuery(q), []);
 
+  // Stabilize array identity to avoid re-running effects downstream on each render
+  const templates = useMemo(() => data?.templates ?? [], [data?.templates]);
+
   return {
-    templates: data?.templates ?? [],
+    templates,
     isLoading,
     error,
     searchQuery,

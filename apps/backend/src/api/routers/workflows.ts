@@ -13,6 +13,8 @@ import {
   workflowIdSchema,
   workflowOperationResponseSchema,
   workflowsListResponseSchema,
+  workflowTestRunInputSchema,
+  workflowTestRunOutputSchema,
 } from "@storyforge/contracts";
 import { schema } from "@storyforge/db";
 import { genStepSchema, taskKindSchema } from "@storyforge/gentasks";
@@ -20,6 +22,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { WorkflowService } from "../../services/workflows/workflow.service.js";
 import { WorkflowScopesService } from "../../services/workflows/workflow-scopes.service.js";
+import { WorkflowTestService } from "../../services/workflows/workflow-test.service.js";
 import { getWorkflowById, listWorkflows } from "../../services/workflows/workflows.queries.js";
 import { publicProcedure, router } from "../index.js";
 
@@ -246,5 +249,22 @@ export const workflowsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const svc = new WorkflowScopesService(ctx.db);
       await svc.deleteAssignment(input.id);
+    }),
+
+  testRun: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/workflows/test-run",
+        tags: ["workflows"],
+        summary: "Run a workflow against a scenario/character using the Mock provider",
+        enabled: false,
+      },
+    })
+    .input(workflowTestRunInputSchema)
+    .output(workflowTestRunOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const service = new WorkflowTestService(ctx.db);
+      return service.runTest(input);
     }),
 });

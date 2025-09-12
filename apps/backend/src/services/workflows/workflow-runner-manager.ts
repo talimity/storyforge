@@ -148,6 +148,7 @@ export class WorkflowRunnerManager {
    */
   private createBudgetManager(maxTokens?: number): BudgetManager {
     return new DefaultBudgetManager(
+      // TODO: fallback token budget should come from the step's model profile
       { maxTokens: maxTokens ?? 8192 },
       // Use default token estimator (~4 chars per token)
       undefined

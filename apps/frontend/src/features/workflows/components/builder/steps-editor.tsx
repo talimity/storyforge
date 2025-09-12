@@ -1,8 +1,8 @@
-import { Heading, HStack, VStack } from "@chakra-ui/react";
+import { Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import type { GenStep } from "@storyforge/gentasks";
 import { createId } from "@storyforge/utils";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { LuListPlus, LuWorkflow } from "react-icons/lu";
+import { LuListOrdered, LuListPlus } from "react-icons/lu";
 import { Button, EmptyState } from "@/components/ui";
 import type { WorkflowFormValues } from "./schemas";
 import { StepCard } from "./step-card";
@@ -35,9 +35,17 @@ export function StepsEditor({ isSubmitting }: { isSubmitting: boolean }) {
   };
 
   return (
-    <VStack align="stretch" gap={3}>
-      <HStack justify="space-between">
-        <Heading size="md">Steps</Heading>
+    <Stack gap={6}>
+      <HStack direction="row" justify="space-between">
+        <HStack gap={3}>
+          <LuListOrdered size={20} />
+          <VStack align="start" gap={0}>
+            <Heading size="md">Workflow Steps</Heading>
+            <Text color="content.muted" fontSize="sm">
+              Configure content generation steps
+            </Text>
+          </VStack>
+        </HStack>
         <Button variant="outline" onClick={handleAdd} disabled={isSubmitting}>
           <LuListPlus />
           Add Step
@@ -46,7 +54,7 @@ export function StepsEditor({ isSubmitting }: { isSubmitting: boolean }) {
 
       {fields.length === 0 && (
         <EmptyState
-          icon={<LuWorkflow />}
+          icon={<LuListOrdered />}
           title="No workflow steps yet"
           description="Define the steps in your workflow to generate content."
         />
@@ -65,6 +73,6 @@ export function StepsEditor({ isSubmitting }: { isSubmitting: boolean }) {
           />
         ))}
       </VStack>
-    </VStack>
+    </Stack>
   );
 }

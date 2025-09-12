@@ -101,8 +101,12 @@ export function StepCard({
           </HStack>
         </HStack>
 
-        <Field label="Step Name" helperText="For reference; not used in prompts">
-          <Input {...register(namePath)} placeholder="Brief step label" disabled={isSubmitting} />
+        <Field label="Step Name" helperText="For reference only (not used in prompts)">
+          <Input
+            {...register(namePath)}
+            placeholder="e.g., plan, draft, write, etc."
+            disabled={isSubmitting}
+          />
         </Field>
 
         <Stack direction="row" gap={3} wrap="wrap">
@@ -112,7 +116,7 @@ export function StepCard({
             required
             invalid={!!stepErr?.modelProfileId}
             errorText={stepErr?.modelProfileId?.message}
-            helperText="Model and provider to use for this step"
+            helperText="Model and inference provider used for this step"
           >
             <Controller
               name={modelPath}
@@ -171,24 +175,7 @@ export function StepCard({
 
         <Stack direction="row" gap={3} wrap="wrap">
           <Field
-            label="Max Output Tokens"
-            flex={1}
-            invalid={!!stepErr?.maxOutputTokens}
-            errorText={stepErr?.maxOutputTokens?.message}
-            helperText="Limit on the number of tokens generated"
-          >
-            <Input
-              type="number"
-              placeholder="auto"
-              disabled={isSubmitting}
-              {...register(maxOutPath, {
-                setValueAs: (v) =>
-                  v === "" || v === null || Number.isNaN(v) ? undefined : Number(v),
-              })}
-            />
-          </Field>
-          <Field
-            label="Max Context Tokens"
+            label="Max Context Size (tokens)"
             flex={1}
             invalid={!!stepErr?.maxContextTokens}
             errorText={stepErr?.maxContextTokens?.message}
@@ -199,6 +186,23 @@ export function StepCard({
               placeholder="auto"
               disabled={isSubmitting}
               {...register(maxCtxPath, {
+                setValueAs: (v) =>
+                  v === "" || v === null || Number.isNaN(v) ? undefined : Number(v),
+              })}
+            />
+          </Field>
+          <Field
+            label="Max Response Tokens"
+            flex={1}
+            invalid={!!stepErr?.maxOutputTokens}
+            errorText={stepErr?.maxOutputTokens?.message}
+            helperText="Uses model/provider default if not specified"
+          >
+            <Input
+              type="number"
+              placeholder="auto"
+              disabled={isSubmitting}
+              {...register(maxOutPath, {
                 setValueAs: (v) =>
                   v === "" || v === null || Number.isNaN(v) ? undefined : Number(v),
               })}

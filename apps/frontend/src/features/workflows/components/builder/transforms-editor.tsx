@@ -28,8 +28,14 @@ function TransformsInfoTip() {
   return (
     <InfoTip>
       <Stack maxW="300px">
+        <Text>Allows modifying the input or output of a model call.</Text>
         <Text>
-          Allows modifying the output of a model call. This runs before outputs are captured.
+          Input transformations are applied to each chat message in the rendered prompt before it is
+          sent to the model.
+        </Text>
+        <Text>
+          Output transformations are applied to the model's full response text, before capturing any
+          values.
         </Text>
       </Stack>
     </InfoTip>
@@ -71,7 +77,7 @@ export function TransformsEditor({
       {fields.length === 0 && (
         <Center>
           <Text fontSize="sm" color="content.muted">
-            No output transforms defined.
+            No input/output transforms defined.
           </Text>
         </Center>
       )}
@@ -84,7 +90,7 @@ export function TransformsEditor({
               <HStack justify="space-between">
                 <HStack gap={2}>
                   <Text fontSize="sm" color="content.subtle">
-                    {isRegex ? "Regex" : "Trim"} transform
+                    {isRegex ? "Regex substitution" : "Trim text"}
                   </Text>
                 </HStack>
                 <HStack gap={1}>
