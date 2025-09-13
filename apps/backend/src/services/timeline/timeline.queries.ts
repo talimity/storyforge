@@ -27,39 +27,63 @@ type TimelineRow = {
 };
 
 /**
- * Fetches a sliced timeline window from the database, using the path specified
- * by leafTurnId. If leafTurnId is null, uses the scenario's anchor_turn_id.
- * Response is ordered by depth (root->leaf) within the page. The content of
- * the `presentation` layer is included in the response, along with whether each
- * turn has a sibling.
+ * Fetches a window of the timeline *t* for a scenario.
+ *
+ * Definitions
+ * - Timeline = a path from the scenario root node to a leaf node.
+ * - View anchor = `leafTurnId`: the leaf node whose root→leaf path defines *t*.
+ * - Page cursor = `cursorTurnId`: the node where this page starts.
+ *
+ * Behavior
+ * - If `leafTurnId` is null/omitted, the view anchor defaults to the scenario's `anchor_turn_id`.
+ * - If `cursorTurnId` is null/omitted or not on *t*, it is coerced to the view anchor.
+ * - The page contains up to `windowSize` consecutive turns along *t* starting at `cursorTurnId` and walking toward the root (inclusive).
+ * - Results are returned ordered root towards leaf within the page.
+ * - Only turns on *t* are included; siblings are not included, but swipe metadata is computed for each returned turn:
+ *   `left_turn_id`, `right_turn_id`, `swipe_count`, `swipe_no`.
+ * - `turn_no` is the 1-based index of the turn along t (root = 1), and `timeline_depth` is the total length of *t* (root→view anchor).
+ * - `content` corresponds to the requested `layer` (default `"presentation"`).
+ * - The next-page cursor for infinite scrolling is the `parent_turn_id` of the first row, or `null` if the root is reached.
+ *
+ * @returns Array<TimelineRow> ordered root→leaf within the page.
  */
 export async function getTimelineWindow(
   db: SqliteDatabase,
   args: {
-    leafTurnId: string | null; // starting point for the timeline window, null for anchor
-    windowSize: number; // number of turns to include in the window
+    /** Scenario to query. */
     scenarioId: string;
+    /** Optional view anchor (leaf) that defines the path t. Defaults to scenario.anchor_turn_id. */
+    leafTurnId?: string | null;
+    /** Optional page start node. Defaults to `leafTurnId` (or the scenario anchor). Coerced onto t if off-path. */
+    cursorTurnId?: string | null;
+    /** Number of turns to include (>= 1). */
+    windowSize: number;
+    /** Turn layer key to load; default "presentation". */
+    layer?: string;
   }
 ): Promise<TimelineRow[]> {
-  const { leafTurnId, windowSize, scenarioId } = args;
+  const { scenarioId, leafTurnId, cursorTurnId, windowSize, layer = "presentation" } = args;
 
   const params = {
-    leafTurnId: leafTurnId ?? null,
-    windowSize,
     scenarioId,
-    layer: "presentation", // Default layer
+    windowSize,
+    anchorLeafId: leafTurnId ?? null, // "view anchor" for this window
+    cursorId: cursorTurnId ?? null, // page start (may be off-path; coerced below)
+    layer,
   };
 
-  return db.all<TimelineRow>(
-    sql`WITH RECURSIVE
-    -- 0) Find the scenario anchor turn
-    scenario_anchor AS (SELECT anchor_turn_id AS id
-                        FROM scenarios
-                        WHERE id = ${params.scenarioId}),
-    -- 1) Anchor chain: current anchor -> ... -> root
+  return db.all<TimelineRow>(sql`
+WITH RECURSIVE
+    -- 0) Resolve the view anchor leaf id for this window.
+    view_leaf AS (SELECT COALESCE(
+                                 ${params.anchorLeafId},
+                                 (SELECT anchor_turn_id FROM scenarios WHERE id = ${params.scenarioId})
+                         ) AS id),
+
+    -- 1) Anchor chain for this view: leaf -> ... -> root.
     anchor AS (SELECT t.id, t.parent_turn_id, 0 AS depth_from_anchor
                FROM turns t
-               WHERE t.id = (SELECT id FROM scenario_anchor)
+               WHERE t.id = (SELECT id FROM view_leaf)
                  AND t.scenario_id = ${params.scenarioId}
                UNION ALL
                SELECT p.id, p.parent_turn_id, a.depth_from_anchor + 1
@@ -68,27 +92,35 @@ export async function getTimelineWindow(
                WHERE p.scenario_id = ${params.scenarioId}),
     anchor_meta AS (SELECT MAX(depth_from_anchor) AS anchor_total_depth
                     FROM anchor),
-    -- 2) Page chain from leaf (cursor) toward root
+
+    -- 2) Choose a page cursor that lies on the anchor path.
+    -- If the requested cursor isn't on the anchor path, fall back to the view leaf.
+    page_cursor AS (SELECT COALESCE(
+                                   (SELECT a.id FROM anchor a WHERE a.id = ${params.cursorId}),
+                                   (SELECT id FROM view_leaf)
+                           ) AS id),
+
+    -- 3) Build the page chain: cursor -> ... -> root (leaf->root order in this CTE).
     page AS (SELECT t.id, t.parent_turn_id, 0 AS depth
              FROM turns t
-             WHERE t.id = COALESCE(${leafTurnId}, (SELECT id FROM scenario_anchor))
+             WHERE t.id = (SELECT id FROM page_cursor)
                AND t.scenario_id = ${params.scenarioId}
              UNION ALL
              SELECT p.id, p.parent_turn_id, pg.depth + 1
              FROM turns p
                       JOIN page pg ON pg.parent_turn_id = p.id
              WHERE p.scenario_id = ${params.scenarioId}),
-    -- 3) limit the page to windowSize (still leaf->root order)
+
+    -- 4) Limit to the requested window.
     paged AS (SELECT *
               FROM page
               ORDER BY depth -- leaf->root for paging
-              LIMIT ${windowSize}),
-    -- 4) Sibling info for all parents we will render
+              LIMIT ${params.windowSize}),
+
+    -- 5) Sibling info for all parents represented in this page.
     siblings AS (SELECT s.id,
-                        LAG(s.id)
-                            OVER (PARTITION BY s.parent_turn_id ORDER BY s.sibling_order)          AS prev_sibling_id,
-                        LEAD(s.id)
-                             OVER (PARTITION BY s.parent_turn_id ORDER BY s.sibling_order)         AS next_sibling_id,
+                        LAG(s.id) OVER (PARTITION BY s.parent_turn_id ORDER BY s.sibling_order)    AS prev_sibling_id,
+                        LEAD(s.id) OVER (PARTITION BY s.parent_turn_id ORDER BY s.sibling_order)   AS next_sibling_id,
                         COUNT(*) OVER (PARTITION BY s.parent_turn_id)                              AS sibling_count,
                         ROW_NUMBER() OVER (PARTITION BY s.parent_turn_id ORDER BY s.sibling_order) AS sibling_index_1
                  FROM turns s
@@ -97,7 +129,8 @@ export async function getTimelineWindow(
                                             FROM paged
                                             WHERE parent_turn_id IS NOT NULL)),
 
-    -- 5) Enrich the paged rows with numbering and siblings
+    -- 6) Enrich: compute turn_no relative to the *view anchor* path and
+    -- filter to rows that are actually on that path.
     enriched AS (SELECT pg.id,
                         pg.parent_turn_id,
                         pg.depth, -- page-local depth (leaf=0..)
@@ -108,9 +141,10 @@ export async function getTimelineWindow(
                         COALESCE(sb.sibling_count, 1)                     AS swipe_count,
                         COALESCE(sb.sibling_index_1, 1)                   AS swipe_no
                  FROM paged pg
-                          JOIN anchor a ON a.id = pg.id -- rows not on the active branch drop out
+                          JOIN anchor a ON a.id = pg.id -- drop any rows not on the view anchor path
                           CROSS JOIN anchor_meta am
                           LEFT JOIN siblings sb ON sb.id = pg.id)
+
 SELECT e.id,
        t.scenario_id,
        t.chapter_id,
@@ -120,9 +154,9 @@ SELECT e.id,
        e.prev_sibling_id                                              AS left_turn_id,
        e.next_sibling_id                                              AS right_turn_id,
        e.swipe_count,
-       e.swipe_no, -- 1-based
+       e.swipe_no,
 
-       e.turn_no, -- 1-based
+       e.turn_no, -- 1-based position relative to view anchor root
 
        tl.content,
        tl.created_at                                                  AS layer_created_at,
@@ -137,10 +171,8 @@ FROM enriched e
          LEFT JOIN turn_layers tl ON tl.turn_id = e.id AND tl.key = ${params.layer}
 -- UI wants root->leaf *within this page*:
 ORDER BY e.depth DESC;
-    `
-  );
+  `);
 }
-
 /**
  * Get the content of all layers for the given turn IDs.
  */

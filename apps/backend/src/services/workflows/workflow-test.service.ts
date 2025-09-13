@@ -5,6 +5,7 @@ import { MockAdapter } from "@storyforge/inference";
 import { DefaultBudgetManager, type UnboundTemplate } from "@storyforge/prompt-rendering";
 import { createId } from "@storyforge/utils";
 import { ServiceError } from "../../service-error.js";
+import { IntentContextBuilder } from "../intent/context-builder.js";
 import { fromDbPromptTemplate } from "../template/utils/marshalling.js";
 
 export class WorkflowTestService {
@@ -34,7 +35,6 @@ export class WorkflowTestService {
     }
 
     // Build generation context from real scenario
-    const { IntentContextBuilder } = await import("../../services/intent/context-builder.js");
     const ctx = await new IntentContextBuilder(this.db, input.scenarioId).buildContext({
       actorParticipantId: participant.id,
       intent: { kind: "guided_control", constraint: input.intent?.text },
