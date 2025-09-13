@@ -249,7 +249,6 @@ describe("play.intentProgress subscription (runner events)", () => {
     const result = await caller.play.intentResult({ intentId });
     expect(result.id).toBe(intentId);
     expect(result.status).toBe("cancelled");
-    expect(typeof result.anchorTurnId).toBe("string");
   });
 
   it("returns intent result with effects and sequence when finished", async () => {
@@ -277,6 +276,5 @@ describe("play.intentProgress subscription (runner events)", () => {
     expect(res.effects.length).toBe(2);
     expect(res.effects[0].sequence).toBe(0);
     expect(res.effects[1].sequence).toBe(1);
-    expect(typeof res.anchorTurnId).toBe("string");
   });
 });

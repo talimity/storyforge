@@ -80,15 +80,12 @@ export const environmentOutputSchema = z.object({
 // Timeline API schemas
 export const loadTimelineInputSchema = z.object({
   scenarioId: z.string(),
-  cursor: z
+  timelineLeafTurnId: z
     .string()
     .optional()
-    .describe("ID of leaf turn of this timeline slice (defaults to anchor)"),
-  windowSize: z
-    .number()
-    .min(1)
-    .max(20)
-    .describe("Number of turns to load, starting from the leaf turn"),
+    .describe("ID of the leaf of the desired timeline; defaults to scenario's anchor turn"),
+  cursor: z.string().optional().describe("ID of start of this timeline slice (defaults to anchor)"),
+  windowSize: z.number().min(1).max(20).describe("Number of turns to load from the cursor"),
   layer: z
     .string()
     .optional()
@@ -125,15 +122,21 @@ export const timelineTurnSchema = z.object({
 export const loadTimelineOutputSchema = z.object({
   timeline: z.array(timelineTurnSchema).describe("Array of turns in the loaded timeline slice"),
   cursors: z.object({
-    nextLeafTurnId: z.string().nullable().describe("Cursor for the next page of turns, if any"),
+    nextCursor: z.string().nullable().describe("Cursor for the next page of turns, if any"),
   }),
-  timelineDepth: z.number().describe("Number of turns in the timeline from root to anchor"),
+  timelineDepth: z.number().describe("Number of turns in the timeline from root to the leaf"),
 });
 
 // Intent API schemas
 export const createIntentInputSchema = z.object({
   scenarioId: z.string(),
   parameters: intentInputSchema,
+  branchFrom: z
+    .object({ kind: z.enum(["turn_parent", "intent_start"]), targetId: z.string() })
+    .optional()
+    .describe(
+      "Optionally creates a branching point by applying the intent's effects to a specified parent turn, or to the same parent of a previously-created intent"
+    ),
   // TODO: still need to think through these modes more
   // constraint: z
   //   .object({
@@ -167,7 +170,6 @@ export const intentSchema = z
       .enum(["pending", "running", "finished", "failed", "cancelled"])
       .describe("Current status of intent"),
     effects: z.array(intentEffectSchema).describe("Array of effects created by this intent"),
-    anchorTurnId: z.string().describe("Timeline anchor turn when this intent was created"),
   })
   .describe("Representation of a player's intent to influence the story");
 
@@ -180,6 +182,22 @@ export const intentResultOutputSchema = intentSchema;
 // Interrupt intent
 export const intentInterruptInputSchema = z.object({ intentId: z.string() });
 export const intentInterruptOutputSchema = z.object({ success: z.boolean() });
+
+// Branch preview/switch schemas
+export const resolveLeafInputSchema = z.object({
+  scenarioId: z.string(),
+  fromTurnId: z.string(),
+});
+export const resolveLeafOutputSchema = z.object({ leafTurnId: z.string() });
+
+export const switchTimelineInputSchema = z.object({
+  scenarioId: z.string(),
+  leafTurnId: z.string(),
+});
+export const switchTimelineOutputSchema = z.object({
+  success: z.boolean(),
+  newAnchorTurnId: z.string(),
+});
 
 // Type exports
 export type IntentKind = z.infer<typeof intentKindSchema>;
@@ -195,3 +213,7 @@ export type Intent = z.infer<typeof intentSchema>;
 export type IntentEffect = z.infer<typeof intentEffectSchema>;
 export type IntentInterruptInput = z.infer<typeof intentInterruptInputSchema>;
 export type IntentInterruptOutput = z.infer<typeof intentInterruptOutputSchema>;
+export type ResolveLeafInput = z.infer<typeof resolveLeafInputSchema>;
+export type ResolveLeafOutput = z.infer<typeof resolveLeafOutputSchema>;
+export type SwitchTimelineInput = z.infer<typeof switchTimelineInputSchema>;
+export type SwitchTimelineOutput = z.infer<typeof switchTimelineOutputSchema>;

@@ -3,9 +3,11 @@ import { after, combine } from "@storyforge/utils";
 import { asc, eq, isNull, sql } from "drizzle-orm";
 import { EngineError } from "../../engine-error.js";
 import { ServiceError } from "../../service-error.js";
+import { getGeneratingIntent } from "../intent/intent.queries.js";
 import { canCreateTurn, canPromoteChildren } from "./invariants/turn.js";
 import { validateTurnLayers } from "./invariants/turn-content.js";
 import { canAppendTurnToChapter } from "./invariants/turn-progression.js";
+import { resolveLeafFrom } from "./utils/leaf.js";
 import {
   type DeletionSnapshot,
   executeDeletionPlan,
@@ -37,8 +39,13 @@ interface InsertTurnArgs {
 }
 
 interface AdvanceTurnArgs extends Omit<InsertTurnArgs, "parentTurnId" | "chapterId"> {
-  /** If not provided, will use the chapter of the anchor turn */
-  chapterId?: string;
+  /** When provided, insert under this parent instead of continuing from anchor */
+  branchFromTurnId?: string;
+}
+
+interface SwitchAnchorArgs {
+  scenarioId: string;
+  fromTurnId: string;
 }
 
 /**
@@ -53,7 +60,7 @@ export class TimelineService {
    * active timeline.
    */
   async advanceTurn(args: AdvanceTurnArgs, outerTx?: SqliteTransaction) {
-    const { scenarioId } = args;
+    const { scenarioId, branchFromTurnId } = args;
     const operation = async (tx: SqliteTransaction) => {
       const [scenario] = await tx
         .select()
@@ -66,49 +73,29 @@ export class TimelineService {
         });
       }
 
-      const { anchorTurnId } = scenario;
-      let targetChapterId: string;
-      let parentTurnId: string | null;
-
-      // Determine the target chapter and parent turn based on the scenario's
-      // current progression. Caller can specify a chapterId if they intend to
-      // create a the first turn of a new chapter.
-      if (anchorTurnId) {
-        const [anchorTurn] = await tx
-          .select()
-          .from(tTurns)
-          .where(eq(tTurns.id, anchorTurnId))
-          .limit(1);
-        if (!anchorTurn) {
-          throw new ServiceError("NotFound", {
-            message: `Anchor turn with ID ${anchorTurnId} not found in scenario ${scenarioId}.`,
-          });
-        }
-
-        targetChapterId = args.chapterId ?? anchorTurn.chapterId;
-        parentTurnId = anchorTurnId;
-      } else {
-        // This is the first turn in the scenario, so we need to find the
-        // first chapter to insert into.
-        const [firstChapter] = await tx
-          .select()
-          .from(tChapters)
-          .where(eq(tChapters.scenarioId, scenarioId))
-          .orderBy(asc(tChapters.index))
-          .limit(1);
-        if (!firstChapter) {
-          throw new ServiceError("NotFound", {
-            message: `No chapters found for scenario ${scenarioId}.`,
-          });
-        }
-        targetChapterId = firstChapter.id;
-        parentTurnId = null;
+      // TODO: This iteration of chapters is not used and will eventually be
+      // removed. Constraints require a chapter ID so we set one just to satisfy
+      // the schema, but the entire table will be dropped and chapters will be
+      // event-sourced by TimelineEvents system when that is implemented.
+      const [firstChapter] = await tx
+        .select()
+        .from(tChapters)
+        .where(eq(tChapters.scenarioId, scenarioId))
+        .orderBy(asc(tChapters.index))
+        .limit(1);
+      if (!firstChapter) {
+        throw new ServiceError("NotFound", {
+          message: `No chapters found for scenario ${scenarioId}.`,
+        });
       }
+      const targetChapterId = firstChapter.id;
+      const parentTurnId = await this.getParentTurnIdForAdvance(tx, scenarioId, branchFromTurnId);
 
-      const turn = await this.insertTurn({ ...args, chapterId: targetChapterId, parentTurnId }, tx);
+      const { branchFromTurnId: _, ...rest } = args;
+      const turn = await this.insertTurn({ ...rest, chapterId: targetChapterId, parentTurnId }, tx);
 
-      // Since this is an advance operation, we need to update the anchor turn
-      // to point to the new turn.
+      // Since this is an advance operation, the new turn becomes the scenario's
+      // active timeline anchor.
       await tx
         .update(tScenarios)
         .set({ anchorTurnId: turn.id })
@@ -119,13 +106,34 @@ export class TimelineService {
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
   }
 
-  async branchTurn() {
-    // 1. Validate parent turn exists
-    // 2. Insert turn with given parent turn ID
-    // 3. Skip updating the anchor turn, as the new turn is not part of the
-    //    scenario's active timeline (switching is a separate operation).
-    // 4. ???
-    throw new Error("Not implemented");
+  /**
+   * Determines the parent of a turn to be inserted into the turn graph. Raises
+   * an error if a branching operation is attempted on an empty scenario.
+   */
+  private async getParentTurnIdForAdvance(
+    tx: SqliteTransaction,
+    scenarioId: string,
+    branchFromTurnId?: string
+  ): Promise<string | null> {
+    if (branchFromTurnId) {
+      // We are advancing from a turn earlier in the scenario, thereby creating
+      // a branch. The branch point is the parent.
+      return branchFromTurnId;
+    }
+
+    // No branch point provided, so we are advancing the active timeline
+    // (appending to anchor, or creating a root).
+    const [{ anchorTurnId }] = await tx
+      .select({ anchorTurnId: tScenarios.anchorTurnId })
+      .from(tScenarios)
+      .where(eq(tScenarios.id, scenarioId))
+      .limit(1);
+
+    if (!anchorTurnId) {
+      // No anchor turn, so we are creating a root.
+      return null;
+    }
+    return anchorTurnId;
   }
 
   async reorderTurn(_delta: number) {
@@ -260,6 +268,42 @@ export class TimelineService {
       return newTurn;
     };
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
+  }
+
+  /**
+   * Switch the scenario's active timeline anchor to the leaf node under
+   * `fromTurnId`. Raises an error if there is an active intent generation for
+   * the scenario.
+   *
+   * Returns the ID of the scenario's new anchor turn.
+   */
+  async switchAnchor(args: SwitchAnchorArgs, outerTx?: SqliteTransaction) {
+    const { scenarioId, fromTurnId } = args;
+    const op = async (tx: SqliteTransaction) => {
+      // Ensure fromTurnId exists and belongs to scenario
+      const turn = await tx.query.turns.findFirst({ where: { id: fromTurnId, scenarioId } });
+      if (!turn) {
+        throw new ServiceError("NotFound", {
+          message: `Turn with ID ${fromTurnId} not found.`,
+        });
+      }
+
+      // Guard against switching while generating
+      const pendingIntent = await getGeneratingIntent(tx, scenarioId);
+      if (pendingIntent) {
+        throw new ServiceError("Conflict", {
+          message: `Cannot switch scenario anchor while intent generation is in progress.`,
+        });
+      }
+
+      const leafId = await resolveLeafFrom(tx, fromTurnId);
+      await tx
+        .update(tScenarios)
+        .set({ anchorTurnId: leafId })
+        .where(eq(tScenarios.id, scenarioId));
+      return leafId;
+    };
+    return outerTx ? op(outerTx) : this.db.transaction(op);
   }
 }
 

@@ -14,6 +14,7 @@ import { getFullTimelineTurnCtx } from "../timeline/timeline.queries.js";
 interface BuildContextArgs {
   actorParticipantId: string;
   intent: { kind: NewIntent["kind"]; constraint?: string };
+  leafTurnId?: string | null;
 }
 
 export class IntentContextBuilder {
@@ -23,12 +24,12 @@ export class IntentContextBuilder {
   ) {}
 
   async buildContext(args: BuildContextArgs): Promise<TurnGenCtx> {
-    const { actorParticipantId, intent } = args;
+    const { actorParticipantId, intent, leafTurnId } = args;
 
     const [charaData, turns, scenario] = await Promise.all([
       this.loadParticipantCharaData(actorParticipantId),
       getFullTimelineTurnCtx(this.db, {
-        leafTurnId: null,
+        leafTurnId: leafTurnId ?? null,
         scenarioId: this.scenarioId,
       }),
       this.loadScenarioData(),

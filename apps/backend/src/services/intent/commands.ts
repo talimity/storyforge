@@ -16,12 +16,14 @@ export function makeCommands(deps: IntentExecDeps) {
     insertTurn: async function* (args: {
       actorId: string;
       text: string;
+      branchFromTurnId?: string;
     }): IntentCommandGenerator<{ turnId: string }> {
       const [newEffect] = await db.transaction(async (tx) => {
         const turn = await timeline.advanceTurn(
           {
             scenarioId,
             authorParticipantId: args.actorId,
+            branchFromTurnId: args.branchFromTurnId,
             layers: [{ key: "presentation", content: args.text }],
           },
           tx
@@ -47,7 +49,10 @@ export function makeCommands(deps: IntentExecDeps) {
       return { turnId: newEffect.turnId };
     },
 
-    chooseActor: async function* (args: { afterTurnId?: string }): IntentCommandGenerator<string> {
+    chooseActor: async function* (args: {
+      afterTurnId?: string;
+      includeNarrator?: boolean;
+    }): IntentCommandGenerator<string> {
       let afterAuthor: string | undefined;
       if (args.afterTurnId) {
         const turn = await db.query.turns.findFirst({
@@ -57,7 +62,10 @@ export function makeCommands(deps: IntentExecDeps) {
         afterAuthor = turn?.authorParticipantId ?? undefined;
       }
 
-      const participantId = await chooseNextActorRoundRobin(db, scenarioId, afterAuthor);
+      const participantId = await chooseNextActorRoundRobin(db, scenarioId, {
+        afterTurnAuthorParticipantId: afterAuthor,
+        includeNarrator: args.includeNarrator,
+      });
 
       yield { type: "actor_selected", intentId, participantId: participantId, ts: now() };
 
@@ -67,6 +75,7 @@ export function makeCommands(deps: IntentExecDeps) {
     generateTurn: async function* (args: {
       actorId: string;
       constraint?: string;
+      branchFromTurnId?: string;
     }): IntentCommandGenerator<{ presentation: string; outputs: Record<string, unknown> }> {
       let partial = "";
       const ctx = await new IntentContextBuilder(db, scenarioId).buildContext({
@@ -76,6 +85,7 @@ export function makeCommands(deps: IntentExecDeps) {
         // should be implementation detail, template should receive just a
         // string, possibly via user-configurable intent kind-to-message map.
         intent: { kind: "narrative_constraint", constraint: args.constraint },
+        leafTurnId: args.branchFromTurnId ?? null,
       });
       const workflow = await getTurngenWorkflowForScope(db, {
         scenarioId,

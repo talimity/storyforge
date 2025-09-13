@@ -10,14 +10,22 @@ import {
   intentResultOutputSchema,
   loadTimelineInputSchema,
   loadTimelineOutputSchema,
+  resolveLeafInputSchema,
+  resolveLeafOutputSchema,
+  switchTimelineInputSchema,
+  switchTimelineOutputSchema,
 } from "@storyforge/contracts";
 import { sqliteTimestampToDate } from "@storyforge/db";
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
+import { getGeneratingIntent } from "../../services/intent/intent.queries.js";
 import { IntentService } from "../../services/intent/intent.service.js";
 import { intentRunManager } from "../../services/intent/run-manager.js";
 import { getScenarioEnvironment } from "../../services/scenario/scenario.queries.js";
-import { getTimelineWindow } from "../../services/timeline/timeline.queries.js";
+import {
+  getTimelineWindow,
+  resolveLeafForScenario,
+} from "../../services/timeline/timeline.queries.js";
 import { TimelineService } from "../../services/timeline/timeline.service.js";
 import { TurnContentService } from "../../services/turn/turn-content.service.js";
 import { WorkflowRunnerManager } from "../../services/workflows/workflow-runner-manager.js";
@@ -38,10 +46,8 @@ export const playRouter = router({
     .query(async ({ input, ctx }) => {
       const { scenarioId } = input;
       const env = await getScenarioEnvironment(ctx.db, scenarioId);
-      return {
-        ...env,
-        generatingIntent: null,
-      };
+      const generatingIntent = await getGeneratingIntent(ctx.db, scenarioId);
+      return { ...env, generatingIntent };
     }),
 
   timeline: publicProcedure
@@ -56,7 +62,9 @@ export const playRouter = router({
     .input(loadTimelineInputSchema)
     .output(loadTimelineOutputSchema)
     .query(async ({ input, ctx }) => {
-      const { scenarioId, cursor, windowSize /*, layer = "presentation"*/ } = input;
+      // TODO: move this to service
+      const { scenarioId, cursor, timelineLeafTurnId, windowSize /*, layer = "presentation"*/ } =
+        input;
 
       // If there is no anchor/turns yet, return an empty slice
       const scenario = await ctx.db.query.scenarios.findFirst({
@@ -70,26 +78,36 @@ export const playRouter = router({
         });
       }
 
-      const targetLeafId = cursor ?? scenario.anchorTurnId;
-      if (!targetLeafId) {
+      const cursorTurnId = cursor ?? scenario.anchorTurnId;
+      if (!cursorTurnId) {
         return {
           timeline: [],
           timelineDepth: 0,
-          cursors: { nextLeafTurnId: null },
+          cursors: { nextCursor: null },
         };
+      }
+
+      let leafTurnId: string | undefined;
+      if (timelineLeafTurnId) {
+        // Ensure the specified leaf is actually a leaf
+        leafTurnId = await resolveLeafForScenario(ctx.db, {
+          scenarioId,
+          fromTurnId: timelineLeafTurnId,
+        });
       }
 
       const rows = await getTimelineWindow(ctx.db, {
         scenarioId,
-        leafTurnId: targetLeafId,
+        cursorTurnId,
         windowSize,
+        leafTurnId,
       });
 
       if (rows.length === 0) {
         return {
           timeline: [],
           timelineDepth: 0,
-          cursors: { nextLeafTurnId: null },
+          cursors: { nextCursor: null },
         };
       }
 
@@ -104,7 +122,7 @@ export const playRouter = router({
           leftTurnId: r.left_turn_id,
           rightTurnId: r.right_turn_id,
           swipeCount: r.swipe_count,
-          swipeNo: Math.max(0, r.swipe_no - 1),
+          swipeNo: r.swipe_no,
         },
         layer: "presentation" as const,
         content: {
@@ -119,7 +137,7 @@ export const playRouter = router({
 
       // Cursor-by-ancestor: take TOP row's parent (root-most in this page)
       const hasMoreTurns = rows.length === windowSize && rows[0].parent_turn_id !== null;
-      const nextLeafTurnId = hasMoreTurns ? rows[0].parent_turn_id : null;
+      const nextCursor = hasMoreTurns ? rows[0].parent_turn_id : null;
 
       // All rows carry the same depth scalar; take it from the first
       const timelineDepth = rows[0].timeline_depth;
@@ -127,8 +145,41 @@ export const playRouter = router({
       return {
         timeline,
         timelineDepth,
-        cursors: { nextLeafTurnId },
+        cursors: { nextCursor },
       };
+    }),
+
+  resolveLeaf: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/play/resolve-leaf",
+        tags: ["play"],
+        summary: "Resolve deepest leaf from a turn (left-most path)",
+      },
+    })
+    .input(resolveLeafInputSchema)
+    .output(resolveLeafOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      return { leafTurnId: await resolveLeafForScenario(ctx.db, input) };
+    }),
+
+  switchTimeline: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/play/switch-timeline",
+        tags: ["play"],
+        summary: "Switch active timeline anchor to the given branch leaf",
+      },
+    })
+    .input(switchTimelineInputSchema)
+    .output(switchTimelineOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { scenarioId, leafTurnId } = input;
+      const timeline = new TimelineService(ctx.db);
+      const newAnchorTurnId = await timeline.switchAnchor({ scenarioId, fromTurnId: leafTurnId });
+      return { success: true, newAnchorTurnId };
     }),
 
   createIntent: publicProcedure
@@ -150,6 +201,7 @@ export const playRouter = router({
       const result = await service.createAndStart({
         scenarioId: input.scenarioId,
         ...input.parameters,
+        branchFrom: input.branchFrom,
       });
       return { intentId: result.id };
     }),
@@ -316,7 +368,6 @@ export const playRouter = router({
       const turn = await turnGraph.advanceTurn({
         scenarioId: input.scenarioId,
         authorParticipantId: input.authorParticipantId,
-        chapterId: input.chapterId,
         layers: [{ key: "presentation", content: input.text }],
       });
       return { newTurnId: turn.id };

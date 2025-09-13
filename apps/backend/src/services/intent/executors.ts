@@ -9,6 +9,10 @@ import type { IntentExecDeps, IntentGenerator } from "./types.js";
  */
 export function makeExecutors(deps: IntentExecDeps) {
   const { chooseActor, generateTurn, insertTurn } = makeCommands(deps);
+  // NOTE: branchFromTurnId should only be passed to the first turn
+  // generated/inserted by an intent. insertTurn automatically advances the
+  // scenario anchor, so subsequent calls will continue down the new branch.
+  const { branchFromTurnId } = deps;
 
   /**
    * manual_control: player writes directly as Actor A; system generates a reply
@@ -17,8 +21,7 @@ export function makeExecutors(deps: IntentExecDeps) {
   function manualControl(args: { actorId: string; text: string }): IntentGenerator {
     return (async function* () {
       const { actorId, text } = args;
-
-      const { turnId } = yield* insertTurn({ actorId, text });
+      const { turnId } = yield* insertTurn({ actorId, text, branchFromTurnId });
       const nextActor = yield* chooseActor({ afterTurnId: turnId });
       const gen = yield* generateTurn({ actorId: nextActor });
       yield* insertTurn({ actorId: nextActor, text: gen.presentation });
@@ -29,9 +32,8 @@ export function makeExecutors(deps: IntentExecDeps) {
   function guidedControl(args: { actorId: string; constraint: string }): IntentGenerator {
     return (async function* () {
       const { actorId, constraint } = args;
-
-      const gen = yield* generateTurn({ actorId, constraint });
-      yield* insertTurn({ actorId, text: gen.presentation });
+      const gen = yield* generateTurn({ actorId, constraint, branchFromTurnId });
+      yield* insertTurn({ actorId, text: gen.presentation, branchFromTurnId });
     })();
   }
 
@@ -48,14 +50,14 @@ export function makeExecutors(deps: IntentExecDeps) {
       const narratorGen = yield* generateTurn({
         actorId: narrator,
         constraint: text,
+        branchFromTurnId,
       });
       const narratorTurn = yield* insertTurn({
         actorId: narrator,
         text: narratorGen.presentation,
+        branchFromTurnId,
       });
-      const nextActor = yield* chooseActor({
-        afterTurnId: narratorTurn.turnId,
-      });
+      const nextActor = yield* chooseActor({ afterTurnId: narratorTurn.turnId });
       const actorGen = yield* generateTurn({ actorId: nextActor });
       yield* insertTurn({ actorId: nextActor, text: actorGen.presentation });
     })();
@@ -67,9 +69,9 @@ export function makeExecutors(deps: IntentExecDeps) {
    */
   function continueStory(): IntentGenerator {
     return (async function* () {
-      const nextActor = yield* chooseActor({});
-      const gen = yield* generateTurn({ actorId: nextActor });
-      yield* insertTurn({ actorId: nextActor, text: gen.presentation });
+      const nextActor = yield* chooseActor({ afterTurnId: branchFromTurnId });
+      const gen = yield* generateTurn({ actorId: nextActor, branchFromTurnId });
+      yield* insertTurn({ actorId: nextActor, text: gen.presentation, branchFromTurnId });
     })();
   }
 

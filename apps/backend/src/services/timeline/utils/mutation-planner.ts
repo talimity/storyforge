@@ -1,6 +1,7 @@
 import { type SqliteTransaction, schema } from "@storyforge/db";
 import { EMPTY_RANK, ranksBetween } from "@storyforge/utils";
-import { eq, inArray, sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
+import { resolveLeafFrom } from "./leaf.js";
 
 /** Method for handling children of deleted turn */
 export type TurnGraphDeleteMode = "cascade" | "promote";
@@ -120,54 +121,6 @@ export function planPromoteDelete(s: DeletionSnapshot): TurnGraphDeletionPlan {
   return { mode: "promote", targetTurnId: s.target.id, mutations, anchorPlan };
 }
 
-/**
- * Given a proposed anchor turn ID, traverse down the graph to find the actual
- * leaf node along that path. This is necessary because the requested anchor may
- * not be a leaf itself, and we need to ensure the anchor is always a leaf turn.
- */
-async function findLeafFromProposedAnchor(
-  tx: SqliteTransaction,
-  anchorId: string
-): Promise<string> {
-  // Use a recursive CTE to find the leaf node by following the first child path
-  const result = await tx.get<{ id: string }>(
-    sql`
-      WITH RECURSIVE leaf_path AS (
-        -- Base case: start with the proposed anchor
-        SELECT id, 0 as depth
-        FROM turns
-        WHERE id = ${anchorId}
-        
-        UNION ALL
-        
-        -- Recursive case: find the first child (by sibling_order) of the current turn
-        SELECT t.id, lp.depth + 1
-        FROM turns t
-        INNER JOIN leaf_path lp ON t.parent_turn_id = lp.id
-        WHERE NOT EXISTS (
-          SELECT 1 
-          FROM turns t2 
-          WHERE t2.parent_turn_id = lp.id 
-          AND t2.sibling_order < t.sibling_order
-        )
-      )
-      -- Return the deepest row in the path (the leaf - a turn with no children)
-      SELECT lp.id
-      FROM leaf_path lp
-      WHERE NOT EXISTS (
-        SELECT 1 
-        FROM turns t 
-        WHERE t.parent_turn_id = lp.id
-      )
-      ORDER BY depth DESC
-      LIMIT 1
-    `
-  );
-
-  // If no result (shouldn't happen), return the original anchor
-  return result?.id ?? anchorId;
-}
-
 export async function executeDeletionPlan(
   tx: SqliteTransaction,
   plan: TurnGraphDeletionPlan,
@@ -185,8 +138,8 @@ export async function executeDeletionPlan(
   }
 
   if (plan.anchorPlan.kind === "set") {
-    // Find the actual leaf turn by traversing down from the proposed anchor
-    const leafTurnId = await findLeafFromProposedAnchor(tx, plan.anchorPlan.turnId);
+    // Find the actual leaf turn by traversing down from the proposed anchor (left-most policy)
+    const leafTurnId = await resolveLeafFrom(tx, plan.anchorPlan.turnId);
     await tx
       .update(schema.scenarios)
       .set({ anchorTurnId: leafTurnId })

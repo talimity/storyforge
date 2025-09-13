@@ -1,6 +1,8 @@
 import type { SqliteDatabase, SqliteTxLike } from "@storyforge/db";
 import type { TurnCtxDTO } from "@storyforge/gentasks";
 import { sql } from "drizzle-orm";
+import { ServiceError } from "../../service-error.js";
+import { resolveLeafFrom } from "./utils/leaf.js";
 
 type TimelineRow = {
   id: string;
@@ -23,7 +25,7 @@ type TimelineRow = {
   created_at: number;
   updated_at: number;
 
-  timeline_depth: number; // Depth from root to anchor, 1-based
+  timeline_depth: number; // Depth from root to view anchor, 1-based
 };
 
 /**
@@ -295,4 +297,25 @@ export async function getFullTimelineTurnCtx(
     content: r.presentation ?? "",
     layers: r.layers_json ? JSON.parse(r.layers_json) : {},
   }));
+}
+
+/** Resolve deepest leaf id under a given turn id within a scenario, after validating membership. */
+export async function resolveLeafForScenario(
+  db: SqliteDatabase,
+  args: { scenarioId: string; fromTurnId: string }
+): Promise<string> {
+  const { scenarioId, fromTurnId } = args;
+  // Validate the turn belongs to scenario
+  const t = await db.query.turns.findFirst({
+    where: { id: fromTurnId, scenarioId },
+    columns: { id: true },
+  });
+
+  if (!t) {
+    throw new ServiceError("NotFound", {
+      message: `Turn ${fromTurnId} not found in scenario ${scenarioId}`,
+    });
+  }
+
+  return resolveLeafFrom(db, fromTurnId);
 }
