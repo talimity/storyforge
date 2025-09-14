@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { toaster } from "@/components/ui/index";
 import { validateFile } from "@/features/scenario-import/services/file-validation";
 import { showSuccessToast } from "@/lib/error-handling";
+import { makeScenarioName } from "@/lib/make-scenario-name";
 import { useTRPC } from "@/lib/trpc";
 
 interface UseChatImportProps {
@@ -100,7 +101,10 @@ export function useChatImport({ onClose, onImportSuccess }: UseChatImportProps) 
 
       setCharacterMappings(mappings);
 
-      const fileName = selectedFile?.name.replace(/\.(json|jsonl|txt)$/i, "") || "Imported Chat";
+      const charas = mappings.filter((m) => m.targetType === "character");
+      const defaultName = makeScenarioName(charas.map((c) => c.detectedName));
+      const fileName =
+        defaultName || selectedFile?.name.replace(/\.(json|jsonl|txt)$/i, "") || "Imported Chat";
       setScenarioName(fileName);
 
       setStep("mapping");
