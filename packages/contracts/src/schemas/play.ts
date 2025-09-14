@@ -85,7 +85,7 @@ export const loadTimelineInputSchema = z.object({
     .optional()
     .describe("ID of the leaf of the desired timeline; defaults to scenario's anchor turn"),
   cursor: z.string().optional().describe("ID of start of this timeline slice (defaults to anchor)"),
-  windowSize: z.number().min(1).max(20).describe("Number of turns to load from the cursor"),
+  windowSize: z.number().min(1).max(100).describe("Number of turns to load from the cursor"),
   layer: z
     .string()
     .optional()

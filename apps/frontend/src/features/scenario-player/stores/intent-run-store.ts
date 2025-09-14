@@ -49,6 +49,15 @@ export interface IntentRun {
   // convenience flags
   currentActorParticipantId?: string | null;
   error?: string;
+
+  // client display hint
+  /**
+   * If set, the timeline should be visually truncated after this turn.
+   * Used after branching the timeline, before an `effect_committed` event has
+   * been received (at which point we can formally switch to the new branch and
+   * no longer have to hide turns from the old branch).
+   */
+  truncateAfterTurnId?: string;
 }
 
 export interface IntentRunsState {
@@ -85,6 +94,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
           provisional: [],
           committedTurnIds: [],
           steps: {},
+          truncateAfterTurnId: undefined,
         };
         s.currentRunId = intentId;
         s.lastScenarioId = scenarioId;
@@ -121,6 +131,16 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             }
             return;
 
+          case "gen_start": {
+            if (ev.branchFromTurnId) {
+              // We're starting generation for a branch, so we need to
+              // temporarily hide turns after the branching point until this
+              // turn finishes generating.
+              run.truncateAfterTurnId = ev.branchFromTurnId;
+            }
+            return;
+          }
+
           case "gen_token": {
             // append to live preview and to the current streaming provisional
             run.livePreview += ev.delta;
@@ -153,11 +173,14 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             }
             // reset live preview for the next effect (if any)
             run.livePreview = "";
+            // unhide any truncated turns
+            run.truncateAfterTurnId = undefined;
             return;
 
           case "intent_finished":
             run.status = "finished";
             run.finishedAt = ev.ts;
+            run.truncateAfterTurnId = undefined;
             return;
 
           case "intent_failed":
@@ -177,6 +200,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
               }
               run.livePreview = ev.partialText;
             }
+            run.truncateAfterTurnId = undefined;
             return;
         }
       }),

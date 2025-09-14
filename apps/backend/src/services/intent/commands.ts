@@ -97,6 +97,7 @@ export function makeCommands(deps: IntentExecDeps) {
         intentId,
         participantId: args.actorId,
         workflowId: workflow.id,
+        branchFromTurnId: args.branchFromTurnId,
         ts: now(),
       };
       const handle = await runner.startRun(workflow, ctx, { parentSignal: deps.signal });

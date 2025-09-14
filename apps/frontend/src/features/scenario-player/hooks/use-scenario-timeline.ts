@@ -17,7 +17,7 @@ interface UseScenarioTimelineOptions {
 export function useScenarioTimeline({
   scenarioId,
   leafTurnId = null,
-  windowSize = 15,
+  windowSize = 30,
   layer = "presentation",
 }: UseScenarioTimelineOptions) {
   const trpc = useTRPC();

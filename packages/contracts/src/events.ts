@@ -21,7 +21,14 @@ export type IntentEvent =
       ts: number;
     }
   | { type: "actor_selected"; intentId: string; participantId: string; ts: number }
-  | { type: "gen_start"; intentId: string; participantId: string; workflowId: string; ts: number }
+  | {
+      type: "gen_start";
+      intentId: string;
+      participantId: string;
+      workflowId: string;
+      branchFromTurnId?: string;
+      ts: number;
+    }
   | { type: "gen_token"; intentId: string; stepId: string; delta: string; ts: number }
   | { type: "gen_event"; intentId: string; payload: WorkflowEvent; ts: number }
   | { type: "gen_finish"; intentId: string; workflowId: string; text: string; ts: number };

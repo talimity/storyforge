@@ -1,7 +1,7 @@
 import { Box, Heading, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-turn";
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
@@ -12,6 +12,10 @@ import { useTimelineInitialScrollToBottom } from "@/features/scenario-player/hoo
 import { useTimelineKeepBottomDistance } from "@/features/scenario-player/hooks/use-timeline-keep-bottom-distance";
 import { useTurnActions } from "@/features/scenario-player/hooks/use-turn-actions";
 import { TimelineScrollProvider } from "@/features/scenario-player/providers/timeline-scroll-provider";
+import {
+  selectCurrentRun,
+  useIntentRunsStore,
+} from "@/features/scenario-player/stores/intent-run-store";
 
 interface TimelineProps {
   scenarioId: string;
@@ -60,20 +64,30 @@ export function VirtualizedTimeline(props: TimelineProps) {
     onTurnUpdated: onTurnDeleted,
   });
 
+  // If a run is diverging from the current branch at a specific turn,
+  // temporarily hide everything *after* that turn so DraftTurn appears at the correct place.
+  const run = useIntentRunsStore(selectCurrentRun);
+  const cutoffId = run?.truncateAfterTurnId ?? null;
+  const visibleTurns = useMemo(() => {
+    if (!cutoffId) return turns;
+    const idx = turns.findIndex((t) => t.id === cutoffId);
+    return idx >= 0 ? turns.slice(0, idx + 1) : turns;
+  }, [turns, cutoffId]);
+
   // set up react-virtual
-  const includeEmptyState = !isPending && turns.length === 0;
-  const virtualCount = 1 + (includeEmptyState ? 1 : turns.length) + 1; // header + (empty state or turn list) + footer
+  const includeEmptyState = !isPending && visibleTurns.length === 0;
+  const virtualCount = 1 + (includeEmptyState ? 1 : visibleTurns.length) + 1; // header + (empty state or turn list) + footer
   const v = useVirtualizer({
     count: virtualCount,
     getScrollElement: () => scrollerRef.current,
-    estimateSize: () => 250,
+    estimateSize: () => 400,
     overscan: 3,
     rangeExtractor: (range) => {
       const base = defaultRangeExtractor(range);
       if (!editingTurnId) return base;
 
       // include the editing turn in the virtual list to prevent losing state when scrolling
-      const editIndex = turns.findIndex((t) => t.id === editingTurnId);
+      const editIndex = visibleTurns.findIndex((t) => t.id === editingTurnId);
       if (editIndex === -1) return base;
       return [...new Set([...base, editIndex + 1])].sort((a, b) => a - b); // add 1 to account for header
     },
@@ -83,9 +97,9 @@ export function VirtualizedTimeline(props: TimelineProps) {
         if (i === virtualCount - 1) return "footer";
         if (includeEmptyState && i === 1) return "empty";
         const turnIdx = i - 1 - (includeEmptyState ? 1 : 0);
-        return turns[turnIdx].id;
+        return visibleTurns[turnIdx].id;
       },
-      [turns, virtualCount, includeEmptyState]
+      [visibleTurns, virtualCount, includeEmptyState]
     ),
     onChange: (...args) => {
       handleChange(...args);
@@ -100,8 +114,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
   useTimelineAutoLoadMore({ initialDataReceivedRef, items, onLoadMore, hasNextPage });
 
   const scrollToEnd = useCallback(() => {
-    const count = v.options.count;
-    v.scrollToIndex(count - 1, { align: "end" });
+    v.scrollBy(Number.MAX_SAFE_INTEGER, { align: "end" });
   }, [v]);
 
   if (isPending) {
@@ -168,7 +181,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
                       <TimelineFooter />
                     ) : (
                       <TurnItem
-                        turn={turns[rowIdx]}
+                        turn={visibleTurns[rowIdx]}
                         onDelete={handleDeleteTurn}
                         onEdit={handleEditTurn}
                         onRetry={handleRetryTurn}
