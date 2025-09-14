@@ -18,7 +18,7 @@ export const Prose = chakra("div", {
     maxWidth: "65ch",
     fontSize: "sm",
     lineHeight: "1.7em",
-    "& :where(*):first-child": {
+    "& :where(*):first-of-type": {
       marginTop: "0 !important",
     },
     "& :where(*):last-child": {

@@ -298,6 +298,7 @@ export const playRouter = router({
         id: intent.id,
         scenarioId: intent.scenarioId,
         status: intent.status,
+        kind: intent.kind,
         effects,
         // Schema expects non-null string; in practice scenarios will have an anchor by the time
         // results are fetched. Fall back to empty string to satisfy schema.

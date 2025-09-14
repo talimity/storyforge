@@ -2,6 +2,8 @@ import { Dialog as ChakraDialog, Portal } from "@chakra-ui/react";
 import * as React from "react";
 import { CloseButton } from "@/components/ui/close-button";
 
+export type ChakraDialogProps = ChakraDialog.RootProps;
+
 interface DialogContentProps extends ChakraDialog.ContentProps {
   portalled?: boolean;
   portalRef?: React.RefObject<HTMLElement>;

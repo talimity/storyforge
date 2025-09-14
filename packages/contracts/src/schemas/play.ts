@@ -166,6 +166,7 @@ export const intentSchema = z
   .object({
     id: z.string(),
     scenarioId: z.string(),
+    kind: intentKindSchema,
     status: z
       .enum(["pending", "running", "finished", "failed", "cancelled"])
       .describe("Current status of intent"),

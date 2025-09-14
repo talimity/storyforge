@@ -3,6 +3,7 @@ import { memo } from "react";
 import Markdown from "react-markdown";
 import { useShallow } from "zustand/react/shallow";
 import { Avatar, Prose } from "@/components/ui/index";
+import { AutoFollowOnDraft } from "@/features/scenario-player/components/timeline/auto-follow-draft";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
 import { getApiUrl } from "@/lib/get-api-url";
@@ -36,7 +37,6 @@ export function DraftTurn() {
             </Text>
           </HStack>
         </HStack>
-
         {previewText ? (
           <Prose size="lg" color="content.muted">
             <Markdown>{previewText}</Markdown>
@@ -46,8 +46,8 @@ export function DraftTurn() {
             Thinking…
           </Text>
         )}
-
         <StepSummary />
+        <AutoFollowOnDraft />
       </Stack>
     </Box>
   );

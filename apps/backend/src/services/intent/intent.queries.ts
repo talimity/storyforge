@@ -19,5 +19,11 @@ export async function getGeneratingIntent(db: SqliteTxLike, scenarioId: string) 
   });
   if (!intent || !intent.scenario) return null;
 
-  return { id: intent.id, scenarioId, status: intent.status, effects: intent.effects };
+  return {
+    id: intent.id,
+    scenarioId,
+    status: intent.status,
+    effects: intent.effects,
+    kind: intent.kind,
+  };
 }

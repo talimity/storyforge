@@ -5,19 +5,25 @@ import { useTRPC } from "@/lib/trpc";
 
 interface UseScenarioTimelineOptions {
   scenarioId: string;
+  /**
+   * The leaf turn whose root→leaf path defines the timeline to view. If omitted,
+   * the server uses the scenario's current anchor.
+   */
+  leafTurnId?: string | null;
   windowSize?: number;
   layer?: string;
 }
 
 export function useScenarioTimeline({
   scenarioId,
+  leafTurnId = null,
   windowSize = 15,
   layer = "presentation",
 }: UseScenarioTimelineOptions) {
   const trpc = useTRPC();
   const query = useInfiniteQuery(
     trpc.play.timeline.infiniteQueryOptions(
-      { scenarioId, layer, windowSize },
+      { scenarioId, layer, windowSize, timelineLeafTurnId: leafTurnId ?? undefined },
       {
         getNextPageParam: (prev) => prev.cursors.nextCursor ?? undefined,
         initialCursor: undefined,

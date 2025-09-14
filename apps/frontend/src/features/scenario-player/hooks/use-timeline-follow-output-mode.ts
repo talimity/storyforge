@@ -1,7 +1,7 @@
 import type { Virtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useRef } from "react";
 import {
-  selectCurrentRun,
+  selectIsGenerating,
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
 
@@ -26,9 +26,8 @@ export function useTimelineFollowOutputMode<
   TScrollEl extends Element | Window,
   TItemEl extends Element,
 >({ virtualizer, scrollerRef }: Args<TScrollEl, TItemEl>) {
-  const currentRun = useIntentRunsStore(selectCurrentRun);
-  const runId = currentRun?.id ?? null;
-  const runActive = currentRun?.status === "pending" || currentRun?.status === "running";
+  const runId = useIntentRunsStore((s) => s.currentRunId);
+  const isGenerating = useIntentRunsStore(selectIsGenerating);
 
   const stateRef = useRef<"idle" | "following" | "suspended">("idle");
   const lastRunIdRef = useRef<string | null>(null);
@@ -46,7 +45,7 @@ export function useTimelineFollowOutputMode<
 
   // When a run starts/changes, decide initial follow mode.
   useEffect(() => {
-    if (!runActive) {
+    if (!isGenerating) {
       stateRef.current = "idle";
       return;
     }
@@ -55,7 +54,7 @@ export function useTimelineFollowOutputMode<
       lastRunIdRef.current = runId;
       stateRef.current = atBottom() ? "following" : "suspended";
     }
-  }, [runId, runActive, atBottom]);
+  }, [runId, isGenerating, atBottom]);
 
   // If user scrolls away during this run, suspend until the run changes.
   useEffect(() => {
@@ -63,18 +62,18 @@ export function useTimelineFollowOutputMode<
     if (!el) return;
 
     const onScroll = () => {
-      if (runActive && stateRef.current === "following" && !atBottom()) {
+      if (isGenerating && stateRef.current === "following" && !atBottom()) {
         stateRef.current = "suspended"; // stay suspended until next run
       }
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
-  }, [runActive, atBottom, scrollerRef]);
+  }, [isGenerating, atBottom, scrollerRef]);
 
-  // callers can gate “jump to bottom on new content” with this check
+  // callers can gate "jump to bottom on new content" with this check
   const shouldAutoFollow = useCallback(
-    () => runActive && stateRef.current === "following",
-    [runActive]
+    () => isGenerating && stateRef.current === "following",
+    [isGenerating]
   );
 
   return { shouldAutoFollow, atBottom };

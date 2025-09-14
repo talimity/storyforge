@@ -3,7 +3,7 @@ import { useTRPC } from "@/lib/trpc";
 
 export function useScenarioEnvironment(scenarioId: string) {
   const trpc = useTRPC();
-  const _envQuery = useSuspenseQuery(
+  const query = useSuspenseQuery(
     trpc.play.environment.queryOptions(
       { scenarioId },
       {
@@ -20,7 +20,5 @@ export function useScenarioEnvironment(scenarioId: string) {
     )
   );
 
-  const envData = _envQuery.data;
-
-  return envData;
+  return query.data;
 }

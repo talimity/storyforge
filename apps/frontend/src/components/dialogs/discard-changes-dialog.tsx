@@ -15,6 +15,10 @@ export function DiscardChangesDialog({
 }: DiscardChangesDialogProps) {
   const keepEditingButtonRef = useRef<HTMLButtonElement>(null);
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
     <Dialog.Root
       role="alertdialog"

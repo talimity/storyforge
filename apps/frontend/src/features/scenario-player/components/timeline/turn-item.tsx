@@ -16,7 +16,12 @@ import {
 import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialog";
 import { Avatar, Button, Prose } from "@/components/ui/index";
+import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
+import {
+  selectIsGenerating,
+  useIntentRunsStore,
+} from "@/features/scenario-player/stores/intent-run-store";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { getApiUrl } from "@/lib/get-api-url";
 
@@ -24,11 +29,13 @@ interface TurnItemProps {
   turn: TimelineTurn;
   onDelete?: (turnId: string, cascade: boolean) => void;
   onEdit?: (turnId: string, content: string) => void;
+  onRetry?: (turnId: string, parentId: string | null) => void;
 
   isUpdating?: boolean;
 }
 
-function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
+function TurnItemImpl(props: TurnItemProps) {
+  const { turn, onDelete, onEdit, onRetry, isUpdating } = props;
   const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
   const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
   const isEditing = editingTurnId === turn.id;
@@ -38,6 +45,8 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
   const authorChar = getCharacterByParticipantId(turn.authorParticipantId);
   const authorName = authorChar?.name ?? "Narrator";
   const avatarSrc = getApiUrl(authorChar?.avatarPath ?? undefined);
+  const isGenerating = useIntentRunsStore(selectIsGenerating);
+  const { isPreviewing, previewSibling } = useBranchPreview();
 
   const isDirty = editedContent !== turn.content.text;
 
@@ -72,6 +81,19 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
   }, [turn.content.text, setEditingTurnId]);
 
   const doNothing = useCallback(() => {}, []);
+
+  const handleSwipe = useCallback(
+    async (dir: "left" | "right") => {
+      if (isGenerating) return;
+      const siblingId = dir === "left" ? turn.swipes?.leftTurnId : turn.swipes?.rightTurnId;
+      await previewSibling(siblingId);
+    },
+    [isGenerating, previewSibling, turn.swipes]
+  );
+
+  const handleRetry = useCallback(async () => {
+    await onRetry?.(turn.id, turn.parentTurnId);
+  }, [onRetry, turn.id, turn.parentTurnId]);
 
   return (
     <>
@@ -129,108 +151,111 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
                   </Button>
                 </HStack>
               ) : (
-                <Menu.Root>
-                  <Menu.Trigger asChild>
-                    <Button size="xs" variant="ghost" aria-label="Turn actions">
-                      <LuEllipsisVertical />
-                    </Button>
-                  </Menu.Trigger>
-                  <Portal>
-                    <Menu.Positioner>
-                      <Menu.Content>
-                        {/* Edit | Regenerate */}
-                        <Group grow gap="0">
-                          <Menu.Item
-                            value="edit"
-                            width="16"
-                            gap="1"
-                            flexDirection="column"
-                            justifyContent="center"
-                            onClick={handleEditClick}
-                          >
-                            <LuPencil />
-                            Edit
+                !isPreviewing && (
+                  <Menu.Root>
+                    <Menu.Trigger asChild>
+                      <Button size="xs" variant="ghost" aria-label="Turn actions">
+                        <LuEllipsisVertical />
+                      </Button>
+                    </Menu.Trigger>
+                    <Portal>
+                      <Menu.Positioner>
+                        <Menu.Content>
+                          {/* Edit | Regenerate */}
+                          <Group grow gap="0">
+                            <Menu.Item
+                              value="edit"
+                              width="16"
+                              gap="1"
+                              flexDirection="column"
+                              justifyContent="center"
+                              onClick={handleEditClick}
+                            >
+                              <LuPencil />
+                              Edit
+                            </Menu.Item>
+                            <Menu.Item
+                              value="retry"
+                              width="16"
+                              gap="1"
+                              flexDirection="column"
+                              justifyContent="center"
+                              onClick={handleRetry}
+                              disabled={isGenerating || !turn.parentTurnId}
+                            >
+                              <LuRefreshCw />
+                              Retry
+                            </Menu.Item>
+                          </Group>
+
+                          {/* Move Up */}
+                          <Menu.Item value="move-up" onClick={doNothing}>
+                            <LuMoveUp />
+                            <Box flex="1">Move Up</Box>
                           </Menu.Item>
-                          <Menu.Item
-                            value="regenerate"
-                            width="16"
-                            gap="1"
-                            flexDirection="column"
-                            justifyContent="center"
-                            onClick={doNothing}
-                          >
-                            <LuRefreshCw />
-                            Regen
+
+                          {/* Move Down */}
+                          <Menu.Item value="move-down" onClick={doNothing}>
+                            <LuMoveDown />
+                            <Box flex="1">Move Down</Box>
                           </Menu.Item>
-                        </Group>
 
-                        {/* Move Up */}
-                        <Menu.Item value="move-up" onClick={doNothing}>
-                          <LuMoveUp />
-                          <Box flex="1">Move Up</Box>
-                        </Menu.Item>
+                          {/* Insert submenu */}
+                          <Menu.Root>
+                            <Menu.TriggerItem>
+                              <LuBetweenHorizontalEnd />
+                              <Box flex="1">Insert</Box>
+                              <LuChevronRight />
+                            </Menu.TriggerItem>
+                            <Portal>
+                              <Menu.Positioner>
+                                <Menu.Content>
+                                  <Menu.Item onClick={doNothing} value="chapter-break">
+                                    Chapter Break...
+                                  </Menu.Item>
+                                </Menu.Content>
+                              </Menu.Positioner>
+                            </Portal>
+                          </Menu.Root>
 
-                        {/* Move Down */}
-                        <Menu.Item value="move-down" onClick={doNothing}>
-                          <LuMoveDown />
-                          <Box flex="1">Move Down</Box>
-                        </Menu.Item>
-
-                        {/* Insert submenu */}
-                        <Menu.Root>
-                          <Menu.TriggerItem>
-                            <LuBetweenHorizontalEnd />
-                            <Box flex="1">Insert</Box>
-                            <LuChevronRight />
-                          </Menu.TriggerItem>
-                          <Portal>
-                            <Menu.Positioner>
-                              <Menu.Content>
-                                <Menu.Item onClick={doNothing} value="chapter-break">
-                                  Chapter Break...
-                                </Menu.Item>
-                              </Menu.Content>
-                            </Menu.Positioner>
-                          </Portal>
-                        </Menu.Root>
-
-                        {/* Delete submenu */}
-                        <Menu.Root>
-                          <Menu.TriggerItem
-                            color="fg.error"
-                            _hover={{ bg: "bg.error", color: "fg.error" }}
-                          >
-                            <LuTrash />
-                            <Box flex="1">Delete</Box>
-                            <LuChevronRight />
-                          </Menu.TriggerItem>
-                          <Portal>
-                            <Menu.Positioner>
-                              <Menu.Content>
-                                <Menu.Item
-                                  value="delete-single"
-                                  color="fg.error"
-                                  _hover={{ bg: "bg.error", color: "fg.error" }}
-                                  onClick={() => handleDelete(false)}
-                                >
-                                  This turn only
-                                </Menu.Item>
-                                <Menu.Item
-                                  value="delete-cascade"
-                                  color="fg.error"
-                                  _hover={{ bg: "bg.error", color: "fg.error" }}
-                                  onClick={() => handleDelete(true)}
-                                >
-                                  This and all below
-                                </Menu.Item>
-                              </Menu.Content>
-                            </Menu.Positioner>
-                          </Portal>
-                        </Menu.Root>
-                      </Menu.Content>
-                    </Menu.Positioner>
-                  </Portal>
-                </Menu.Root>
+                          {/* Delete submenu */}
+                          <Menu.Root>
+                            <Menu.TriggerItem
+                              color="fg.error"
+                              _hover={{ bg: "bg.error", color: "fg.error" }}
+                            >
+                              <LuTrash />
+                              <Box flex="1">Delete</Box>
+                              <LuChevronRight />
+                            </Menu.TriggerItem>
+                            <Portal>
+                              <Menu.Positioner>
+                                <Menu.Content>
+                                  <Menu.Item
+                                    value="delete-single"
+                                    color="fg.error"
+                                    _hover={{ bg: "bg.error", color: "fg.error" }}
+                                    onClick={() => handleDelete(false)}
+                                  >
+                                    This turn only
+                                  </Menu.Item>
+                                  <Menu.Item
+                                    value="delete-cascade"
+                                    color="fg.error"
+                                    _hover={{ bg: "bg.error", color: "fg.error" }}
+                                    onClick={() => handleDelete(true)}
+                                  >
+                                    This and all below
+                                  </Menu.Item>
+                                </Menu.Content>
+                              </Menu.Positioner>
+                            </Portal>
+                          </Menu.Root>
+                        </Menu.Content>
+                      </Menu.Positioner>
+                    </Portal>
+                  </Menu.Root>
+                )
               )}
             </HStack>
           </HStack>
@@ -249,9 +274,29 @@ function TurnItemImpl({ turn, onDelete, onEdit, isUpdating }: TurnItemProps) {
             </Prose>
           )}
           {turn.swipes && turn.swipes.swipeCount > 1 && (
-            <Text fontSize="xs" color="content.muted">
-              {turn.swipes.swipeNo} / {turn.swipes.swipeCount}
-            </Text>
+            <HStack gap={2}>
+              <Button
+                size="xs"
+                variant="ghost"
+                onClick={() => handleSwipe("left")}
+                disabled={isGenerating || !turn.swipes.leftTurnId}
+                aria-label="View previous alternate"
+              >
+                ←
+              </Button>
+              <Text fontSize="xs" color="content.muted">
+                {turn.swipes.swipeNo} / {turn.swipes.swipeCount}
+              </Text>
+              <Button
+                size="xs"
+                variant="ghost"
+                onClick={() => handleSwipe("right")}
+                disabled={isGenerating || !turn.swipes.rightTurnId}
+                aria-label="View next alternate"
+              >
+                →
+              </Button>
+            </HStack>
           )}
         </Stack>
       </Box>

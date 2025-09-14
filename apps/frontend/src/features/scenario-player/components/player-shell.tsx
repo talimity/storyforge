@@ -135,7 +135,6 @@ function PlayerShellInner() {
         <Box
           as="main"
           flex="1"
-          // overflow="auto"
           minH="0" // allow content to shrink to fit
           layerStyle="surface"
           borderRadius="0"

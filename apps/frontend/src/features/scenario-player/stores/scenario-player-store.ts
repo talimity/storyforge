@@ -6,16 +6,20 @@ export interface ScenarioPlayerState {
   selectedCharacterId: string | null;
   /** ID of the turn that is currently being edited */
   editingTurnId: string | null;
+  /** ID of the leaf turn we are previewing an alternate timeline, or null when not previewing */
+  previewLeafTurnId: string | null;
 
   // Actions
   setSelectedCharacter: (characterId: string | null) => void;
   setEditingTurnId: (turnId: string | null) => void;
+  setPreviewLeaf: (leafTurnId: string | null) => void;
   reset: () => void;
 }
 
 const initialState = {
   selectedCharacterId: null,
   editingTurnId: null,
+  previewLeafTurnId: null,
 };
 
 export const useScenarioPlayerStore = create<ScenarioPlayerState>()(
@@ -29,8 +33,12 @@ export const useScenarioPlayerStore = create<ScenarioPlayerState>()(
 
     setEditingTurnId: (turnId) =>
       set((state) => {
-        console.log("Setting editing turn to ", turnId);
         state.editingTurnId = turnId;
+      }),
+
+    setPreviewLeaf: (leafTurnId) =>
+      set((state) => {
+        state.previewLeafTurnId = leafTurnId;
       }),
 
     reset: () =>

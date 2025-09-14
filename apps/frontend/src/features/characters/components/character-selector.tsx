@@ -175,7 +175,6 @@ export function CharacterSingleSelect({
   const combobox = useCombobox({
     collection,
     disabled,
-    // defaultValue: defaultValue ? [defaultValue] : [],
     placeholder,
     inputBehavior: "autohighlight",
     value: internalValue,

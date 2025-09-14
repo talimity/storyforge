@@ -23,15 +23,19 @@ export function PlayerPage() {
   const resetRunStore = useIntentRunsStore((s) => s.clearAllRuns);
   const { addTurn } = useScenarioIntentActions();
   const { startIntent, cancelIntent } = useIntentEngine(scenario.id);
+  const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
   const { turns, hasNextPage, isFetching, isPending, fetchNextPage, refetch } = useScenarioTimeline(
-    { scenarioId: scenario.id }
+    {
+      scenarioId: scenario.id,
+      leafTurnId: previewLeafTurnId ?? null,
+    }
   );
 
   useEffect(() => {
     return () => {
       // Reset stores when scenario changes
       resetPlayerStore();
-      resetRunStore();
+      resetRunStore(scenario.id);
       // Set active scenario
       setActiveScenario(scenario.id);
     };

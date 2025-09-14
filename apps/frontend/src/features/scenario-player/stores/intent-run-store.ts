@@ -10,7 +10,7 @@ export type IntentRunStatus = "pending" | "running" | "finished" | "failed" | "c
 export type ProvisionalTurn = {
   /** Provisional text (built from gen_token or draft steps) */
   text: string;
-  /** Optional hint about who is “speaking” for UI decoration */
+  /** Optional hint about who is "speaking" for UI decoration */
   actorParticipantId?: string | null;
   /** When an effect commits, we flip status and store the turnId */
   status: "streaming" | "committed" | "error";
@@ -34,7 +34,7 @@ export interface IntentRun {
   startedAt?: number;
   finishedAt?: number;
 
-  // current draft (streaming) text, independent of “committed effects”
+  // current draft (streaming) text, independent of committed effects
   livePreview: string;
 
   // often just one item; list allows future multi-effect previews
@@ -51,9 +51,10 @@ export interface IntentRun {
   error?: string;
 }
 
-interface IntentRunsState {
+export interface IntentRunsState {
   runsById: Record<string, IntentRun>;
   currentRunId: string | null;
+  lastScenarioId: string | null;
 
   /** start a new run placeholder */
   startRun: (args: { intentId: string; scenarioId: string; kind?: string }) => void;
@@ -62,16 +63,18 @@ interface IntentRunsState {
   /** clears current intent run */
   clearActiveRun: () => void;
   /** clears all intent runs */
-  clearAllRuns: () => void;
+  clearAllRuns: (nextScenarioId: string) => void;
 }
 
 export const useIntentRunsStore = create<IntentRunsState>()(
   immer((set) => ({
     runsById: {},
     currentRunId: null,
+    lastScenarioId: null,
 
     startRun: ({ intentId, scenarioId, kind }) =>
       set((s) => {
+        console.log("Starting run", intentId, scenarioId, kind);
         s.runsById[intentId] = {
           id: intentId,
           scenarioId,
@@ -84,13 +87,14 @@ export const useIntentRunsStore = create<IntentRunsState>()(
           steps: {},
         };
         s.currentRunId = intentId;
+        s.lastScenarioId = scenarioId;
       }),
 
     applyEvent: (ev) =>
       set((s) => {
         const run = s.runsById[ev.intentId];
         if (!run) {
-          console.warn("Received event for unknown intent run, ignoring", ev.intentId);
+          console.warn("Received event for unknown intent run, ignoring", s.runsById, ev.intentId);
           return;
         }
 
@@ -179,11 +183,19 @@ export const useIntentRunsStore = create<IntentRunsState>()(
 
     clearActiveRun: () =>
       set((s) => {
+        console.log("Clearing active run", s.currentRunId);
         s.currentRunId = null;
       }),
 
-    clearAllRuns: () =>
+    clearAllRuns: (nextScenarioId) =>
       set((s) => {
+        if (s.lastScenarioId === nextScenarioId) {
+          console.log("Not clearing all runs, scenario hasn't changed");
+          return;
+        }
+        if (s.currentRunId) {
+          console.log("Clearing runs", s.lastScenarioId, s.currentRunId);
+        }
         s.currentRunId = null;
         s.runsById = {};
       }),
@@ -227,4 +239,9 @@ export const selectCurrentRun = (s: IntentRunsState) => {
 export const selectCurrentRunStatus = (s: IntentRunsState) => {
   const run = selectCurrentRun(s);
   return run?.status ?? "finished";
+};
+
+export const selectIsGenerating = (s: IntentRunsState) => {
+  const r = selectCurrentRun(s);
+  return r ? r.status === "pending" || r.status === "running" : false;
 };

@@ -7,10 +7,11 @@ import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
 import { TurnItem } from "@/features/scenario-player/components/timeline/turn-item";
 import { useTimelineAutoLoadMore } from "@/features/scenario-player/hooks/use-timeline-auto-load-more";
-import { useTimelineFollowOutput } from "@/features/scenario-player/hooks/use-timeline-follow-output";
+import { useTimelineFollowOutputMode } from "@/features/scenario-player/hooks/use-timeline-follow-output-mode";
 import { useTimelineInitialScrollToBottom } from "@/features/scenario-player/hooks/use-timeline-initial-scroll-to-bottom";
 import { useTimelineKeepBottomDistance } from "@/features/scenario-player/hooks/use-timeline-keep-bottom-distance";
 import { useTurnActions } from "@/features/scenario-player/hooks/use-turn-actions";
+import { TimelineScrollProvider } from "@/features/scenario-player/providers/timeline-scroll-provider";
 
 interface TimelineProps {
   scenarioId: string;
@@ -53,6 +54,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
     handleConfirmDelete,
     setShowDeleteDialog,
     handleEditTurn,
+    handleRetryTurn,
   } = useTurnActions({
     onTurnDeleted,
     onTurnUpdated: onTurnDeleted,
@@ -94,8 +96,13 @@ export function VirtualizedTimeline(props: TimelineProps) {
   // set up scrolling and auto-load behaviors
   const { initialDataReceivedRef } = useTimelineInitialScrollToBottom({ virtualizer: v, turns });
   const { handleChange } = useTimelineKeepBottomDistance({ virtualizer: v, turns });
-  useTimelineFollowOutput({ virtualizer: v, scrollerRef, turns });
+  const { shouldAutoFollow } = useTimelineFollowOutputMode({ virtualizer: v, scrollerRef });
   useTimelineAutoLoadMore({ initialDataReceivedRef, items, onLoadMore, hasNextPage });
+
+  const scrollToEnd = useCallback(() => {
+    const count = v.options.count;
+    v.scrollToIndex(count - 1, { align: "end" });
+  }, [v]);
 
   if (isPending) {
     return (
@@ -123,53 +130,56 @@ export function VirtualizedTimeline(props: TimelineProps) {
           py={{ base: 4, md: 6 }}
           data-testid="timeline-virtual-list"
         >
-          {items.map((row) => {
-            const isHeader = row.key === "header";
-            const isFooter = row.key === "footer";
-            const isEmpty = row.key === "empty";
-            const rowIdx = row.index - 1 - (includeEmptyState ? 1 : 0);
+          <TimelineScrollProvider value={{ scrollToEnd, shouldAutoFollow }}>
+            {items.map((row) => {
+              const isHeader = row.key === "header";
+              const isFooter = row.key === "footer";
+              const isEmpty = row.key === "empty";
+              const rowIdx = row.index - 1 - (includeEmptyState ? 1 : 0);
 
-            return (
-              <Box
-                key={row.key}
-                data-index={row.index}
-                ref={v.measureElement}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  transform: `translateY(${row.start}px)`,
-                }}
-              >
-                <Box px={2} pb={2}>
-                  {isHeader ? (
-                    <TimelineHeader
-                      scenarioTitle={scenarioTitle}
-                      chapterTitle={chapterTitle}
-                      isFetching={isFetching}
-                    />
-                  ) : isEmpty ? (
-                    <TimelineEmptyState
-                      scenarioId={scenarioId}
-                      onStarterSelect={onStarterSelect}
-                      isPending={isPending}
-                      turns={turns}
-                    />
-                  ) : isFooter ? (
-                    <TimelineFooter />
-                  ) : (
-                    <TurnItem
-                      turn={turns[rowIdx]}
-                      onDelete={handleDeleteTurn}
-                      onEdit={handleEditTurn}
-                      isUpdating={editingTurnId === row.key && isUpdating}
-                    />
-                  )}
+              return (
+                <Box
+                  key={row.key}
+                  data-index={row.index}
+                  ref={v.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${row.start}px)`,
+                  }}
+                >
+                  <Box px={2} pb={2}>
+                    {isHeader ? (
+                      <TimelineHeader
+                        scenarioTitle={scenarioTitle}
+                        chapterTitle={chapterTitle}
+                        isFetching={isFetching}
+                      />
+                    ) : isEmpty ? (
+                      <TimelineEmptyState
+                        scenarioId={scenarioId}
+                        onStarterSelect={onStarterSelect}
+                        isPending={isPending}
+                        turns={turns}
+                      />
+                    ) : isFooter ? (
+                      <TimelineFooter />
+                    ) : (
+                      <TurnItem
+                        turn={turns[rowIdx]}
+                        onDelete={handleDeleteTurn}
+                        onEdit={handleEditTurn}
+                        onRetry={handleRetryTurn}
+                        isUpdating={editingTurnId === row.key && isUpdating}
+                      />
+                    )}
+                  </Box>
                 </Box>
-              </Box>
-            );
-          })}
+              );
+            })}
+          </TimelineScrollProvider>
         </Box>
       </Box>
 
