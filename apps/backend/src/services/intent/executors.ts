@@ -23,7 +23,9 @@ export function makeExecutors(deps: IntentExecDeps) {
       const { actorId, text } = args;
       const { turnId } = yield* insertTurn({ actorId, text, branchFromTurnId });
       const nextActor = yield* chooseActor({ afterTurnId: turnId });
-      const gen = yield* generateTurn({ actorId: nextActor });
+      // The player's manual input was used for the turn we just inserted, so
+      // we now just ask the model to continue without any constraint.
+      const gen = yield* generateTurn({ intentKind: "continue_story", actorId: nextActor });
       yield* insertTurn({ actorId: nextActor, text: gen.presentation });
     })();
   }
@@ -32,7 +34,12 @@ export function makeExecutors(deps: IntentExecDeps) {
   function guidedControl(args: { actorId: string; constraint: string }): IntentGenerator {
     return (async function* () {
       const { actorId, constraint } = args;
-      const gen = yield* generateTurn({ actorId, constraint, branchFromTurnId });
+      const gen = yield* generateTurn({
+        intentKind: "guided_control",
+        constraint,
+        actorId,
+        branchFromTurnId,
+      });
       yield* insertTurn({ actorId, text: gen.presentation, branchFromTurnId });
     })();
   }
@@ -48,8 +55,9 @@ export function makeExecutors(deps: IntentExecDeps) {
 
       const narrator = await getNarratorParticipantId(deps.db, deps.scenarioId);
       const narratorGen = yield* generateTurn({
-        actorId: narrator,
+        intentKind: "narrative_constraint",
         constraint: text,
+        actorId: narrator,
         branchFromTurnId,
       });
       const narratorTurn = yield* insertTurn({
@@ -58,7 +66,10 @@ export function makeExecutors(deps: IntentExecDeps) {
         branchFromTurnId,
       });
       const nextActor = yield* chooseActor({ afterTurnId: narratorTurn.turnId });
-      const actorGen = yield* generateTurn({ actorId: nextActor });
+      // Next actor continues the story with no constraint.
+      // TODO: maybe this works better if we pass the same constraint to both
+      // the narrator and the chosen follow-up actor?
+      const actorGen = yield* generateTurn({ intentKind: "continue_story", actorId: nextActor });
       yield* insertTurn({ actorId: nextActor, text: actorGen.presentation });
     })();
   }
@@ -70,7 +81,11 @@ export function makeExecutors(deps: IntentExecDeps) {
   function continueStory(): IntentGenerator {
     return (async function* () {
       const nextActor = yield* chooseActor({ afterTurnId: branchFromTurnId });
-      const gen = yield* generateTurn({ actorId: nextActor, branchFromTurnId });
+      const gen = yield* generateTurn({
+        intentKind: "continue_story",
+        actorId: nextActor,
+        branchFromTurnId,
+      });
       yield* insertTurn({ actorId: nextActor, text: gen.presentation, branchFromTurnId });
     })();
   }

@@ -7,13 +7,14 @@ import {
   scenarios as tScenarios,
 } from "@storyforge/db";
 import type { CharacterCtxDTO, TurnGenCtx } from "@storyforge/gentasks";
-import { assertDefined, assertNever } from "@storyforge/utils";
+import { assertDefined } from "@storyforge/utils";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { getFullTimelineTurnCtx } from "../timeline/timeline.queries.js";
+import { getTurnIntentPrompt } from "./utils/intent-prompts.js";
 
 interface BuildContextArgs {
   actorParticipantId: string;
-  intent: { kind: NewIntent["kind"]; constraint?: string };
+  intent?: { kind: NewIntent["kind"]; constraint?: string };
   leafTurnId?: string | null;
 }
 
@@ -39,35 +40,31 @@ export class IntentContextBuilder {
     return {
       turns,
       characters,
-      currentIntent: {
-        kind: intent.kind,
-        description: this.mapIntentDescription(intent.kind),
-        constraint: intent.constraint,
-      },
+      // TODO: this is definitely not a good way to do this
+      // templates may need raw kind for switch case behavior, but also need
+      // model-friendly kind and a formatted prompt to insert in the text
+      ...(intent
+        ? {
+            currentIntent: {
+              kind: intent.kind,
+              constraint: intent.constraint,
+              prompt: getTurnIntentPrompt({
+                kind: intent.kind,
+                targetName: currentActorName,
+                text: intent.constraint ?? null,
+              })?.prompt,
+            },
+          }
+        : {}),
+      nextTurnNumber: (turns.at(-1)?.turnNo ?? 0) + 1,
       stepInputs: {},
       globals: {
         char: currentActorName,
         user: userProxyName,
         scenario: scenario.description,
+        isNarratorTurn: charaData.actorIsNarrator,
       },
     };
-  }
-
-  // TODO: Don't use intent parameters directly in the turngen context., leaks
-  // too much implementation detail into the model prompt
-  private mapIntentDescription(kind: NewIntent["kind"]): string {
-    switch (kind) {
-      case "manual_control":
-        return "Manual Control";
-      case "guided_control":
-        return "Guided Control";
-      case "narrative_constraint":
-        return "Narrative Constraint";
-      case "continue_story":
-        return "Continue Story";
-      default:
-        assertNever(kind);
-    }
   }
 
   /**
@@ -79,6 +76,7 @@ export class IntentContextBuilder {
     characters: CharacterCtxDTO[];
     userProxyName: string;
     currentActorName: string;
+    actorIsNarrator: boolean;
   }> {
     // TODO: Possibly make sorting configurable via recipe
     const charaTypeSort: [Character["cardType"], number][] = [
@@ -129,18 +127,30 @@ export class IntentContextBuilder {
       return a.name.localeCompare(b.name);
     });
     const userProxyName = proxyCandidates.at(0)?.name;
-    const currentActorName = proxyCandidates.at(-1)?.name;
+
+    // Narrator doesn't exist as a character, so they won't be in the list
+    const actorIsNarrator = !proxyCandidates.some(
+      (chara) => chara.participantId === actorParticipantId
+    );
+
+    // TODO: Make narrator name configurable
+    const currentActorName = actorIsNarrator ? "Narrator" : proxyCandidates.at(-1)?.name;
     // DB constraints and invariants should ensure neither of these are null
     assertDefined(currentActorName, "Actor character not found");
     assertDefined(userProxyName, "No fallback player proxy character found");
 
+    // TODO: HACK - we replace `{{char}}` macros in character data here.
+    // normally the template engine would handle this, but it uses a single
+    // replacement (`currentActorName`) for the entire prompt. but within
+    // descriptions, `{{char}}` refers to the character the description is
+    // written for, not the "current actor" character.
     const characters = data.map((chara) => ({
       id: chara.id,
       name: chara.name,
-      description: chara.description,
+      description: chara.description.replaceAll("{{char}}", currentActorName),
     }));
 
-    return { characters, userProxyName, currentActorName };
+    return { characters, userProxyName, currentActorName, actorIsNarrator };
   }
 
   private async loadScenarioData() {

@@ -96,7 +96,7 @@ export function WorkflowPreviewTab({ values }: Props) {
 
           <Field
             label="Guidance (optional)"
-            helperText="Simulates player input for this character while in a scenario"
+            helperText="Simulates a player's input to guide the model"
           >
             <Input
               value={guidance}

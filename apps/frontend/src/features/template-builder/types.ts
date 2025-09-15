@@ -7,7 +7,11 @@ import type {
 } from "@storyforge/prompt-rendering";
 
 // Per-task recipe IDs
-export type TurnGenRecipeId = "timeline_basic" | "characters_basic";
+export type TurnGenRecipeId =
+  | "timeline_basic"
+  | "timeline_advanced"
+  | "characters_basic"
+  | "intent_basic";
 export type ChapterSummRecipeId = never; // none yet
 export type WritingAssistantRecipeId = never; // none yet
 
@@ -43,6 +47,7 @@ export interface RecipeParamSpec {
   type: "number" | "select" | "toggle" | "template_string";
   defaultValue?: unknown;
   help?: string;
+  infoTip?: string;
   min?: number;
   max?: number;
   options?: readonly { label: string; value: string | number | boolean }[];

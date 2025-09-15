@@ -58,10 +58,11 @@ export function PlayerPage() {
     if (!scenario) return;
 
     switch (mode) {
-      case "direct": {
+      case "direct":
+      case "guided": {
         if (!selectedParticipant) return;
         await startIntent({
-          kind: "manual_control",
+          kind: mode === "direct" ? "manual_control" : "guided_control",
           text,
           targetParticipantId: selectedParticipant.id,
         });

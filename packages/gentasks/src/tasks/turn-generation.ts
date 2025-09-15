@@ -4,6 +4,8 @@ import { exactKeys } from "@storyforge/utils";
 import type { CharacterCtxDTO, TurnCtxDTO } from "../types.js";
 
 type TurnGenGlobals = {
+  /** Whether the current turn is a narrator turn */
+  isNarratorTurn: boolean;
   // SillyTavern-style global accessors to make imported characters and prompts
   // work without modification
   // https://docs.sillytavern.app/usage/core-concepts/macros/#general-macros
@@ -27,16 +29,48 @@ type TurnGenGlobals = {
   scenario?: string; // SillyTavern macro {{scenario}}
 };
 
-// Turn generation context
+/**
+ * The prompt rendering context for a single turn generation task. Provides
+ * the backing data for the task's source handlers, as well as variables that
+ * can be accessed directly via template strings.
+ */
 export type TurnGenCtx = {
+  /**
+   * All turns in the scenario, in chronological order. Should be accessed via
+   * the `turns` source.
+   */
   turns: TurnCtxDTO[];
+  /**
+   * All characters in the scenario. `character`-type characters are ordered
+   * first, then `narrator`, then `persona`. Should be accessed via the
+   * `characters` source.
+   */
   characters: CharacterCtxDTO[];
-  currentIntent: { kind: string; description: string; constraint?: string };
+  /**
+   * The intent input that triggered this turn generation, if any.
+   */
+  currentIntent?: { kind: string; prompt?: string; constraint?: string };
+  /**
+   * The turn number of the next turn (ie. the one that will be generated).
+   */
+  nextTurnNumber: number;
+  /**
+   * Captured outputs from previous steps in the same workflow.
+   * TODO: rename to `stepOutputs` to match source registry naming convention
+   */
   stepInputs: Record<string, unknown>;
+  /**
+   * Extra global variables that can be accessed in prompts. Should always be
+   * scalar values.
+   */
   globals: TurnGenGlobals;
 };
 
-// Source specification for turn generation
+/**
+ * The source definitions for a turn generation task. Describes the data that
+ * can be accessed in prompts via source handlers and the arguments that can be
+ * passed to them.
+ */
 export type TurnGenSources = {
   turns: {
     args: { order?: "asc" | "desc"; limit?: number; start?: number; end?: number } | undefined;
@@ -102,6 +136,5 @@ export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
   "globals"
 );
 
-// Convenience type aliases
 export type TurnGenTemplate = PromptTemplate<"turn_generation", TurnGenSources>;
 export type TurnGenRegistry = typeof turnGenRegistry;

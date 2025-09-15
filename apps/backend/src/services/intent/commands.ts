@@ -1,3 +1,4 @@
+import type { IntentKind } from "@storyforge/contracts";
 import { type SqliteTxLike, schema } from "@storyforge/db";
 import { eq, sql } from "drizzle-orm";
 import { getTurngenWorkflowForScope } from "../workflows/workflow.queries.js";
@@ -74,17 +75,17 @@ export function makeCommands(deps: IntentExecDeps) {
 
     generateTurn: async function* (args: {
       actorId: string;
+      intentKind?: IntentKind;
       constraint?: string;
       branchFromTurnId?: string;
     }): IntentCommandGenerator<{ presentation: string; outputs: Record<string, unknown> }> {
       let partial = "";
+      const intent = args.intentKind
+        ? { kind: args.intentKind, constraint: args.constraint }
+        : undefined;
       const ctx = await new IntentContextBuilder(db, scenarioId).buildContext({
         actorParticipantId: args.actorId,
-        // TODO: Need to change how TurnGenCtx receives intent parameters.
-        // Prompt template should not have to switch on intent kind; intent
-        // should be implementation detail, template should receive just a
-        // string, possibly via user-configurable intent kind-to-message map.
-        intent: { kind: "narrative_constraint", constraint: args.constraint },
+        intent,
         leafTurnId: args.branchFromTurnId ?? null,
       });
       const workflow = await getTurngenWorkflowForScope(db, {

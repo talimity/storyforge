@@ -5,7 +5,7 @@ import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenar
 import { getApiUrl } from "@/lib/get-api-url";
 import { GenerateOrCancelButton } from "./generate-or-cancel-button";
 
-interface DirectControlPanelProps {
+interface CharacterControlPanelProps {
   inputText: string;
   onInputChange: (text: string) => void;
   onGenerate: () => void;
@@ -13,13 +13,13 @@ interface DirectControlPanelProps {
   isGenerating: boolean;
 }
 
-export function DirectControlPanel({
+export function CharacterControlPanel({
   inputText,
   onInputChange,
   onGenerate,
   onCancel,
   isGenerating,
-}: DirectControlPanelProps) {
+}: CharacterControlPanelProps) {
   const { charactersById } = useScenarioContext();
   const { selectedCharacterId } = useScenarioPlayerStore();
   if (!selectedCharacterId) {

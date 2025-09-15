@@ -4,6 +4,10 @@ import type { ChapterSummCtx, ChapterSummSources } from "./tasks/chapter-summari
 import type { TurnGenCtx, TurnGenSources } from "./tasks/turn-generation.js";
 import type { WritingAssistantCtx, WritingAssistantSources } from "./tasks/writing-assistant.js";
 
+// TODO: this type is duplicated in several places due to circular dependencies,
+//       should be refactored to a shared location.
+type IntentKind = "manual_control" | "guided_control" | "narrative_constraint" | "continue_story";
+
 export type TurnCtxDTO = {
   /** The 1-based turn number. */
   turnNo: number;
@@ -16,6 +20,19 @@ export type TurnCtxDTO = {
   authorType: "character" | "narrator";
   /** The content of the 'presentation' layer of the turn. */
   content: string;
+  intent?: {
+    /** The intent kind. */
+    kind: IntentKind;
+    /** If the turn was created by an Intent which has guidance text, the text. */
+    text?: string;
+    /**
+     * A preformatted prompt string that describes the intent and any of its
+     * parameters. Prompt templates can also definte their own using the
+     * `intentKind` and `intentText` fields, but this field is provided for
+     * convenience and as a potential default case.
+     */
+    prompt: string;
+  };
   /** Map of other layers of the turn, keyed by layer name. */
   layers: Record<string, string>;
 };

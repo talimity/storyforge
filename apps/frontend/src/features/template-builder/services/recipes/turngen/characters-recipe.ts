@@ -86,23 +86,16 @@ export const charactersRecipe: RecipeDefinition<
           },
           map: [
             {
-              kind: "message",
-              role: params.role,
-              content: params.characterTemplate,
+              kind: "if",
+              when: { type: "nonEmpty", ref: { source: "$item", args: { path: "description" } } },
+              then: [
+                {
+                  kind: "message",
+                  role: params.role,
+                  content: params.characterTemplate,
+                },
+              ],
             },
-            // TODO: conditional datarefs cannot actually access forEach loop
-            // scope so this does not work. that would be nice to have.
-            // {
-            //   kind: "if",
-            //   when: { type: "nonEmpty", ref: "item.description" },
-            //   then: [
-            //     {
-            //       kind: "message",
-            //       role: params.role,
-            //       content: params.characterTemplate,
-            //     }
-            //   ],
-            // }
           ],
         },
       ],

@@ -2,11 +2,11 @@ import { HStack, SegmentGroup, Stack, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/index";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
-import { DirectControlPanel } from "./direct-control-panel";
+import { CharacterControlPanel } from "./character-control-panel";
 import { QuickActionsPanel } from "./quick-actions-panel";
 import { StoryConstraintsPanel } from "./story-constraints-panel";
 
-export type InputMode = "direct" | "constraints" | "quick";
+export type InputMode = "direct" | "guided" | "constraints" | "quick";
 
 interface IntentPanelProps {
   onSubmitIntent: (mode: InputMode, text: string) => Promise<void>;
@@ -61,6 +61,7 @@ export function IntentPanel(props: IntentPanelProps) {
         <SegmentGroup.Items
           items={[
             { value: "direct", label: "Direct Control" },
+            { value: "guided", label: "Guided Control" },
             { value: "constraints", label: "Story Constraints" },
             { value: "quick", label: "Quick Actions" },
           ]}
@@ -68,8 +69,8 @@ export function IntentPanel(props: IntentPanelProps) {
       </SegmentGroup.Root>
 
       {/* Mode-specific panels */}
-      {inputMode === "direct" && (
-        <DirectControlPanel
+      {["direct", "guided"].includes(inputMode) && (
+        <CharacterControlPanel
           inputText={inputText}
           onInputChange={setInputText}
           onGenerate={handleGenerate}

@@ -1,6 +1,10 @@
 import type { TaskKind } from "@storyforge/gentasks";
 import { charactersRecipe } from "@/features/template-builder/services/recipes/turngen/characters-recipe";
-import { timelineRecipe } from "@/features/template-builder/services/recipes/turngen/timeline-recipe";
+import { nextTurnIntentRecipe } from "@/features/template-builder/services/recipes/turngen/intent-recipes";
+import {
+  timelineAdvancedRecipe,
+  timelineBasicRecipe,
+} from "@/features/template-builder/services/recipes/turngen/timeline-recipe";
 import type {
   AnyRecipe,
   AnyRecipeId,
@@ -16,7 +20,9 @@ import type {
 
 /** Per-task registries */
 export const TURN_GEN_RECIPES = {
-  timeline_basic: timelineRecipe,
+  timeline_basic: timelineBasicRecipe,
+  timeline_advanced: timelineAdvancedRecipe,
+  intent_basic: nextTurnIntentRecipe,
   characters_basic: charactersRecipe,
 } as const satisfies Record<TurnGenRecipeId, TurnGenRecipe>;
 

@@ -1,7 +1,8 @@
-import type { SqliteDatabase, SqliteTxLike } from "@storyforge/db";
+import type { Intent, SqliteDatabase, SqliteTxLike } from "@storyforge/db";
 import type { TurnCtxDTO } from "@storyforge/gentasks";
 import { sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
+import { getTurnIntentPrompt } from "../intent/utils/intent-prompts.js";
 import { resolveLeafFrom } from "./utils/leaf.js";
 
 type TimelineRow = {
@@ -228,65 +229,65 @@ export async function getFullTimelineTurnCtx(
     author_type: "character" | "narrator";
     presentation: string | null;
     layers_json: string | null;
-  }>(sql`
-    WITH RECURSIVE
-      scenario_anchor AS (
-        SELECT anchor_turn_id AS id
-        FROM scenarios
-        WHERE id = ${scenarioId}
-      ),
-      -- starting leaf (explicit leaf or scenario anchor)
-      start_leaf AS (
-        SELECT COALESCE(${leafTurnId}, (SELECT id FROM scenario_anchor)) AS id
-      ),
-      -- walk from selected leaf up to root
-      path AS (
-        SELECT t.id, t.parent_turn_id, 0 AS depth
-        FROM turns t
-        WHERE t.id = (SELECT id FROM start_leaf) AND t.scenario_id = ${scenarioId}
-        UNION ALL
-        SELECT p.id, p.parent_turn_id, path.depth + 1
-        FROM turns p
-        JOIN path ON path.parent_turn_id = p.id
-        WHERE p.scenario_id = ${scenarioId}
-      ),
-      meta AS (
-        SELECT MAX(depth) AS max_depth FROM path
-      ),
-      -- enrich with author info and layer aggregates
-      enriched AS (
-        SELECT
-          t.id,
-          -- 1-based turn number where root=1 .. leaf=max_depth+1
-          ((SELECT max_depth FROM meta) - p.depth + 1) AS turn_no,
-          -- author display (Narrator vs Character name)
-          CASE sp.type
-            WHEN 'narrator' THEN 'Narrator'
-            ELSE COALESCE(c.name, 'Unknown')
-          END AS author_name,
-          CASE sp.type
-            WHEN 'narrator' THEN 'narrator'
-            ELSE 'character'
-          END AS author_type,
-          -- presentation layer content
-          MAX(CASE WHEN tl.key = 'presentation' THEN tl.content END) AS presentation,
-          -- aggregate all layers into a single JSON object
-          json_group_object(tl.key, tl.content)                      AS layers_json
-        FROM path p
-        JOIN turns t ON t.id = p.id
-        JOIN scenario_participants sp ON sp.id = t.author_participant_id
-        LEFT JOIN characters c ON c.id = sp.character_id
-        LEFT JOIN turn_layers tl ON tl.turn_id = t.id
-        GROUP BY t.id, p.depth, sp.type, c.name
-      )
-    SELECT
-      turn_no,
-      author_name,
-      author_type,
-      presentation AS presentation,
-      layers_json
-    FROM enriched
-    ORDER BY turn_no ASC;
+    intent_id: string | null;
+    intent_kind: Intent["kind"] | null;
+    intent_input_text: string | null;
+    intent_target_participant_id: string | null;
+  }>(sql`WITH RECURSIVE
+    scenario_anchor AS (SELECT anchor_turn_id AS id
+                        FROM scenarios
+                        WHERE id = ${scenarioId}),
+    -- starting leaf (explicit leaf or scenario anchor)
+    start_leaf AS (SELECT COALESCE(${leafTurnId}, (SELECT id FROM scenario_anchor)) AS id),
+    -- walk from selected leaf up to root
+    path AS (SELECT t.id, t.parent_turn_id, 0 AS depth
+             FROM turns t
+             WHERE t.id = (SELECT id FROM start_leaf)
+               AND t.scenario_id = ${scenarioId}
+             UNION ALL
+             SELECT p.id, p.parent_turn_id, path.depth + 1
+             FROM turns p
+                      JOIN path ON path.parent_turn_id = p.id
+             WHERE p.scenario_id = ${scenarioId}),
+    meta AS (SELECT MAX(depth) AS max_depth
+             FROM path),
+    -- enrich with author info and layer aggregates
+    enriched AS (SELECT t.id,
+                        -- 1-based turn number where root=1 .. leaf=max_depth+1
+                        ((SELECT max_depth FROM meta) - p.depth + 1)               AS turn_no,
+                        -- author display (Narrator vs Character name)
+                        CASE sp.type
+                            WHEN 'narrator' THEN 'Narrator'
+                            ELSE COALESCE(c.name, 'Unknown')
+                            END                                                    AS author_name,
+                        CASE sp.type
+                            WHEN 'narrator' THEN 'narrator'
+                            ELSE 'character'
+                            END                                                    AS author_type,
+                        -- presentation layer content
+                        MAX(CASE WHEN tl.key = 'presentation' THEN tl.content END) AS presentation,
+                        -- aggregate all layers into a single JSON object
+                        json_group_object(tl.key, tl.content)                      AS layers_json
+                 FROM path p
+                          JOIN turns t ON t.id = p.id
+                          JOIN scenario_participants sp ON sp.id = t.author_participant_id
+                          LEFT JOIN characters c ON c.id = sp.character_id
+                          LEFT JOIN turn_layers tl ON tl.turn_id = t.id
+                 GROUP BY t.id, p.depth, sp.type, c.name),
+    -- get intents for each turn
+    intent_map AS (SELECT ie.turn_id,
+                          i.id                    AS intent_id,
+                          i.kind                  AS intent_kind,
+                          i.input_text            AS intent_input_text,
+                          i.target_participant_id AS intent_target_participant_id
+                   FROM intent_effects ie
+                            JOIN intents i ON i.id = ie.intent_id AND i.scenario_id = ${scenarioId}
+                   WHERE ie.kind = 'new_turn')
+SELECT e.turn_no, e.author_name, e.author_type, e.presentation, e.layers_json,
+       im.intent_id, im.intent_kind, im.intent_input_text, im.intent_target_participant_id
+FROM enriched e
+LEFT JOIN intent_map im ON im.turn_id = e.id
+ORDER BY turn_no ASC;
   `);
 
   // Shape to TurnCtxDTO
@@ -296,6 +297,11 @@ export async function getFullTimelineTurnCtx(
     authorType: r.author_type,
     content: r.presentation ?? "",
     layers: r.layers_json ? JSON.parse(r.layers_json) : {},
+    intent: getTurnIntentPrompt({
+      kind: r.intent_kind,
+      targetName: r.author_name, // TODO: in the future it may not always be the turn author
+      text: r.intent_input_text,
+    }),
   }));
 }
 

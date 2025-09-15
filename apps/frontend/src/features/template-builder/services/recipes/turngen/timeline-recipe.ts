@@ -1,44 +1,49 @@
+import type { IntentKind } from "@storyforge/contracts";
 import type { TurnGenSources } from "@storyforge/gentasks";
-import type { RecipeDefinition } from "@/features/template-builder/types";
+import type { SlotSpec } from "@storyforge/prompt-rendering";
+import type { InferRecipeParams, RecipeDefinition } from "@/features/template-builder/types";
 
-const parameters = [
+const MAX_TURNS_PARAM = {
+  key: "maxTurns",
+  label: "Max Turns",
+  type: "number",
+  defaultValue: 50,
+  min: 1,
+  max: 9999,
+  help: "Maximum number of turns to include; truncates oldest turns",
+} as const;
+const TOKEN_BUDGET_PARAM = {
+  key: "budget",
+  label: "Token Budget",
+  type: "number",
+  defaultValue: 32768,
+  min: 1024,
+  max: Number.MAX_SAFE_INTEGER,
+  help: "Maximum tokens to allow for turn content; truncates oldest turns",
+} as const;
+
+const basicParameters = [
   {
     key: "turnTemplate",
     label: "Turn Format",
     type: "template_string",
     defaultValue: "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
-    help: "Template for how each turn should be formatted",
+    help: "How each turn should be formatted",
   },
-  {
-    key: "maxTurns",
-    label: "Max Turns",
-    type: "number",
-    defaultValue: 50,
-    min: 1,
-    max: 9999,
-    help: "Maximum number of turns to include; truncates oldest turns",
-  },
-  {
-    key: "budget",
-    label: "Token Budget",
-    type: "number",
-    defaultValue: 32768,
-    min: 1024,
-    max: Number.MAX_SAFE_INTEGER,
-    help: "Maximum tokens to allow for turn content; truncates oldest turns",
-  },
+  MAX_TURNS_PARAM,
+  TOKEN_BUDGET_PARAM,
 ] as const;
 
-export const timelineRecipe: RecipeDefinition<
+export const timelineBasicRecipe: RecipeDefinition<
   "turn_generation",
   TurnGenSources,
-  typeof parameters
+  typeof basicParameters
 > = {
   id: "timeline_basic",
-  name: "Timeline",
+  name: "Timeline (Simple)",
   task: "turn_generation",
   description: "Lists turns from the scenario's timeline in chronological order.",
-  parameters,
+  parameters: basicParameters,
 
   availableVariables: [
     {
@@ -70,15 +75,113 @@ export const timelineRecipe: RecipeDefinition<
       plan: [
         {
           kind: "forEach",
-          source: {
-            source: "turns",
-            args: { order: "asc", limit: params.maxTurns },
-          },
+          source: { source: "turns", args: { order: "asc", limit: params.maxTurns } },
+          map: [{ kind: "message", role: "user", content: params.turnTemplate }],
+        },
+      ],
+    };
+  },
+};
+
+const advancedParameters = [
+  {
+    key: "intentTemplate",
+    label: "Turn Guidance Format (User)",
+    type: "template_string",
+    defaultValue: "[Turn {{item.turnNo}}] {{item.authorName}}\n{{item.intentPrompt}}]",
+    help: "How to format each turn's guidance",
+    infoTip:
+      "This shows the model see the player input for past turns, which can help establish a pattern of instruction-following behavior.",
+  },
+  {
+    key: "turnTemplate",
+    label: "Turn Result Format (Assistant)",
+    type: "template_string",
+    defaultValue: "-> {{item.authorName}}: {{item.content}}",
+    help: "How to format each generated turn",
+    infoTip: "Uses the assistant role.",
+  },
+  {
+    key: "manualTurnTemplate",
+    label: "Player Turn Format",
+    type: "template_string",
+    defaultValue:
+      "[Turn {{item.turnNo}}] {{item.authorName}}\nI'll write this turn myself.\n-> {{item.authorName}}: {{item.content}}",
+    help: "How to format turns written by the player",
+    infoTip:
+      "This applies to turns using the 'Control' intent, or which were inserted manually without triggering any model generation.",
+  },
+  {
+    key: "useAssistantForUnguidedTurns",
+    label: "Use Assistant Template for Unguided Turns",
+    type: "toggle",
+    defaultValue: false,
+    help: "For turns that do not have any intent guidance, use the Turn Result Format (Assistant) instead of Player Turn.",
+  },
+  MAX_TURNS_PARAM,
+  TOKEN_BUDGET_PARAM,
+] as const;
+
+export const timelineAdvancedRecipe: RecipeDefinition<
+  "turn_generation",
+  TurnGenSources,
+  typeof advancedParameters
+> = {
+  id: "timeline_advanced",
+  name: "Timeline (Advanced)",
+  task: "turn_generation",
+  description:
+    "Lists turns from the scenario's timeline in chronological order. The player's narrative guidance is included before each turn.",
+  parameters: advancedParameters,
+
+  toSlotSpec(
+    params: InferRecipeParams<typeof advancedParameters>
+  ): Omit<SlotSpec<TurnGenSources>, "priority"> {
+    return {
+      budget: { maxTokens: params.budget },
+      meta: {},
+      plan: [
+        {
+          kind: "forEach",
+          source: { source: "turns", args: { order: "asc", limit: params.maxTurns } },
           map: [
             {
-              kind: "message",
-              role: "user",
-              content: params.turnTemplate,
+              kind: "if",
+              when: { type: "nonEmpty", ref: { source: "$item", args: { path: "intentKind" } } },
+              then: [
+                // Intent present, check for 'manual_control' intent
+                {
+                  kind: "if",
+                  when: {
+                    type: "eq",
+                    ref: { source: "$item", args: { path: "intentKind" } },
+                    // conditionref `value` does not check type against the ref
+                    // so we need to manually ensure literal is valid here
+                    value: "manual_control" satisfies IntentKind,
+                  },
+                  then: [
+                    // Control intent = use manual template
+                    { kind: "message", role: "user", content: params.manualTurnTemplate },
+                  ],
+                  else: [
+                    // Some other intent = use the intent/response templates
+                    { kind: "message", role: "user", content: params.intentTemplate },
+                    { kind: "message", role: "assistant", content: params.turnTemplate },
+                  ],
+                },
+              ],
+              else: [
+                // No intent = manually inserted turn
+                // If useAssistantForUnguidedTurns is enabled, use the intent/response templates
+                ...(params.useAssistantForUnguidedTurns
+                  ? [
+                      { kind: "message", role: "user", content: params.intentTemplate } as const,
+                      { kind: "message", role: "assistant", content: params.turnTemplate } as const,
+                    ]
+                  : ([
+                      { kind: "message", role: "user", content: params.manualTurnTemplate },
+                    ] as const)),
+              ],
             },
           ],
         },
