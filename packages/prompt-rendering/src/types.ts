@@ -43,15 +43,29 @@ export type PromptTemplate<K extends string, S extends SourceSpec = SourceSpec> 
 
 /** ---------- DataRef via Source Registry ---------- */
 
+export type ReservedSourceSpec = {
+  $item: { args?: { path?: string }; out: unknown };
+  $index: { args?: never; out: number | undefined };
+  $parent: { args?: { level?: number; path?: string }; out: unknown };
+  $globals: { args?: { path?: string }; out: unknown };
+  $ctx: { args?: { path?: string }; out: unknown };
+};
+
 export type DataRef<K extends string, A> = A extends never
   ? { source: K } // args disallowed
   : [undefined] extends [A]
     ? { source: K; args?: A }
     : { source: K; args: A };
 
-export type DataRefOf<S extends SourceSpec> = {
-  [K in SourceNames<S>]: DataRef<K, S[K]["args"]>;
-}[SourceNames<S>];
+export type DataRefOf<S extends SourceSpec> =
+  | {
+      [K in SourceNames<S>]: DataRef<K, S[K]["args"]>;
+    }[SourceNames<S>]
+  | DataRef<"$item", { path?: string } | undefined>
+  | DataRef<"$index", undefined>
+  | DataRef<"$parent", { level?: number; path?: string } | undefined>
+  | DataRef<"$globals", { path?: string } | undefined>
+  | DataRef<"$ctx", { path?: string } | undefined>;
 
 export type ArrayDataRefOf<S extends SourceSpec> = {
   [K in SourceNames<S>]: S[K]["out"] extends ReadonlyArray<unknown>
@@ -140,10 +154,7 @@ export interface BudgetManager {
 
 export interface SourceRegistry<Ctx, S extends SourceSpec> {
   /** Resolve a DataRef for a given task context. Must be pure & synchronous. */
-  resolve<K extends keyof S & string>(
-    ref: DataRef<K, S[K]["args"]>,
-    ctx: Ctx
-  ): S[K]["out"] | undefined;
+  resolve<K extends keyof S & string>(ref: DataRefOf<S>, ctx: Ctx): S[K]["out"] | undefined;
   /** Optional: enumerate valid source names for authoring-time validation. */
   list?(): Array<keyof S & string>;
 }

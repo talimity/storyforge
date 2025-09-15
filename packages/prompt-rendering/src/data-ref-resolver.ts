@@ -1,4 +1,4 @@
-import type { DataRef, SourceRegistry, SourceSpec } from "./types.js";
+import type { DataRef, DataRefOf, SourceRegistry, SourceSpec } from "./types.js";
 
 /**
  * Type guard to check if a value is an array.
@@ -61,7 +61,8 @@ export function resolveDataRef<
   S extends SourceSpec,
   K extends keyof S & string,
 >(
-  ref: DataRef<K, S[K]["args"]>,
+  // ref: DataRef<K, S[K]["args"]>,
+  ref: DataRefOf<S>,
   ctx: Ctx,
   registry: SourceRegistry<Ctx, S>
 ): S[K]["out"] | undefined {

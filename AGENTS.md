@@ -129,7 +129,9 @@ When in doubt, skip the comment.
 - You MUST follow existing conventions and patterns as much as possible
 - You SHOULD run checks and address diagnostics incrementally; it will be easier than fixing dozens of errors at the end
 - You MUST run the build and check commands before a task can be considered finished
+- You MUST NOT use `any` casts (the linter will outright fail them)
 
 ### At ALL TIMES
 - You MUST NOT run any blocking commands. 
   - That includes watch mode! DO NOT add `-w` flags to any of the build or code quality commands.
+  - If you think you want `-w` to filter the pnpm workspace, you actually want `--filter=package` instead

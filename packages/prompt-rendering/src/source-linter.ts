@@ -1,4 +1,5 @@
 import { AuthoringValidationError } from "./errors.js";
+import { RESERVED_SOURCES } from "./reserved-sources.js";
 import type { PromptTemplate, SourceSpec } from "./types.js";
 import { iterDataRefs } from "./walkers.js";
 
@@ -16,8 +17,9 @@ export function lintSourceNames<K extends string, S extends SourceSpec>(
     return; // No validation if no allowed sources provided
   }
 
+  const allowed = new Set([...allowedSources, ...RESERVED_SOURCES]);
   const usedSources = extractAllSourceNames(template);
-  const unknownSources = usedSources.filter((source) => !allowedSources.has(source));
+  const unknownSources = usedSources.filter((source) => !allowed.has(source));
 
   if (unknownSources.length > 0) {
     throw new AuthoringValidationError(`Unknown source names found: ${unknownSources.join(", ")}`);

@@ -1,5 +1,6 @@
 import { AuthoringValidationError, RenderError, TemplateStructureError } from "./errors.js";
 import { assembleLayout } from "./layout-assembler.js";
+import { makeScopedRegistry } from "./scoped-registry.js";
 import { executeSlots } from "./slot-executor.js";
 import type {
   BudgetManager,
@@ -30,11 +31,12 @@ export function render<K extends string, Ctx extends object, S extends SourceSpe
   registry: SourceRegistry<Ctx, S>
 ): ChatCompletionMessage[] {
   try {
+    const reg = makeScopedRegistry(registry, { frames: [] });
     // Phase A: Execute all slots to generate message buffers
-    const slotBuffers = executeSlots(template.slots, ctx, budget, registry);
+    const slotBuffers = executeSlots(template.slots, ctx, budget, reg);
 
     // Phase B: Assemble the final message array using the layout
-    const layout = assembleLayout(template.layout, slotBuffers, ctx, budget, registry);
+    const layout = assembleLayout(template.layout, slotBuffers, ctx, budget, reg);
 
     // Post process by squashing consecutive messages with the same role
     // TODO: Make this use a configurable delimeter

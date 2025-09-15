@@ -63,8 +63,9 @@ export function evaluateCondition<Ctx extends object, S extends SourceSpec>(
     case "exists":
       return exists(resolvedValue);
 
-    case "nonEmpty":
+    case "nonEmpty": {
       return isNonEmpty(resolvedValue);
+    }
 
     case "eq": {
       const { value } = condition;

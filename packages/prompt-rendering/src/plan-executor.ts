@@ -1,5 +1,6 @@
 import { evaluateCondition } from "./condition-evaluator.js";
 import { resolveAsArray, resolveDataRef } from "./data-ref-resolver.js";
+import { withAdditionalFrame } from "./scoped-registry.js";
 import type {
   BudgetManager,
   ChatCompletionMessage,
@@ -31,7 +32,7 @@ export function createScope<Ctx extends CtxWithGlobals>(
   ctx: Ctx,
   item?: unknown
 ): ExecutionScope<Ctx> {
-  return { ctx, item, globals: ctx.globals };
+  return { ctx, ...ctx, item };
 }
 
 /**
@@ -203,9 +204,10 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
         break;
       }
 
-      // Execute child nodes with item in scope
+      // Execute child nodes with item in scope and reserved sources via scoped registry
+      const regWithScope = withAdditionalFrame(registry, { item, index: i });
       for (const childNode of node.map) {
-        const childResults = executePlanNode(childNode, ctx, budget, registry, item);
+        const childResults = executePlanNode(childNode, ctx, budget, regWithScope, item);
         results.push(...childResults);
 
         // Check budget after each child

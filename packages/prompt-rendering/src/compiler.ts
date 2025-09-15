@@ -1,4 +1,5 @@
 import { compileLeaf } from "./leaf-compiler.js";
+import { RESERVED_SOURCES } from "./reserved-sources.js";
 import { parseTemplate } from "./schemas.js";
 import type {
   CompiledLayoutNode,
@@ -35,7 +36,11 @@ export function compileTemplate<K extends string, S extends SourceSpec>(
   options?: CompileOptions
 ): CompiledTemplate<K, S> {
   // 1: Parse with Zod and lint source references to try to
-  const parsedTemplate = parseTemplate<K, S>(template, options?.kind, options?.allowedSources);
+  // Merge reserved sources into allowed list so templates can reference them
+  const allowed = options?.allowedSources
+    ? [...options.allowedSources, ...RESERVED_SOURCES]
+    : undefined;
+  const parsedTemplate = parseTemplate<K, S>(template, options?.kind, allowed);
 
   // 2: Ensure consistent slot names and references
   validateTemplateStructure(parsedTemplate);

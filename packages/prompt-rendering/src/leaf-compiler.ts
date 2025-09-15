@@ -3,6 +3,7 @@
  * Only supports variable substitution with dotted paths, no control flow.
  */
 
+import { resolvePath } from "./path-resolver.js";
 import type { CompiledLeafFunction } from "./types.js";
 
 const MAX_NESTED_EXPANSIONS = 5;
@@ -68,6 +69,9 @@ function compileLeafInner(template: string, depth: number): CompiledLeafFunction
     // Add any remaining literal text
     result += template.slice(lastEnd);
 
+    // console.log("leaf", template, "->", result?.slice(0, 50));
+    // console.log("scope", JSON.stringify(scope, null, 2).slice(0, 50));
+
     return result;
   };
 }
@@ -86,106 +90,4 @@ function toStringSafe(v: unknown): string {
   } catch {
     return "";
   }
-}
-
-/**
- * Resolves a dotted path like "item.summary" or "intent.description" against a scope object.
- * Also supports bracketed array access like "item.examples[0]".
- *
- * If scope object contains a "globals" property, paths which don't exist in the main scope
- * will be resolved against that.
- * @param scope - The object to resolve against
- * @param path - Dotted path like "item.summary" or "item.examples[0]"
- * @returns The resolved value or undefined if not found
- */
-function resolvePath(scope: unknown, path: string): unknown {
-  const isRecord = (v: unknown): v is Record<string | number | symbol, unknown> =>
-    !!v && typeof v === "object";
-
-  // Try to resolve the path from a given root, returning whether the path existed.
-  const resolveFrom = (
-    root: Record<string | number | symbol, unknown> | undefined
-  ): { found: boolean; value: unknown } => {
-    if (!root) return { found: false, value: undefined };
-
-    let current: unknown = root;
-    const parts = parsePath(path);
-
-    for (const part of parts) {
-      if (!isRecord(current)) return { found: false, value: undefined };
-
-      const container = current;
-      if (!Object.hasOwn(container, part)) {
-        return { found: false, value: undefined };
-      }
-      current = container[part];
-    }
-
-    return { found: true, value: current };
-  };
-
-  if (!isRecord(scope)) return undefined;
-
-  // 1) Try as given (normal precedence)
-  const direct = resolveFrom(scope);
-  if (direct.found) return direct.value;
-
-  // 2) Fall back to scope.globals if present
-  const globals = scope.globals;
-  const viaGlobals = resolveFrom(isRecord(globals) ? globals : undefined);
-  if (viaGlobals.found) return viaGlobals.value;
-
-  return undefined;
-}
-
-/**
- * Parses a path string into parts, handling both dot notation and bracketed access.
- * Examples:
- * - "item.summary" -> ["item", "summary"]
- * - "item.examples.[0]" -> ["item", "examples", "0"]
- * - "arr[0].name" -> ["arr", "0", "name"]
- */
-function parsePath(path: string): string[] {
-  const parts: string[] = [];
-  let current = "";
-  let i = 0;
-
-  while (i < path.length) {
-    const char = path[i];
-
-    if (char === ".") {
-      if (current) {
-        parts.push(current);
-        current = "";
-      }
-    } else if (char === "[") {
-      // If we have accumulated content, push it first
-      if (current) {
-        parts.push(current);
-        current = "";
-      }
-
-      // Find the closing bracket
-      const closeIndex = path.indexOf("]", i);
-      if (closeIndex !== -1) {
-        const bracketContent = path.slice(i + 1, closeIndex);
-        parts.push(bracketContent);
-        i = closeIndex; // Skip to the closing bracket
-      } else {
-        // Malformed bracket, treat as regular character
-        current += char;
-      }
-    } else {
-      current += char;
-    }
-
-    i++;
-  }
-
-  // Add any remaining content
-  if (current) {
-    parts.push(current);
-  }
-
-  return parts;
 }
