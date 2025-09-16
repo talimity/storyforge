@@ -1,4 +1,4 @@
-import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { intents } from "./intents.js";
 import { turns } from "./turns.js";
 
@@ -20,7 +20,10 @@ export const intentEffects = sqliteTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (t) => [primaryKey({ columns: [t.intentId, t.sequence] })]
+  (t) => [
+    primaryKey({ columns: [t.intentId, t.sequence] }),
+    index("idx_intent_effect_turn").on(t.turnId),
+  ]
 );
 
 export type IntentEffect = typeof intentEffects.$inferSelect;

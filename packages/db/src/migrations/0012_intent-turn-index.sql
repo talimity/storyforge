@@ -1,0 +1,1 @@
+CREATE INDEX `idx_intent_effect_turn` ON `intent_effects` (`turn_id`);

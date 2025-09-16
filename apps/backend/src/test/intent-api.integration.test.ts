@@ -277,4 +277,61 @@ describe("play.intentProgress subscription (runner events)", () => {
     expect(res.effects[0].sequence).toBe(0);
     expect(res.effects[1].sequence).toBe(1);
   });
+
+  it("annotates timeline turns with intent provenance", async () => {
+    const scenarioId = await seedScenario(db);
+    const { caller } = await createFreshTestCaller(db);
+
+    const participant = await db.query.scenarioParticipants.findFirst({
+      where: { scenarioId, type: "character" },
+      columns: { id: true },
+    });
+    expect(participant?.id).toBeTruthy();
+    if (!participant) {
+      throw new Error("Expected scenario participant for manual control test");
+    }
+
+    const manualText = "Player writes first turn";
+    const { intentId } = await caller.play.createIntent({
+      scenarioId,
+      parameters: {
+        kind: "manual_control",
+        text: manualText,
+        targetParticipantId: participant.id,
+      },
+    });
+
+    for await (const ev of intentRunManager!.get(intentId)!.events()) {
+      if (ev.type === "intent_finished") break;
+    }
+
+    const timeline = await caller.play.timeline({ scenarioId, windowSize: 20 });
+    const turnsFromIntent = timeline.timeline.filter(
+      (t) => t.intentProvenance?.intentId === intentId
+    );
+
+    expect(turnsFromIntent).toHaveLength(2);
+    for (const turn of turnsFromIntent) {
+      const prov = turn.intentProvenance;
+      expect(prov).not.toBeNull();
+      if (!prov) {
+        throw new Error("Expected intent provenance on timeline turn");
+      }
+      expect(prov.intentKind).toBe("manual_control");
+      expect(prov.intentStatus).toBe("finished");
+      expect(prov.effectCount).toBe(2);
+      expect(prov.inputText).toBe(manualText);
+      expect(prov.targetParticipantId).toBe(participant.id);
+    }
+
+    const [playerTurn, followUpTurn] = turnsFromIntent;
+    const playerProv = playerTurn.intentProvenance;
+    const followUpProv = followUpTurn.intentProvenance;
+    expect(playerProv).not.toBeNull();
+    expect(followUpProv).not.toBeNull();
+    if (!playerProv || !followUpProv) {
+      throw new Error("Expected intent provenance for manual control turns");
+    }
+    expect(playerProv.effectSequence).toBeLessThan(followUpProv.effectSequence);
+  });
 });

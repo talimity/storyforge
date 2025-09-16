@@ -1,3 +1,4 @@
+import type { IntentKind, IntentStatus } from "@storyforge/contracts";
 import type { Intent, SqliteDatabase, SqliteTxLike } from "@storyforge/db";
 import type { TurnCtxDTO } from "@storyforge/gentasks";
 import { sql } from "drizzle-orm";
@@ -27,6 +28,14 @@ type TimelineRow = {
   updated_at: number;
 
   timeline_depth: number; // Depth from root to view anchor, 1-based
+
+  intent_id: string | null;
+  intent_kind: IntentKind | null;
+  intent_status: IntentStatus | null;
+  intent_sequence: number | null;
+  intent_effect_count: number | null;
+  intent_input_text: string | null;
+  intent_target_participant_id: string | null;
 };
 
 /**
@@ -132,7 +141,26 @@ WITH RECURSIVE
                                             FROM paged
                                             WHERE parent_turn_id IS NOT NULL)),
 
-    -- 6) Enrich: compute turn_no relative to the *view anchor* path and
+    -- 6) Gather intent metadata for turns in this page window.
+    intent_effects_page AS (SELECT ie.turn_id,
+                                   ie.intent_id,
+                                   ie.sequence,
+                                   COUNT(*) OVER (PARTITION BY ie.intent_id) AS effect_count
+                            FROM intent_effects ie
+                            WHERE ie.turn_id IN (SELECT id FROM paged)
+                              AND ie.kind = 'new_turn'),
+    intent_meta AS (SELECT ie.turn_id,
+                           ie.intent_id,
+                           ie.sequence,
+                           ie.effect_count,
+                           i.kind       AS intent_kind,
+                           i.status     AS intent_status,
+                           i.target_participant_id,
+                           i.input_text
+                    FROM intent_effects_page ie
+                             LEFT JOIN intents i ON i.id = ie.intent_id),
+
+    -- 7) Enrich: compute turn_no relative to the *view anchor* path and
     -- filter to rows that are actually on that path.
     enriched AS (SELECT pg.id,
                         pg.parent_turn_id,
@@ -142,11 +170,19 @@ WITH RECURSIVE
                         sb.prev_sibling_id,
                         sb.next_sibling_id,
                         COALESCE(sb.sibling_count, 1)                     AS swipe_count,
-                        COALESCE(sb.sibling_index_1, 1)                   AS swipe_no
+                        COALESCE(sb.sibling_index_1, 1)                   AS swipe_no,
+                         id.intent_id,
+                         id.intent_kind,
+                         id.intent_status,
+                         id.sequence,
+                         id.effect_count,
+                         id.target_participant_id,
+                         id.input_text
                  FROM paged pg
                           JOIN anchor a ON a.id = pg.id -- drop any rows not on the view anchor path
                           CROSS JOIN anchor_meta am
-                          LEFT JOIN siblings sb ON sb.id = pg.id)
+                          LEFT JOIN siblings sb ON sb.id = pg.id
+                          LEFT JOIN intent_meta id ON id.turn_id = pg.id)
 
 SELECT e.id,
        t.scenario_id,
@@ -168,7 +204,15 @@ SELECT e.id,
        t.created_at,
        t.updated_at,
 
-       COALESCE((SELECT anchor_total_depth FROM anchor_meta), -1) + 1 AS timeline_depth
+       COALESCE((SELECT anchor_total_depth FROM anchor_meta), -1) + 1 AS timeline_depth,
+
+       e.intent_id,
+       e.intent_kind,
+       e.intent_status,
+       e.sequence                                                     AS intent_sequence,
+       e.effect_count                                                  AS intent_effect_count,
+       e.input_text                                                    AS intent_input_text,
+       e.target_participant_id                                         AS intent_target_participant_id
 FROM enriched e
          JOIN turns t ON t.id = e.id
          LEFT JOIN turn_layers tl ON tl.turn_id = e.id AND tl.key = ${params.layer}

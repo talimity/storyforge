@@ -133,6 +133,18 @@ export const playRouter = router({
 
         createdAt: sqliteTimestampToDate(r.created_at),
         updatedAt: sqliteTimestampToDate(r.updated_at),
+        intentProvenance:
+          r.intent_id && r.intent_kind && r.intent_status
+            ? {
+                intentId: r.intent_id,
+                intentKind: r.intent_kind,
+                intentStatus: r.intent_status,
+                effectSequence: r.intent_sequence ?? 0,
+                effectCount: r.intent_effect_count ?? 0,
+                inputText: r.intent_input_text,
+                targetParticipantId: r.intent_target_participant_id,
+              }
+            : null,
       }));
 
       // Cursor-by-ancestor: take TOP row's parent (root-most in this page)

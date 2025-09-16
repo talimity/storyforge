@@ -31,8 +31,8 @@ pnpm test
 ### Sqlite Migrations
 ```bash
 # Remember to generate migrations when changing database schema in packages/db
-pnpm db:generate # Drizzle migration generation
-pnpm db:migrate --name=descriptive-name # Run migrations against the database
+pnpm db:generate --name=descriptive-name # Drizzle migration generation
+pnpm db:migrate # Run migrations against the database
 ```
 
 ### Start server

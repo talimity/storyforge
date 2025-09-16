@@ -7,6 +7,8 @@ export const intentKindSchema = z.enum([
   "continue_story",
 ]);
 
+export const intentStatusSchema = z.enum(["pending", "running", "finished", "failed", "cancelled"]);
+
 export const intentInputSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("manual_control"),
@@ -117,6 +119,18 @@ export const timelineTurnSchema = z.object({
     .describe("Content for this turn in the specified layer"),
   createdAt: z.date(),
   updatedAt: z.date(),
+  intentProvenance: z
+    .object({
+      intentId: z.string(),
+      intentKind: intentKindSchema,
+      intentStatus: intentStatusSchema,
+      effectSequence: z.number(),
+      effectCount: z.number(),
+      inputText: z.string().nullable(),
+      targetParticipantId: z.string().nullable(),
+    })
+    .nullable()
+    .describe("Details about the intent that created this turn, if available"),
 });
 
 export const loadTimelineOutputSchema = z.object({
@@ -167,9 +181,7 @@ export const intentSchema = z
     id: z.string(),
     scenarioId: z.string(),
     kind: intentKindSchema,
-    status: z
-      .enum(["pending", "running", "finished", "failed", "cancelled"])
-      .describe("Current status of intent"),
+    status: intentStatusSchema.describe("Current status of intent"),
     effects: z.array(intentEffectSchema).describe("Array of effects created by this intent"),
   })
   .describe("Representation of a player's intent to influence the story");
@@ -211,6 +223,7 @@ export type TimelineTurn = z.infer<typeof timelineTurnSchema>;
 export type CreateIntentInput = z.infer<typeof createIntentInputSchema>;
 export type CreateIntentOutput = z.infer<typeof createIntentOutputSchema>;
 export type Intent = z.infer<typeof intentSchema>;
+export type IntentStatus = z.infer<typeof intentStatusSchema>;
 export type IntentEffect = z.infer<typeof intentEffectSchema>;
 export type IntentInterruptInput = z.infer<typeof intentInterruptInputSchema>;
 export type IntentInterruptOutput = z.infer<typeof intentInterruptOutputSchema>;
