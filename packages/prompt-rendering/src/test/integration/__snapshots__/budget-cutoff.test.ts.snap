@@ -7,7 +7,7 @@ exports[`Budget Cut-off Behavior > should produce stable output with budget cons
     "role": "system",
   },
   {
-    "content": "Respect this player intent: 
+    "content": "Respect this player intent: Test budget limits with large context
 Earlier events:
 Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.
 Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.
@@ -36,7 +36,7 @@ exports[`Budget Cut-off Behavior > should respect slot-level budget limits > slo
     "role": "system",
   },
   {
-    "content": "Respect this player intent: 
+    "content": "Respect this player intent: Test budget limits with large context
 Earlier events:
 Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.
 Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.
@@ -65,7 +65,7 @@ exports[`Budget Cut-off Behavior > should terminate forEach loops early when glo
     "role": "system",
   },
   {
-    "content": "Respect this player intent: 
+    "content": "Respect this player intent: Test budget limits with large context
 Earlier events:
 Ch 15: Chapter 15: Additional chapter summary for testing budget limits and array truncation behavior.
 Ch 14: Chapter 14: Additional chapter summary for testing budget limits and array truncation behavior.

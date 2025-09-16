@@ -7,7 +7,7 @@ exports[`Step Chaining via stepOutput > should chain planner output to writer in
     "role": "system",
   },
   {
-    "content": "Player intent to respect: 
+    "content": "Player intent to respect: Continue the conversation between Alice and Bob while Charlie observes from the shadows
 Planner guidance follows.
 {"goals":["Develop character tension","Advance the mystery"],"beats":["Alice discovers a clue","Bob expresses doubt","Unexpected revelation"],"risks":["Moving too fast","Breaking character consistency"]}
 [6] Bob: Bob closed his book carefully and stood up, brushing dust from his robes.
@@ -29,7 +29,7 @@ exports[`Step Chaining via stepOutput > should work with pre-configured step cha
     "role": "system",
   },
   {
-    "content": "Player intent to respect: 
+    "content": "Player intent to respect: Execute a multi-step workflow with planner -> writer chaining
 Planner guidance follows.
 {"goals":["Create dramatic tension","Reveal character motivation"],"beats":["Alice confronts her fear","Bob offers support","An unexpected revelation"],"risks":["Moving too fast","Losing emotional impact"]}
 [3] Narrator: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.

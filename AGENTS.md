@@ -19,34 +19,36 @@ The vision is something akin a turn-based/text-based version of The Sims, which 
 ### Build & Test Commands
 
 ```bash
+# ⚠️ IMPORTANT: DO NOT pass `-w` after any of these commands. They should be run as-is from the workspace root.
 # Rebuild type declarations after changing shared packages
-# ⚠️ IMPORTANT: DO NOT pass `-w`, it will run the build in watch mode and block your terminal.
 pnpm build
 # Lint, fix imports, and check for type errors
-# ⚠️ IMPORTANT: DO NOT pass `-w`, it will run tsc in watch mode and block your terminal.
-pnpm check
-# Run tests
-# ⚠️ IMPORTANT: DO NOT pass `-w`, it will run vitest in watch mode and block your terminal. 
+pnpm lint
+# Run tests 
 pnpm test
+```
 
+### Sqlite Migrations
+```bash
 # Remember to generate migrations when changing database schema in packages/db
 pnpm db:generate # Drizzle migration generation
 pnpm db:migrate --name=descriptive-name # Run migrations against the database
+```
 
+### Start server
+```bash
 # Dev servers
 # If you need to start the servers in the background, you MUST use the `devctl` helper:
-devctl start      # Starts frontend/backend in the background
+devctl restart    # Restart both dev servers
 devctl status     # "running" | "stopped"
 devctl logs 100   # Show last n lines of dev server logs (default 30)
-devctl restart    # Restart both dev servers (this should not be necessary in most cases)
-devctl stop       # Stop both dev servers
 ```
 
 **⚠️ IMPORTANT - Regarding pnpm flags**
-- DO NOT use `-w` flags for any of these commands.
-  - If you're trying to run a command in a specific workspace, use `pnpm --filter=frontend build`.
-  - `-w` is not valid for pnpm and will instead trigger blocking watch mode which is not what you want.
-- DO NOT use `-s` either, it will suppress the output of the command which is unlikely to be helpful if you're trying to check for diagnostic errors.
+- DO NOT set `-w` flag for any of these commands. It will run the command in watch mode and block the Codex harness indefinitely.
+  - If you're trying to run a command against specific packages, try `pnpm --filter=backend --filter=db build`.
+  - If you're trying to run a command against the entire workspace, try `pnpm build` without any flags.
+- If you set `-s` and receive `sandbox exec error`, the error is misleading. Remove `-s` and try again to see the real error.
 
 ### Technical Choices
 
@@ -83,55 +85,54 @@ storyforge
 
 ## Code Style Guidelines
 
-- **TypeScript Code**:
-  - Strict mode enabled
-  - Explicit `any` usage is forbidden
-  - Casting via `as` is strongly discouraged
-    - Alternative: assertion guard functions (e.g. `assertIsCharacter(obj: unknown): asserts obj is Character`)
-      - Use `assertDefined` from utils instead of `!` operator
-    - Alternative: write a Zod schema and use `parse`/`safeParse`
-  - Minimize nested structures
-    - Use intermediate variables to make expressions clearer
-    - Return early to avoid deep nesting in functions
+- **Type soundness**:
+  - 🚫 Explicit `any` usage is FORBIDDEN
+  - 🚫 Type assertions (`as SomeType`) are FORBIDDEN
+    - Use an `asserts` guard: `function assertSomeType(value: unknown): asserts value is SomeType`, or...
+    - Use a type guard: `function isSomeType(value: unknown): value is SomeType`, or...
+    - Use Zod.
+  - 🚫 Non-null assertions (`!`) are FORBIDDEN
+    - Use Zod, `assertDefined` or an `asserts` guard.
 - **Classes and Interfaces**:
-    - Prefer modules and functions over classes
+  - Prefer modules and functions over classes
     - Polymorphism: use TS interfaces
     - Use classes only when you need to share state/behavior
-    - Never write a class that only contains static members
 - **Imports**:
-  - Run `pnpm check` (no flags) to automatically sort and remove unused imports
   - Never deep import from other packages
 - **Naming conventions**:
   - Files: kebab-case
   - Identifiers: camelCase for functions/variables, PascalCase for classes/components
-
-### Comments Policy
-
-When in doubt, skip the comment.
-
-- **Self-documenting code first** - Use expressive identifiers for functions and variables to make the code self-explanatory
-- **Comments must add value** - Do add comments for edge cases, workarounds, or solutions that don't follow the obvious path
-- **Use JSDoc for public APIs** - Document functions, classes, and interfaces that are at the boundary of your module
-  - Skip parameter/return type JSDoc if the name and type make it obvious
+- **Comments**:
+  - Do not leave comments that merely restate the code's behavior
+  - Only comment to note edge cases or to explain why a non-obvious implementation strategy was chosen 
+  - Use JSDoc for public APIs
+- **General**:
+  - Minimize nested structures
+    - Use intermediate variables to make expressions clearer
+    - Return early to avoid deep nesting in functions
+  - Look for patterns in existing code and follow them 
 
 ## Other Important Reminders
 
 ### BEFORE starting a task
 - You MUST examine files from adjacent features to get a sense of the overall project structure
 - You MUST check the `docs/` folder for anything that seems relevant to your feature, to better understand its architecture and design decisions
-- You SHOULD check for `types.ts` files nearby or in shared packages you'll rely on, to better understand their APIs
-- You MUST refer to package-specific AGENTS.md files for the app you're working in, if applicable:
-  - [Backend](apps/backend/AGENTS.md)
-  - [Frontend](apps/frontend/AGENTS.md)
+- You MUST check for `types.ts` files nearby or in shared packages you'll rely on, to better understand their APIs
 
 ### DURING work on a task
 - You MUST `pnpm build` any time you are making changes across packages
 - You MUST follow existing conventions and patterns as much as possible
-- You SHOULD run checks and address diagnostics incrementally; it will be easier than fixing dozens of errors at the end
-- You MUST run the build and check commands before a task can be considered finished
+- You MUST run `pnpm lint` and address diagnostics incrementally; it will be easier than fixing dozens of errors at the end
 - You MUST NOT use `any` casts (the linter will outright fail them)
+- You MUST run build/check commands before a task can be considered finished
 
 ### At ALL TIMES
 - You MUST NOT run any blocking commands. 
   - That includes watch mode! DO NOT add `-w` flags to any of the build or code quality commands.
   - If you think you want `-w` to filter the pnpm workspace, you actually want `--filter=package` instead
+
+---
+
+**IMPORTANT: The OpenAI Codex CLI harness tends to erroneously report ANY non-zero process exit code as 'sandbox exec error'.**
+
+This is a misleading message. It appears whenever a command exits with any non-0 status, which could simply be because your build or type checking or unit tests failed. The problem is almost never the sandbox unless you are trying to make a network request, so you can disregard this message.

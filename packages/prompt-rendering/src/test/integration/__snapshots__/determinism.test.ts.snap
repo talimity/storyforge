@@ -7,7 +7,7 @@ exports[`Determinism & Immutability > should maintain determinism with budget co
     "role": "system",
   },
   {
-    "content": "Respect this player intent: 
+    "content": "Respect this player intent: Continue the conversation between Alice and Bob while Charlie observes from the shadows
 Earlier events:
 Ch 5: The temple reveals its secrets, but at a cost that will change the relationship between all the characters forever.
 Ch 4: A betrayal within their group forces Alice and Bob to question who they can trust as they near the ancient temple.
