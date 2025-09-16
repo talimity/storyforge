@@ -6,16 +6,15 @@ import {
   Input,
   Separator,
   Stack,
-  Textarea,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createCharacterSchema } from "@storyforge/contracts";
-import type * as React from "react";
-import { useEffect } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { createCharacterSchema, focalPointSchema } from "@storyforge/contracts";
+import { useEffect, useState } from "react";
+import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
 import {
+  AutosizeTextarea,
   Button,
   Field,
   SelectContent,
@@ -26,6 +25,8 @@ import {
 } from "@/components/ui/index";
 import { useImageField } from "@/hooks/use-image-field";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
+import { getApiUrl } from "@/lib/get-api-url";
+import { AvatarCropDialog } from "./avatar-crop-dialog";
 import { CharacterImageField } from "./character-image-field";
 import { CharacterStartersEditor } from "./character-starters-editor";
 
@@ -42,6 +43,8 @@ const characterFormSchema = createCharacterSchema
     // removes ZodDefault for proper RHF control
     cardType: createCharacterSchema.shape.cardType.unwrap(),
     starters: createCharacterSchema.shape.starters.unwrap(),
+    // store an optional focal override in the form state (edit only)
+    portraitFocalPoint: focalPointSchema.optional(),
   });
 
 export type CharacterFormData = z.infer<typeof characterFormSchema>;
@@ -52,6 +55,10 @@ interface CharacterFormProps {
   onCancel: () => void;
   isSubmitting?: boolean;
   submitLabel?: string;
+  /** Full-size portrait URL for cropping dialog (original card image) */
+  portraitSrc?: string;
+  /** Character id for previewing server-side temporary avatar crops */
+  characterId?: string;
 }
 
 const cardTypeOptions = [
@@ -67,6 +74,8 @@ export function CharacterForm({
   onCancel,
   isSubmitting = false,
   submitLabel = "Save Character",
+  portraitSrc,
+  characterId,
 }: CharacterFormProps) {
   const methods = useForm<CharacterFormData>({
     resolver: zodResolver(characterFormSchema),
@@ -78,6 +87,7 @@ export function CharacterForm({
       starters: initialData?.starters || [],
       styleInstructions: initialData?.styleInstructions || "",
       imageDataUri: undefined, // keep existing image by default
+      portraitFocalPoint: initialData?.portraitFocalPoint,
     },
   });
   const {
@@ -94,12 +104,54 @@ export function CharacterForm({
     initialDisplayName: "Current Portrait",
   });
 
+  const [showCropDialog, setShowCropDialog] = useState(false);
+  const openCrop = () => setShowCropDialog(true);
+  const closeCrop = () => setShowCropDialog(false);
+
+  // Build a temporary avatar URL from server with focal override for immediate preview
+  const watchedFocal = useWatch({ control, name: "portraitFocalPoint" });
+  const baselineFocal = initialData?.portraitFocalPoint;
+  const nearlyEqual = (a: number, b: number, eps = 1e-6) => Math.abs(a - b) <= eps;
+  const isDifferentFocal = () => {
+    if (!watchedFocal) return false;
+    if (!baselineFocal) return true;
+    return !(
+      nearlyEqual(watchedFocal.x, baselineFocal.x) &&
+      nearlyEqual(watchedFocal.y, baselineFocal.y) &&
+      nearlyEqual(watchedFocal.w, baselineFocal.w) &&
+      nearlyEqual(watchedFocal.h, baselineFocal.h)
+    );
+  };
+
+  const buildOverrideAvatarUrl = () => {
+    const fp = watchedFocal;
+    if (!characterId || !portraitSrc || !fp || imageField.state.type !== "existing")
+      return undefined;
+    if (!isDifferentFocal()) return undefined;
+    const params = new URLSearchParams({
+      x: String(fp.x),
+      y: String(fp.y),
+      w: String(fp.w),
+      h: String(fp.h),
+      padding: "1.2",
+      size: "200",
+      cb: `${fp.x.toFixed(3)}-${fp.y.toFixed(3)}-${fp.w.toFixed(3)}-${fp.h.toFixed(3)}`,
+    });
+    const path = `/assets/characters/${characterId}/avatar?${params.toString()}`;
+    const url = getApiUrl(path);
+    return url ?? path;
+  };
+
+  const overridePreviewUrl = buildOverrideAvatarUrl();
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length > 0) {
       await imageField.handleFiles(files);
       // Sync RHF value (string data URI)
       setValue("imageDataUri", imageField.getSubmissionValue(), { shouldDirty: true });
+      // Clear any manual focal override when selecting a new image; server will re-detect
+      setValue("portraitFocalPoint", undefined, { shouldDirty: true });
     }
   };
 
@@ -150,6 +202,8 @@ export function CharacterForm({
                 isDisabled={isSubmitting}
                 onFileChange={handleFileChange}
                 onRemove={handleRemoveImage}
+                onAdjustCrop={portraitSrc ? openCrop : undefined}
+                overridePreviewUrl={overridePreviewUrl}
               />
 
               <Separator />
@@ -176,13 +230,12 @@ export function CharacterForm({
                   label="Description"
                   helperText="Provide a detailed description of the character"
                 >
-                  <Textarea
+                  <AutosizeTextarea
                     {...register("description")}
                     placeholder="Enter character description..."
-                    rows={4}
-                    autoresize
+                    minRows={4}
+                    maxRows={99}
                     disabled={isSubmitting}
-                    autoComplete="off"
                   />
                 </Field>
 
@@ -190,13 +243,11 @@ export function CharacterForm({
                   label="Style Instructions"
                   helperText="Optional: guidance to influence this character's writing style (tone, formatting, POV, etc.)"
                 >
-                  <Textarea
+                  <AutosizeTextarea
                     {...register("styleInstructions")}
                     placeholder="e.g., Speak in clipped sentences, use dry humor; avoid emojis."
-                    rows={4}
-                    autoresize
+                    minRows={4}
                     disabled={isSubmitting}
-                    autoComplete="off"
                   />
                 </Field>
 
@@ -261,6 +312,27 @@ export function CharacterForm({
           </form>
         </FormProvider>
       </Card.Root>
+
+      {/* Adjust Avatar Crop Dialog (edit only) */}
+      {portraitSrc && (
+        <AvatarCropDialog
+          isOpen={showCropDialog}
+          onOpenChange={({ open }) => (open ? openCrop() : closeCrop())}
+          src={portraitSrc}
+          initialFocal={
+            getValues("portraitFocalPoint") ?? {
+              x: 0.5,
+              y: 0.3,
+              w: 0.5,
+              h: 0.5,
+              c: 0,
+            }
+          }
+          onSave={(fp) => {
+            setValue("portraitFocalPoint", fp, { shouldDirty: true, shouldTouch: true });
+          }}
+        />
+      )}
 
       {/* Unsaved Changes Dialog */}
       <UnsavedChangesDialog

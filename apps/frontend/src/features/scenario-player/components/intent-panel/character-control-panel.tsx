@@ -1,5 +1,5 @@
-import { HStack, Stack, Text, Textarea } from "@chakra-ui/react";
-import { Avatar } from "@/components/ui/index";
+import { HStack, Stack, Text } from "@chakra-ui/react";
+import { AutosizeTextarea, Avatar } from "@/components/ui/index";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { getApiUrl } from "@/lib/get-api-url";
@@ -51,16 +51,13 @@ export function CharacterControlPanel({
         </Text>
       </HStack>
       <HStack gap={2} align="flex-end">
-        <Textarea
+        <AutosizeTextarea
           placeholder={
             selectedCharacterName
               ? `Enter ${selectedCharacterName}'s action or dialogue...`
               : "Select a character..."
           }
           variant="onContrast"
-          autoresize
-          rows={2}
-          maxH={40}
           value={inputText}
           onChange={(e) => onInputChange(e.target.value)}
           disabled={!selectedCharacterName}

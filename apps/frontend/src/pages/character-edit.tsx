@@ -70,6 +70,7 @@ export function CharacterEditPage() {
       starters: formData.starters,
       styleInstructions: formData.styleInstructions ?? undefined,
       imageDataUri: formData.imageDataUri,
+      portraitFocalPoint: formData.portraitFocalPoint,
     });
   };
 
@@ -122,6 +123,7 @@ export function CharacterEditPage() {
     cardType: character.cardType,
     styleInstructions: character.styleInstructions || "",
     imageDataUri: character.avatarPath ? getApiUrl(character.avatarPath) || undefined : undefined,
+    portraitFocalPoint: character.portraitFocalPoint,
     starters: character.starters.map((s) => ({
       id: s.id,
       message: s.message,
@@ -151,6 +153,12 @@ export function CharacterEditPage() {
           onCancel={handleCancel}
           isSubmitting={updateCharacterMutation.isPending}
           submitLabel="Update Character"
+          portraitSrc={
+            character.imagePath
+              ? (getApiUrl(character.imagePath) ?? character.imagePath)
+              : undefined
+          }
+          characterId={id}
         />
       </Container>
 

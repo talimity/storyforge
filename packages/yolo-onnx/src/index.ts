@@ -363,36 +363,39 @@ export async function cropByFocalPoint(
   // Face bounding-box (absolute px)
   const baseBox = focalPointToBox(focal, imgW, imgH);
 
-  // Initial crop size (apply padding)
-  let cropW = baseBox.width * padding;
-  let cropH = baseBox.height * padding;
+  const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-  if (square) {
-    const size = Math.max(cropW, cropH);
-    cropW = cropH = size;
-  }
-
-  // Centre the crop on the face
+  // Centre of face box
   const cx = baseBox.x + baseBox.width / 2;
   const cy = baseBox.y + baseBox.height / 2;
-  let left = Math.round(cx - cropW / 2);
-  let top = Math.round(cy - cropH / 2);
 
-  // Clamp to image bounds
-  if (left < 0) left = 0;
-  if (top < 0) top = 0;
-  if (left + cropW > imgW) left = imgW - cropW;
-  if (top + cropH > imgH) top = imgH - cropH;
+  // Compute crop rectangle ensuring it fits within the image BEFORE placing it
+  let extractW: number;
+  let extractH: number;
+  let left: number;
+  let top: number;
 
-  cropW = Math.min(cropW, imgW);
-  cropH = Math.min(cropH, imgH);
-
-  const extractW = Math.round(cropW);
-  const extractH = Math.round(cropH);
+  if (square) {
+    // Desired square size based on padded face box
+    const desired = Math.max(baseBox.width, baseBox.height) * padding;
+    // Cap to image bounds while remaining square
+    const size = Math.min(desired, imgW, imgH);
+    extractW = extractH = Math.round(size);
+    left = Math.round(clamp(cx - size / 2, 0, imgW - size));
+    top = Math.round(clamp(cy - size / 2, 0, imgH - size));
+  } else {
+    // Non-square crop: cap width/height independently
+    const w = Math.min(baseBox.width * padding, imgW);
+    const h = Math.min(baseBox.height * padding, imgH);
+    extractW = Math.round(w);
+    extractH = Math.round(h);
+    left = Math.round(clamp(cx - w / 2, 0, imgW - w));
+    top = Math.round(clamp(cy - h / 2, 0, imgH - h));
+  }
 
   let pipeline = sharp(imageInput).extract({
-    left: Math.round(left),
-    top: Math.round(top),
+    left,
+    top,
     width: extractW,
     height: extractH,
   });

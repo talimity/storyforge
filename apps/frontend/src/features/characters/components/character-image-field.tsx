@@ -8,6 +8,8 @@ interface CharacterImageFieldProps {
   isDisabled?: boolean;
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;
+  onAdjustCrop?: () => void;
+  overridePreviewUrl?: string;
 }
 
 export function CharacterImageField({
@@ -15,6 +17,8 @@ export function CharacterImageField({
   isDisabled = false,
   onFileChange,
   onRemove,
+  onAdjustCrop,
+  overridePreviewUrl,
 }: CharacterImageFieldProps) {
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
@@ -72,9 +76,9 @@ export function CharacterImageField({
       {imageField.hasImage && (
         <HStack p={4} layerStyle="surface" justify="space-between" align="center">
           <HStack gap={3}>
-            {imageField.getPreviewUrl() && (
+            {(overridePreviewUrl || imageField.getPreviewUrl()) && (
               <Image
-                src={imageField.getPreviewUrl() || undefined}
+                src={(overridePreviewUrl || imageField.getPreviewUrl()) ?? undefined}
                 alt="Portrait preview"
                 boxSize="120px"
                 borderRadius="md"
@@ -93,9 +97,16 @@ export function CharacterImageField({
             </VStack>
           </HStack>
           {!isDisabled && (
-            <Button size="sm" variant="ghost" onClick={onRemove}>
-              <LuX />
-            </Button>
+            <HStack gap={2}>
+              {onAdjustCrop && imageField.state.type === "existing" && (
+                <Button size="sm" variant="outline" onClick={onAdjustCrop}>
+                  Adjust Avatar Crop
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" onClick={onRemove}>
+                <LuX />
+              </Button>
+            </HStack>
           )}
         </HStack>
       )}

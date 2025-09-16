@@ -20,9 +20,9 @@
 │  │  │  │  │  └── workflows.ts
 │  │  │  │  ├── service-error-to-trpc.ts
 │  │  │  │  └── trpc-context.ts
+│  │  │  ├── clean-data.ts
 │  │  │  ├── config.ts
 │  │  │  ├── engine-error.ts
-│  │  │  ├── init-app.ts
 │  │  │  ├── logging.ts
 │  │  │  ├── main.ts
 │  │  │  ├── resources.ts
@@ -43,10 +43,13 @@
 │  │  │  │  │  ├── commands.ts
 │  │  │  │  │  ├── context-builder.ts
 │  │  │  │  │  ├── executors.ts
+│  │  │  │  │  ├── intent.queries.ts
 │  │  │  │  │  ├── intent.service.ts
 │  │  │  │  │  ├── run-manager.ts
 │  │  │  │  │  ├── runner.ts
-│  │  │  │  │  └── types.ts
+│  │  │  │  │  ├── types.ts
+│  │  │  │  │  └── utils
+│  │  │  │  │      └── intent-prompts.ts
 │  │  │  │  ├── provider
 │  │  │  │  │  ├── provider.queries.ts
 │  │  │  │  │  └── provider.service.ts
@@ -69,6 +72,7 @@
 │  │  │  │  │  ├── timeline.service.test.ts
 │  │  │  │  │  ├── timeline.service.ts
 │  │  │  │  │  └── utils
+│  │  │  │  │      ├── leaf.ts
 │  │  │  │  │      └── mutation-planner.ts
 │  │  │  │  ├── turn
 │  │  │  │  │  └── turn-content.service.ts
@@ -77,7 +81,8 @@
 │  │  │  │      ├── workflow-runner-manager.ts
 │  │  │  │      ├── workflow-scopes.service.ts
 │  │  │  │      ├── workflow.service.ts
-│  │  │  │      └── workflows.queries.ts
+│  │  │  │      ├── workflows.queries.ts
+│  │  │  │      └── workflow-test.service.ts
 │  │  │  ├── test
 │  │  │  │  ├── characters.integration.test.ts
 │  │  │  │  ├── fixtures.ts
@@ -122,6 +127,7 @@
 │      │  │      ├── select.tsx
 │      │  │      ├── split-button.tsx
 │      │  │      ├── switch.tsx
+│      │  │      ├── task-kind-select.tsx
 │      │  │      ├── toaster.tsx
 │      │  │      ├── toggle-tip.tsx
 │      │  │      └── tooltip.tsx
@@ -130,6 +136,7 @@
 │      │  │  │  ├── character-delete-dialog.tsx
 │      │  │  │  ├── character-import-dialog.tsx
 │      │  │  │  ├── components
+│      │  │  │  │  ├── avatar-crop-dialog.tsx
 │      │  │  │  │  ├── character-card.tsx
 │      │  │  │  │  ├── character-form.tsx
 │      │  │  │  │  ├── character-image-field.tsx
@@ -170,7 +177,7 @@
 │      │  │  ├── scenario-player
 │      │  │  │  ├── components
 │      │  │  │  │  ├── intent-panel
-│      │  │  │  │  │  ├── direct-control-panel.tsx
+│      │  │  │  │  │  ├── character-control-panel.tsx
 │      │  │  │  │  │  ├── generate-or-cancel-button.tsx
 │      │  │  │  │  │  ├── intent-panel.tsx
 │      │  │  │  │  │  ├── quick-actions-panel.tsx
@@ -179,6 +186,7 @@
 │      │  │  │  │  ├── player-shell.tsx
 │      │  │  │  │  ├── player-widget-sidebar.tsx
 │      │  │  │  │  ├── timeline
+│      │  │  │  │  │  ├── auto-follow-draft.tsx
 │      │  │  │  │  │  ├── character-starter-selector.tsx
 │      │  │  │  │  │  ├── draft-turn.tsx
 │      │  │  │  │  │  ├── turn-delete-dialog.tsx
@@ -192,18 +200,19 @@
 │      │  │  │  │      ├── tools-widget.tsx
 │      │  │  │  │      └── widget-panels.tsx
 │      │  │  │  ├── hooks
+│      │  │  │  │  ├── use-branch-preview.ts
 │      │  │  │  │  ├── use-intent-engine.ts
 │      │  │  │  │  ├── use-scenario-environment.ts
 │      │  │  │  │  ├── use-scenario-intent-actions.ts
 │      │  │  │  │  ├── use-scenario-timeline.ts
 │      │  │  │  │  ├── use-timeline-auto-load-more.ts
 │      │  │  │  │  ├── use-timeline-follow-output-mode.ts
-│      │  │  │  │  ├── use-timeline-follow-output.ts
 │      │  │  │  │  ├── use-timeline-initial-scroll-to-bottom.ts
 │      │  │  │  │  ├── use-timeline-keep-bottom-distance.ts
 │      │  │  │  │  └── use-turn-actions.ts
 │      │  │  │  ├── providers
-│      │  │  │  │  └── scenario-provider.tsx
+│      │  │  │  │  ├── scenario-provider.tsx
+│      │  │  │  │  └── timeline-scroll-provider.tsx
 │      │  │  │  └── stores
 │      │  │  │      ├── intent-run-store.ts
 │      │  │  │      └── scenario-player-store.ts
@@ -244,6 +253,7 @@
 │      │  │  │  │  ├── recipes
 │      │  │  │  │  │  └── turngen
 │      │  │  │  │  │      ├── characters-recipe.ts
+│      │  │  │  │  │      ├── intent-recipes.ts
 │      │  │  │  │  │      └── timeline-recipe.ts
 │      │  │  │  │  ├── slot-validation.ts
 │      │  │  │  │  └── template-conversion.ts
@@ -257,17 +267,30 @@
 │      │  │  │  │  ├── template-delete-dialog.tsx
 │      │  │  │  │  ├── template-duplicate-dialog.tsx
 │      │  │  │  │  ├── template-import-dialog.tsx
-│      │  │  │  │  └── template-list-item.tsx
+│      │  │  │  │  ├── template-list-item.tsx
+│      │  │  │  │  └── template-selector.tsx
 │      │  │  │  └── hooks
-│      │  │  │      └── use-template-actions.ts
+│      │  │  │      ├── use-template-actions.ts
+│      │  │  │      └── use-template-search.ts
 │      │  │  └── workflows
 │      │  │      ├── components
 │      │  │      │  ├── assignment-dialog.tsx
 │      │  │      │  ├── assignment-list.tsx
+│      │  │      │  ├── builder
+│      │  │      │  │  ├── json-editors.tsx
+│      │  │      │  │  ├── outputs-editor.tsx
+│      │  │      │  │  ├── schemas.ts
+│      │  │      │  │  ├── step-card.tsx
+│      │  │      │  │  ├── step-header-labels.tsx
+│      │  │      │  │  ├── steps-editor.tsx
+│      │  │      │  │  ├── transforms-editor.tsx
+│      │  │      │  │  ├── workflow-details.tsx
+│      │  │      │  │  ├── workflow-form.tsx
+│      │  │      │  │  └── workflow-preview.tsx
 │      │  │      │  ├── delete-assignment-dialog.tsx
 │      │  │      │  ├── delete-workflow-dialog.tsx
 │      │  │      │  ├── workflow-card.tsx
-│      │  │      │  ├── workflow-form.tsx
+│      │  │      │  ├── workflow-duplicate-dialog.tsx
 │      │  │      │  └── workflow-import-dialog.tsx
 │      │  │      └── hooks
 │      │  │          └── use-workflow-actions.ts
@@ -281,6 +304,7 @@
 │      │  │  ├── error-handling.ts
 │      │  │  ├── formatting.ts
 │      │  │  ├── get-api-url.ts
+│      │  │  ├── make-scenario-name.ts
 │      │  │  ├── non-bubbling-handler.ts
 │      │  │  ├── query-client.ts
 │      │  │  ├── trpc-react-provider.tsx
@@ -348,8 +372,6 @@
 │  ├── db
 │  │  ├── drizzle.config.ts
 │  │  ├── package.json
-│  │  ├── scripts
-│  │  │  └── db-query.ts
 │  │  ├── src
 │  │  │  ├── client.ts
 │  │  │  ├── config.ts
@@ -439,14 +461,18 @@
 │  │  │  ├── layout-assembler.ts
 │  │  │  ├── leaf-compiler.test.ts
 │  │  │  ├── leaf-compiler.ts
+│  │  │  ├── path-resolver.ts
 │  │  │  ├── plan-executor.test.ts
 │  │  │  ├── plan-executor.ts
 │  │  │  ├── renderer.test.ts
 │  │  │  ├── renderer.ts
+│  │  │  ├── reserved-sources.ts
 │  │  │  ├── response-transformer.test.ts
 │  │  │  ├── response-transformer.ts
 │  │  │  ├── schemas.test.ts
 │  │  │  ├── schemas.ts
+│  │  │  ├── scoped-registry.test.ts
+│  │  │  ├── scoped-registry.ts
 │  │  │  ├── slot-executor.test.ts
 │  │  │  ├── slot-executor.ts
 │  │  │  ├── source-linter.test.ts
@@ -477,6 +503,7 @@
 │  │  │  │      ├── budget-cutoff.test.ts
 │  │  │  │      ├── conditional-slots.test.ts
 │  │  │  │      ├── determinism.test.ts
+│  │  │  │      ├── reserved-sources-integration.test.ts
 │  │  │  │      ├── slot-priority.test.ts
 │  │  │  │      ├── __snapshots__
 │  │  │  │      │  ├── assistant-prefix.test.ts.snap
@@ -528,4 +555,4 @@
 ├── todos
 └── tsconfig.base.json
 
-108 directories, 421 files
+109 directories, 447 files

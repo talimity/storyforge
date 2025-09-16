@@ -38,6 +38,15 @@ export const createCharacterSchema = z.object({
     .default([]),
 });
 
+// Focal point (normalized 0..1) used for avatar cropping
+export const focalPointSchema = z.object({
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+  w: z.number().min(0).max(1),
+  h: z.number().min(0).max(1),
+  c: z.number().min(0).max(1), // confidence
+});
+
 export const updateCharacterSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1).optional(),
@@ -45,6 +54,8 @@ export const updateCharacterSchema = z.object({
   cardType: cardTypeSchema.optional(),
   imageDataUri: imageDataUriSchema.nullish(),
   styleInstructions: z.string().optional().nullable(),
+  // Allow overriding the portrait focal point without changing the portrait image
+  portraitFocalPoint: focalPointSchema.optional(),
   // Form-provided starters for update (optional)
   starters: z
     .array(
@@ -97,6 +108,7 @@ export const characterSchema = z.object({
   tavernCardData: z.any().nullable(),
   imagePath: z.string().nullable(),
   avatarPath: z.string().nullable(),
+  portraitFocalPoint: focalPointSchema, // exposed so edit UI can seed crop
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -165,3 +177,4 @@ export type CharacterAutocompleteInput = z.infer<typeof characterAutocompleteInp
 export type CharacterAutocompleteItem = z.infer<typeof characterAutocompleteItemSchema>;
 export type CharacterAutocompleteResponse = z.infer<typeof characterAutocompleteResponseSchema>;
 export type CharacterStarterInput = z.infer<typeof characterStarterInputSchema>;
+export type FocalPoint = z.infer<typeof focalPointSchema>;

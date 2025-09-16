@@ -188,7 +188,7 @@ export const charactersRouter = router({
     .output(characterSchema)
     .mutation(async ({ input, ctx }) => {
       const charaSvc = new CharacterService(ctx.db);
-      const { id, imageDataUri, starters, ...updates } = input;
+      const { id, imageDataUri, starters, portraitFocalPoint, ...updates } = input;
 
       // Map imageDataUri tri-state to DB updates:
       // - undefined: keep existing portrait
@@ -204,6 +204,7 @@ export const charactersRouter = router({
       const updatedCharacter = await charaSvc.updateCharacter(id, {
         ...updates,
         ...(imageUpdate ?? {}),
+        ...(portraitFocalPoint ? { portraitFocalPoint } : {}),
       });
 
       if (!updatedCharacter) {

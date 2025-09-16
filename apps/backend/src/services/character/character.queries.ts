@@ -1,5 +1,5 @@
 import { type SqliteDatabase, schema } from "@storyforge/db";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { getCharaAssetPaths } from "./utils/chara-asset-helpers.js";
 
@@ -31,7 +31,11 @@ export async function getCharacterDetail(db: SqliteDatabase, id: string) {
       .select()
       .from(tCharacterStarters)
       .where(eq(tCharacterStarters.characterId, id))
-      .orderBy(tCharacterStarters.isPrimary, tCharacterStarters.createdAt),
+      .orderBy(
+        desc(tCharacterStarters.isPrimary),
+        tCharacterStarters.createdAt,
+        tCharacterStarters.id
+      ),
     db
       .select()
       .from(tCharacterExamples)
@@ -65,7 +69,6 @@ export async function searchCharacters(
 ) {
   const { name, filterMode = "all", scenarioId } = filters;
 
-  // Validate scenarioId is provided when needed
   if (filterMode !== "all" && !scenarioId) {
     throw new ServiceError("InvalidInput", {
       message: "scenarioId is required when filterMode is not 'all'",

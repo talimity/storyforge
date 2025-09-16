@@ -283,7 +283,7 @@ PlayerShell                      // Layout shell with navigation
 ├── PlayerPage                   // Main player orchestrator
 │   ├── TurnHistory             // Timeline display with pagination
 │   └── IntentPanel             // Input management
-│       ├── DirectControlPanel  // Direct character control
+│       ├── CharacterControlPanel  // Direct character control
 │       ├── StoryConstraintsPanel // Story guidance
 │       └── QuickActionsPanel  // Quick action buttons
 └── PlayerWidgetSidebar         // Character/tool selector

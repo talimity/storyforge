@@ -1,4 +1,5 @@
 export * from "./action-bar";
+export * from "./autosize-textarea";
 export * from "./avatar";
 export * from "./button";
 export * from "./checkbox";

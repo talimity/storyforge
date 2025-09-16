@@ -109,9 +109,11 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
-      currentIntent: { kind: "turn_generation", description: "Test intent" },
+      nextTurnNumber: 1,
+      currentIntent: { kind: "turn_generation", prompt: "Test intent" },
       stepInputs: {},
       globals: {
+        isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
         scenario: "Test scenario",
@@ -195,12 +197,14 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      nextTurnNumber: 1,
       currentIntent: {
-        description: "Multi-step test",
+        prompt: "Multi-step test",
         kind: "turn_generation",
       },
       stepInputs: {},
       globals: {
+        isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
         scenario: "Test scenario",
@@ -256,9 +260,11 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
-      currentIntent: { description: "Transform test", kind: "turn_generation" },
+      nextTurnNumber: 1,
+      currentIntent: { prompt: "Transform test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
+        isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
         scenario: "Test scenario",
@@ -346,9 +352,11 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
-      currentIntent: { description: "Cancel test", kind: "turn_generation" },
+      nextTurnNumber: 1,
+      currentIntent: { prompt: "Cancel test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
+        isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
         scenario: "Test scenario",
@@ -426,9 +434,11 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
-      currentIntent: { description: "JSON test", kind: "turn_generation" },
+      nextTurnNumber: 1,
+      currentIntent: { prompt: "JSON test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
+        isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
         scenario: "Test scenario",
@@ -472,9 +482,11 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
-      currentIntent: { description: "Snapshot test", kind: "turn_generation" },
+      nextTurnNumber: 1,
+      currentIntent: { prompt: "Snapshot test", kind: "turn_generation" },
       stepInputs: {},
       globals: {
+        isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
         scenario: "Test scenario",
@@ -539,12 +551,14 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      nextTurnNumber: 1,
       currentIntent: {
-        description: "Stream return test",
+        prompt: "Stream return test",
         kind: "turn_generation",
       },
       stepInputs: {},
       globals: {
+        isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
         scenario: "Test scenario",
@@ -593,12 +607,14 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      nextTurnNumber: 1,
       currentIntent: {
-        description: "Transform event test",
+        prompt: "Transform event test",
         kind: "turn_generation",
       },
       stepInputs: {},
       globals: {
+        isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
         scenario: "Test scenario",

@@ -32,6 +32,7 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
       ? JSON.parse(JSON.stringify(dbCharacter.tavernCardData))
       : null,
     ...getCharaAssetPaths(dbCharacter),
+    portraitFocalPoint: dbCharacter.portraitFocalPoint,
     createdAt: sqliteTimestampToDate(dbCharacter.createdAt),
     updatedAt: sqliteTimestampToDate(dbCharacter.updatedAt),
   };
