@@ -1,4 +1,4 @@
-import { Box, Group, HStack, Menu, Portal, Stack, Text, Textarea } from "@chakra-ui/react";
+import { Box, Group, HStack, Menu, Portal, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
 import { memo, useCallback, useState } from "react";
 import {
@@ -15,7 +15,7 @@ import {
 } from "react-icons/lu";
 import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialog";
-import { Avatar, Button, Prose } from "@/components/ui/index";
+import { AutosizeTextarea, Avatar, Button, Prose } from "@/components/ui/index";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import {
@@ -132,7 +132,7 @@ function TurnItemImpl(props: TurnItemProps) {
                   <Button
                     size="xs"
                     variant="ghost"
-                    colorPalette="primary"
+                    colorPalette="green"
                     onClick={handleSave}
                     aria-label="Save changes"
                     disabled={isUpdating}
@@ -143,6 +143,7 @@ function TurnItemImpl(props: TurnItemProps) {
                   <Button
                     size="xs"
                     variant="ghost"
+                    colorPalette="red"
                     onClick={handleCancel}
                     aria-label="Cancel editing"
                     disabled={isUpdating}
@@ -260,12 +261,12 @@ function TurnItemImpl(props: TurnItemProps) {
             </HStack>
           </HStack>
           {isEditing ? (
-            <Textarea
+            <AutosizeTextarea
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
-              minH="100px"
+              minRows={2}
+              maxRows={50}
               autoFocus
-              autoresize
             />
           ) : (
             // TODO: Make maxW configurable
