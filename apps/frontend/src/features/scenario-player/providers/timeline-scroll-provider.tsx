@@ -10,7 +10,10 @@ export function TimelineScrollProvider({
   children: React.ReactNode;
 }) {
   // biome-ignore lint/correctness/useExhaustiveDependencies: memoize by function identity
-  const v = useMemo(() => value, [value.scrollToEnd, value.shouldAutoFollow]);
+  const v = useMemo(() => {
+    console.log("TimelineScrollProvider memo");
+    return value;
+  }, [value.scrollToEnd, value.shouldAutoFollow]);
   return <TimelineScrollContext.Provider value={v}>{children}</TimelineScrollContext.Provider>;
 }
 export function useTimelineScroll() {

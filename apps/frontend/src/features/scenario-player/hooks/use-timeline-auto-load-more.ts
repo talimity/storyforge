@@ -5,19 +5,19 @@ type Args = {
   items: VirtualItem[];
   hasNextPage?: boolean;
   onLoadMore?: () => Promise<unknown>;
-  initialDataReceivedRef: React.RefObject<boolean>;
+  initialDataReceived: boolean;
 };
 
 export function useTimelineAutoLoadMore({
   items,
   hasNextPage,
   onLoadMore,
-  initialDataReceivedRef,
+  initialDataReceived,
 }: Args) {
   const lockRef = useRef(false);
   useEffect(() => {
     if (!hasNextPage || !onLoadMore) return; // no more data or no load more handler
-    if (!initialDataReceivedRef.current) return; // wait for initial data
+    if (!initialDataReceived) return; // wait for initial data
 
     const first = items.at(0);
     const atTop = first?.key === "header";
@@ -29,5 +29,5 @@ export function useTimelineAutoLoadMore({
           lockRef.current = false;
         });
     }
-  }, [items, hasNextPage, onLoadMore, initialDataReceivedRef]);
+  }, [items, hasNextPage, onLoadMore, initialDataReceived]);
 }

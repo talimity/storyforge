@@ -4,8 +4,8 @@ import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useMemo, useRef } from "react";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-turn";
+import { TimelineTurnRow } from "@/features/scenario-player/components/timeline/timeline-turn-row";
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
-import { TurnItem } from "@/features/scenario-player/components/timeline/turn-item";
 import { useTimelineAutoLoadMore } from "@/features/scenario-player/hooks/use-timeline-auto-load-more";
 import { useTimelineFollowOutputMode } from "@/features/scenario-player/hooks/use-timeline-follow-output-mode";
 import { useTimelineInitialScrollToBottom } from "@/features/scenario-player/hooks/use-timeline-initial-scroll-to-bottom";
@@ -67,6 +67,13 @@ export function VirtualizedTimeline(props: TimelineProps) {
   // If a run is diverging from the current branch at a specific turn,
   // temporarily hide everything *after* that turn so DraftTurn appears at the correct place.
   const run = useIntentRunsStore(selectCurrentRun);
+  const runsById = useIntentRunsStore((s) => s.runsById);
+  const activeIntentIds = useMemo(() => {
+    const ids = Object.values(runsById)
+      .filter((intentRun) => intentRun.status === "pending" || intentRun.status === "running")
+      .map((intentRun) => intentRun.id);
+    return new Set(ids);
+  }, [runsById]);
   const cutoffId = run?.truncateAfterTurnId ?? null;
   const visibleTurns = useMemo(() => {
     if (!cutoffId) return turns;
@@ -81,7 +88,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
     count: virtualCount,
     getScrollElement: () => scrollerRef.current,
     estimateSize: () => 400,
-    overscan: 3,
+    overscan: 5,
     rangeExtractor: (range) => {
       const base = defaultRangeExtractor(range);
       if (!editingTurnId) return base;
@@ -106,16 +113,20 @@ export function VirtualizedTimeline(props: TimelineProps) {
     },
   });
   const items = v.getVirtualItems();
-
-  // set up scrolling and auto-load behaviors
-  const { initialDataReceivedRef } = useTimelineInitialScrollToBottom({ virtualizer: v, turns });
-  const { handleChange } = useTimelineKeepBottomDistance({ virtualizer: v, turns });
-  const { shouldAutoFollow } = useTimelineFollowOutputMode({ virtualizer: v, scrollerRef });
-  useTimelineAutoLoadMore({ initialDataReceivedRef, items, onLoadMore, hasNextPage });
-
   const scrollToEnd = useCallback(() => {
     v.scrollBy(Number.MAX_SAFE_INTEGER, { align: "end" });
   }, [v]);
+
+  // set up scrolling and auto-load behaviors
+  const initialDataReceived = useTimelineInitialScrollToBottom({ virtualizer: v, turns });
+  const { handleChange } = useTimelineKeepBottomDistance({ virtualizer: v, turns });
+  const { shouldAutoFollow } = useTimelineFollowOutputMode({ virtualizer: v, scrollerRef });
+  useTimelineAutoLoadMore({ initialDataReceived, items, onLoadMore, hasNextPage });
+
+  const scrollContext = useMemo(
+    () => ({ scrollToEnd, shouldAutoFollow }),
+    [scrollToEnd, shouldAutoFollow]
+  );
 
   if (isPending) {
     return (
@@ -143,7 +154,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
           py={{ base: 4, md: 6 }}
           data-testid="timeline-virtual-list"
         >
-          <TimelineScrollProvider value={{ scrollToEnd, shouldAutoFollow }}>
+          <TimelineScrollProvider value={scrollContext}>
             {items.map((row) => {
               const isHeader = row.key === "header";
               const isFooter = row.key === "footer";
@@ -155,6 +166,8 @@ export function VirtualizedTimeline(props: TimelineProps) {
                   key={row.key}
                   data-index={row.index}
                   ref={v.measureElement}
+                  px={2}
+                  pb={2}
                   style={{
                     position: "absolute",
                     top: 0,
@@ -163,32 +176,33 @@ export function VirtualizedTimeline(props: TimelineProps) {
                     transform: `translateY(${row.start}px)`,
                   }}
                 >
-                  <Box px={2} pb={2}>
-                    {isHeader ? (
-                      <TimelineHeader
-                        scenarioTitle={scenarioTitle}
-                        chapterTitle={chapterTitle}
-                        isFetching={isFetching}
-                      />
-                    ) : isEmpty ? (
-                      <TimelineEmptyState
-                        scenarioId={scenarioId}
-                        onStarterSelect={onStarterSelect}
-                        isPending={isPending}
-                        turns={turns}
-                      />
-                    ) : isFooter ? (
-                      <TimelineFooter />
-                    ) : (
-                      <TurnItem
-                        turn={visibleTurns[rowIdx]}
-                        onDelete={handleDeleteTurn}
-                        onEdit={handleEditTurn}
-                        onRetry={handleRetryTurn}
-                        isUpdating={editingTurnId === row.key && isUpdating}
-                      />
-                    )}
-                  </Box>
+                  {isHeader ? (
+                    <TimelineHeader
+                      scenarioTitle={scenarioTitle}
+                      chapterTitle={chapterTitle}
+                      isFetching={isFetching}
+                    />
+                  ) : isEmpty ? (
+                    <TimelineEmptyState
+                      scenarioId={scenarioId}
+                      onStarterSelect={onStarterSelect}
+                      isPending={isPending}
+                      turns={turns}
+                    />
+                  ) : isFooter ? (
+                    <TimelineFooter />
+                  ) : (
+                    <TimelineTurnRow
+                      turn={visibleTurns[rowIdx]}
+                      prevTurn={rowIdx > 0 ? visibleTurns[rowIdx - 1] : null}
+                      nextTurn={rowIdx < visibleTurns.length - 1 ? visibleTurns[rowIdx + 1] : null}
+                      onDelete={handleDeleteTurn}
+                      onEdit={handleEditTurn}
+                      onRetry={handleRetryTurn}
+                      isUpdating={editingTurnId === row.key && isUpdating}
+                      activeIntentIds={activeIntentIds}
+                    />
+                  )}
                 </Box>
               );
             })}

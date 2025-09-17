@@ -32,5 +32,5 @@ export function useTimelineInitialScrollToBottom<
     }, 100);
   }, [turns.length, virtualizer]);
 
-  return { initialDataReceivedRef };
+  return initialDataReceivedRef.current;
 }

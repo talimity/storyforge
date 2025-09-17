@@ -1,4 +1,6 @@
 import {
+  addTurnInputSchema,
+  addTurnOutputSchema,
   createIntentInputSchema,
   createIntentOutputSchema,
   environmentInputSchema,
@@ -14,6 +16,7 @@ import {
   resolveLeafOutputSchema,
   switchTimelineInputSchema,
   switchTimelineOutputSchema,
+  updateTurnContentInputSchema,
 } from "@storyforge/contracts";
 import { sqliteTimestampToDate } from "@storyforge/db";
 import { z } from "zod";
@@ -366,16 +369,8 @@ export const playRouter = router({
           "Creates a new turn in the scenario without triggering a generation workflow or creating an intent.",
       },
     })
-    .input(
-      z.object({
-        scenarioId: z.string(),
-        text: z.string(),
-        authorParticipantId: z.string(),
-        chapterId: z.string(),
-        parentTurnId: z.string().optional(),
-      })
-    )
-    .output(z.object({ newTurnId: z.string() }))
+    .input(addTurnInputSchema)
+    .output(addTurnOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const turnGraph = new TimelineService(ctx.db);
       const turn = await turnGraph.advanceTurn({
@@ -383,7 +378,7 @@ export const playRouter = router({
         authorParticipantId: input.authorParticipantId,
         layers: [{ key: "presentation", content: input.text }],
       });
-      return { newTurnId: turn.id };
+      return { turnId: turn.id };
     }),
 
   deleteTurn: publicProcedure
@@ -417,13 +412,7 @@ export const playRouter = router({
         summary: "Updates a turn's content by layer",
       },
     })
-    .input(
-      z.object({
-        turnId: z.string(),
-        layer: z.string().default("presentation"),
-        content: z.string(),
-      })
-    )
+    .input(updateTurnContentInputSchema)
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
       const { turnId, layer, content } = input;

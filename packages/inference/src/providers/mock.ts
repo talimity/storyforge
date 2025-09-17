@@ -75,7 +75,7 @@ export class MockAdapter extends ProviderAdapter {
           wordsPerChunk: 5,
         },
         "mock-slow": {
-          text: "This is a deliberately slow mock response to simulate high-latency scenarios and test timeout handling.",
+          text: "This is a deliberately slow mock response to simulate high-latency scenarios and test timeout handling. It will take a few seconds to complete. Here's a long response to make sure the delay is working correctly. This response is also a bit longer than the default chunk size, so you can see how the delay is applied to each chunk.",
           delay: 1500,
           chunkDelay: 200,
           wordsPerChunk: 1,

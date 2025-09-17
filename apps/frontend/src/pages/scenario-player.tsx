@@ -88,7 +88,12 @@ export function PlayerPage() {
     const actor = participants.find((p) => p.characterId === characterId);
     const chapter = chapters[0];
     if (!actor || !chapter) return;
-    await addTurn(scenario.id, message, actor.id, chapter.id);
+    await addTurn({
+      scenarioId: scenario.id,
+      text: message,
+      authorParticipantId: actor.id,
+      chapterId: chapter.id,
+    });
   };
 
   const timeline = (

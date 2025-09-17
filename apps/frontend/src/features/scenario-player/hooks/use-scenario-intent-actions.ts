@@ -1,54 +1,21 @@
-import type { createIntentInputSchema } from "@storyforge/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { z } from "zod";
-import { useTRPC } from "@/lib/trpc";
+import { useCallback } from "react";
 
-type CreateIntentInput = z.infer<typeof createIntentInputSchema>;
+import { useTRPC } from "@/lib/trpc";
 
 export function useScenarioIntentActions() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-
-  const createIntentMutation = useMutation(
-    trpc.play.createIntent.mutationOptions({
-      onSuccess: (_data) => {
-        queryClient.invalidateQueries(trpc.play.timeline.pathFilter());
-        queryClient.invalidateQueries(trpc.play.environment.pathFilter());
-      },
-    })
+  const invalidate = useCallback(() => {
+    queryClient.invalidateQueries(trpc.play.timeline.pathFilter());
+    queryClient.invalidateQueries(trpc.play.environment.pathFilter());
+  }, [queryClient, trpc]);
+  const { mutateAsync: createIntent, isPending: isCreatingIntent } = useMutation(
+    trpc.play.createIntent.mutationOptions({ onSuccess: invalidate })
+  );
+  const { mutateAsync: addTurn, isPending: isAddingTurn } = useMutation(
+    trpc.play.addTurn.mutationOptions({ onSuccess: invalidate })
   );
 
-  const addTurnMutation = useMutation(
-    trpc.play.addTurn.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(trpc.play.timeline.pathFilter());
-        queryClient.invalidateQueries(trpc.play.environment.pathFilter());
-      },
-    })
-  );
-
-  const createIntent = async (input: CreateIntentInput) => {
-    return createIntentMutation.mutateAsync(input);
-  };
-
-  const addTurn = async (
-    scenarioId: string,
-    text: string,
-    authorParticipantId: string,
-    chapterId: string
-  ) => {
-    return addTurnMutation.mutateAsync({
-      scenarioId,
-      text,
-      authorParticipantId,
-      chapterId,
-    });
-  };
-
-  return {
-    createIntent,
-    addTurn,
-    isCreatingIntent: createIntentMutation.isPending,
-    isAddingTurn: addTurnMutation.isPending,
-  };
+  return { createIntent, addTurn, isCreatingIntent, isAddingTurn };
 }

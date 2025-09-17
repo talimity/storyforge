@@ -10,7 +10,7 @@ import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenar
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-export interface UseTurnActionsOptions {
+interface UseTurnActionsOptions {
   onTurnDeleted?: () => void;
   onTurnUpdated?: () => void;
 }
@@ -19,20 +19,15 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
   const trpc = useTRPC();
   const { onTurnDeleted, onTurnUpdated } = options;
   const qc = useQueryClient();
-
-  const [turnToDelete, setTurnToDelete] = useState<{
-    id: string;
-    cascade: boolean;
-  } | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { scenario } = useScenarioContext();
+  const [turnToDelete, setTurnToDelete] = useState<{ id: string; cascade: boolean } | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
   const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
   const startRun = useIntentRunsStore((s) => s.startRun);
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const { createIntent } = useScenarioIntentActions();
-
-  const deleteTurnMutation = useMutation(
+  const { mutate: deleteTurn, isPending: isDeleting } = useMutation(
     trpc.play.deleteTurn.mutationOptions({
       onSuccess: () => {
         showSuccessToast({
@@ -48,8 +43,7 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
       },
     })
   );
-
-  const updateTurnContentMutation = useMutation(
+  const { mutate: editTurn, isPending: isUpdating } = useMutation(
     trpc.play.updateTurnContent.mutationOptions({
       onSuccess: () => {
         showSuccessToast({ title: "Turn updated", description: "Changes saved." });
@@ -66,12 +60,9 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
 
   const handleConfirmDelete = useCallback(() => {
     if (turnToDelete) {
-      deleteTurnMutation.mutate({
-        turnId: turnToDelete.id,
-        cascade: turnToDelete.cascade,
-      });
+      deleteTurn({ turnId: turnToDelete.id, cascade: turnToDelete.cascade });
     }
-  }, [turnToDelete, deleteTurnMutation]);
+  }, [turnToDelete, deleteTurn]);
 
   const handleCancelDelete = useCallback(() => {
     setShowDeleteDialog(false);
@@ -79,10 +70,8 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
   }, []);
 
   const handleEditTurn = useCallback(
-    (turnId: string, content: string) => {
-      updateTurnContentMutation.mutate({ turnId, layer: "presentation", content });
-    },
-    [updateTurnContentMutation]
+    async (turnId: string, content: string) => editTurn({ turnId, content }),
+    [editTurn]
   );
 
   const handleRetryTurn = useCallback(
@@ -95,18 +84,18 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
       });
       startRun({ intentId, scenarioId: scenario.id, kind: "continue_story" });
     },
-    [isGenerating, scenario.id, createIntent, startRun]
+    [isGenerating, createIntent, scenario.id, startRun]
   );
 
   return {
     // Delete state
     turnToDelete,
     showDeleteDialog,
-    isDeleting: deleteTurnMutation.isPending,
+    isDeleting,
 
     // Edit state
     editingTurnId,
-    isUpdating: updateTurnContentMutation.isPending,
+    isUpdating,
 
     // Delete handlers
     handleDeleteTurn,

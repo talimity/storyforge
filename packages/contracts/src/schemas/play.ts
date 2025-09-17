@@ -141,6 +141,22 @@ export const loadTimelineOutputSchema = z.object({
   timelineDepth: z.number().describe("Number of turns in the timeline from root to the leaf"),
 });
 
+export const addTurnInputSchema = z.object({
+  scenarioId: z.string(),
+  text: z.string(),
+  authorParticipantId: z.string(),
+  chapterId: z.string(),
+  parentTurnId: z.string().optional(),
+});
+
+export const addTurnOutputSchema = z.object({ turnId: z.string() });
+
+export const updateTurnContentInputSchema = z.object({
+  turnId: z.string(),
+  layer: z.string().default("presentation"),
+  content: z.string(),
+});
+
 // Intent API schemas
 export const createIntentInputSchema = z.object({
   scenarioId: z.string(),
@@ -151,19 +167,6 @@ export const createIntentInputSchema = z.object({
     .describe(
       "Optionally creates a branching point by applying the intent's effects to a specified parent turn, or to the same parent of a previously-created intent"
     ),
-  // TODO: still need to think through these modes more
-  // constraint: z
-  //   .object({
-  //     type: z.enum(["plot", "character", "tone", "pace"]),
-  //     strength: z.number().min(0).max(100).default(50),
-  //   })
-  //   .optional(),
-  // quickAction: z
-  //   .object({
-  //     type: z.enum(["plot_twist", "surprise_me", "jump_ahead", "focus_on"]),
-  //     targetCharacterId: z.string().optional(),
-  //   })
-  //   .optional(),
 });
 export const createIntentOutputSchema = z.object({ intentId: z.string() });
 
@@ -220,6 +223,9 @@ export type EnvironmentOutput = z.infer<typeof environmentOutputSchema>;
 export type LoadTimelineInput = z.infer<typeof loadTimelineInputSchema>;
 export type LoadTimelineOutput = z.infer<typeof loadTimelineOutputSchema>;
 export type TimelineTurn = z.infer<typeof timelineTurnSchema>;
+export type AddTurnInput = z.infer<typeof addTurnInputSchema>;
+export type AddTurnOutput = z.infer<typeof addTurnOutputSchema>;
+export type UpdateTurnContentInput = z.infer<typeof updateTurnContentInputSchema>;
 export type CreateIntentInput = z.infer<typeof createIntentInputSchema>;
 export type CreateIntentOutput = z.infer<typeof createIntentOutputSchema>;
 export type Intent = z.infer<typeof intentSchema>;
