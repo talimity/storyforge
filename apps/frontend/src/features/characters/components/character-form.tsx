@@ -40,7 +40,6 @@ const characterFormSchema = createCharacterSchema
     imageDataUri: true,
   })
   .extend({
-    // removes ZodDefault for proper RHF control
     cardType: createCharacterSchema.shape.cardType.unwrap(),
     starters: createCharacterSchema.shape.starters.unwrap(),
     // store an optional focal override in the form state (edit only)
@@ -133,7 +132,7 @@ export function CharacterForm({
       y: String(fp.y),
       w: String(fp.w),
       h: String(fp.h),
-      padding: "1.2",
+      padding: "1.1",
       size: "200",
       cb: `${fp.x.toFixed(3)}-${fp.y.toFixed(3)}-${fp.w.toFixed(3)}-${fp.h.toFixed(3)}`,
     });
@@ -319,15 +318,7 @@ export function CharacterForm({
           isOpen={showCropDialog}
           onOpenChange={({ open }) => (open ? openCrop() : closeCrop())}
           src={portraitSrc}
-          initialFocal={
-            getValues("portraitFocalPoint") ?? {
-              x: 0.5,
-              y: 0.3,
-              w: 0.5,
-              h: 0.5,
-              c: 0,
-            }
-          }
+          initialFocal={getValues("portraitFocalPoint") ?? { x: 0.5, y: 0.3, w: 0.5, h: 0.5, c: 0 }}
           onSave={(fp) => {
             setValue("portraitFocalPoint", fp, { shouldDirty: true, shouldTouch: true });
           }}

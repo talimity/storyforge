@@ -97,15 +97,16 @@ export function CharacterLibraryPage() {
         (viewMode === "grid" ? (
           <Grid
             templateColumns={{
-              base: "repeat(auto-fill, 240px)",
-              sm: "repeat(auto-fill, 240px)",
-              md: "repeat(auto-fill, 240px)",
-              lg: "repeat(auto-fill, 240px)",
+              base: "repeat(auto-fit, minmax(130px, 1fr))",
+              sm: "repeat(auto-fit, minmax(165px, 1fr))",
+              md: "repeat(auto-fit, minmax(180px, 1fr))",
+              lg: "repeat(auto-fit, minmax(220px, 1fr))",
+              "2xl": "repeat(auto-fill, 250px)",
             }}
             gap={4}
             justifyContent="start"
           >
-            {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
+            {Array.from({ length: 12 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
               <CharacterCardSkeleton key={skeletonId} />
             ))}
           </Grid>
@@ -141,7 +142,17 @@ export function CharacterLibraryPage() {
       {charactersQuery.data &&
         charactersQuery.data.characters.length > 0 &&
         (viewMode === "grid" ? (
-          <Grid templateColumns="repeat(auto-fit, 240px)" justifyContent="center" gap={4}>
+          <Grid
+            templateColumns={{
+              base: "repeat(auto-fit, minmax(130px, 1fr))",
+              sm: "repeat(auto-fit, minmax(165px, 1fr))",
+              md: "repeat(auto-fit, minmax(180px, 1fr))",
+              lg: "repeat(auto-fit, minmax(220px, 1fr))",
+              "2xl": "repeat(auto-fill, 250px)",
+            }}
+            justifyContent="center"
+            gap={4}
+          >
             {charactersQuery.data.characters.map((character) => (
               <CharacterCard
                 key={character.id}
@@ -152,13 +163,7 @@ export function CharacterLibraryPage() {
             ))}
           </Grid>
         ) : (
-          <Grid
-            templateColumns={{
-              base: "1fr",
-              md: "repeat(2, 1fr)",
-            }}
-            gap={3}
-          >
+          <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3}>
             {charactersQuery.data.characters.map((character) => (
               <CompactCharacterCard
                 key={character.id}

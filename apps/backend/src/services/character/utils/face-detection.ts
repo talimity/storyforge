@@ -57,7 +57,7 @@ export async function getCharaAvatarCrop(
   focal: { x: number; y: number; w: number; h: number },
   options: CropResultOptions = {
     outputSize: 200,
-    padding: 1.2,
+    padding: 1.1,
     allowUpscale: true,
   }
 ): Promise<Buffer> {

@@ -11,7 +11,7 @@ const {
 } = schema;
 
 export async function listCharacters(db: SqliteDatabase) {
-  return db.select().from(tCharacters).all();
+  return db.select().from(tCharacters).orderBy(tCharacters.cardType, tCharacters.name).all();
 }
 
 export async function getCharacters(db: SqliteDatabase, ids: string[]) {

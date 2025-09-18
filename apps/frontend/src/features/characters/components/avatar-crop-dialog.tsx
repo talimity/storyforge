@@ -5,7 +5,7 @@ import "react-image-crop/dist/ReactCrop.css";
 import type { FocalPoint } from "@storyforge/contracts";
 import { Button, Dialog } from "@/components/ui";
 
-const PADDING = 1.2; // must match server crop padding
+const PADDING = 1.1; // must match server crop padding
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));

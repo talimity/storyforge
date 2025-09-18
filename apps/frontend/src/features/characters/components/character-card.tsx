@@ -54,7 +54,7 @@ export function CharacterCard({
   return (
     <>
       <Card.Root
-        width="240px"
+        maxW="300px"
         layerStyle="surface"
         _hover={!readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined}
         className={readOnly ? undefined : "group"}
@@ -161,7 +161,7 @@ export function CharacterCard({
 
 export function CharacterCardSkeleton() {
   return (
-    <Card.Root width="240px" variant="outline" overflow="hidden">
+    <Card.Root maxW="300px" variant="outline" overflow="hidden">
       <Skeleton aspectRatio={2 / 3} />
       <Card.Body p={3}>
         <Skeleton height="5" width="70%" />

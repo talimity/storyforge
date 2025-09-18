@@ -287,11 +287,7 @@ export function focalPointToBox(
 export interface CropResultOptions {
   /**
    * Padding multiplier for the crop box.
-   * - 1.0 = exact face box (very tight)
-   * - 1.2 = 20% padding (tight portrait crop)
-   * - 1.5 = 50% padding (comfortable portrait)
-   * - 2.0 = 100% padding (wide portrait)
-   * Default: 1.5
+   * Default: 1.2
    */
   padding?: number;
   /**
@@ -345,7 +341,7 @@ export async function cropByFocalPoint(
   imageInput: sharp.SharpInput,
   focal: Pick<FocalPoint, "x" | "y" | "width" | "height">,
   {
-    padding = 1.5,
+    padding = 1.2,
     square = true,
     minSize,
     maxSize,
