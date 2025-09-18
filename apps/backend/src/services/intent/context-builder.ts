@@ -134,7 +134,10 @@ export class IntentContextBuilder {
     );
 
     // TODO: Make narrator name configurable
-    const currentActorName = actorIsNarrator ? "Narrator" : proxyCandidates.at(-1)?.name;
+    const currentActorName = actorIsNarrator
+      ? "Narrator"
+      : data.find((chara) => chara.participantId === actorParticipantId)?.name;
+
     // DB constraints and invariants should ensure neither of these are null
     assertDefined(currentActorName, "Actor character not found");
     assertDefined(userProxyName, "No fallback player proxy character found");

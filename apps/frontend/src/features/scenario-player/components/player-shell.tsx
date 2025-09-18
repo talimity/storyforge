@@ -99,7 +99,7 @@ function PlayerShellInner() {
       </Flex>
 
       {/* Main Layout */}
-      <Flex flex="1" overflow="hidden" data-testid="player-shell-content-wrapper">
+      <Flex flex="1" overflow="hidden" data-testid="player-shell-content">
         {/* Desktop Widget Sidebar */}
         <Show when={!isMobile}>
           <PlayerWidgetSidebar
@@ -135,12 +135,12 @@ function PlayerShellInner() {
         <Box
           as="main"
           flex="1"
-          minH="0" // allow content to shrink to fit
+          minH="0"
           layerStyle="surface"
           borderRadius="0"
           borderTopLeftRadius={isMobile ? "0" : "sm"}
           boxShadow="inset 0 0 8px rgba(0, 0, 0, 0.1)"
-          data-testid="player-shell-content"
+          data-testid="player-shell-main"
         >
           <Outlet />
         </Box>

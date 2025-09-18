@@ -1,4 +1,4 @@
-import { Box, Heading, Text } from "@chakra-ui/react";
+import { Box, Heading, Text, useBreakpointValue, useToken } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useMemo, useRef } from "react";
@@ -16,6 +16,8 @@ import {
   selectCurrentRun,
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
+
+const LIST_PADDING_Y_BREAKPOINTS = { base: 4, md: 6 };
 
 interface TimelineProps {
   scenarioId: string;
@@ -88,7 +90,8 @@ export function VirtualizedTimeline(props: TimelineProps) {
     count: virtualCount,
     getScrollElement: () => scrollerRef.current,
     estimateSize: () => 400,
-    overscan: 5,
+    overscan: 10,
+    // rangeExtractor lets us manually render items outside of the visible range
     rangeExtractor: (range) => {
       const base = defaultRangeExtractor(range);
       if (!editingTurnId) return base;
@@ -123,9 +126,28 @@ export function VirtualizedTimeline(props: TimelineProps) {
   const { shouldAutoFollow } = useTimelineFollowOutputMode({ virtualizer: v, scrollerRef });
   useTimelineAutoLoadMore({ initialDataReceived, items, onLoadMore, hasNextPage });
 
-  const scrollContext = useMemo(
-    () => ({ scrollToEnd, shouldAutoFollow }),
-    [scrollToEnd, shouldAutoFollow]
+  // micro-optimizations/placebos
+  // we can't avoid re-rendering react-virtualizer while scrolling, so we want
+  // to use plain divs instead of chakra Boxes to save a few ms of emotionjs
+  // cost, which requires resolving theme variables for our style object
+  const pyKey = useBreakpointValue(LIST_PADDING_Y_BREAKPOINTS) ?? 0;
+  const [py] = useToken("space", [String(pyKey)]);
+  const [maxW] = useToken("sizes", ["3xl"]);
+  const totalSize = v.getTotalSize();
+  const scrollerStyles = useMemo(
+    () => ({
+      container: { overflowY: "auto", contain: "content", height: "100%" } as const,
+      list: {
+        height: `${totalSize}px`,
+        width: "100%",
+        position: "relative" as const,
+        paddingTop: py,
+        paddingBottom: py,
+        marginInline: "auto",
+        maxWidth: maxW,
+      } as const,
+    }),
+    [totalSize, py, maxW]
   );
 
   if (isPending) {
@@ -138,23 +160,9 @@ export function VirtualizedTimeline(props: TimelineProps) {
 
   return (
     <>
-      <Box
-        ref={scrollerRef}
-        style={{ overflowY: "auto", contain: "true", height: "100%" }}
-        data-testid="timeline-scroller"
-      >
-        <Box
-          style={{
-            height: `${v.getTotalSize()}px`,
-            width: "100%",
-            position: "relative",
-          }}
-          mx="auto"
-          maxW="3xl"
-          py={{ base: 4, md: 6 }}
-          data-testid="timeline-virtual-list"
-        >
-          <TimelineScrollProvider value={scrollContext}>
+      <div ref={scrollerRef} style={scrollerStyles.container} data-testid="timeline-scroller">
+        <div style={scrollerStyles.list} data-testid="timeline-virtual-list">
+          <TimelineScrollProvider value={{ scrollToEnd, shouldAutoFollow }}>
             {items.map((row) => {
               const isHeader = row.key === "header";
               const isFooter = row.key === "footer";
@@ -162,12 +170,10 @@ export function VirtualizedTimeline(props: TimelineProps) {
               const rowIdx = row.index - 1 - (includeEmptyState ? 1 : 0);
 
               return (
-                <Box
+                <div
                   key={row.key}
                   data-index={row.index}
                   ref={v.measureElement}
-                  px={2}
-                  pb={2}
                   style={{
                     position: "absolute",
                     top: 0,
@@ -203,20 +209,22 @@ export function VirtualizedTimeline(props: TimelineProps) {
                       activeIntentIds={activeIntentIds}
                     />
                   )}
-                </Box>
+                </div>
               );
             })}
           </TimelineScrollProvider>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      <TurnDeleteDialog
-        isOpen={showDeleteDialog}
-        onOpenChange={(d) => setShowDeleteDialog(d.open)}
-        onConfirmDelete={handleConfirmDelete}
-        isDeleting={isDeleting}
-        cascade={turnToDelete?.cascade}
-      />
+      {showDeleteDialog && (
+        <TurnDeleteDialog
+          isOpen={showDeleteDialog}
+          onOpenChange={(d) => setShowDeleteDialog(d.open)}
+          onConfirmDelete={handleConfirmDelete}
+          isDeleting={isDeleting}
+          cascade={turnToDelete?.cascade}
+        />
+      )}
     </>
   );
 }

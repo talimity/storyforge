@@ -113,7 +113,7 @@ export function makeCommands(deps: IntentExecDeps) {
       }
 
       const { finalOutputs } = await handle.result;
-      const text = String(finalOutputs.presentation ?? partial ?? "").trim();
+      const text = String(finalOutputs.content ?? partial ?? "").trim();
       if (!text) throw new Error("Empty generation output");
       yield { type: "gen_finish", intentId, workflowId: workflow.id, text, ts: now() };
 
