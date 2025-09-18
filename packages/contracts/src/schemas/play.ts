@@ -138,7 +138,7 @@ export const loadTimelineOutputSchema = z.object({
   cursors: z.object({
     nextCursor: z.string().nullable().describe("Cursor for the next page of turns, if any"),
   }),
-  timelineDepth: z.number().describe("Number of turns in the timeline from root to the leaf"),
+  timelineLength: z.number().describe("Number of turns in the timeline from root to the leaf"),
 });
 
 export const addTurnInputSchema = z.object({

@@ -49,11 +49,11 @@ export function useScenarioTimeline({
     return out;
   }, [query.data]);
 
-  const timelineDepth = query.data?.pages[0]?.timelineDepth ?? 0;
+  const timelineLength = query.data?.pages[0]?.timelineLength ?? 0;
 
   return {
     turns,
-    timelineDepth,
+    timelineLength,
     hasNextPage: !!query.hasNextPage,
     isPending: query.isPending,
     isFetching: query.isFetchingNextPage || query.isPending,

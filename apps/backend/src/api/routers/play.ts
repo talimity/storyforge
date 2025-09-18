@@ -85,7 +85,7 @@ export const playRouter = router({
       if (!cursorTurnId) {
         return {
           timeline: [],
-          timelineDepth: 0,
+          timelineLength: 0,
           cursors: { nextCursor: null },
         };
       }
@@ -109,7 +109,7 @@ export const playRouter = router({
       if (rows.length === 0) {
         return {
           timeline: [],
-          timelineDepth: 0,
+          timelineLength: 0,
           cursors: { nextCursor: null },
         };
       }
@@ -154,12 +154,12 @@ export const playRouter = router({
       const hasMoreTurns = rows.length === windowSize && rows[0].parent_turn_id !== null;
       const nextCursor = hasMoreTurns ? rows[0].parent_turn_id : null;
 
-      // All rows carry the same depth scalar; take it from the first
-      const timelineDepth = rows[0].timeline_depth;
+      // Same for all rows returned by the query
+      const timelineLength = rows[0].timeline_length;
 
       return {
         timeline,
-        timelineDepth,
+        timelineLength,
         cursors: { nextCursor },
       };
     }),
