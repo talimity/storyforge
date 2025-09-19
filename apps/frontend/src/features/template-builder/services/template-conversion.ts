@@ -5,7 +5,7 @@ import type {
   SlotSpec,
   UnboundTemplate,
 } from "@storyforge/prompt-rendering";
-import { createId } from "@storyforge/utils";
+import { assertNever, createId } from "@storyforge/utils";
 import { z } from "zod";
 import { isValidRecipeId } from "@/features/template-builder/services/recipe-registry";
 import type {
@@ -41,9 +41,13 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
         id,
         kind: "message",
         role: node.role,
+        name: node.name,
         ...(node.content && { content: node.content }),
         ...(node.from && { from: node.from }),
         ...(node.prefix && { prefix: node.prefix }),
+        ...(node.skipIfEmptyInterpolation !== undefined && {
+          skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
+        }),
       };
 
     case "slot":
@@ -67,8 +71,7 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
       };
 
     default: {
-      const exhaustive: never = node;
-      throw new Error(`Unknown layout node kind: ${JSON.stringify(exhaustive)}`);
+      assertNever(node);
     }
   }
 }
@@ -79,20 +82,20 @@ function convertMessageBlockToDraft(block: MessageBlock): MessageBlockDraft {
     ...(block.content && { content: block.content }),
     ...(block.from && { from: block.from }),
     ...(block.prefix && { prefix: block.prefix }),
+    ...(block.skipIfEmptyInterpolation !== undefined && {
+      skipIfEmptyInterpolation: block.skipIfEmptyInterpolation,
+    }),
   };
 }
 
 const recipeMetaSchema = z
   .object({
-    recipe: z.object({
-      id: z.string(),
-      params: z.record(z.string(), z.unknown()),
-    }),
+    recipe: z.object({ id: z.string(), params: z.record(z.string(), z.unknown()) }),
   })
   .loose();
 
 /**
- * Convert slots from engine format to draft format
+ * Convert content slots from saved format to draft format
  * Note: This is a best-effort conversion since we lose the original recipe information
  */
 function convertSlotsToDraft(slots: Record<string, SlotSpec>): Record<string, SlotDraft> {

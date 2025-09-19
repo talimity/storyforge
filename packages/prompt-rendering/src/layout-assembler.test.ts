@@ -111,6 +111,47 @@ describe("Layout Assembler", () => {
         expect(result).toHaveLength(0);
       });
 
+      it("should skip message when template placeholders resolve to empty", () => {
+        const budget = createBudget();
+        const layout: CompiledLayoutNode[] = [
+          {
+            kind: "message",
+            role: "system",
+            content: compileLeaf(
+              "<scenario_info>\n{{ctx.globals.missingScenario}}\n</scenario_info>"
+            ),
+            skipIfEmptyInterpolation: true,
+          },
+        ];
+        const slotBuffers: SlotExecutionResult = {};
+
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it("should keep message when skipIfEmptyInterpolation is false", () => {
+        const budget = createBudget();
+        const layout: CompiledLayoutNode[] = [
+          {
+            kind: "message",
+            role: "system",
+            content: compileLeaf(
+              "<scenario_info>\n{{ctx.globals.missingScenario}}\n</scenario_info>"
+            ),
+          },
+        ];
+        const slotBuffers: SlotExecutionResult = {};
+
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
+
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual({
+          role: "system",
+          content: "<scenario_info>\n\n</scenario_info>",
+        });
+      });
+
       it("should stringify non-string from values", () => {
         const budget = createBudget();
         const layout: CompiledLayoutNode[] = [
@@ -288,6 +329,35 @@ describe("Layout Assembler", () => {
         expect(result[1]).toEqual({
           role: "user",
           content: "Footer",
+        });
+      });
+
+      it("should skip header blocks when placeholders resolve to empty", () => {
+        const budget = createBudget();
+        const header: CompiledMessageBlock = {
+          role: "system",
+          content: compileLeaf(
+            "<scenario_info>\n{{ctx.globals.missingScenario}}\n</scenario_info>"
+          ),
+          skipIfEmptyInterpolation: true,
+        };
+        const layout: CompiledLayoutNode[] = [
+          {
+            kind: "slot",
+            name: "main",
+            header: [header],
+          },
+        ];
+        const slotBuffers: SlotExecutionResult = {
+          main: [{ role: "assistant", content: "Slot content" }],
+        };
+
+        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
+
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual({
+          role: "assistant",
+          content: "Slot content",
         });
       });
 

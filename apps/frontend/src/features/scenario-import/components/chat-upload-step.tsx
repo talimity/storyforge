@@ -11,7 +11,7 @@ interface ChatUploadStepProps {
   onDrop: (event: React.DragEvent) => void;
   onDragOver: (event: React.DragEvent) => void;
   onRemoveFile: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  fileInputRef: React.Ref<HTMLInputElement | null>;
 }
 
 export function ChatUploadStep({

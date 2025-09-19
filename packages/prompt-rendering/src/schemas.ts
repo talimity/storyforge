@@ -42,16 +42,14 @@ export const messageBlockSchema = z.object({
   content: z.string().optional(),
   from: dataRefSchema.optional(),
   prefix: z.boolean().optional(),
+  skipIfEmptyInterpolation: z.boolean().optional(),
 });
 
 export const layoutNodeSchema: z.ZodType<UnboundLayoutNode> = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("message"),
     name: z.string().optional(),
-    role: roleSchema,
-    content: z.string().optional(),
-    from: dataRefSchema.optional(),
-    prefix: z.boolean().optional(),
+    ...messageBlockSchema.shape,
   }),
   z.object({
     kind: z.literal("slot"),
@@ -68,16 +66,14 @@ export const planNodeSchema: z.ZodType<UnboundPlanNode> = z.lazy(() =>
   z.discriminatedUnion("kind", [
     z.object({
       kind: z.literal("message"),
-      role: roleSchema,
-      content: z.string().optional(),
-      from: dataRefSchema.optional(),
-      prefix: z.boolean().optional(),
       budget: budgetSchema.optional(),
+      ...messageBlockSchema.shape,
     }),
     z.object({
       kind: z.literal("forEach"),
       source: dataRefSchema,
       order: z.enum(["asc", "desc"]).optional(),
+      fillDir: z.enum(["append", "prepend"]).optional(),
       limit: z.number().int().positive().optional(),
       map: z.array(planNodeSchema),
       interleave: z

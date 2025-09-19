@@ -75,7 +75,8 @@ export const timelineBasicRecipe: RecipeDefinition<
       plan: [
         {
           kind: "forEach",
-          source: { source: "turns", args: { order: "asc", limit: params.maxTurns } },
+          source: { source: "turns", args: { order: "desc", limit: params.maxTurns } },
+          fillDir: "prepend",
           map: [{ kind: "message", role: "user", content: params.turnTemplate }],
         },
       ],
@@ -143,7 +144,11 @@ export const timelineAdvancedRecipe: RecipeDefinition<
       plan: [
         {
           kind: "forEach",
-          source: { source: "turns", args: { order: "asc", limit: params.maxTurns } },
+          // Iterate turns array from newest to oldest (Turn# desc), but fill from bottom up (prepend)
+          // This ensures timeline is in chrono order, but that we stop prepending older turns once
+          // we hit budget limits.
+          source: { source: "turns", args: { order: "desc", limit: params.maxTurns } },
+          fillDir: "prepend",
           map: [
             {
               kind: "if",

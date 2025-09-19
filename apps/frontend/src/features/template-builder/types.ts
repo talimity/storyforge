@@ -134,6 +134,7 @@ export interface MessageLayoutDraft extends BaseLayoutNodeDraft {
   content?: string;
   from?: UnboundDataRef;
   prefix?: boolean;
+  skipIfEmptyInterpolation?: boolean;
 }
 
 export interface SlotLayoutDraft extends BaseLayoutNodeDraft {
@@ -153,6 +154,7 @@ export interface MessageBlockDraft {
   content?: string;
   from?: UnboundDataRef;
   prefix?: boolean;
+  skipIfEmptyInterpolation?: boolean;
 }
 
 // Slot configuration in UI

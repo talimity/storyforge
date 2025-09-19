@@ -23,7 +23,10 @@ export function compileLeaf(template: string): CompiledLeafFunction {
 function compileLeafInner(template: string, depth: number): CompiledLeafFunction {
   // Base case
   if (depth > MAX_NESTED_EXPANSIONS) {
-    return () => template;
+    return Object.assign((_scope: unknown) => template, {
+      hasVariables: false,
+      wasLastRenderContentful: () => true,
+    });
   }
 
   // Find all {{...}} patterns, not including nested ones
@@ -41,39 +44,55 @@ function compileLeafInner(template: string, depth: number): CompiledLeafFunction
 
   // If no variables, return the template as-is
   if (variables.length === 0) {
-    return () => template;
+    return Object.assign((_scope: unknown) => template, {
+      hasVariables: false,
+      wasLastRenderContentful: () => true,
+    });
   }
 
+  let lastRenderHadContent = false;
+
   // Build the interpolation function
-  return (scope: unknown) => {
-    let result = "";
-    let lastEnd = 0;
+  return Object.assign(
+    (scope: unknown) => {
+      let result = "";
+      let lastEnd = 0;
+      let contentful = false;
 
-    for (const variable of variables) {
-      // Add the literal text before this variable
-      result += template.slice(lastEnd, variable.start);
+      for (const variable of variables) {
+        // Add the literal text before this variable
+        result += template.slice(lastEnd, variable.start);
 
-      // Resolve value
-      const raw = resolvePath(scope, variable.path);
-      let val = raw;
+        // Resolve value
+        const raw = resolvePath(scope, variable.path);
+        let val = raw;
 
-      // Recurse if value also contains a potential variable
-      if (typeof raw === "string" && raw.includes("{{")) {
-        val = compileLeafInner(raw, depth + 1)(scope);
+        // Recurse if value also contains a potential variable
+        if (typeof raw === "string" && raw.includes("{{")) {
+          val = compileLeafInner(raw, depth + 1)(scope);
+        }
+
+        const resolved = toStringSafe(val);
+        if (!contentful && resolved.trim().length > 0) {
+          contentful = true;
+        }
+
+        result += resolved;
+        lastEnd = variable.end;
       }
 
-      result += toStringSafe(val);
-      lastEnd = variable.end;
+      // Add any remaining literal text
+      result += template.slice(lastEnd);
+
+      lastRenderHadContent = contentful;
+
+      return result;
+    },
+    {
+      hasVariables: true,
+      wasLastRenderContentful: () => lastRenderHadContent,
     }
-
-    // Add any remaining literal text
-    result += template.slice(lastEnd);
-
-    // console.log("leaf", template, "->", result?.slice(0, 50));
-    // console.log("scope", JSON.stringify(scope, null, 2).slice(0, 50));
-
-    return result;
-  };
+  );
 }
 
 /**

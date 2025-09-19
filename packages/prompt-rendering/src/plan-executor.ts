@@ -90,8 +90,15 @@ export function executeMessageNode<Ctx extends CtxWithGlobals, S extends SourceS
     }
     content = typeof resolved === "string" ? resolved : JSON.stringify(resolved);
   } else if (node.content) {
-    // Use compiled leaf function
     content = node.content(scope);
+    // optionally skip blocks whose interpolations produced no substantive content
+    if (
+      node.skipIfEmptyInterpolation &&
+      node.content.hasVariables &&
+      !node.content.wasLastRenderContentful()
+    ) {
+      return [];
+    }
   } else {
     // No content source
     return []; // no source → no emission
@@ -206,14 +213,20 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
 
       // Execute child nodes with item in scope and reserved sources via scoped registry
       const regWithScope = withAdditionalFrame(registry, { item, index: i });
+      const nodeResult = [];
       for (const childNode of node.map) {
         const childResults = executePlanNode(childNode, ctx, budget, regWithScope, item);
-        results.push(...childResults);
+        nodeResult.push(...childResults);
 
         // Check budget after each child
         if (stopWhenOutOfBudget && !budget.hasAny()) {
           break;
         }
+      }
+      if (node.fillDir === "prepend") {
+        results.unshift(...nodeResult);
+      } else {
+        results.push(...nodeResult);
       }
 
       // Add separator if specified and not the last item
@@ -224,10 +237,7 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
 
         if (separatorText && budget.canFitTokenEstimate(separatorText)) {
           budget.consume(separatorText);
-          results.push({
-            role: "user", // Separators are user messages per spec
-            content: separatorText,
-          });
+          results.push({ role: "user", content: separatorText });
         }
       }
     }

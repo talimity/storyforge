@@ -152,6 +152,41 @@ describe("Plan Executor", () => {
         expect(nullResult).toHaveLength(0);
         expect(undefinedResult).toHaveLength(0);
       });
+
+      it("should skip message when template placeholders resolve to empty", () => {
+        const budget = createBudget();
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
+          kind: "message",
+          role: "system",
+          content: compileLeaf(
+            "<scenario_info>\n{{ctx.globals.missingScenario}}\n</scenario_info>"
+          ),
+          skipIfEmptyInterpolation: true,
+        };
+
+        const result = executeMessageNode(node, ctx, budget, registry);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it("should retain message when skipIfEmptyInterpolation not enabled", () => {
+        const budget = createBudget();
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
+          kind: "message",
+          role: "system",
+          content: compileLeaf(
+            "<scenario_info>\n{{ctx.globals.missingScenario}}\n</scenario_info>"
+          ),
+        };
+
+        const result = executeMessageNode(node, ctx, budget, registry);
+
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual({
+          role: "system",
+          content: "<scenario_info>\n\n</scenario_info>",
+        });
+      });
     });
 
     describe("prefix flag", () => {

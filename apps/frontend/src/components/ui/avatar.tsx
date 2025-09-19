@@ -10,7 +10,7 @@ export interface AvatarProps extends ChakraAvatar.RootProps {
   loading?: ImageProps["loading"];
   icon?: React.ReactElement;
   fallback?: React.ReactNode;
-  ref?: React.RefObject<HTMLDivElement | null>;
+  ref?: React.Ref<HTMLDivElement | null>;
 }
 
 export const Avatar = (props: AvatarProps) => {

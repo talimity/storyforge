@@ -13,16 +13,11 @@ export type MessageBlock<S extends SourceSpec = SourceSpec> = {
   content?: string;
   from?: DataRefOf<S>;
   prefix?: boolean;
+  skipIfEmptyInterpolation?: boolean;
 };
 
 export type LayoutNode<S extends SourceSpec = SourceSpec> =
-  | {
-      kind: "message";
-      role: ChatCompletionMessageRole;
-      content?: string;
-      from?: DataRefOf<S>;
-      prefix?: boolean;
-    }
+  | ({ kind: "message"; name?: string } & MessageBlock<S>)
   | {
       kind: "slot";
       name: string;
@@ -94,18 +89,13 @@ export type SlotSpec<S extends SourceSpec = SourceSpec> = {
 };
 
 export type PlanNode<S extends SourceSpec = SourceSpec> =
-  | {
-      kind: "message";
-      role: ChatCompletionMessageRole;
-      content?: string;
-      from?: DataRefOf<S>;
-      prefix?: boolean;
-      budget?: Budget;
-    }
+  | ({ kind: "message"; budget?: Budget } & MessageBlock<S>)
   | {
       kind: "forEach";
       source: ArrayDataRefOf<S>;
       order?: "asc" | "desc";
+      /** Whether items should be appended (push) or prepended (unshift) to the output buffer. */
+      fillDir?: "append" | "prepend";
       limit?: number;
       map: PlanNode<S>[]; // evaluated with {item} in scope
       interleave?: { kind: "separator"; text?: string };
@@ -174,7 +164,18 @@ export type SourceHandlerMap<Ctx, S extends SourceSpec> = {
 
 /** ---------- Compiled Template Types ---------- */
 
-export type CompiledLeafFunction = (scope: unknown) => string;
+export type CompiledLeafFunction = {
+  (scope: unknown): string;
+  /**
+   * Whether the template string contains any variables that could be
+   * interpolated.
+   */
+  readonly hasVariables: boolean;
+  /**
+   * Whether the last render of this function produced any substantive content.
+   */
+  readonly wasLastRenderContentful: () => boolean;
+};
 
 export type CompileOptions = {
   kind?: string;
@@ -199,14 +200,7 @@ export type CompiledTemplate<
 }>;
 
 export type CompiledLayoutNode<S extends SourceSpec = SourceSpec> = Readonly<
-  | {
-      kind: "message";
-      name?: string;
-      role: ChatCompletionMessageRole;
-      content?: CompiledLeafFunction;
-      from?: DataRefOf<S>;
-      prefix?: boolean;
-    }
+  | ({ kind: "message"; name?: string } & CompiledMessageBlock<S>)
   | {
       kind: "slot";
       name: string;
@@ -224,18 +218,12 @@ export type CompiledSlotSpec<S extends SourceSpec = SourceSpec> = Readonly<{
 }>;
 
 export type CompiledPlanNode<S extends SourceSpec = SourceSpec> = Readonly<
-  | {
-      kind: "message";
-      role: ChatCompletionMessageRole;
-      content?: CompiledLeafFunction;
-      from?: DataRefOf<S>;
-      prefix?: boolean;
-      budget?: Budget;
-    }
+  | ({ kind: "message"; budget?: Budget } & CompiledMessageBlock<S>)
   | {
       kind: "forEach";
       source: ArrayDataRefOf<S>;
       order?: "asc" | "desc";
+      fillDir?: "append" | "prepend";
       limit?: number;
       map: readonly CompiledPlanNode<S>[];
       interleave?: { kind: "separator"; text?: CompiledLeafFunction };
@@ -255,6 +243,7 @@ export type CompiledMessageBlock<S extends SourceSpec = SourceSpec> = Readonly<{
   content?: CompiledLeafFunction;
   from?: DataRefOf<S>;
   prefix?: boolean;
+  skipIfEmptyInterpolation?: boolean;
 }>;
 
 /** ---------- Unbound types for API/DB boundaries ---------- */

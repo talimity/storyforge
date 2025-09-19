@@ -68,6 +68,7 @@ function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
     content?: CompiledLeafFunction;
     from?: DataRefOf<S>;
     prefix?: boolean;
+    skipIfEmptyInterpolation?: boolean;
   },
   ctx: Ctx,
   budget: BudgetManager,
@@ -92,6 +93,14 @@ function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
   } else if (block.content) {
     // Use compiled leaf function
     content = block.content(scope);
+    // optionally skip blocks whose interpolations produced no substantive content
+    if (
+      block.skipIfEmptyInterpolation &&
+      block.content.hasVariables &&
+      !block.content.wasLastRenderContentful()
+    ) {
+      return "skip";
+    }
   } else {
     // No content source
     return "skip"; // skip this block

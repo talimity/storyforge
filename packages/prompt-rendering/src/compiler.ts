@@ -94,6 +94,7 @@ function compileLayoutNode<S extends SourceSpec = SourceSpec>(
         content: node.content ? compileLeaf(node.content) : undefined,
         from: node.from,
         prefix: node.prefix,
+        skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
       });
 
     case "slot":
@@ -123,6 +124,7 @@ function compileMessageBlock<S extends SourceSpec = SourceSpec>(
     content: block.content ? compileLeaf(block.content) : undefined,
     from: block.from,
     prefix: block.prefix,
+    skipIfEmptyInterpolation: block.skipIfEmptyInterpolation,
   });
 }
 
@@ -170,6 +172,7 @@ function compilePlanNode<S extends SourceSpec = SourceSpec>(
         content: node.content ? compileLeaf(node.content) : undefined,
         from: node.from,
         prefix: node.prefix,
+        skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
         budget: node.budget,
       });
 
@@ -179,6 +182,7 @@ function compilePlanNode<S extends SourceSpec = SourceSpec>(
         source: node.source,
         order: node.order,
         limit: node.limit,
+        fillDir: node.fillDir,
         map: compilePlanNodes(node.map),
         interleave: node.interleave
           ? Object.freeze({
