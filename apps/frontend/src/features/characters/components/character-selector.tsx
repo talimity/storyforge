@@ -8,11 +8,13 @@ import {
   useCombobox,
   useListCollection,
 } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
 import type React from "react";
 import { Fragment, useEffect, useMemo, useRef } from "react";
 import { Avatar } from "@/components/ui/index";
 import { useCharacterSearch } from "@/features/characters/hooks/use-character-search";
 import { getApiUrl } from "@/lib/get-api-url";
+import { useTRPC } from "@/lib/trpc";
 import { CharacterListItem } from "./character-list-item";
 
 type CharacterSearchCharacter = ReturnType<typeof useCharacterSearch>["characters"][number];
@@ -24,13 +26,52 @@ type CharacterSearchCharacter = ReturnType<typeof useCharacterSearch>["character
 function useCharacterCollection(
   enabled: boolean,
   filterMode?: "all" | "inScenario" | "notInScenario",
-  scenarioId?: string
+  scenarioId?: string,
+  requiredIds?: string[]
 ) {
   const { characters, isLoading, updateSearch, searchQuery } = useCharacterSearch({
     enabled,
     filterMode,
     scenarioId,
   });
+  const trpc = useTRPC();
+
+  const normalizedRequiredIds = useMemo(() => {
+    if (!requiredIds) return [];
+    return requiredIds.filter((id) => id.length > 0);
+  }, [requiredIds]);
+
+  const missingRequiredIds = useMemo(() => {
+    if (!normalizedRequiredIds.length) return [];
+    const presentIds = new Set(characters.map((character) => character.id));
+    return normalizedRequiredIds.filter((id) => !presentIds.has(id));
+  }, [characters, normalizedRequiredIds]);
+
+  const requiredCharactersQuery = useQuery(
+    trpc.characters.getByIds.queryOptions(
+      { ids: missingRequiredIds },
+      { enabled: enabled && missingRequiredIds.length > 0 }
+    )
+  );
+
+  const requiredCharacters = useMemo(() => {
+    const fetchedCharacters = requiredCharactersQuery.data?.characters ?? [];
+    return fetchedCharacters.map((character) => ({
+      id: character.id,
+      name: character.name,
+      cardType: character.cardType,
+      imagePath: character.imagePath,
+      avatarPath: character.avatarPath,
+    }));
+  }, [requiredCharactersQuery.data?.characters]);
+
+  const combinedCharacters = useMemo(() => {
+    if (requiredCharacters.length === 0) return characters;
+    const existingIds = new Set(characters.map((character) => character.id));
+    const extras = requiredCharacters.filter((character) => !existingIds.has(character.id));
+    if (extras.length === 0) return characters;
+    return [...characters, ...extras];
+  }, [characters, requiredCharacters]);
 
   const { collection, set } = useListCollection<CharacterSearchCharacter>({
     initialItems: [],
@@ -40,10 +81,15 @@ function useCharacterCollection(
 
   // push new results into Combobox collection whenever TRPC data changes
   useEffect(() => {
-    set(characters);
-  }, [characters, set]);
+    set(combinedCharacters);
+  }, [combinedCharacters, set]);
 
-  return { collection, isLoading, updateSearch, searchQuery };
+  return {
+    collection,
+    isLoading: isLoading || requiredCharactersQuery.isLoading,
+    updateSearch,
+    searchQuery,
+  };
 }
 
 /**
@@ -80,7 +126,8 @@ export function CharacterMultiSelect({
   const { collection, isLoading, updateSearch } = useCharacterCollection(
     !disabled,
     filterMode,
-    scenarioId
+    scenarioId,
+    value
   );
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
@@ -167,7 +214,8 @@ export function CharacterSingleSelect({
   const { collection, isLoading, updateSearch } = useCharacterCollection(
     !disabled,
     filterMode,
-    scenarioId
+    scenarioId,
+    value ? [value] : []
   );
 
   const internalValue = useMemo(() => (value ? [value] : []), [value]);
