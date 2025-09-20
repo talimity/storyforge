@@ -22,7 +22,7 @@ export function ColorModeToggle({ collapsed = false }: ColorModeToggleProps) {
       gap="3"
       verticalAlign="super"
       px={collapsed ? "2" : "4"}
-      color={"content.subtle"}
+      color="content.subtle"
       _hover={{
         bg: "surface.emphasized",
         color: "content.emphasized",

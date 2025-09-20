@@ -104,6 +104,7 @@ export function StepCard({
         <Field label="Step Name" helperText="For reference only (not used in prompts)">
           <Input
             {...register(namePath)}
+            autoComplete="off"
             placeholder="e.g., plan, draft, write, etc."
             disabled={isSubmitting}
           />

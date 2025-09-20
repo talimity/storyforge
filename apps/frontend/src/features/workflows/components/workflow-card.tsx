@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import { LuCopy, LuEllipsisVertical, LuPencilLine, LuShare, LuTrash } from "react-icons/lu";
+import { nonBubblingHandler } from "@/lib/non-bubbling-handler";
 import { useWorkflowActions } from "../hooks/use-workflow-actions";
 import { DeleteWorkflowDialog } from "./delete-workflow-dialog";
 import { WorkflowDuplicateDialog } from "./workflow-duplicate-dialog";
@@ -25,12 +26,17 @@ export interface WorkflowSummaryView {
   updatedAt: Date;
 }
 
-export function WorkflowCard({ workflow }: { workflow: WorkflowSummaryView }) {
+export function WorkflowCard(props: { workflow: WorkflowSummaryView; readOnly?: boolean }) {
+  const { workflow, readOnly } = props;
   const actions = useWorkflowActions(workflow.id);
 
   return (
     <>
-      <Card.Root layerStyle="surface">
+      <Card.Root
+        layerStyle="surface"
+        _hover={!readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined}
+        onClick={readOnly ? undefined : actions.handleEdit}
+      >
         <Card.Body p={4}>
           <VStack align="stretch" gap={3}>
             <HStack justify="space-between">
@@ -46,26 +52,33 @@ export function WorkflowCard({ workflow }: { workflow: WorkflowSummaryView }) {
               </HStack>
               <Menu.Root positioning={{ placement: "bottom-end" }}>
                 <Menu.Trigger asChild>
-                  <IconButton variant="ghost" size="sm">
+                  <IconButton variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
                     <LuEllipsisVertical />
                   </IconButton>
                 </Menu.Trigger>
                 <Portal>
                   <Menu.Positioner>
                     <Menu.Content>
-                      <Menu.Item value="edit" onClick={actions.handleEdit}>
+                      <Menu.Item value="edit" onClick={nonBubblingHandler(actions.handleEdit)}>
                         <LuPencilLine />
                         Edit
                       </Menu.Item>
-                      <Menu.Item value="duplicate" onClick={actions.openDuplicateDialog}>
+                      <Menu.Item
+                        value="duplicate"
+                        onClick={nonBubblingHandler(actions.openDuplicateDialog)}
+                      >
                         <LuCopy />
                         Duplicate
                       </Menu.Item>
-                      <Menu.Item value="export" onClick={actions.handleExport}>
+                      <Menu.Item value="export" onClick={nonBubblingHandler(actions.handleExport)}>
                         <LuShare />
                         Export
                       </Menu.Item>
-                      <Menu.Item value="delete" onClick={actions.openDeleteDialog} color="red.500">
+                      <Menu.Item
+                        value="delete"
+                        onClick={nonBubblingHandler(actions.openDeleteDialog)}
+                        color="red.500"
+                      >
                         <LuTrash />
                         Delete
                       </Menu.Item>

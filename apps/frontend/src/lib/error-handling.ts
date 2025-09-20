@@ -41,7 +41,7 @@ export function showSuccessToast({
   description?: string;
   duration?: number;
 }) {
-  toaster.success({ title, description, duration });
+  toaster.success({ closable: true, title, description, duration });
 }
 
 /**

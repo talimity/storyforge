@@ -16,7 +16,7 @@ import { TemplateTaskSelectPage } from "./pages/template-task-select";
 import { ThemeDemoPage } from "./pages/theme-demo";
 import { WorkflowCreatePage } from "./pages/workflow-create";
 import { WorkflowEditPage } from "./pages/workflow-edit";
-import { WorkflowsPage } from "./pages/workflows";
+import { WorkflowsPage } from "./pages/workflow-library";
 
 export const router = createBrowserRouter([
   {

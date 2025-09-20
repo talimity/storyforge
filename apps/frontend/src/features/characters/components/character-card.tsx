@@ -62,7 +62,7 @@ export function CharacterCard({
         onClick={readOnly ? undefined : onSelectionToggle}
         overflow="hidden"
       >
-        <Box position="relative">
+        <Box position="relative" borderBottomWidth={1}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -163,7 +163,7 @@ export function CharacterCardSkeleton() {
   return (
     <Card.Root maxW="300px" variant="outline" overflow="hidden">
       <Skeleton aspectRatio={2 / 3} />
-      <Card.Body p={3}>
+      <Card.Body p={4}>
         <Skeleton height="5" width="70%" />
       </Card.Body>
     </Card.Root>

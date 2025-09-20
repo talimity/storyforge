@@ -76,7 +76,7 @@ export function TaskKindSelect({
     >
       <SelectTrigger>
         <Stack direction="row" alignItems="center" gap={2}>
-          <SelectValueText placeholder={placeholder} />
+          <SelectValueText placeholder={placeholder} w="full" />
           {disabled && (
             <Badge size="sm" colorPalette="neutral">
               Read-only

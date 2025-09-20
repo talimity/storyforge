@@ -7,14 +7,13 @@ import {
   LuPencilLine,
   LuPlay,
   LuTrash,
-  LuUsers,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/index";
 import { CharacterPile } from "@/features/characters/components/character-pile";
 import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
 import { useScenarioActions } from "@/features/scenarios/hooks/use-scenario-actions";
-import { formatCount, formatDate } from "@/lib/formatting";
+import { formatDate } from "@/lib/formatting";
 
 interface ScenarioCardProps {
   scenario: ScenarioWithCharacters;
@@ -42,7 +41,7 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
       transition="all 0.2s"
       className={!readOnly ? "group" : undefined}
     >
-      <Card.Body p={6}>
+      <Card.Body p={4}>
         <VStack align="start" gap={4}>
           {/* Header */}
           <VStack align="start" gap={2} width="100%">
@@ -53,12 +52,6 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
 
           {/* Characters */}
           <VStack align="start" gap={2} width="100%">
-            <HStack gap={2}>
-              <LuUsers size={14} />
-              <Text fontSize="sm" color="content.muted">
-                {formatCount(scenario.characters.length, "character")}
-              </Text>
-            </HStack>
             <CharacterPile
               characters={scenario.characters.map((participant) => participant.character)}
               maxAvatars={3}

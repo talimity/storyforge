@@ -56,12 +56,18 @@ export function WorkflowDetailsTab({
         invalid={!!formState.errors.name}
         errorText={formState.errors.name?.message}
       >
-        <Input {...register("name")} placeholder="Workflow name" disabled={isSubmitting} />
+        <Input
+          {...register("name")}
+          autoComplete="off"
+          placeholder="Workflow name"
+          disabled={isSubmitting}
+        />
       </Field>
 
       <Field label="Description">
         <Input
           {...register("description")}
+          autoComplete="off"
           placeholder="Optional description"
           disabled={isSubmitting}
         />

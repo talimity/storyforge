@@ -100,7 +100,7 @@ export function TemplatesPage() {
   });
 
   return (
-    <Container maxW="1400px">
+    <Container>
       <SimplePageHeader
         title="Prompt Templates"
         tagline="Manage prompt templates for generating content."

@@ -22,6 +22,7 @@ import {
 import { TemplateDeleteDialog } from "@/features/templates/components/template-delete-dialog";
 import { TemplateDuplicateDialog } from "@/features/templates/components/template-duplicate-dialog";
 import { useTemplateActions } from "@/features/templates/hooks/use-template-actions";
+import { nonBubblingHandler } from "@/lib/non-bubbling-handler";
 
 interface TemplateCardProps {
   template: {
@@ -122,33 +123,15 @@ export function TemplateCard({ template, readOnly = false }: TemplateCardProps) 
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
-                    <Menu.Item
-                      value="edit"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit();
-                      }}
-                    >
+                    <Menu.Item value="edit" onClick={nonBubblingHandler(handleEdit)}>
                       <LuPencilLine />
                       <Box flex="1">Edit</Box>
                     </Menu.Item>
-                    <Menu.Item
-                      value="duplicate"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDuplicateDialog();
-                      }}
-                    >
+                    <Menu.Item value="duplicate" onClick={nonBubblingHandler(openDuplicateDialog)}>
                       <LuCopy />
                       <Box flex="1">Duplicate</Box>
                     </Menu.Item>
-                    <Menu.Item
-                      value="export"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleExport();
-                      }}
-                    >
+                    <Menu.Item value="export" onClick={nonBubblingHandler(handleExport)}>
                       <LuShare />
                       <Box flex="1">Export</Box>
                     </Menu.Item>
@@ -156,10 +139,7 @@ export function TemplateCard({ template, readOnly = false }: TemplateCardProps) 
                       value="delete"
                       color="fg.error"
                       _hover={{ bg: "bg.error", color: "fg.error" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDeleteDialog();
-                      }}
+                      onClick={nonBubblingHandler(openDeleteDialog)}
                     >
                       <LuTrash />
                       <Box flex="1">Delete</Box>

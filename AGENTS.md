@@ -129,7 +129,7 @@ storyforge
 ### At ALL TIMES
 - You MUST NOT run any blocking commands. 
   - That includes watch mode! DO NOT add `-w` flags to any of the build or code quality commands.
-  - If you think you want `-w` to filter the pnpm workspace, you actually want `--filter=package` instead
+  - If you think you want `-w` to filter the pnpm workspace, you actually want `pnpm --filter=package [script]` instead
 
 ---
 

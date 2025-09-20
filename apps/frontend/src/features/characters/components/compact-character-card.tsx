@@ -1,4 +1,5 @@
 import {
+  Bleed,
   Box,
   HStack,
   IconButton,
@@ -59,7 +60,7 @@ export function CompactCharacterCard({
     <>
       <HStack
         gap={4}
-        p={3}
+        p={2}
         borderRadius="md"
         layerStyle="surface"
         cursor={onSelectionToggle ? "pointer" : "default"}
@@ -69,15 +70,19 @@ export function CompactCharacterCard({
         position="relative"
         width="100%"
         minWidth={0}
+        overflow="hidden"
       >
-        <Avatar
-          size="md"
-          shape="rounded"
-          layerStyle="surface"
-          name={character.name}
-          src={character.avatarPath ? getApiUrl(character.avatarPath) : undefined}
-          icon={<LuSquareUserRound size={20} />}
-        />
+        <Bleed inlineStart={3} block={3}>
+          <Box borderRightWidth={1}>
+            <Avatar
+              size="2xl"
+              shape="square"
+              name={character.name}
+              src={character.avatarPath ? getApiUrl(character.avatarPath) : undefined}
+              icon={<LuSquareUserRound size={20} />}
+            />
+          </Box>
+        </Bleed>
 
         <Stack gap={0} flex={1} minWidth={0}>
           <HStack minWidth={0} width="100%">
