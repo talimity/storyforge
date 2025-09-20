@@ -14,7 +14,7 @@ export function PlayerLayout({ timeline, intentPanel }: PlayerLayoutProps) {
   return (
     <Flex direction="column" h="100%" data-testid="player-layout">
       {/* Turn History Slot */}
-      <Box flex="1" overflow="hidden" data-testid="player-layout-timeline">
+      <Box flex="1" overflow="hidden" minH="0" minW="0" data-testid="player-layout-timeline">
         {timeline}
       </Box>
 
@@ -30,14 +30,10 @@ export function PlayerLayout({ timeline, intentPanel }: PlayerLayoutProps) {
         shadow="subtle"
         zIndex="docked"
         data-testid="player-layout-intent"
+        maxW="100%"
+        minW="0"
       >
-        <Box
-          maxW="container.lg"
-          mx="auto"
-          px={{ base: 4, md: 8, lg: 12 }}
-          py={{ base: 3, md: 4 }}
-          data-testid="player-intent-panel"
-        >
+        <Box maxW="100%" minW="0" mx="auto" data-testid="player-intent-panel">
           {intentPanel}
         </Box>
       </Box>

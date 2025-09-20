@@ -136,6 +136,7 @@ function PlayerShellInner() {
           as="main"
           flex="1"
           minH="0"
+          minW="0"
           layerStyle="surface"
           borderRadius="0"
           borderTopLeftRadius={isMobile ? "0" : "sm"}

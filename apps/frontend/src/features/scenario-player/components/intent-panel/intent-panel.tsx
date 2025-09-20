@@ -1,10 +1,9 @@
-import { HStack, SegmentGroup, Stack, Text, VStack } from "@chakra-ui/react";
+import { Box, HStack, SegmentGroup, Stack, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/index";
+import { PromptInput } from "@/features/scenario-player/components/intent-panel/prompt-input";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
-import { CharacterControlPanel } from "./character-control-panel";
 import { QuickActionsPanel } from "./quick-actions-panel";
-import { StoryConstraintsPanel } from "./story-constraints-panel";
 
 export type InputMode = "direct" | "guided" | "constraints" | "quick";
 
@@ -50,27 +49,30 @@ export function IntentPanel(props: IntentPanelProps) {
   }
 
   return (
-    <Stack gap={2}>
+    <Stack gap={0}>
       {/* Input Mode Selector */}
-      <SegmentGroup.Root
-        value={inputMode}
-        onValueChange={(e) => setInputMode(e.value as InputMode)}
-        size="sm"
-      >
-        <SegmentGroup.Indicator />
-        <SegmentGroup.Items
-          items={[
-            { value: "direct", label: "Direct Control" },
-            { value: "guided", label: "Guided Control" },
-            { value: "constraints", label: "Story Constraints" },
-            { value: "quick", label: "Quick Actions" },
-          ]}
-        />
-      </SegmentGroup.Root>
+      <Box overflowX="auto" maxW="100%" pb={1}>
+        <SegmentGroup.Root
+          value={inputMode}
+          onValueChange={(e) => setInputMode(e.value as InputMode)}
+          size="xs"
+        >
+          <SegmentGroup.Indicator />
+          <SegmentGroup.Items
+            items={[
+              { value: "direct", label: "Direct Control" },
+              { value: "guided", label: "Guided Control" },
+              { value: "constraints", label: "Story Constraints" },
+              { value: "quick", label: "Quick Actions" },
+            ]}
+          />
+        </SegmentGroup.Root>
+      </Box>
 
       {/* Mode-specific panels */}
       {["direct", "guided"].includes(inputMode) && (
-        <CharacterControlPanel
+        <PromptInput
+          withCharacterSelect
           inputText={inputText}
           onInputChange={setInputText}
           onGenerate={handleGenerate}
@@ -80,7 +82,8 @@ export function IntentPanel(props: IntentPanelProps) {
       )}
 
       {inputMode === "constraints" && (
-        <StoryConstraintsPanel
+        <PromptInput
+          withCharacterSelect={false}
           inputText={inputText}
           onInputChange={setInputText}
           onGenerate={handleGenerate}

@@ -90,6 +90,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
     count: virtualCount,
     getScrollElement: () => scrollerRef.current,
     estimateSize: () => 400,
+    paddingEnd: 100,
     overscan: 10,
     // rangeExtractor lets us manually render items outside of the visible range
     rangeExtractor: (range) => {

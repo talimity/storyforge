@@ -17,14 +17,14 @@ export function GenerateOrCancelButton({
 }: GenerateOrCancelButtonProps) {
   if (isGenerating) {
     return (
-      <Button onClick={onCancel} {...buttonProps}>
+      <Button size="xs" onClick={onCancel} {...buttonProps}>
         <LuSquare />
         Cancel
       </Button>
     );
   }
   return (
-    <Button onClick={onGenerate} {...buttonProps}>
+    <Button size="xs" onClick={onGenerate} {...buttonProps}>
       <RiQuillPenLine />
       {children ?? "Generate"}
     </Button>
