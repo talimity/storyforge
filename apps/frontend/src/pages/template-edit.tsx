@@ -17,7 +17,10 @@ export function TemplateEditPage() {
   const queryClient = useQueryClient();
 
   const templateQuery = useQuery(
-    trpc.templates.getById.queryOptions({ id: id ?? "" }, { enabled: !!id })
+    trpc.templates.getById.queryOptions(
+      { id: id ?? "" },
+      { enabled: !!id, refetchOnWindowFocus: false }
+    )
   );
 
   const updateMutation = useMutation(

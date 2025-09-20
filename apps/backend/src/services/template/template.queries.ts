@@ -1,7 +1,7 @@
 import type { SqliteDatabase } from "@storyforge/db";
 import { promptTemplates } from "@storyforge/db";
 import type { TaskKind } from "@storyforge/gentasks";
-import { and, desc, eq, like } from "drizzle-orm";
+import { and, eq, like } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { fromDbPromptTemplate } from "./utils/marshalling.js";
 
@@ -29,7 +29,7 @@ export async function listTemplates(
     })
     .from(promptTemplates)
     .where(where)
-    .orderBy(desc(promptTemplates.updatedAt));
+    .orderBy(promptTemplates.name);
 
   return rows.map((template) => ({
     id: template.id,

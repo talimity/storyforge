@@ -128,7 +128,11 @@ export function ProviderForm({
           invalid={!!errors.name?.message}
           errorText={errors.name?.message}
         >
-          <Input {...register("name")} placeholder="e.g., OpenRouter (Personal), Local vLLM" />
+          <Input
+            {...register("name")}
+            autoComplete="off"
+            placeholder="e.g., OpenRouter (Personal), Local vLLM"
+          />
         </Field>
 
         <Field

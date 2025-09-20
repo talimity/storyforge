@@ -46,8 +46,8 @@ export class WorkflowTestService {
     // Swap all steps to mock provider profiles and map step->modelId
     const stepModelMap: Record<string, string> = {};
     for (const step of wf.steps) {
-      stepModelMap[step.id] = input.mock?.modelIds?.[step.id] ?? "mock-fast";
       step.modelProfileId = `mock:${step.id}`;
+      stepModelMap[step.id] = step.modelProfileId;
     }
 
     // Configure a single MockAdapter instance for all steps

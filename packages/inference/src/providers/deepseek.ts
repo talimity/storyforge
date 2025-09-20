@@ -159,7 +159,7 @@ export class DeepseekAdapter extends ProviderAdapter {
   readonly kind = "deepseek";
   private readonly apiUrl: string;
 
-  constructor(auth: ProviderAuth, baseUrl = "https://api.deepseek.com") {
+  constructor(auth: ProviderAuth, baseUrl = "https://api.deepseek.com/beta") {
     super(auth, baseUrl);
     this.apiUrl = baseUrl;
   }

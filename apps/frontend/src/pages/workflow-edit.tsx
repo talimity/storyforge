@@ -11,7 +11,15 @@ export function WorkflowEditPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery(
-    trpc.workflows.getById.queryOptions({ id: String(id) }, { enabled: Boolean(id) })
+    trpc.workflows.getById.queryOptions(
+      { id: String(id) },
+      {
+        enabled: Boolean(id),
+        // disable automatic fetching when the window loses focus as it may
+        // revert unsaved changes
+        refetchOnWindowFocus: false,
+      }
+    )
   );
   const update = useMutation(
     trpc.workflows.update.mutationOptions({

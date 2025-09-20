@@ -76,7 +76,11 @@ interface OpenRouterRequest {
   transforms?: string[];
   models?: string[];
   route?: "fallback";
-  provider?: object;
+  /** refers to the providers openrouter will route the request to */
+  provider?: {
+    allow_fallbacks?: boolean;
+    only?: string[];
+  };
   user?: string;
 }
 
@@ -295,7 +299,6 @@ export class OpenRouterAdapter extends ProviderAdapter {
         const choice = chunk.choices[0];
 
         if (choice.error) {
-          // Unrecoverable error raised by the provider
           throw new InferenceProviderError(`OpenRouter stream error: ${choice.error.message}`);
         }
 
@@ -321,6 +324,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
         }
       }
     } catch (err) {
+      console.log("Stream error", err);
       bubbleProviderError(err, "OpenRouter streaming error");
     }
 
@@ -412,6 +416,20 @@ export class OpenRouterAdapter extends ProviderAdapter {
       messages,
       stream,
     };
+
+    // TODO: allow openrouter provider filtering on model profiles
+    if (request.model.includes("moonshotai")) {
+      payload.provider = {
+        only: ["DeepInfra"],
+        allow_fallbacks: false,
+      };
+    }
+    if (request.model.includes("z-ai")) {
+      payload.provider = {
+        only: ["SiliconFlow"],
+        allow_fallbacks: false,
+      };
+    }
 
     // Map generation parameters
     if (genParams) {
@@ -540,6 +558,8 @@ export class OpenRouterAdapter extends ProviderAdapter {
     } catch {
       // Use raw text if not JSON
     }
+
+    console.log("OpenRouter error", errorText);
 
     // Map status codes to specific error types
     if (statusCode === 401 || statusCode === 403) {

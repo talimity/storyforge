@@ -19,7 +19,7 @@ export function GenParamsTextarea({
 
   return (
     <Textarea
-      rows={8}
+      rows={4}
       fontFamily="mono"
       placeholder='JSON object, e.g. {"temperature":0.7}'
       value={text}

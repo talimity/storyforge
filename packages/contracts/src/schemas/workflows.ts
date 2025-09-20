@@ -141,7 +141,6 @@ export const workflowTestMockConfigSchema = z.object({
   stepResponses: z
     .record(z.string(), z.union([z.string(), workflowTestMockResponseSchema]))
     .optional(),
-  modelIds: z.record(z.string(), z.string()).optional(),
   streaming: z
     .object({
       defaultChunkDelay: z.number().int().nonnegative().optional(),

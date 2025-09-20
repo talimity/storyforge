@@ -173,7 +173,13 @@ export function WorkflowPreviewTab({ values }: Props) {
                     {run.data.stepOrder.map((stepId) => {
                       const p = run.data?.prompts[stepId];
                       return (
-                        <Card.Root key={stepId} p={4} layerStyle="subtle">
+                        <Card.Root
+                          key={stepId}
+                          p={4}
+                          layerStyle="subtle"
+                          overflow="auto"
+                          maxH="50vh"
+                        >
                           <HStack justify="space-between" mb={2}>
                             <Heading size="sm">{stepId}</Heading>
                             <Badge>{p ? "captured" : "missing"}</Badge>

@@ -222,7 +222,7 @@ export function StepCard({
         <Separator />
 
         <Field
-          label="Generation Params (JSON)"
+          label="Extra Generation Params (JSON)"
           invalid={!!stepErr?.genParams}
           errorText={stepErr?.genParams?.message}
         >
