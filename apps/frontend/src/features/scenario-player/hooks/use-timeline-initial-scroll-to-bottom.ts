@@ -14,20 +14,19 @@ export function useTimelineInitialScrollToBottom<
   const initialDataReceivedRef = useRef(false);
   useLayoutEffect(() => {
     if (turns.length === 0 || initialDataReceivedRef.current) {
-      console.log("Skip initial load scroll effect");
+      console.log("useTimelineInitialScrollToBottom -> skipped");
       return;
     }
 
     // don't scroll if scenario only has one turn
-    console.log("Initial load scroll effect");
     if (turns.length > 1) {
-      console.log("-> scroll to bottom");
+      console.log("useTimelineInitialScrollToBottom -> scroll to end");
       const count = virtualizer.options.count;
       virtualizer.scrollToIndex(count - 1, { align: "end" });
     }
 
     setTimeout(() => {
-      console.log("-> set initialDataReceivedRef");
+      console.log("useTimelineInitialScrollToBottom -> set initialDataReceivedRef true");
       initialDataReceivedRef.current = true;
     }, 100);
   }, [turns.length, virtualizer]);

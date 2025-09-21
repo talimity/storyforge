@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 
 type Args = {
   items: VirtualItem[];
+  isFetching?: boolean;
   hasNextPage?: boolean;
   onLoadMore?: () => Promise<unknown>;
   initialDataReceived: boolean;
@@ -10,12 +11,14 @@ type Args = {
 
 export function useTimelineAutoLoadMore({
   items,
+  isFetching,
   hasNextPage,
   onLoadMore,
   initialDataReceived,
 }: Args) {
   const lockRef = useRef(false);
   useEffect(() => {
+    if (isFetching) return;
     if (!hasNextPage || !onLoadMore) return; // no more data or no load more handler
     if (!initialDataReceived) return; // wait for initial data
 
@@ -29,5 +32,5 @@ export function useTimelineAutoLoadMore({
           lockRef.current = false;
         });
     }
-  }, [items, hasNextPage, onLoadMore, initialDataReceived]);
+  }, [items, isFetching, hasNextPage, onLoadMore, initialDataReceived]);
 }
