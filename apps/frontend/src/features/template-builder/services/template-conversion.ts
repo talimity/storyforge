@@ -44,7 +44,6 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
         name: node.name,
         ...(node.content && { content: node.content }),
         ...(node.from && { from: node.from }),
-        ...(node.prefix && { prefix: node.prefix }),
         ...(node.skipIfEmptyInterpolation !== undefined && {
           skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
         }),
@@ -81,7 +80,6 @@ function convertMessageBlockToDraft(block: MessageBlock): MessageBlockDraft {
     role: block.role,
     ...(block.content && { content: block.content }),
     ...(block.from && { from: block.from }),
-    ...(block.prefix && { prefix: block.prefix }),
     ...(block.skipIfEmptyInterpolation !== undefined && {
       skipIfEmptyInterpolation: block.skipIfEmptyInterpolation,
     }),

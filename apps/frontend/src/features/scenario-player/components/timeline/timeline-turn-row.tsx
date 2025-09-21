@@ -13,21 +13,19 @@ interface TimelineTurnRowProps {
   onEdit?: (turnId: string, content: string) => void;
   onRetry?: (turnId: string, parentId: string | null) => void;
   isUpdating?: boolean;
-  activeIntentIds: Set<string>;
 }
 
 function TimelineTurnRowImpl(props: TimelineTurnRowProps) {
-  const { turn, prevTurn, nextTurn, activeIntentIds, ...handlers } = props;
+  const { turn, prevTurn, nextTurn, ...handlers } = props;
 
   const provenanceDisplay = useMemo(
     () => getIntentProvenanceDisplay(turn, prevTurn, nextTurn),
     [turn, prevTurn, nextTurn]
   );
-  const isActive = provenanceDisplay ? activeIntentIds.has(provenanceDisplay.intentId) : false;
 
   return (
     <Flex align="stretch" gap={2} width="100%" pb={4}>
-      <IntentProvenanceIndicator display={provenanceDisplay} isActive={isActive} />
+      {provenanceDisplay && <IntentProvenanceIndicator display={provenanceDisplay} />}
       <Box flex="1">
         <TurnItem turn={turn} {...handlers} />
       </Box>

@@ -15,7 +15,7 @@ export function DraftTurn() {
   const { getCharacterByParticipantId } = useScenarioContext();
   const { isActive, authorId, previewText } = useDraftPreview();
 
-  if (!isActive || !previewText) return null;
+  if (!isActive) return null;
 
   const author = authorId ? getCharacterByParticipantId(authorId) : null;
   const authorName = author?.name ?? "Generating";

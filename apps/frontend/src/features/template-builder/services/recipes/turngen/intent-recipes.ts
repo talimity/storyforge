@@ -15,7 +15,7 @@ const params = [
     label: "Narrator Extra Prompt",
     type: "template_string",
     defaultValue:
-      "The Narrator must not take actions on the behalf of other characters; only control NPCs or descriptive events.",
+      "Remember, Narrator can't take actions for other characters. Only control NPCs or descriptive events during this turn.",
     help: "Extra instruction when generating a Narrator turn",
   },
 ] as const;
@@ -45,7 +45,14 @@ export const nextTurnIntentRecipe: RecipeDefinition<
               then: [
                 // Don't output anything for manual control intent
               ],
-              else: [{ kind: "message", role: "user", content: params.currentIntentTemplate }],
+              else: [
+                {
+                  kind: "message",
+                  role: "user",
+                  content: params.currentIntentTemplate,
+                  skipIfEmptyInterpolation: true,
+                },
+              ],
             },
           ],
         },

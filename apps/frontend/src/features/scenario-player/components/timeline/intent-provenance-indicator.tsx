@@ -17,18 +17,17 @@ const statusPalette: Record<IntentStatus, { colorPalette: string; variant: "soli
 
 export interface IntentProvenanceIndicatorProps {
   display: IntentProvenanceDisplay | null;
-  isActive?: boolean;
 }
 
 export function IntentProvenanceIndicator(props: IntentProvenanceIndicatorProps) {
-  const { display, isActive } = props;
+  const { display } = props;
 
   if (!display) {
     return <Box width={GUTTER_WIDTH} />;
   }
 
   const palette = statusPalette[display.status];
-  const isGenerating = isActive || display.status === "pending" || display.status === "running";
+  const isGenerating = display.status === "pending" || display.status === "running";
 
   return (
     <Box position="relative" width={GUTTER_WIDTH} minH="100%" py={2}>

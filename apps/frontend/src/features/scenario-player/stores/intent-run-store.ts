@@ -12,8 +12,7 @@ export type ProvisionalTurn = {
   text: string;
   /** Optional hint about who is "speaking" for UI decoration */
   actorParticipantId?: string | null;
-  /** When an effect commits, we flip status and store the turnId */
-  status: "streaming" | "committed" | "error";
+  status: "streaming" | "error";
   committedTurnId?: string;
 };
 
@@ -163,17 +162,8 @@ export const useIntentRunsStore = create<IntentRunsState>()(
 
           case "effect_committed":
             run.committedTurnIds.push(ev.turnId);
-            // Mark the current streaming provisional (if any) as committed
-            if (run.provisional.length > 0) {
-              const p = run.provisional[run.provisional.length - 1];
-              if (p.status === "streaming") {
-                p.status = "committed";
-                p.committedTurnId = ev.turnId;
-              }
-            }
-            // reset live preview for the next effect (if any)
-            run.livePreview = "";
-            // unhide any truncated turns
+            // this event triggers an invalidation of the timeline, so we can
+            // show the real state from the server
             run.truncateAfterTurnId = undefined;
             return;
 
@@ -239,6 +229,8 @@ function reduceRunnerEvent(run: IntentRun, e: WorkflowEvent) {
     case "step_finished":
       run.steps[e.stepId] ??= { id: e.stepId, status: "running" };
       run.steps[e.stepId].status = "finished";
+      run.provisional[0].text = "";
+      run.livePreview = "";
       break;
     case "run_error":
       if (e.stepId) {

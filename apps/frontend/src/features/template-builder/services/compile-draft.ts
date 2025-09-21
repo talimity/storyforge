@@ -54,7 +54,6 @@ function compileLayoutNode(node: LayoutNodeDraft): UnboundLayoutNode {
         role: node.role,
         ...(node.content && { content: node.content }),
         ...(node.from && { from: node.from }),
-        ...(node.prefix && { prefix: node.prefix }),
         ...(node.skipIfEmptyInterpolation !== undefined && {
           skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
         }),
@@ -172,7 +171,6 @@ function compileMessageBlock(block: MessageBlockDraft): MessageBlock {
     role: block.role,
     ...(block.content && { content: block.content }),
     ...(block.from && { from: block.from }),
-    ...(block.prefix && { prefix: block.prefix }),
     ...(block.skipIfEmptyInterpolation !== undefined && {
       skipIfEmptyInterpolation: block.skipIfEmptyInterpolation,
     }),

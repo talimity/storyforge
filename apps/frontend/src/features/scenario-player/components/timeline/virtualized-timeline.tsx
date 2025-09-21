@@ -69,13 +69,6 @@ export function VirtualizedTimeline(props: TimelineProps) {
   // If a run is diverging from the current branch at a specific turn,
   // temporarily hide everything *after* that turn so DraftTurn appears at the correct place.
   const run = useIntentRunsStore(selectCurrentRun);
-  const runsById = useIntentRunsStore((s) => s.runsById);
-  const activeIntentIds = useMemo(() => {
-    const ids = Object.values(runsById)
-      .filter((intentRun) => intentRun.status === "pending" || intentRun.status === "running")
-      .map((intentRun) => intentRun.id);
-    return new Set(ids);
-  }, [runsById]);
   const cutoffId = run?.truncateAfterTurnId ?? null;
   const visibleTurns = useMemo(() => {
     if (!cutoffId) return turns;
@@ -90,7 +83,6 @@ export function VirtualizedTimeline(props: TimelineProps) {
     count: virtualCount,
     getScrollElement: () => scrollerRef.current,
     estimateSize: () => 400,
-    paddingEnd: 100,
     overscan: 10,
     // rangeExtractor lets us manually render items outside of the visible range
     rangeExtractor: (range) => {
@@ -125,7 +117,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
   const initialDataReceived = useTimelineInitialScrollToBottom({ virtualizer: v, turns });
   const { handleChange } = useTimelineKeepBottomDistance({ virtualizer: v, turns });
   const { shouldAutoFollow } = useTimelineFollowOutputMode({ virtualizer: v, scrollerRef });
-  useTimelineAutoLoadMore({ initialDataReceived, items, onLoadMore, hasNextPage });
+  useTimelineAutoLoadMore({ initialDataReceived, items, isFetching, onLoadMore, hasNextPage });
 
   // micro-optimizations/placebos
   // we can't avoid re-rendering react-virtualizer while scrolling, so we want
@@ -207,7 +199,6 @@ export function VirtualizedTimeline(props: TimelineProps) {
                       onEdit={handleEditTurn}
                       onRetry={handleRetryTurn}
                       isUpdating={editingTurnId === row.key && isUpdating}
-                      activeIntentIds={activeIntentIds}
                     />
                   )}
                 </div>

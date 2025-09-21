@@ -6,7 +6,6 @@ import {
   IconButton,
   Input,
   Text,
-  Textarea,
   VStack,
 } from "@chakra-ui/react";
 import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
@@ -14,6 +13,7 @@ import { useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { LuCheck, LuX } from "react-icons/lu";
 import {
+  AutosizeTextarea,
   Field,
   SelectContent,
   SelectItem,
@@ -48,7 +48,7 @@ export const MessageNodeEdit = (props: MessageNodeEditProps) => {
       role: node.role,
       name: node.name || "",
       content: node.content || "",
-      prefix: node.prefix || false,
+      skipIfEmptyInterpolation: node.skipIfEmptyInterpolation || false,
     },
     shouldUnregister: true,
   });
@@ -63,7 +63,7 @@ export const MessageNodeEdit = (props: MessageNodeEditProps) => {
       role: values.role,
       name: values.name || undefined,
       content: values.content || undefined,
-      prefix: values.prefix || undefined,
+      skipIfEmptyInterpolation: values.skipIfEmptyInterpolation || false,
     };
     onSave?.(updatedNode);
   }, [node, onSave, getValues]);
@@ -75,9 +75,9 @@ export const MessageNodeEdit = (props: MessageNodeEditProps) => {
     [setValue]
   );
 
-  const handlePrefixChange = useCallback(
+  const handleSkipChange = useCallback(
     (checked: boolean) => {
-      setValue("prefix", checked);
+      setValue("skipIfEmptyInterpolation", checked);
     },
     [setValue]
   );
@@ -161,36 +161,33 @@ export const MessageNodeEdit = (props: MessageNodeEditProps) => {
             label="Content"
             helperText="The message content. Use {{variable}} syntax for templating."
           >
-            <Textarea
+            <AutosizeTextarea
               {...register("content")}
               placeholder="Enter message content..."
-              rows={4}
-              autoresize
+              minRows={4}
               fontFamily="mono"
             />
           </Field>
 
-          {role === "assistant" && (
-            <Field
-              label="Assistant Prefill"
-              helperText="If enabled for the final message, this will prefill the assistant's response with the provided content. Requires provider support."
-            >
-              <Controller
-                name="prefix"
-                control={control}
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value || false}
-                    colorPalette="primary"
-                    onCheckedChange={({ checked }) => {
-                      field.onChange(checked);
-                      handlePrefixChange(checked);
-                    }}
-                  />
-                )}
-              />
-            </Field>
-          )}
+          <Field
+            label="Skip if all variables are empty"
+            helperText="If message content contains {{variables}} and none of them are filled, skip this message entirely."
+          >
+            <Controller
+              name="skipIfEmptyInterpolation"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  checked={field.value || false}
+                  colorPalette="primary"
+                  onCheckedChange={({ checked }) => {
+                    field.onChange(checked);
+                    handleSkipChange(checked);
+                  }}
+                />
+              )}
+            />
+          </Field>
         </VStack>
       </VStack>
     </NodeFrame>
