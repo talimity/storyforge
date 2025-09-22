@@ -1,6 +1,5 @@
 import type { AppRouter } from "@storyforge/backend";
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
   createTRPCClient,
   httpBatchLink,
@@ -10,7 +9,7 @@ import {
 } from "@trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
-import { getBaseUrl } from "@/lib/get-api-url";
+import { getApiUrl } from "@/lib/get-api-url";
 import { makeQueryClient } from "@/lib/query-client";
 import { TRPCProvider } from "@/lib/trpc";
 
@@ -47,8 +46,8 @@ export function TRPCReactProvider({ children }: TRPCReactProviderProps) {
           : []),
         splitLink({
           condition: (op) => op.type === "subscription",
-          true: httpSubscriptionLink({ url: `${getBaseUrl()}/trpc`, transformer: superjson }),
-          false: httpBatchLink({ url: `${getBaseUrl()}/trpc`, transformer: superjson }),
+          true: httpSubscriptionLink({ url: getApiUrl(`/trpc`) || "", transformer: superjson }),
+          false: httpBatchLink({ url: getApiUrl(`/trpc`) || "", transformer: superjson }),
         }),
       ],
     })
@@ -59,9 +58,9 @@ export function TRPCReactProvider({ children }: TRPCReactProviderProps) {
       <QueryClientProvider client={queryClient}>
         {children}
         {/* Add React Query Devtools in development */}
-        {import.meta.env.DEV && (
-          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
-        )}
+        {/*{import.meta.env.DEV && (*/}
+        {/*  <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />*/}
+        {/*)}*/}
       </QueryClientProvider>
     </TRPCProvider>
   );

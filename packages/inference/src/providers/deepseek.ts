@@ -164,7 +164,7 @@ export class DeepseekAdapter extends ProviderAdapter {
     this.apiUrl = baseUrl;
   }
 
-  defaultCapabilities(): TextInferenceCapabilities {
+  effectiveCapabilities(): TextInferenceCapabilities {
     return this.applyOverrides({
       streaming: true,
       assistantPrefill: "explicit", // Uses the 'prefix' flag
@@ -179,7 +179,7 @@ export class DeepseekAdapter extends ProviderAdapter {
   }
 
   async complete(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-    const capabilities = this.defaultCapabilities();
+    const capabilities = this.effectiveCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
 
     const deepseekRequest = this.transformRequest(request, false, prefillMode);
@@ -207,7 +207,7 @@ export class DeepseekAdapter extends ProviderAdapter {
   async *completeStream(
     request: ChatCompletionRequest
   ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse> {
-    const capabilities = this.defaultCapabilities();
+    const capabilities = this.effectiveCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
 
     const deepseekRequest = this.transformRequest(request, true, prefillMode);
@@ -298,7 +298,7 @@ export class DeepseekAdapter extends ProviderAdapter {
   }
 
   async renderPrompt(request: ChatCompletionRequest): Promise<string> {
-    const capabilities = this.defaultCapabilities();
+    const capabilities = this.effectiveCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
     const transformed = this.transformRequest(request, false, prefillMode);
     return JSON.stringify(transformed, null, 2);

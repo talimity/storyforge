@@ -181,12 +181,12 @@ export class ProviderService {
       messages: [
         {
           role: "user",
-          content: "This is an API connection test. Respond with simply 'success'.",
-          //   content: "What color is the sky?",
-          // },
-          // {
-          //   role: "assistant",
-          //   content: "The",
+          // content: "This is an API connection test. Respond with simply 'success'.",
+          content: "What color is the sky?",
+        },
+        {
+          role: "assistant",
+          content: "The",
         },
       ],
       model: model.modelId,
@@ -197,7 +197,7 @@ export class ProviderService {
     };
 
     let result: ChatCompletionResponse;
-    if (adapter.defaultCapabilities().streaming) {
+    if (adapter.effectiveCapabilities().streaming) {
       const gen = adapter.completeStream(req);
       let r = await gen.next();
       while (!r.done) r = await gen.next();

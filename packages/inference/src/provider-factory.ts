@@ -36,10 +36,10 @@ export function createAdapter(config: ProviderConfig): ProviderAdapter {
 export function getDefaultCapabilities(kind: string): TextInferenceCapabilities {
   switch (kind) {
     case "deepseek":
-      return new DeepseekAdapter({ apiKey: "" }).defaultCapabilities();
+      return new DeepseekAdapter({ apiKey: "" }).effectiveCapabilities();
 
     case "openrouter":
-      return new OpenRouterAdapter({ apiKey: "" }).defaultCapabilities();
+      return new OpenRouterAdapter({ apiKey: "" }).effectiveCapabilities();
 
     case "openai-compatible":
       // Return conservative defaults for generic OpenAI-compatible
@@ -52,7 +52,7 @@ export function getDefaultCapabilities(kind: string): TextInferenceCapabilities 
       };
 
     case "mock":
-      return new MockAdapter({ apiKey: "" }).defaultCapabilities();
+      return new MockAdapter({ apiKey: "" }).effectiveCapabilities();
 
     default:
       throw new Error(`Unknown provider kind: ${kind}`);

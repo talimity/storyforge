@@ -138,7 +138,7 @@ export class MockAdapter extends ProviderAdapter {
     );
   }
 
-  defaultCapabilities(): TextInferenceCapabilities {
+  effectiveCapabilities(): TextInferenceCapabilities {
     return {
       streaming: true,
       assistantPrefill: "implicit",
@@ -153,7 +153,7 @@ export class MockAdapter extends ProviderAdapter {
   }
 
   async complete(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-    const capabilities = this.defaultCapabilities();
+    const capabilities = this.effectiveCapabilities();
     this.preflightCheck(request, capabilities);
 
     const mockResponse = this.selectResponse(request);
@@ -194,7 +194,7 @@ export class MockAdapter extends ProviderAdapter {
   async *completeStream(
     request: ChatCompletionRequest
   ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse> {
-    const capabilities = this.defaultCapabilities();
+    const capabilities = this.effectiveCapabilities();
     this.preflightCheck(request, capabilities);
 
     const mockResponse = this.selectResponse(request);

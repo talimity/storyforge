@@ -55,7 +55,9 @@ try {
     port: config.server.port,
     host: config.server.host,
   });
-  logger.info(`Storyforge server started on port ${config.server.port}`);
+  logger.info(
+    `Storyforge server - \x1b[32mhttp://${config.server.host}:${config.server.port}\x1b[0m`
+  );
 } catch (err) {
   fastify.log.error(err);
   process.exit(1);

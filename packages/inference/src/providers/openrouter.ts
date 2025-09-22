@@ -214,7 +214,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
     this.apiUrl = baseUrl;
   }
 
-  defaultCapabilities(): TextInferenceCapabilities {
+  effectiveCapabilities(): TextInferenceCapabilities {
     return this.applyOverrides({
       streaming: true,
       assistantPrefill: "implicit", // OpenRouter handles this automatically
@@ -229,7 +229,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
   }
 
   async complete(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-    const capabilities = this.defaultCapabilities();
+    const capabilities = this.effectiveCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
 
     const openRouterRequest = this.transformRequest(request, false, prefillMode);
@@ -257,7 +257,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
   async *completeStream(
     request: ChatCompletionRequest
   ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse> {
-    const capabilities = this.defaultCapabilities();
+    const capabilities = this.effectiveCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
 
     const openRouterRequest = this.transformRequest(request, true, prefillMode);
@@ -351,7 +351,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
   }
 
   async renderPrompt(request: ChatCompletionRequest): Promise<string> {
-    const capabilities = this.defaultCapabilities();
+    const capabilities = this.effectiveCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
     const transformed = this.transformRequest(request, false, prefillMode);
     return JSON.stringify(transformed, null, 2);

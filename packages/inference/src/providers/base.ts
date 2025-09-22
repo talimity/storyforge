@@ -19,7 +19,7 @@ export abstract class ProviderAdapter {
     protected baseUrl?: string
   ) {}
 
-  abstract defaultCapabilities(): TextInferenceCapabilities;
+  abstract effectiveCapabilities(): TextInferenceCapabilities;
 
   abstract supportedParams(): Array<keyof TextInferenceGenParams>;
 

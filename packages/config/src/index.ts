@@ -28,7 +28,7 @@ function validateConfig(): Config {
   return {
     server: {
       port: Number.parseInt(process.env.PORT || "3001", 10),
-      host: process.env.HOST || "localhost",
+      host: process.env.FASTIFY_HOST || "localhost",
     },
     database: {
       path: process.env.DATABASE_PATH || "./data/storyforge.db",

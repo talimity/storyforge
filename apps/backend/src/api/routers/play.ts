@@ -21,6 +21,7 @@ import {
   updateTurnContentInputSchema,
 } from "@storyforge/contracts";
 import { sqliteTimestampToDate } from "@storyforge/db";
+import { assertDefined } from "@storyforge/utils";
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
 import { getGenerationInfoForTurn } from "../../services/intent/debugging/generation-info.queries.js";
@@ -249,12 +250,7 @@ export const playRouter = router({
         });
       }
 
-      if (!intentRunManager) {
-        throw new ServiceError("InternalError", {
-          message: "Intent run manager is not initialized.",
-        });
-      }
-
+      assertDefined(intentRunManager);
       const run = intentRunManager.get(intentId);
       if (!run) {
         throw new ServiceError("NotFound", {

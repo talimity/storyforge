@@ -19,6 +19,7 @@ import {
 } from "react-icons/lu";
 import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
+import { getApiUrl } from "@/lib/get-api-url";
 
 interface CharacterCardProps {
   character: {
@@ -47,9 +48,7 @@ export function CharacterCard({
     closeDeleteDialog,
   } = useCharacterActions(character.id);
 
-  const imageUrl = character.imagePath
-    ? `http://localhost:3001/assets/characters/${character.id}/card`
-    : null;
+  const imageUrl = getApiUrl(character.imagePath);
 
   return (
     <>

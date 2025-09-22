@@ -10,6 +10,7 @@ import type {
   ChatCompletionChunk,
   ChatCompletionFinishReason,
   ChatCompletionLogprob,
+  ChatCompletionMessage,
   ChatCompletionRequest,
   ChatCompletionResponse,
   ProviderAuth,
@@ -39,7 +40,9 @@ interface OpenAIChatCompletionRequest {
   logprobs?: boolean;
   top_logprobs?: number;
   stream?: boolean;
+  // these are prefill hints used variously by vLLM, SGLang, TensorRT-LLM, etc.
   add_generation_prompt?: boolean;
+  continue_final_message?: boolean;
 }
 
 interface ChatLogprobsContent {
@@ -187,7 +190,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
     ];
   }
 
-  defaultCapabilities(): TextInferenceCapabilities {
+  effectiveCapabilities(): TextInferenceCapabilities {
     return this.applyOverrides(this.capabilities);
   }
 
@@ -196,7 +199,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
   }
 
   async complete(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-    const caps = this.defaultCapabilities();
+    const caps = this.effectiveCapabilities();
     const mode = this.resolveMode(request, caps);
 
     try {
@@ -214,7 +217,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
   async *completeStream(
     request: ChatCompletionRequest
   ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse> {
-    const caps = this.defaultCapabilities();
+    const caps = this.effectiveCapabilities();
     const mode = this.resolveMode(request, caps);
 
     if (mode === "text") {
@@ -371,7 +374,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
   }
 
   async renderPrompt(request: ChatCompletionRequest): Promise<string> {
-    const caps = this.defaultCapabilities();
+    const caps = this.effectiveCapabilities();
     const mode = this.resolveMode(request, caps);
 
     if (mode === "text") {
@@ -546,7 +549,9 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
       throw new InferenceProviderError("Missing text template for text completion");
     }
 
-    const prefix = this.computePrefix(request);
+    const allowPrefill = request.hints?.assistantPrefill !== "forbid";
+    const last = request.messages.at(-1);
+    const prefix = last?.role === "assistant" && allowPrefill;
     const prompt = await renderTextTemplate(request.textTemplate, {
       messages: request.messages,
       prefix,
@@ -602,8 +607,15 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
       payload.stream = true;
     }
 
-    if (prefillMode === "prefill") {
-      payload.add_generation_prompt = false;
+    // apply prefill hints
+    if (prefillMode === "prefill" && this.effectiveCapabilities().assistantPrefill === "explicit") {
+      // todo: add some way to let users specify which prefill hint needs to be used
+      const lastMsg = messages.at(-1) as ChatCompletionMessage & { prefix?: boolean };
+      if (lastMsg?.role === "assistant") {
+        payload.add_generation_prompt = false;
+        payload.continue_final_message = true;
+        lastMsg.prefix = true;
+      }
     }
 
     if (request.maxOutputTokens !== undefined) {
@@ -688,12 +700,6 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
 
   private supportsParam(param: keyof TextInferenceGenParams): boolean {
     return this.genParams.includes(param);
-  }
-
-  private computePrefix(request: ChatCompletionRequest): boolean {
-    const last = request.messages.at(-1);
-    if (!last || last.role !== "assistant") return false;
-    return request.hints?.assistantPrefill !== "forbid";
   }
 
   private mapFinishReason(reason: string | null | undefined) {

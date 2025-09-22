@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "vite build",
-    "dev": "vite",
+    "dev": "vite --host",
     "check": "run-p --continue-on-error lint typecheck",
     "lint": "biome check --diagnostic-level error --write . --unsafe",
     "fmt": "biome format --write .",
