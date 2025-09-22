@@ -87,7 +87,11 @@ export function useIntentEngine(scenarioId: string) {
           clearActiveIntent();
         }
         if (event.type === "intent_failed") {
-          showErrorToast({ title: "Generation failed", error: event.error });
+          if (event.cancelled) {
+            showErrorToast({ title: "Generation cancelled", error: event.error });
+          } else {
+            showErrorToast({ title: "Generation failed", error: event.error });
+          }
           // Keep the run visible for UI; do not clear immediately
         }
       },

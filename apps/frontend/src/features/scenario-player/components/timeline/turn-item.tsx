@@ -1,4 +1,4 @@
-import { Box, Group, HStack, Menu, Portal, Stack, Text } from "@chakra-ui/react";
+import { Box, Group, HStack, Menu, MenuSeparator, Portal, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
 import { memo, useCallback, useState } from "react";
 import {
@@ -6,6 +6,7 @@ import {
   LuCheck,
   LuChevronRight,
   LuEllipsisVertical,
+  LuInfo,
   LuMoveDown,
   LuMoveUp,
   LuPencil,
@@ -24,6 +25,7 @@ import {
 } from "@/features/scenario-player/stores/intent-run-store";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { getApiUrl } from "@/lib/get-api-url";
+import { GenerationInfoDialog } from "./generation-info-dialog.js";
 
 interface TurnItemProps {
   turn: TimelineTurn;
@@ -41,6 +43,7 @@ function TurnItemImpl(props: TurnItemProps) {
   const isEditing = editingTurnId === turn.id;
   const [editedContent, setEditedContent] = useState(turn.content.text);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const [showGenerationInfo, setShowGenerationInfo] = useState(false);
   const { getCharacterByParticipantId } = useScenarioContext();
   const authorChar = getCharacterByParticipantId(turn.authorParticipantId);
   const authorName = authorChar?.name ?? "Narrator";
@@ -94,6 +97,16 @@ function TurnItemImpl(props: TurnItemProps) {
   const handleRetry = useCallback(async () => {
     await onRetry?.(turn.id, turn.parentTurnId);
   }, [onRetry, turn.id, turn.parentTurnId]);
+
+  const handleGenerationInfo = useCallback(() => {
+    setShowGenerationInfo(true);
+  }, []);
+
+  const handleGenerationInfoOpenChange = useCallback((details: { open: boolean }) => {
+    setShowGenerationInfo(details.open);
+  }, []);
+
+  const hasIntent = Boolean(turn.intentProvenance);
 
   return (
     <>
@@ -153,7 +166,15 @@ function TurnItemImpl(props: TurnItemProps) {
                 </HStack>
               ) : (
                 !isPreviewing && (
-                  <Menu.Root>
+                  <Menu.Root
+                    onFocusOutside={(details) => {
+                      // janky workaround for  chakra issue with nested menus
+                      // wherein race condition causes menu to inappropriately
+                      // close in rare cases when mouseover leaves a submenu
+                      details.preventDefault();
+                      details.stopPropagation();
+                    }}
+                  >
                     <Menu.Trigger asChild>
                       <Button size="xs" variant="ghost" aria-label="Turn actions">
                         <LuEllipsisVertical />
@@ -252,6 +273,19 @@ function TurnItemImpl(props: TurnItemProps) {
                               </Menu.Positioner>
                             </Portal>
                           </Menu.Root>
+
+                          <MenuSeparator />
+                          {/* Generation Info */}
+                          {hasIntent && (
+                            <Menu.Item
+                              value="generation-info"
+                              onClick={handleGenerationInfo}
+                              disabled={!hasIntent}
+                            >
+                              <LuInfo />
+                              Gen Info
+                            </Menu.Item>
+                          )}
                         </Menu.Content>
                       </Menu.Positioner>
                     </Portal>
@@ -306,6 +340,11 @@ function TurnItemImpl(props: TurnItemProps) {
         isOpen={showDiscardDialog}
         onOpenChange={(details) => setShowDiscardDialog(details.open)}
         onConfirm={handleConfirmDiscard}
+      />
+      <GenerationInfoDialog
+        turnId={turn.id}
+        isOpen={showGenerationInfo}
+        onOpenChange={handleGenerationInfoOpenChange}
       />
     </>
   );

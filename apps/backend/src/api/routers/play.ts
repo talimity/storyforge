@@ -5,6 +5,8 @@ import {
   createIntentOutputSchema,
   environmentInputSchema,
   environmentOutputSchema,
+  generationInfoInputSchema,
+  generationInfoOutputSchema,
   intentInterruptInputSchema,
   intentInterruptOutputSchema,
   intentProgressInputSchema,
@@ -21,6 +23,7 @@ import {
 import { sqliteTimestampToDate } from "@storyforge/db";
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
+import { getGenerationInfoForTurn } from "../../services/intent/debugging/generation-info.queries.js";
 import { getGeneratingIntent } from "../../services/intent/intent.queries.js";
 import { IntentService } from "../../services/intent/intent.service.js";
 import { intentRunManager } from "../../services/intent/run-manager.js";
@@ -65,7 +68,7 @@ export const playRouter = router({
     .input(loadTimelineInputSchema)
     .output(loadTimelineOutputSchema)
     .query(async ({ input, ctx }) => {
-      // TODO: move this to service
+      // TODO: move this to queries module
       const { scenarioId, cursor, timelineLeafTurnId, windowSize /*, layer = "presentation"*/ } =
         input;
 
@@ -319,6 +322,21 @@ export const playRouter = router({
         // results are fetched. Fall back to empty string to satisfy schema.
         anchorTurnId: scenario.anchorTurnId ?? "",
       };
+    }),
+
+  generationInfo: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/play/turn/{turnId}/generation",
+        tags: ["play"],
+        summary: "Returns generation diagnostics for a turn",
+      },
+    })
+    .input(generationInfoInputSchema)
+    .output(generationInfoOutputSchema)
+    .query(async ({ input, ctx }) => {
+      return getGenerationInfoForTurn(ctx.db, input.turnId);
     }),
 
   interruptIntent: publicProcedure

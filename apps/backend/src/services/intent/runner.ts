@@ -3,6 +3,9 @@ import type { SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { AsyncBroadcast } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
+import type { Logger } from "pino";
+import { createChildLogger } from "../../logging.js";
+import { GenerationRunRecorder } from "./debugging/generation-run-recorder.js";
 import type { IntentGenerator } from "./types.js";
 
 export class IntentRunner {
@@ -10,6 +13,9 @@ export class IntentRunner {
   private ticks = new AsyncBroadcast();
   private closedAt?: number;
   private partial?: string;
+  private recorder: GenerationRunRecorder;
+  private recorderQueue: Promise<void>;
+  private log: Logger;
 
   constructor(
     private deps: { db: SqliteDatabase; now: () => number },
@@ -18,7 +24,15 @@ export class IntentRunner {
     private kind: string,
     private generator: IntentGenerator,
     private abortCtrl: AbortController
-  ) {}
+  ) {
+    this.recorder = new GenerationRunRecorder({
+      db: this.deps.db,
+      scenarioId: this.scenarioId,
+      intentId: this.intentId,
+    });
+    this.recorderQueue = Promise.resolve();
+    this.log = createChildLogger("intent-runner").child({ intentId: this.intentId });
+  }
 
   events(): AsyncIterable<IntentEvent> {
     const self = this;
@@ -78,7 +92,11 @@ export class IntentRunner {
       }
 
       this.emit({ type: "intent_finished", intentId: this.intentId, ts: now() });
-
+      // Ensure all recorder writes have flushed before we finalize the intent
+      // status. This avoids SQLITE_BUSY on a single-connection client when the
+      // recorder is still applying its last updates (e.g., linking the run to
+      // the committed turn).
+      await this.recorderQueue.catch(() => undefined);
       await db
         .update(schema.intents)
         .set({ status: "finished" })
@@ -92,8 +110,11 @@ export class IntentRunner {
         intentId: this.intentId,
         error,
         partialText: this.partial,
+        cancelled,
         ts: now(),
       });
+
+      await this.recorderQueue.catch(() => undefined);
 
       await db
         .update(schema.intents)
@@ -107,6 +128,11 @@ export class IntentRunner {
 
   private emit(ev: IntentEvent) {
     this.eventLog.push(ev);
+    this.recorderQueue = this.recorderQueue
+      .then(() => this.recorder.handle(ev))
+      .catch((error) => {
+        this.log.error({ err: error }, "generation run recorder failed");
+      });
     if (!this.ticks.isClosed()) this.ticks.push();
   }
 }

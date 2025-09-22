@@ -174,8 +174,8 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             return;
 
           case "intent_failed":
-            run.status = "failed";
-            run.error = ev.error;
+            run.status = ev.cancelled ? "cancelled" : "failed";
+            run.error = ev.cancelled ? undefined : ev.error;
             if (ev.partialText) {
               // keep the partial in the last provisional
               if (run.provisional.length === 0) {

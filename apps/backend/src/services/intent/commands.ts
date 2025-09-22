@@ -12,6 +12,8 @@ import type { IntentCommandGenerator, IntentExecDeps } from "./types.js";
  */
 export function makeCommands(deps: IntentExecDeps) {
   const { db, timeline, runner, now, intentId, scenarioId } = deps;
+  // Correlate the next insertTurn with the most recent workflow run
+  let lastWorkflowRunId: string | undefined;
 
   return {
     insertTurn: async function* (args: {
@@ -44,8 +46,10 @@ export function makeCommands(deps: IntentExecDeps) {
         intentId,
         sequence: newEffect.sequence,
         turnId: newEffect.turnId,
+        workflowRunId: lastWorkflowRunId ?? `manual:${newEffect.turnId}`,
         ts: now(),
       };
+      lastWorkflowRunId = undefined;
 
       return { turnId: newEffect.turnId };
     },
@@ -102,6 +106,7 @@ export function makeCommands(deps: IntentExecDeps) {
         ts: now(),
       };
       const handle = await runner.startRun(workflow, ctx, { parentSignal: deps.signal });
+      lastWorkflowRunId = handle.id;
 
       for await (const ev of handle.events()) {
         if (ev.type === "stream_delta") {

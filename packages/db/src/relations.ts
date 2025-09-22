@@ -108,4 +108,49 @@ export const relations = defineRelations(schema, (r) => ({
       optional: true,
     }),
   },
+  generationRuns: {
+    intent: r.one.intents({
+      from: r.generationRuns.intentId,
+      to: r.intents.id,
+    }),
+    scenario: r.one.scenarios({
+      from: r.generationRuns.scenarioId,
+      to: r.scenarios.id,
+    }),
+    participant: r.one.scenarioParticipants({
+      from: r.generationRuns.participantId,
+      to: r.scenarioParticipants.id,
+    }),
+    workflow: r.one.workflows({
+      from: r.generationRuns.workflowId,
+      to: r.workflows.id,
+    }),
+    branchFromTurn: r.one.turns({
+      from: r.generationRuns.branchFromTurnId,
+      to: r.turns.id,
+      optional: true,
+    }),
+    turn: r.one.turns({
+      from: r.generationRuns.turnId,
+      to: r.turns.id,
+      optional: true,
+    }),
+    steps: r.many.generationRunSteps(),
+  },
+  generationRunSteps: {
+    run: r.one.generationRuns({
+      from: r.generationRunSteps.runId,
+      to: r.generationRuns.id,
+    }),
+    modelProfile: r.one.modelProfiles({
+      from: r.generationRunSteps.modelProfileId,
+      to: r.modelProfiles.id,
+      optional: true,
+    }),
+    promptTemplate: r.one.promptTemplates({
+      from: r.generationRunSteps.promptTemplateId,
+      to: r.promptTemplates.id,
+      optional: true,
+    }),
+  },
 }));

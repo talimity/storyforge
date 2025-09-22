@@ -1,3 +1,4 @@
+import type { ChatCompletionMessage, ChatCompletionResponse } from "@storyforge/inference";
 import { z } from "zod";
 
 export const intentKindSchema = z.enum([
@@ -8,6 +9,15 @@ export const intentKindSchema = z.enum([
 ]);
 
 export const intentStatusSchema = z.enum(["pending", "running", "finished", "failed", "cancelled"]);
+
+export const generationRunStatusSchema = z.enum(["running", "finished", "error", "cancelled"]);
+
+export const generationInfoMessageSchema = z.custom<ChatCompletionMessage>().meta({
+  description: "A message from the generation run",
+});
+export const generationInfoResponseSchema = z.custom<ChatCompletionResponse>().meta({
+  description: "A response from the generation run",
+});
 
 export const intentInputSchema = z.discriminatedUnion("kind", [
   z.object({
@@ -157,6 +167,56 @@ export const updateTurnContentInputSchema = z.object({
   content: z.string(),
 });
 
+export const generationInfoInputSchema = z.object({
+  turnId: z.string(),
+});
+
+export const generationInfoOutputSchema = z.object({
+  workflowId: z.string(),
+  workflowName: z.string().nullable(),
+  task: z.literal("turn_generation"),
+  stepOrder: z.array(z.string()),
+  prompts: z.record(
+    z.string(),
+    z.object({
+      rendered: z.array(generationInfoMessageSchema),
+      transformed: z.array(generationInfoMessageSchema).nullable(),
+    })
+  ),
+  stepResponses: z.record(z.string(), generationInfoResponseSchema),
+  capturedOutputs: z.record(z.string(), z.record(z.string(), z.unknown())),
+  apiPayloads: z.record(z.string(), z.unknown()),
+  stepMetadata: z.record(
+    z.string(),
+    z.object({
+      idx: z.number(),
+      name: z.string().nullable(),
+      promptTemplateId: z.string().nullable(),
+      promptTemplateName: z.string().nullable(),
+      modelProfileId: z.string().nullable(),
+      modelProfileName: z.string().nullable(),
+      modelId: z.string().nullable(),
+      hints: z.unknown().nullable(),
+    })
+  ),
+  finalOutputs: z.record(z.string(), z.unknown()),
+  meta: z.object({
+    scenarioId: z.string(),
+    participantId: z.string(),
+    participantName: z.string(),
+    intentId: z.string(),
+    intentKind: intentKindSchema,
+    intentConstraint: z.string().nullable(),
+    turnId: z.string(),
+    status: generationRunStatusSchema,
+    startedAt: z.date(),
+    finishedAt: z.date().nullable(),
+    error: z.string().nullable(),
+    effectSequence: z.number().nullable(),
+    branchFromTurnId: z.string().nullable(),
+  }),
+});
+
 // Intent API schemas
 export const createIntentInputSchema = z.object({
   scenarioId: z.string(),
@@ -230,6 +290,7 @@ export type CreateIntentInput = z.infer<typeof createIntentInputSchema>;
 export type CreateIntentOutput = z.infer<typeof createIntentOutputSchema>;
 export type Intent = z.infer<typeof intentSchema>;
 export type IntentStatus = z.infer<typeof intentStatusSchema>;
+export type GenerationRunStatus = z.infer<typeof generationRunStatusSchema>;
 export type IntentEffect = z.infer<typeof intentEffectSchema>;
 export type IntentInterruptInput = z.infer<typeof intentInterruptInputSchema>;
 export type IntentInterruptOutput = z.infer<typeof intentInterruptOutputSchema>;
@@ -237,3 +298,5 @@ export type ResolveLeafInput = z.infer<typeof resolveLeafInputSchema>;
 export type ResolveLeafOutput = z.infer<typeof resolveLeafOutputSchema>;
 export type SwitchTimelineInput = z.infer<typeof switchTimelineInputSchema>;
 export type SwitchTimelineOutput = z.infer<typeof switchTimelineOutputSchema>;
+export type GenerationInfoInput = z.infer<typeof generationInfoInputSchema>;
+export type GenerationInfoOutput = z.infer<typeof generationInfoOutputSchema>;

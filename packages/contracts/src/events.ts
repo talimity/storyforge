@@ -11,13 +11,22 @@ export type {
 export type IntentEvent =
   | { type: "intent_started"; intentId: string; scenarioId: string; kind: string; ts: number }
   | { type: "intent_finished"; intentId: string; ts: number }
-  | { type: "intent_failed"; intentId: string; error: string; partialText?: string; ts: number }
+  | {
+      type: "intent_failed";
+      intentId: string;
+      error: string;
+      partialText?: string;
+      cancelled?: boolean;
+      ts: number;
+    }
   | {
       type: "effect_committed";
       intentId: string;
       sequence: number;
       effect: "new_turn" /* | "new_timeline_event" */;
       turnId: string;
+      // Correlates this effect to the workflow run that produced it.
+      workflowRunId: string;
       ts: number;
     }
   | { type: "actor_selected"; intentId: string; participantId: string; ts: number }

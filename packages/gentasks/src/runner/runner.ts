@@ -204,7 +204,14 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
     const budget = deps.budgetFactory(step.maxContextTokens);
     const messages = render(compiled, ctx, budget, extendedRegistry);
 
-    emit({ type: "prompt_rendered", runId, stepId: step.id, messages, ts: now() });
+    emit({
+      type: "prompt_rendered",
+      runId,
+      stepId: step.id,
+      promptTemplateId: step.promptTemplateId,
+      messages,
+      ts: now(),
+    });
 
     // 3. Apply input transforms
     const { messages: transformedMessages, changed } = applyInputTransforms(

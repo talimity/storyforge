@@ -85,6 +85,7 @@ export type WorkflowEvent =
       type: "prompt_rendered";
       runId: WorkflowRunId;
       stepId: string;
+      promptTemplateId: string;
       messages: ChatCompletionMessage[];
       ts: number;
     }
