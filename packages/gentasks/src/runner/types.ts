@@ -48,6 +48,7 @@ export type ModelProfileResolved = {
   id: string;
   provider: ProviderConfig;
   modelId: string;
+  textTemplate?: string | null;
   capabilityOverrides?: Partial<TextInferenceCapabilities>;
   defaultGenParams?: Partial<TextInferenceGenParams>;
 };

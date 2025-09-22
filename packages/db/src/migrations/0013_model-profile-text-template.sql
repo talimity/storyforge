@@ -1,0 +1,1 @@
+ALTER TABLE `model_profiles` ADD `text_template` text;

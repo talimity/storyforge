@@ -138,6 +138,7 @@ export class WorkflowRunnerManager {
       id: row.profile.id,
       provider: providerConfig,
       modelId: row.profile.modelId,
+      textTemplate: row.profile.textTemplate,
       capabilityOverrides: overrides,
       defaultGenParams: undefined,
     };

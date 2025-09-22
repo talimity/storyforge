@@ -220,6 +220,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
       assistantPrefill: "implicit", // OpenRouter handles this automatically
       tools: true,
       fim: false,
+      textCompletions: false,
     });
   }
 
@@ -349,7 +350,7 @@ export class OpenRouterAdapter extends ProviderAdapter {
     };
   }
 
-  renderPrompt(request: ChatCompletionRequest): string {
+  async renderPrompt(request: ChatCompletionRequest): Promise<string> {
     const capabilities = this.defaultCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
     const transformed = this.transformRequest(request, false, prefillMode);

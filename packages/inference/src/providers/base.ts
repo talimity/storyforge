@@ -37,7 +37,7 @@ export abstract class ProviderAdapter {
     request: ChatCompletionRequest
   ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse>;
 
-  abstract renderPrompt(request: ChatCompletionRequest): string;
+  abstract renderPrompt(request: ChatCompletionRequest): Promise<string>;
 
   async searchModels(_query?: string): Promise<ProviderModelSearchResult[]> {
     return [];

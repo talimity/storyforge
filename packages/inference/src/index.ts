@@ -5,4 +5,5 @@ export { MockAdapter } from "./providers/mock.js";
 export { OpenAICompatibleAdapter } from "./providers/openai-compatible.js";
 export { OpenRouterAdapter } from "./providers/openrouter.js";
 export { textInferenceCapabilitiesSchema } from "./schemas.js";
+export { renderTextTemplate, type TextTemplateInput } from "./template/jinja.js";
 export * from "./types.js";

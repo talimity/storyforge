@@ -51,6 +51,8 @@ export type TextInferenceCapabilities = {
   tools: boolean;
   /** Whether filling in the middle of text is supported. */
   fim: boolean;
+  /** Whether raw text completion requests are supported. */
+  textCompletions: boolean;
 
   // TODO: guided generation, `n` for parallel generations, etc.
 };
@@ -214,6 +216,12 @@ export interface ChatCompletionRequest {
    * request cancellation from the workflow runner.
    */
   signal?: AbortSignal;
+  /**
+   * Optional text completion template associated with the model profile.
+   * If provided, adapters may choose to render and dispatch a text completion
+   * request instead of a chat completion request, depending on capabilities.
+   */
+  textTemplate?: string;
 
   // TODO: strucutred output, tool use
 }

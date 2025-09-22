@@ -195,6 +195,53 @@ export function CapabilitiesSelector({
             )}
           </Field>
         )}
+
+        {!hide?.textCompletions && (
+          <Field
+            label="Text Completions"
+            helperText={
+              baseline?.textCompletions !== undefined
+                ? `Effective: ${String(value.textCompletions ?? baseline.textCompletions)} ${
+                    allowInherit && value.textCompletions === undefined ? `(inherited)` : ``
+                  }`
+                : undefined
+            }
+          >
+            {allowInherit ? (
+              <RadioGroup
+                value={
+                  value.textCompletions === undefined
+                    ? "inherit"
+                    : value.textCompletions
+                      ? "on"
+                      : "off"
+                }
+                onValueChange={(e) => {
+                  if (e.value === "inherit") return clear("textCompletions");
+                  set("textCompletions", e.value === "on");
+                }}
+              >
+                <HStack gap={4} wrap="wrap">
+                  <Radio value="inherit">
+                    Inherit
+                    {baseline?.textCompletions !== undefined
+                      ? ` (${String(baseline.textCompletions)})`
+                      : ""}
+                  </Radio>
+                  <Radio value="on">On</Radio>
+                  <Radio value="off">Off</Radio>
+                </HStack>
+              </RadioGroup>
+            ) : (
+              <Checkbox
+                checked={!!value.textCompletions}
+                onCheckedChange={({ checked }) => set("textCompletions", !!checked)}
+              >
+                Supports text completion endpoint
+              </Checkbox>
+            )}
+          </Field>
+        )}
       </Stack>
     </VStack>
   );

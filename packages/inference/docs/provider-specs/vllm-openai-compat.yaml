@@ -1,0 +1,338 @@
+openapi: 3.1.0
+info:
+  title: vLLM OpenAI-Compatible API (Chat & Text Completions)
+  version: "2025-09-20"
+  description: |-
+    OpenAPI 3.1 specification for vLLM's OpenAI-compatible Chat Completions and Text Completions endpoints.
+
+    Notes:
+    - This spec extends the OpenAI request bodies with vLLM-specific "Extra parameters" documented by the vLLM team.
+    - Extra parameters are included directly as top-level keys in the request bodies.
+    - Use HTTP Bearer auth via `Authorization: Bearer <token>` if configured on the server.
+externalDocs:
+  description: vLLM OpenAI-compatible server docs and extra parameters
+  url: "https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html"
+servers:
+  - url: http://localhost:8000/v1
+    description: Local vLLM OpenAI-compatible server
+security:
+  - bearerAuth: []
+tags:
+  - name: Chat Completions
+  - name: Completions
+paths:
+  /chat/completions:
+    post:
+      tags: [Chat Completions]
+      summary: Create chat completion
+      operationId: createChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+            examples:
+              basic:
+                value:
+                  model: "NousResearch/Meta-Llama-3-8B-Instruct"
+                  messages:
+                    - role: user
+                      content: "Hello!"
+              with_vllm_extras:
+                value:
+                  model: "NousResearch/Meta-Llama-3-8B-Instruct"
+                  messages:
+                    - role: user
+                      content: "Classify: great or bad?"
+                  # vLLM extras may be provided inline as top-level keys:
+                  guided_choice: ["great", "bad"]
+                  top_k: 50
+                  min_p: 0.05
+                  repetition_penalty: 1.1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+            text/event-stream:
+              schema:
+                type: string
+              examples:
+                stream:
+                  summary: SSE stream
+                  value: "data: {"id":"...","object":"chat.completion.chunk",...}\n\n"
+  /completions:
+    post:
+      tags: [Completions]
+      summary: Create text completion
+      operationId: createCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompletionRequest'
+            examples:
+              basic:
+                value:
+                  model: "mistralai/Mistral-7B-Instruct-v0.2"
+                  prompt: "Write a haiku about unit tests."
+              with_vllm_extras:
+                value:
+                  model: "mistralai/Mistral-7B-Instruct-v0.2"
+                  prompt: "Return valid JSON."
+                  response_format: {"type": "json_object"}
+                  guided_json:
+                    type: object
+                    properties:
+                      title: {type: string}
+                      ok: {type: boolean}
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionResponse'
+            text/event-stream:
+              schema:
+                type: string
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: "API key"
+  schemas:
+    # Common types
+    Usage:
+      type: object
+      properties:
+        prompt_tokens: {type: integer}
+        completion_tokens: {type: integer}
+        total_tokens: {type: integer}
+    Logprobs:
+      type: object
+      properties:
+        tokens:
+          type: array
+          items: {type: string}
+        token_logprobs:
+          type: array
+          items:
+            type: number
+        top_logprobs:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: number
+        text_offset:
+          type: array
+          items: {type: integer}
+    # Chat
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant]
+        content:
+          type: string
+        name:
+          type: string
+      additionalProperties: false
+    ChatCompletionRequest:
+      type: object
+      required: [model, messages]
+      properties:
+        model:
+          type: string
+          description: Model name as served by vLLM.
+        messages:
+          type: array
+          items: {$ref: '#/components/schemas/ChatMessage'}
+        # OpenAI-compatible sampling & behavior
+        temperature: {type: number, minimum: 0}
+        top_p: {type: number, minimum: 0, maximum: 1}
+        n: {type: integer, minimum: 1, default: 1}
+        stream: {type: boolean, default: false}
+        stop:
+          oneOf:
+            - type: string
+            - type: array
+              items: {type: string}
+        max_tokens: {type: integer, minimum: 0}
+        presence_penalty: {type: number}
+        frequency_penalty: {type: number}
+        logit_bias:
+          type: object
+          additionalProperties: {type: number}
+        user: {type: string}
+        logprobs: {type: boolean}
+        top_logprobs: {type: integer, minimum: 1, maximum: 20}
+        # vLLM "Extra parameters" (top-level keys)
+        best_of: {type: integer, minimum: 1, description: "Non-OpenAI extra; enables best-of sampling."}
+        use_beam_search: {type: boolean}
+        top_k: {type: integer}
+        min_p: {type: number, minimum: 0}
+        repetition_penalty: {type: number, minimum: 0}
+        length_penalty: {type: number}
+        early_stopping: {type: boolean}
+        ignore_eos: {type: boolean}
+        min_tokens: {type: integer, minimum: 0}
+        stop_token_ids:
+          type: array
+          items: {type: integer}
+        skip_special_tokens: {type: boolean}
+        spaces_between_special_tokens: {type: boolean}
+        echo: {type: boolean, description: "Prepend last message from same role to output."}
+        add_generation_prompt: {type: boolean}
+        add_special_tokens:
+          type: boolean
+          description: "Add BOS/other special tokens beyond the chat template (usually false)."
+        include_stop_str_in_output: {type: boolean}
+        guided_json:
+          oneOf:
+            - type: string
+            - type: object
+            - type: array
+          description: "Constrain output to JSON schema (structured output)."
+        guided_regex: {type: string}
+        guided_choice:
+          type: array
+          items: {type: string}
+        guided_grammar: {type: string}
+        guided_decoding_backend:
+          type: string
+          description: "Backend for guided decoding (e.g., xgrammar, guidance, outlines, lm-format-enforcer)."
+        guided_whitespace_pattern: {type: string}
+        priority:
+          type: integer
+          description: "Scheduling priority (lower = earlier). Only effective if priority scheduling is enabled on server."
+      additionalProperties: true
+    ChatCompletionResponseChoice:
+      type: object
+      properties:
+        index: {type: integer}
+        message: {$ref: '#/components/schemas/ChatMessage'}
+        logprobs:
+          oneOf:
+            - {$ref: '#/components/schemas/Logprobs'}
+            - type: 'null'
+        finish_reason:
+          type: string
+          enum: [stop, length, content_filter, tool_calls, function_call]
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id: {type: string}
+        object: {type: string, enum: ["chat.completion"]}
+        created: {type: integer}
+        model: {type: string}
+        choices:
+          type: array
+          items: {$ref: '#/components/schemas/ChatCompletionResponseChoice'}
+        usage: {$ref: '#/components/schemas/Usage'}
+    # Text Completions
+    CompletionRequest:
+      type: object
+      required: [model, prompt]
+      properties:
+        model: {type: string}
+        prompt:
+          oneOf:
+            - type: string
+            - type: array
+              items: {type: string}
+        suffix:
+          nullable: true
+          description: "Not supported by vLLM's OpenAI server."
+        temperature: {type: number, minimum: 0}
+        top_p: {type: number, minimum: 0, maximum: 1}
+        n: {type: integer, minimum: 1, default: 1}
+        stream: {type: boolean, default: false}
+        stop:
+          oneOf:
+            - type: string
+            - type: array
+              items: {type: string}
+        max_tokens: {type: integer, minimum: 0}
+        presence_penalty: {type: number}
+        frequency_penalty: {type: number}
+        logit_bias:
+          type: object
+          additionalProperties: {type: number}
+        user: {type: string}
+        echo: {type: boolean}
+        logprobs:
+          oneOf:
+            - type: integer
+              minimum: 0
+              maximum: 20
+            - type: 'null'
+        # vLLM "Extra parameters" for Completions
+        use_beam_search: {type: boolean}
+        top_k: {type: integer}
+        min_p: {type: number, minimum: 0}
+        repetition_penalty: {type: number, minimum: 0}
+        length_penalty: {type: number}
+        early_stopping: {type: boolean}
+        stop_token_ids:
+          type: array
+          items: {type: integer}
+        ignore_eos: {type: boolean}
+        min_tokens: {type: integer, minimum: 0}
+        skip_special_tokens: {type: boolean}
+        spaces_between_special_tokens: {type: boolean}
+        truncate_prompt_tokens: {type: integer, minimum: 1}
+        include_stop_str_in_output: {type: boolean}
+        response_format:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [json_object, text]
+          required: [type]
+        guided_json:
+          oneOf:
+            - type: string
+            - type: object
+          description: "Constrain output to JSON schema (structured output)."
+        guided_regex: {type: string}
+        guided_choice:
+          type: array
+          items: {type: string}
+        guided_grammar: {type: string}
+        guided_decoding_backend:
+          type: string
+          description: "Backend for guided decoding (e.g., xgrammar, guidance, outlines, lm-format-enforcer)."
+        guided_whitespace_pattern: {type: string}
+      additionalProperties: true
+    CompletionChoice:
+      type: object
+      properties:
+        text: {type: string}
+        index: {type: integer}
+        logprobs:
+          oneOf:
+            - {$ref: '#/components/schemas/Logprobs'}
+            - type: 'null'
+        finish_reason:
+          type: string
+          enum: [stop, length, content_filter]
+    CompletionResponse:
+      type: object
+      properties:
+        id: {type: string}
+        object: {type: string, enum: ["text_completion"]}
+        created: {type: integer}
+        model: {type: string}
+        choices:
+          type: array
+          items: {$ref: '#/components/schemas/CompletionChoice'}
+        usage: {$ref: '#/components/schemas/Usage'}

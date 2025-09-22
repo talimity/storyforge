@@ -182,12 +182,18 @@ export class ProviderService {
         {
           role: "user",
           content: "This is an API connection test. Respond with simply 'success'.",
+          //   content: "What color is the sky?",
+          // },
+          // {
+          //   role: "assistant",
+          //   content: "The",
         },
       ],
       model: model.modelId,
       maxOutputTokens: 5,
       stop: [],
       genParams: { temperature: 0.1, topLogprobs: 5 },
+      textTemplate: model.textTemplate ?? undefined,
     };
 
     let result: ChatCompletionResponse;

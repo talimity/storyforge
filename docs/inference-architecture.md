@@ -179,7 +179,7 @@ export abstract class ProviderAdapter {
     request: ChatCompletionRequest
   ): AsyncGenerator<ChatCompletionChunk, ChatCompletionResponse>;
   // Returns the exact JSON payload the adapter would send for a given completion request, for troubleshooting and testing workflows
-  abstract renderPrompt(request: ChatCompletionRequest): string;
+  abstract renderPrompt(request: ChatCompletionRequest): Promise<string>;
   
   protected preflightCheck(
     request: ChatCompletionRequest

@@ -5,4 +5,5 @@ export const textInferenceCapabilitiesSchema = z.object({
   assistantPrefill: z.enum(["implicit", "explicit", "unsupported"]),
   tools: z.boolean(),
   fim: z.boolean(),
+  textCompletions: z.boolean(),
 });

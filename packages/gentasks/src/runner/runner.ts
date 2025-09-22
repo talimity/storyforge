@@ -250,6 +250,7 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
       genParams: { ...profile.defaultGenParams, ...step.genParams },
       hints,
       signal,
+      textTemplate: profile.textTemplate ?? undefined,
     };
 
     // 7. Execute the inference request (streaming)

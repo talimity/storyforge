@@ -16,6 +16,7 @@ export const modelProfiles = sqliteTable("model_profiles", {
   capabilityOverrides: text("capability_overrides", { mode: "json" }).$type<
     Record<string, unknown>
   >(),
+  textTemplate: text("text_template"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),

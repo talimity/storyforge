@@ -48,6 +48,7 @@ export function getDefaultCapabilities(kind: string): TextInferenceCapabilities 
         assistantPrefill: "explicit",
         tools: false,
         fim: false,
+        textCompletions: true,
       };
 
     case "mock":

@@ -170,6 +170,7 @@ export class DeepseekAdapter extends ProviderAdapter {
       assistantPrefill: "explicit", // Uses the 'prefix' flag
       tools: true,
       fim: false,
+      textCompletions: false,
     });
   }
 
@@ -296,7 +297,7 @@ export class DeepseekAdapter extends ProviderAdapter {
     };
   }
 
-  renderPrompt(request: ChatCompletionRequest): string {
+  async renderPrompt(request: ChatCompletionRequest): Promise<string> {
     const capabilities = this.defaultCapabilities();
     const { prefillMode } = this.preflightCheck(request, capabilities);
     const transformed = this.transformRequest(request, false, prefillMode);

@@ -144,6 +144,7 @@ export class MockAdapter extends ProviderAdapter {
       assistantPrefill: "implicit",
       tools: false,
       fim: false,
+      textCompletions: false,
     };
   }
 
@@ -260,7 +261,7 @@ export class MockAdapter extends ProviderAdapter {
     };
   }
 
-  renderPrompt(request: ChatCompletionRequest): string {
+  async renderPrompt(request: ChatCompletionRequest): Promise<string> {
     return JSON.stringify(
       {
         mockProvider: true,

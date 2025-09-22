@@ -48,6 +48,7 @@ const defaultCapabilities = {
   assistantPrefill: "explicit" as const,
   tools: false,
   fim: false,
+  textCompletions: true,
 };
 
 export function ProviderForm({
