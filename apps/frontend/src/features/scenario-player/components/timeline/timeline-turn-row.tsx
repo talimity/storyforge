@@ -3,16 +3,11 @@ import type { TimelineTurn } from "@storyforge/contracts";
 import { memo, useMemo } from "react";
 import { IntentProvenanceIndicator } from "./intent-provenance-indicator";
 import { getIntentProvenanceDisplay } from "./intent-provenance-utils";
-import { TurnItem } from "./turn-item";
+import { TurnItem, type TurnItemProps } from "./turn-item";
 
-interface TimelineTurnRowProps {
-  turn: TimelineTurn;
+interface TimelineTurnRowProps extends TurnItemProps {
   prevTurn: TimelineTurn | null;
   nextTurn: TimelineTurn | null;
-  onDelete?: (turnId: string, cascade: boolean) => void;
-  onEdit?: (turnId: string, content: string) => void;
-  onRetry?: (turnId: string, parentId: string | null) => void;
-  isUpdating?: boolean;
 }
 
 function TimelineTurnRowImpl(props: TimelineTurnRowProps) {

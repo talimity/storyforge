@@ -31,6 +31,7 @@ interface CharacterMiniSelectProps
   value: string | null;
   onChange: (characterId: string | null) => void;
   disabled?: boolean;
+  portalled?: boolean;
 }
 
 interface CharacterMiniSelectTriggerProps {
@@ -69,7 +70,15 @@ const CharacterMiniSelectTrigger = ({
 };
 
 export function CharacterMiniSelect(props: CharacterMiniSelectProps) {
-  const { characters, value, onChange, disabled = false, layerStyle, ...rest } = props;
+  const {
+    characters,
+    value,
+    onChange,
+    disabled = false,
+    layerStyle,
+    portalled = true,
+    ...rest
+  } = props;
   const items = useMemo<CharacterOption[]>(
     () =>
       characters.map((character) => ({
@@ -97,7 +106,7 @@ export function CharacterMiniSelect(props: CharacterMiniSelectProps) {
       {...rest}
     >
       <CharacterMiniSelectTrigger optionByValue={optionByValue} disabled={disabled} />
-      <SelectContent minW="40">
+      <SelectContent minW="40" portalled={portalled}>
         {items.map((item) => (
           <SelectItem key={item.value} item={item}>
             <CharacterListItem character={item.character} size="md" layerStyle={layerStyle} />

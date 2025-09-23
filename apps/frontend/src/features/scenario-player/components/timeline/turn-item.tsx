@@ -27,11 +27,11 @@ import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenar
 import { getApiUrl } from "@/lib/get-api-url";
 import { GenerationInfoDialog } from "./generation-info-dialog.js";
 
-interface TurnItemProps {
+export interface TurnItemProps {
   turn: TimelineTurn;
   onDelete?: (turnId: string, cascade: boolean) => void;
   onEdit?: (turnId: string, content: string) => void;
-  onRetry?: (turnId: string, parentId: string | null) => void;
+  onRetry?: (turn: TimelineTurn) => void;
 
   isUpdating?: boolean;
 }
@@ -94,9 +94,9 @@ function TurnItemImpl(props: TurnItemProps) {
     [isGenerating, previewSibling, turn.swipes]
   );
 
-  const handleRetry = useCallback(async () => {
-    await onRetry?.(turn.id, turn.parentTurnId);
-  }, [onRetry, turn.id, turn.parentTurnId]);
+  const handleRetry = useCallback(() => {
+    onRetry?.(turn);
+  }, [onRetry, turn]);
 
   const handleGenerationInfo = useCallback(() => {
     setShowGenerationInfo(true);

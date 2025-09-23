@@ -195,7 +195,8 @@ export class ChatImportService {
         const parsed = JSON.parse(line);
         const validated = sillyTavernMessageSchema.parse(parsed);
         messages.push(validated);
-      } catch (_error) {
+      } catch (error) {
+        logger.warn({ error, line }, `Failed to parse line: ${line}`);
         errs++;
       }
     }
@@ -211,6 +212,14 @@ export class ChatImportService {
     if (message.name === "SillyTavern System" && message.extra?.isSmallSys === true) {
       // These messages are ST UI messages, not diagetic content. 'small' means
       // they are not included in the prompt so we do not want them either.
+      return true;
+    }
+
+    // Messages which have is_system set to true seem to be 'ghost'/inactive
+    // messages and should be skipped.
+    // Note that this is distinct from is_system being set to empty string which
+    // seems to indicate a diagetic narrator/system message (idk man shit's weird)
+    if (message.is_system === true) {
       return true;
     }
 

@@ -1,3 +1,4 @@
+import type { IntentInput, TimelineTurn } from "@storyforge/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { useScenarioIntentActions } from "@/features/scenario-player/hooks/use-scenario-intent-actions";
@@ -22,11 +23,12 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
   const { scenario } = useScenarioContext();
   const [turnToDelete, setTurnToDelete] = useState<{ id: string; cascade: boolean } | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [retryTurn, setRetryTurn] = useState<TimelineTurn | null>(null);
   const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
   const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
   const startRun = useIntentRunsStore((s) => s.startRun);
   const isGenerating = useIntentRunsStore(selectIsGenerating);
-  const { createIntent } = useScenarioIntentActions();
+  const { createIntent, isCreatingIntent } = useScenarioIntentActions();
   const { mutate: deleteTurn, isPending: isDeleting } = useMutation(
     trpc.play.deleteTurn.mutationOptions({
       onSuccess: () => {
@@ -75,23 +77,40 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
   );
 
   const handleRetryTurn = useCallback(
-    async (turnId: string, parentTurnId: string | null) => {
-      if (isGenerating || !parentTurnId) return;
+    (turn: TimelineTurn) => {
+      if (isGenerating || !turn.parentTurnId) return;
+      setRetryTurn(turn);
+    },
+    [isGenerating]
+  );
+
+  const handleRetrySubmit = useCallback(
+    async (input: IntentInput) => {
+      if (!retryTurn || !retryTurn.parentTurnId) return;
       const { intentId } = await createIntent({
         scenarioId: scenario.id,
-        parameters: { kind: "continue_story" },
-        branchFrom: { kind: "turn_parent", targetId: turnId },
+        parameters: input,
+        branchFrom: { kind: "turn_parent", targetId: retryTurn.id },
       });
-      startRun({ intentId, scenarioId: scenario.id, kind: "continue_story" });
+      startRun({ intentId, scenarioId: scenario.id, kind: input.kind });
+      setRetryTurn(null);
     },
-    [isGenerating, createIntent, scenario.id, startRun]
+    [createIntent, retryTurn, scenario.id, startRun]
   );
+
+  const handleRetryClose = useCallback(() => {
+    setRetryTurn(null);
+  }, []);
 
   return {
     // Delete state
     turnToDelete,
     showDeleteDialog,
     isDeleting,
+
+    // Retry state
+    retryTurn,
+    isRetrying: isCreatingIntent,
 
     // Edit state
     editingTurnId,
@@ -108,5 +127,7 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
 
     // Retry handler
     handleRetryTurn,
+    handleRetrySubmit,
+    handleRetryClose,
   };
 }

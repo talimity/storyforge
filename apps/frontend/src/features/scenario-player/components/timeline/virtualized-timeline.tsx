@@ -4,6 +4,7 @@ import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useMemo, useRef } from "react";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-turn";
+import { RetryIntentDialog } from "@/features/scenario-player/components/timeline/retry-intent-dialog";
 import { TimelineTurnRow } from "@/features/scenario-player/components/timeline/timeline-turn-row";
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
 import { useTimelineAutoLoadMore } from "@/features/scenario-player/hooks/use-timeline-auto-load-more";
@@ -54,6 +55,8 @@ export function VirtualizedTimeline(props: TimelineProps) {
     turnToDelete,
     showDeleteDialog,
     isDeleting,
+    retryTurn,
+    isRetrying,
     editingTurnId,
     isUpdating,
     handleDeleteTurn,
@@ -61,6 +64,8 @@ export function VirtualizedTimeline(props: TimelineProps) {
     setShowDeleteDialog,
     handleEditTurn,
     handleRetryTurn,
+    handleRetrySubmit,
+    handleRetryClose,
   } = useTurnActions({
     onTurnDeleted,
     onTurnUpdated: onTurnDeleted,
@@ -222,6 +227,13 @@ export function VirtualizedTimeline(props: TimelineProps) {
           cascade={turnToDelete?.cascade}
         />
       )}
+      <RetryIntentDialog
+        isOpen={Boolean(retryTurn)}
+        turn={retryTurn}
+        isSubmitting={isRetrying}
+        onSubmit={handleRetrySubmit}
+        onClose={handleRetryClose}
+      />
     </>
   );
 }

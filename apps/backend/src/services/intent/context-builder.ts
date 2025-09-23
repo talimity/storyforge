@@ -115,10 +115,6 @@ export class IntentContextBuilder {
     const proxyCandidates = data.slice().sort((a, b) => {
       // explicit user proxy first
       if (a.isUserProxy !== b.isUserProxy) return a.isUserProxy ? -1 : 1;
-      // current actor is always last
-      const aIsActor = a.participantId === actorParticipantId;
-      const bIsActor = b.participantId === actorParticipantId;
-      if (aIsActor !== bIsActor) return aIsActor ? 1 : -1;
       // personas before others
       const aPersona = a.charaType === "persona";
       const bPersona = b.charaType === "persona";
@@ -144,9 +140,10 @@ export class IntentContextBuilder {
 
     // TODO: HACK - we replace `{{char}}` macros in character data here.
     // normally the template engine would handle this, but it uses a single
-    // replacement (`currentActorName`) for the entire prompt. but within
-    // descriptions, `{{char}}` refers to the character the description is
-    // written for, not the "current actor" character.
+    // replacement (`currentActorName`) for the entire prompt. this is
+    // problematic because within a character's description, the `{{char}}`
+    // macro actually refers to the character the description is for, not the
+    // current actor.
     const characters = data.map((chara) => ({
       id: chara.id,
       name: chara.name,

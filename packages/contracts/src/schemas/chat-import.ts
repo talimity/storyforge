@@ -5,24 +5,24 @@ export const sillyTavernMessageSchema = z
   .object({
     name: z.string(),
     mes: z.string(),
-    is_user: z.boolean().optional(),
-    is_system: z.union([z.boolean(), z.string()]).optional(),
-    send_date: z.string().optional(),
-    gen_started: z.string().optional(),
-    gen_finished: z.string().optional(),
-    force_avatar: z.string().optional(),
-    original_avatar: z.string().optional(),
+    is_user: z.boolean().nullish(),
+    is_system: z.union([z.boolean(), z.string()]).nullish(),
+    send_date: z.string().nullish(),
+    gen_started: z.string().nullish(),
+    gen_finished: z.string().nullish(),
+    force_avatar: z.string().nullish(),
+    original_avatar: z.string().nullish(),
     extra: z
       .object({
-        isSmallSys: z.boolean().optional(),
-        type: z.string().optional(),
-        api: z.string().optional(),
-        model: z.string().optional(),
-        reasoning: z.string().optional(),
+        isSmallSys: z.boolean().nullish(),
+        type: z.string().nullish(),
+        api: z.string().nullish(),
+        model: z.string().nullish(),
+        reasoning: z.string().nullish(),
       })
-      .optional(),
-    swipes: z.array(z.string()).optional(),
-    swipe_id: z.number().optional(),
+      .nullish(),
+    swipes: z.array(z.string()).nullish(),
+    swipe_id: z.number().nullish(),
   })
   .loose();
 
