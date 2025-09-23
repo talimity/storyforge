@@ -13,7 +13,7 @@ import {
 import type { ModelProfile } from "@storyforge/contracts";
 import type { TextInferenceCapabilities } from "@storyforge/inference";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { LuCog, LuEllipsisVertical, LuPencilLine, LuTrash } from "react-icons/lu";
 import { useTRPC } from "@/lib/trpc";
 import { DeleteModelProfileDialog } from "./delete-model-profile-dialog";
@@ -36,7 +36,9 @@ function getCapabilityBadges(capabilities: Partial<TextInferenceCapabilities> | 
   return badges;
 }
 
-export function ModelProfileCard({ modelProfile }: ModelProfileCardProps) {
+export const ModelProfileCard = memo(ModelProfileCardImpl);
+
+function ModelProfileCardImpl({ modelProfile }: ModelProfileCardProps) {
   const trpc = useTRPC();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

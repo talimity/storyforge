@@ -1,6 +1,7 @@
 import { HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import type { TextInferenceCapabilities } from "@storyforge/inference";
 import type * as React from "react";
+import { memo } from "react";
 import { Checkbox, Field, Radio, RadioGroup } from "@/components/ui/index";
 
 export type CapabilitiesValue = Partial<TextInferenceCapabilities>;
@@ -14,7 +15,9 @@ export interface CapabilitiesSelectorProps {
   helperText?: React.ReactNode;
 }
 
-export function CapabilitiesSelector({
+export const CapabilitiesSelector = memo(CapabilitiesSelectorImpl);
+
+function CapabilitiesSelectorImpl({
   value,
   onChange,
   allowInherit = true,

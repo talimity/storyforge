@@ -10,7 +10,7 @@ import {
   Text,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { LuArrowLeft, LuEllipsisVertical, LuMenu, LuSettings } from "react-icons/lu";
 import { Navigate, Outlet, useNavigate, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -45,6 +45,14 @@ function PlayerShellInner() {
 
   const { scenario, characters } = useScenarioContext();
 
+  useEffect(() => {
+    if (scenario.title) {
+      document.title = `${scenario.title} - StoryForge`;
+    } else {
+      document.title = `Play Scenario - StoryForge`;
+    }
+  }, [scenario.title]);
+
   const handleBack = () => {
     navigate("/scenarios");
   };
@@ -52,7 +60,7 @@ function PlayerShellInner() {
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
 
   return (
-    <Flex direction="column" h="100vh" colorPalette="neutral" data-testid="player-shell">
+    <Flex direction="column" h="100dvh" colorPalette="neutral" data-testid="player-shell">
       {/* Top Scenario Title Bar */}
       <Flex
         as="header"

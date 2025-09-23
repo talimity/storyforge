@@ -50,6 +50,8 @@ export function ModelsPage() {
             },
           ]}
           defaultValue="models"
+          lazyMount
+          unmountOnExit
         >
           <PageHeader.Controls>
             <Tabs.Context>

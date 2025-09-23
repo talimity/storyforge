@@ -109,7 +109,7 @@ export class IntentContextBuilder {
           eq(tScenarioParticipants.status, "active")
         )
       )
-      .orderBy(cardTypeRank, asc(tCharacters.name));
+      .orderBy(cardTypeRank, asc(tScenarioParticipants.isUserProxy), asc(tCharacters.name));
 
     // Try to find a player proxy
     const proxyCandidates = data.slice().sort((a, b) => {

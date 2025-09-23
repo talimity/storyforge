@@ -11,6 +11,7 @@ import {
   Spacer,
   type StackProps,
   Tabs,
+  type TabsRootProps,
   Text,
   type TextProps,
 } from "@chakra-ui/react";
@@ -233,14 +234,14 @@ interface TabConfig {
   badgeColorPalette?: React.ComponentProps<typeof Badge>["colorPalette"];
 }
 
-interface PageHeaderTabsProps {
+interface PageHeaderTabsProps extends Pick<TabsRootProps, "lazyMount" | "unmountOnExit"> {
   tabs: TabConfig[];
   defaultValue?: string;
   onChange?: (value: string) => void;
   children?: ReactNode;
 }
 
-function PageHeaderTabs({ tabs, defaultValue, onChange, children }: PageHeaderTabsProps) {
+function PageHeaderTabs({ tabs, defaultValue, onChange, children, ...rest }: PageHeaderTabsProps) {
   // Extract any Controls from children to place them in the tab list
   const childArray = Children.toArray(children);
   const controls = childArray.find(
@@ -256,6 +257,7 @@ function PageHeaderTabs({ tabs, defaultValue, onChange, children }: PageHeaderTa
       size="lg"
       defaultValue={defaultValue || tabs[0]?.value}
       onValueChange={onChange ? (details) => details.value && onChange(details.value) : undefined}
+      {...rest}
     >
       <Tabs.List>
         {tabs.map((tab) => (

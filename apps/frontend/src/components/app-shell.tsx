@@ -32,7 +32,7 @@ export function AppShell() {
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
 
   return (
-    <Box minH="100vh" data-testid="app-shell" colorPalette="neutral">
+    <Box minH="100dvh" data-testid="app-shell" colorPalette="neutral">
       {/* Mobile Header + Drawer: mounted always, visible only on mobile */}
       <Drawer.Root open={drawerOpen} onOpenChange={(e) => setDrawerOpen(e.open)}>
         <Flex
@@ -74,7 +74,7 @@ export function AppShell() {
       </Drawer.Root>
 
       {/* Unified Layout: sidebar + main. Sidebar is hidden on mobile via wrapper */}
-      <Flex h="100vh" data-testid={isMobile ? undefined : "desktop-layout"}>
+      <Flex h="100dvh" data-testid={isMobile ? undefined : "desktop-layout"}>
         {/* Sidebar (desktop only) */}
         <Box display={{ base: "none", md: "block" }}>
           <Sidebar collapsed={!sidebarExpanded} onToggleCollapse={toggleSidebar} />

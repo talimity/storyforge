@@ -82,7 +82,12 @@ export function VirtualizedTimeline(props: TimelineProps) {
   const v = useVirtualizer({
     count: virtualCount,
     getScrollElement: () => scrollerRef.current,
-    estimateSize: () => 400,
+    // Note that while docs suggest erring on larger side for estimating dynamic
+    // item sizes to avoid scroll jitter, because our infinite list is bottom-up
+    // you actually want to pick a value smaller than most items. If you don't
+    // do this then iOS safari momentum scrolling frequently gets stuck.
+    // https://github.com/TanStack/react-virtual/issues/884
+    estimateSize: () => 50,
     overscan: 10,
     // rangeExtractor lets us manually render items outside of the visible range
     rangeExtractor: (range) => {
