@@ -3,6 +3,7 @@ import {
   IconButton,
   type IconButtonProps,
   Portal,
+  Stack,
 } from "@chakra-ui/react";
 import * as React from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
@@ -45,7 +46,7 @@ export interface InfoTipProps extends Partial<ToggleTipProps> {
 export const InfoTip = React.forwardRef<HTMLDivElement, InfoTipProps>(function InfoTip(props, ref) {
   const { children, buttonProps, ...rest } = props;
   return (
-    <ToggleTip content={children} {...rest} ref={ref}>
+    <ToggleTip content={<Stack maxW="300px">{children}</Stack>} {...rest} ref={ref}>
       <IconButton
         variant="ghost"
         aria-label="info"

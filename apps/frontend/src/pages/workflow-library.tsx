@@ -46,7 +46,7 @@ export function WorkflowsPage() {
       <PageHeader.Root>
         <PageHeader.Title>Workflows</PageHeader.Title>
         <PageHeader.Tagline>
-          Manage generative task workflows and their assignments
+          Chain prompts together to create content for a specific task.
         </PageHeader.Tagline>
         <PageHeader.Tabs
           tabs={[

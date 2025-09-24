@@ -1,11 +1,13 @@
 import {
   Card,
+  Code,
   createListCollection,
   Heading,
   HStack,
   Input,
   Separator,
   Stack,
+  Text,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createCharacterSchema, focalPointSchema } from "@storyforge/contracts";
@@ -17,6 +19,7 @@ import {
   AutosizeTextarea,
   Button,
   Field,
+  InfoTip,
   SelectContent,
   SelectItem,
   SelectRoot,
@@ -62,9 +65,9 @@ interface CharacterFormProps {
 
 const cardTypeOptions = [
   { label: "Character", value: "character" },
-  { label: "Group", value: "group" },
   { label: "Persona", value: "persona" },
-  { label: "Narrator", value: "scenario" },
+  { label: "Narrator (not yet implemented)", value: "scenario" },
+  { label: "Group (not yet implemented)", value: "group" },
 ];
 
 export function CharacterForm({
@@ -239,18 +242,66 @@ export function CharacterForm({
                 </Field>
 
                 <Field
-                  label="Style Instructions"
-                  helperText="Optional: guidance to influence this character's writing style (tone, formatting, POV, etc.)"
+                  label={
+                    <>
+                      Style Instructions
+                      <InfoTip>
+                        <Text>
+                          Similar to SillyTavern post-history instructions. When it is this
+                          character's turn, prompt templates can include these instructions at the
+                          bottom of the prompt to heavily influence the style of the generated text.
+                        </Text>
+                      </InfoTip>
+                    </>
+                  }
+                  helperText="Guidance to influence this character's writing style (tone, special formatting, etc.)"
                 >
                   <AutosizeTextarea
                     {...register("styleInstructions")}
-                    placeholder="e.g., Speak in clipped sentences, use dry humor; avoid emojis."
+                    placeholder="e.g., Speak in clipped sentences, use dry humor"
                     minRows={4}
                     disabled={isSubmitting}
                   />
                 </Field>
 
-                <Field label="Card Type" helperText="Select the type of character card">
+                <Field
+                  label={
+                    <>
+                      Actor Type
+                      <InfoTip>
+                        <Text>
+                          Changes some aspects of turn generation and character selection. Prompt
+                          templates can access an actor's type to use different messages or wording
+                          depending on the type.
+                        </Text>
+                        <Separator />
+                        <Text>
+                          <strong>Character:</strong> A standard character. No special behavior.
+                        </Text>
+                        <Text>
+                          <strong>Persona:</strong> An actor primarily used as a stand-in for the
+                          player, similar to SillyTavern personas. Persona character descriptions
+                          always appear after those of other actor types (you may also choose to
+                          omit them entirely). This actor is used when a prompt template calls for
+                          the <Code>{`{{user}}`}</Code> variable.
+                        </Text>
+                        <Text>
+                          <strong>Narrator:</strong> An actor that does not participate in the story
+                          directly. Ideal for RPG cards that introduce random characters and events.
+                          This actor is removed from the round-robin turn order. When a generation
+                          request calls for a narrator, this actor is used instead of the generic
+                          one.
+                        </Text>
+                        <Text>
+                          <strong>Group:</strong> A card that represents more than one actor. No
+                          inherent special behavior, but prompt templates might use this to avoid
+                          using singular pronouns when referring to this card.
+                        </Text>
+                      </InfoTip>
+                    </>
+                  }
+                  helperText="Select the type of actor this character card represents."
+                >
                   <Controller
                     name="cardType"
                     control={control}

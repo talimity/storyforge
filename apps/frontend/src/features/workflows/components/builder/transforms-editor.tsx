@@ -6,7 +6,6 @@ import {
   HStack,
   IconButton,
   Input,
-  Stack,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -27,17 +26,15 @@ import type { WorkflowFormValues } from "./schemas";
 function TransformsInfoTip() {
   return (
     <InfoTip>
-      <Stack maxW="300px">
-        <Text>Allows modifying the input or output of a model call.</Text>
-        <Text>
-          Input transformations are applied to each chat message in the rendered prompt before it is
-          sent to the model.
-        </Text>
-        <Text>
-          Output transformations are applied to the model's full response text, before capturing any
-          values.
-        </Text>
-      </Stack>
+      <Text>Allows modifying the input or output of a model call.</Text>
+      <Text>
+        Input transformations are applied to each chat message in the rendered prompt before it is
+        sent to the model.
+      </Text>
+      <Text>
+        Output transformations are applied to the model's full response text, before capturing any
+        values.
+      </Text>
     </InfoTip>
   );
 }

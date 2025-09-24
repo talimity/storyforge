@@ -6,7 +6,6 @@ import {
   HStack,
   IconButton,
   Input,
-  Stack,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -27,21 +26,19 @@ import type { WorkflowFormValues } from "./schemas";
 function OutputsInfoTip() {
   return (
     <InfoTip>
-      <Stack maxW="300px">
-        <Text>
-          Captures values from the model's response and saves them using the specified name. The
-          workflow's final result is a JSON object with captured values from all steps.
-        </Text>
-        <Text>
-          Prompt templates in subsequent steps can reference captured values using the{" "}
-          <Code size="xs">{`{{stepOutput}}`}</Code> macro, e.g.,{" "}
-          <Code size="xs">{`{{stepOutput.content}}`}</Code>.
-        </Text>
-        <Text>
-          <strong>Note:</strong> A <Code size="xs">content</Code> capture should be present
-          somewhere in the workflow, otherwise tasks using this workflow may not work as expected.
-        </Text>
-      </Stack>
+      <Text>
+        Captures values from the model's response and saves them using the specified name. The
+        workflow's final result is a JSON object with captured values from all steps.
+      </Text>
+      <Text>
+        Prompt templates in subsequent steps can reference captured values using the{" "}
+        <Code size="xs">{`{{stepOutput}}`}</Code> macro, e.g.,{" "}
+        <Code size="xs">{`{{stepOutput.content}}`}</Code>.
+      </Text>
+      <Text>
+        <strong>Note:</strong> A <Code size="xs">content</Code> capture should be present somewhere
+        in the workflow, otherwise tasks using this workflow may not work as expected.
+      </Text>
     </InfoTip>
   );
 }

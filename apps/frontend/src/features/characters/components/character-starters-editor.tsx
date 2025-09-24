@@ -1,5 +1,6 @@
 import { Accordion, Badge, Heading, HStack, Stack, Text, Textarea, VStack } from "@chakra-ui/react";
 import { Controller, useFieldArray, useFormContext, useFormState } from "react-hook-form";
+import { LuMessageSquarePlus } from "react-icons/lu";
 import { Button, Field, Switch } from "@/components/ui";
 
 export type StarterDraft = {
@@ -44,6 +45,7 @@ export function CharacterStartersEditor({ disabled }: CharacterStartersEditorPro
           variant="outline"
           disabled={disabled}
         >
+          <LuMessageSquarePlus />
           Add Starter
         </Button>
       </HStack>
