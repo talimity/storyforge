@@ -2,7 +2,7 @@ import type { IntentKind } from "@storyforge/contracts";
 import { type SqliteTxLike, schema } from "@storyforge/db";
 import { eq, sql } from "drizzle-orm";
 import { getTurngenWorkflowForScope } from "../workflows/workflow.queries.js";
-import { chooseNextActorRoundRobin } from "./actor-selection.js";
+import { chooseNextActorFair } from "./actor-selection.js";
 import { IntentContextBuilder } from "./context-builder.js";
 import type { IntentCommandGenerator, IntentExecDeps } from "./types.js";
 
@@ -58,17 +58,8 @@ export function makeCommands(deps: IntentExecDeps) {
       afterTurnId?: string;
       includeNarrator?: boolean;
     }): IntentCommandGenerator<string> {
-      let afterAuthor: string | undefined;
-      if (args.afterTurnId) {
-        const turn = await db.query.turns.findFirst({
-          columns: { authorParticipantId: true },
-          where: { id: args.afterTurnId },
-        });
-        afterAuthor = turn?.authorParticipantId ?? undefined;
-      }
-
-      const participantId = await chooseNextActorRoundRobin(db, scenarioId, {
-        afterTurnAuthorParticipantId: afterAuthor,
+      const participantId = await chooseNextActorFair(db, scenarioId, {
+        leafTurnId: args.afterTurnId ?? null,
         includeNarrator: args.includeNarrator,
       });
 

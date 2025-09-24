@@ -91,7 +91,6 @@ export class IntentRunner {
         this.emit(ev);
       }
 
-      this.emit({ type: "intent_finished", intentId: this.intentId, ts: now() });
       // Ensure all recorder writes have flushed before we finalize the intent
       // status. This avoids SQLITE_BUSY on a single-connection client when the
       // recorder is still applying its last updates (e.g., linking the run to
@@ -101,6 +100,7 @@ export class IntentRunner {
         .update(schema.intents)
         .set({ status: "finished" })
         .where(eq(schema.intents.id, this.intentId));
+      this.emit({ type: "intent_finished", intentId: this.intentId, ts: now() });
     } catch (e) {
       const cancelled = this.abortCtrl.signal.aborted;
       const error = String("message" in e ? e.message : e);
