@@ -7,7 +7,7 @@ import { AutosizeTextarea, Button, Dialog } from "@/components/ui/index";
 import { CharacterMiniSelect } from "@/features/scenario-player/components/intent-panel/character-mini-select";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import {
-  createIntentInputFromForm,
+  createIntentInputPayload,
   getInitialIntentFormValues,
   INTENT_KIND_CONFIG,
   type IntentFormValues,
@@ -99,7 +99,7 @@ export function RetryIntentDialog(props: RetryIntentDialogProps) {
   };
 
   const handleFormSubmit = handleSubmit(async (values) => {
-    const intentInput = createIntentInputFromForm(values, participants);
+    const intentInput = createIntentInputPayload(values, participants);
     await onSubmit(intentInput);
   });
 

@@ -357,5 +357,6 @@ export const TurnItem = memo(
     prev.turn.turnNo === next.turn.turnNo &&
     prev.turn.content.text === next.turn.content.text &&
     prev.turn.swipes?.swipeNo === next.turn.swipes?.swipeNo &&
-    prev.turn.swipes?.swipeCount === next.turn.swipes?.swipeCount
+    prev.turn.swipes?.swipeCount === next.turn.swipes?.swipeCount &&
+    prev.turn.intentProvenance?.intentStatus === next.turn.intentProvenance?.intentStatus
 );

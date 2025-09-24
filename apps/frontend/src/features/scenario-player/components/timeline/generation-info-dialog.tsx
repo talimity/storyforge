@@ -90,7 +90,7 @@ export function GenerationInfoDialog({ turnId, isOpen, onOpenChange }: Generatio
       <Accordion.Root collapsible width="full" defaultValue={["metadata"]}>
         <Accordion.Item value="metadata">
           <Accordion.ItemTrigger>
-            Metadata
+            Generation Run Metadata
             <Accordion.ItemIndicator />
           </Accordion.ItemTrigger>
           <Accordion.ItemContent>
@@ -145,7 +145,7 @@ export function GenerationInfoDialog({ turnId, isOpen, onOpenChange }: Generatio
 
         <Accordion.Item value="steps">
           <Accordion.ItemTrigger>
-            Steps
+            Workflow Steps
             <Accordion.ItemIndicator />
           </Accordion.ItemTrigger>
           <Accordion.ItemContent>
@@ -318,7 +318,7 @@ export function GenerationInfoDialog({ turnId, isOpen, onOpenChange }: Generatio
 
         <Accordion.Item value="final-outputs">
           <Accordion.ItemTrigger>
-            Final Outputs
+            Workflow Outputs
             <Accordion.ItemIndicator />
           </Accordion.ItemTrigger>
           <Accordion.ItemContent>

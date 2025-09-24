@@ -19,14 +19,12 @@ export function GenerateOrCancelButton({
     return (
       <Button size="xs" onClick={onCancel} {...buttonProps}>
         <LuSquare />
-        Cancel
       </Button>
     );
   }
   return (
     <Button size="xs" onClick={onGenerate} {...buttonProps}>
       <RiQuillPenLine />
-      {children ?? "Generate"}
     </Button>
   );
 }
