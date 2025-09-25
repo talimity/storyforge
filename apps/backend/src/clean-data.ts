@@ -10,6 +10,13 @@ const RUN_RETENTION_LIMIT = 500;
 export async function cleanData(db: SqliteDatabase) {
   initRunManager({ db, now: () => Date.now() });
 
+  await markPendingAndRunningIntentsAsFailed(db);
+  await removeOrphanedIntents(db);
+  await removeOrphanedGenerationRuns(db);
+  await pruneGenerationRunsBeyondLimit(db);
+}
+
+async function markPendingAndRunningIntentsAsFailed(db: SqliteDatabase) {
   // Set any unresolved intents to failed on startup (single-process app;
   // generations do not survive restarts). This clears the unique partial
   // index on (scenarioId) where status IN ('pending','running').
@@ -22,7 +29,9 @@ export async function cleanData(db: SqliteDatabase) {
   if (rows.length > 0) {
     logger.info("Marked %d pending/running intents as failed", rows.length);
   }
+}
 
+async function removeOrphanedIntents(db: SqliteDatabase) {
   // Remove any intents that have no effects and are greater than 24 hours old
   const removed = await db
     .delete(schema.intents)
@@ -42,7 +51,9 @@ export async function cleanData(db: SqliteDatabase) {
   if (removed.length > 0) {
     logger.info("Removed %d orphaned intents", removed.length);
   }
+}
 
+async function removeOrphanedGenerationRuns(db: SqliteDatabase) {
   const orphanedRuns = await db
     .delete(schema.generationRuns)
     .where(
@@ -56,7 +67,9 @@ export async function cleanData(db: SqliteDatabase) {
   if (orphanedRuns.length > 0) {
     logger.info("Removed %d orphaned generation runs", orphanedRuns.length);
   }
+}
 
+async function pruneGenerationRunsBeyondLimit(db: SqliteDatabase) {
   const [{ totalRuns }] = await db
     .select({ totalRuns: sql<number>`COUNT(*)` })
     .from(schema.generationRuns);

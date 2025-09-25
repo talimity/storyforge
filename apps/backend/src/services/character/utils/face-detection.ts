@@ -19,7 +19,6 @@ const DEFAULT_FOCAL_POINT = {
 
 export async function identifyCharacterFace(imageBuffer: Buffer) {
   try {
-    log.info("Detecting face in character image...");
     const face = await detectFaceFocalPoint(imageBuffer);
     if (face) {
       return {

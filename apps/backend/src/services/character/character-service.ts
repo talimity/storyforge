@@ -1,3 +1,4 @@
+import type { UpdateCharacterInput } from "@storyforge/contracts";
 import type {
   CharacterExample,
   CharacterStarter,
@@ -8,7 +9,7 @@ import type {
 } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { eq } from "drizzle-orm";
-import { identifyCharacterFace } from "./utils/face-detection.js";
+import { identifyCharacterFace, maybeProcessCharaImage } from "./utils/face-detection.js";
 import {
   parseTavernCard,
   type TavernCard,
@@ -120,14 +121,79 @@ export class CharacterService {
       return refreshed;
     });
   }
-  async updateCharacter(id: string, data: Partial<NewCharacter>) {
+
+  async updateCharacter(input: UpdateCharacterInput) {
+    const { id, starters, imageDataUri, portraitFocalPoint, ...updates } = input;
+    const characterUpdates: Partial<NewCharacter> = { ...updates };
+
+    const imageUpdates = await this.resolveImageUpdate(imageDataUri);
+    if (imageUpdates) {
+      characterUpdates.portrait = imageUpdates.portrait;
+      if ("portraitFocalPoint" in imageUpdates) {
+        characterUpdates.portraitFocalPoint = imageUpdates.portraitFocalPoint;
+      }
+    }
+
+    if (portraitFocalPoint) {
+      characterUpdates.portraitFocalPoint = portraitFocalPoint;
+    }
+
     const [updated] = await this.db
       .update(schema.characters)
-      .set(data)
+      .set(characterUpdates)
       .where(eq(schema.characters.id, id))
       .returning();
 
+    if (!updated) {
+      return undefined;
+    }
+
+    if (starters) {
+      await this.setCharacterStarters(id, starters);
+    }
+
     return updated;
+  }
+
+  async detectPortraitFocalPoint(characterId: string) {
+    const [record] = await this.db
+      .select({ portrait: schema.characters.portrait })
+      .from(schema.characters)
+      .where(eq(schema.characters.id, characterId))
+      .limit(1);
+
+    if (!record?.portrait) {
+      return undefined;
+    }
+
+    return identifyCharacterFace(record.portrait);
+  }
+
+  private async resolveImageUpdate(imageDataUri: UpdateCharacterInput["imageDataUri"]): Promise<
+    | { portrait: Buffer | null }
+    | {
+        portrait: Buffer;
+        portraitFocalPoint: NewCharacter["portraitFocalPoint"];
+      }
+    | undefined
+  > {
+    if (imageDataUri === undefined) {
+      return undefined;
+    }
+
+    if (imageDataUri === null) {
+      return { portrait: null };
+    }
+
+    const processed = await maybeProcessCharaImage(imageDataUri);
+    if (!processed) {
+      return undefined;
+    }
+
+    return {
+      portrait: processed.portrait,
+      portraitFocalPoint: processed.portraitFocalPoint,
+    };
   }
 
   async deleteCharacter(id: string) {

@@ -10,6 +10,7 @@ import {
   charactersListResponseSchema,
   characterWithRelationsSchema,
   createCharacterSchema,
+  focalPointSchema,
   updateCharacterSchema,
 } from "@storyforge/contracts";
 import { TRPCError } from "@trpc/server";
@@ -188,24 +189,7 @@ export const charactersRouter = router({
     .output(characterSchema)
     .mutation(async ({ input, ctx }) => {
       const charaSvc = new CharacterService(ctx.db);
-      const { id, imageDataUri, starters, portraitFocalPoint, ...updates } = input;
-
-      // Map imageDataUri tri-state to DB updates:
-      // - undefined: keep existing portrait
-      // - null: remove portrait
-      // - string: new portrait (processed)
-      const imageUpdate =
-        imageDataUri === undefined
-          ? {}
-          : imageDataUri === null
-            ? { portrait: null }
-            : await maybeProcessCharaImage(imageDataUri);
-
-      const updatedCharacter = await charaSvc.updateCharacter(id, {
-        ...updates,
-        ...(imageUpdate ?? {}),
-        ...(portraitFocalPoint ? { portraitFocalPoint } : {}),
-      });
+      const updatedCharacter = await charaSvc.updateCharacter(input);
 
       if (!updatedCharacter) {
         throw new TRPCError({
@@ -214,11 +198,32 @@ export const charactersRouter = router({
         });
       }
 
-      if (starters) {
-        await charaSvc.setCharacterStarters(id, starters);
+      return transformCharacter(updatedCharacter);
+    }),
+
+  resetPortraitCrop: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/characters/{id}/portrait/reset",
+        tags: ["characters"],
+        summary: "Resets the portrait crop to the auto-detected focal point",
+      },
+    })
+    .input(characterIdSchema)
+    .output(focalPointSchema)
+    .mutation(async ({ input, ctx }) => {
+      const charaSvc = new CharacterService(ctx.db);
+      const focalPoint = await charaSvc.detectPortraitFocalPoint(input.id);
+
+      if (!focalPoint) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character portrait not found",
+        });
       }
 
-      return transformCharacter(updatedCharacter);
+      return focalPoint;
     }),
 
   delete: publicProcedure

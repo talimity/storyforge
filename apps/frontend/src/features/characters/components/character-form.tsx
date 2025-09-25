@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createCharacterSchema, focalPointSchema } from "@storyforge/contracts";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
@@ -28,7 +29,9 @@ import {
 } from "@/components/ui/index";
 import { useImageField } from "@/hooks/use-image-field";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
+import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { getApiUrl } from "@/lib/get-api-url";
+import { useTRPC } from "@/lib/trpc";
 import { AvatarCropDialog } from "./avatar-crop-dialog";
 import { CharacterImageField } from "./character-image-field";
 import { CharacterStartersEditor } from "./character-starters-editor";
@@ -101,6 +104,25 @@ export function CharacterForm({
     formState: { errors, isDirty },
   } = methods;
 
+  const trpc = useTRPC();
+  const resetCropMutation = useMutation(
+    trpc.characters.resetPortraitCrop.mutationOptions({
+      onSuccess: (focalPoint) => {
+        setValue("portraitFocalPoint", focalPoint, {
+          shouldDirty: true,
+          shouldTouch: true,
+        });
+        showSuccessToast({
+          title: "Avatar crop reset",
+          description: "Default crop reapplied. Save to keep this change.",
+        });
+      },
+      onError: (error) => {
+        showErrorToast({ title: "Failed to reset avatar crop", error });
+      },
+    })
+  );
+
   const imageField = useImageField({
     initialUrl: initialData?.imageDataUri || undefined,
     initialDisplayName: "Current Portrait",
@@ -170,6 +192,14 @@ export function CharacterForm({
     setValue("imageDataUri", imageField.getSubmissionValue(), { shouldDirty: true });
   };
 
+  const handleResetCrop = () => {
+    if (!characterId || imageField.state.type !== "existing") {
+      return;
+    }
+
+    resetCropMutation.mutate({ id: characterId });
+  };
+
   const onFormSubmit = (data: CharacterFormData) => {
     onSubmit({
       ...data,
@@ -206,6 +236,8 @@ export function CharacterForm({
                 onRemove={handleRemoveImage}
                 onAdjustCrop={portraitSrc ? openCrop : undefined}
                 overridePreviewUrl={overridePreviewUrl}
+                onResetCrop={characterId && portraitSrc ? handleResetCrop : undefined}
+                isResettingCrop={resetCropMutation.isPending}
               />
 
               <Separator />

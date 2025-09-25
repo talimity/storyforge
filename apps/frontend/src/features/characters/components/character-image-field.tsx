@@ -10,6 +10,8 @@ interface CharacterImageFieldProps {
   onRemove: () => void;
   onAdjustCrop?: () => void;
   overridePreviewUrl?: string;
+  onResetCrop?: () => void;
+  isResettingCrop?: boolean;
 }
 
 export function CharacterImageField({
@@ -19,6 +21,8 @@ export function CharacterImageField({
   onRemove,
   onAdjustCrop,
   overridePreviewUrl,
+  onResetCrop,
+  isResettingCrop = false,
 }: CharacterImageFieldProps) {
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
@@ -98,6 +102,17 @@ export function CharacterImageField({
           </HStack>
           {!isDisabled && (
             <HStack gap={2}>
+              {onResetCrop && imageField.state.type === "existing" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onResetCrop}
+                  loading={isResettingCrop}
+                  disabled={isResettingCrop}
+                >
+                  Reset to Auto Crop
+                </Button>
+              )}
               {onAdjustCrop && imageField.state.type === "existing" && (
                 <Button size="sm" variant="outline" onClick={onAdjustCrop}>
                   Adjust Avatar Crop

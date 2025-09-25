@@ -3,6 +3,9 @@ import { fileURLToPath } from "node:url";
 import { InferenceSession, Tensor } from "onnxruntime-node";
 import sharp from "sharp";
 
+// via huggingface.co/Bingsu/adetailer, converted to ONNX
+const MODEL_PATH = "../models/face_yolov8n_v2.onnx";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // lazy-load the ONNX model session
@@ -10,7 +13,7 @@ let sessionP: Promise<InferenceSession> | null = null;
 
 function getSession(): Promise<InferenceSession> {
   if (!sessionP) {
-    const modelPath = path.resolve(__dirname, "../models/yolov8n-face.onnx");
+    const modelPath = path.resolve(__dirname, MODEL_PATH);
     sessionP = InferenceSession.create(modelPath);
   }
   return sessionP;
@@ -77,7 +80,7 @@ function computeIoU(a: Box, b: Box): number {
   return union > 0 ? inter / union : 0;
 }
 
-/** JS NMS: keep highest-confidence boxes, remove overlaps above iouThreshold */
+/** JS greedy NMS: keep highest-confidence boxes, remove overlaps above iouThreshold */
 function nms(boxes: DetectedBox[], iouThreshold: number): DetectedBox[] {
   const sorted = boxes.sort((a, b) => b.confidence - a.confidence);
   const keep: DetectedBox[] = [];
@@ -203,7 +206,7 @@ export async function detectFaceFocalPoint(
   const {
     inputSize = 640,
     iouThreshold = 0.45,
-    confThresholds = [0.25, 0.15, 0.05, 0.02],
+    confThresholds = [0.5, 0.25, 0.1],
     maxAttempts = confThresholds.length,
   } = options;
 
