@@ -5,7 +5,8 @@ import {
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
 
-const AT_BOTTOM_TOLERANCE_PX = 30;
+const AT_BOTTOM_TOLERANCE_PX = 10;
+const TEMPORARY_SUSPEND_MS = 500;
 
 type Args<TScrollEl extends Element | Window, TItemEl extends Element> = {
   virtualizer: Virtualizer<TScrollEl, TItemEl>;
@@ -19,19 +20,19 @@ type Args<TScrollEl extends Element | Window, TItemEl extends Element> = {
  *
  * Auto-follow policy:
  * - On run start: if user is at bottom => "following"; else "suspended".
- * - If user scrolls away during run => lock "suspended" until run ends.
+ * - If user scrolls away during run => suspend briefly to allow navigation.
+ * - After suspension window, reaching the bottom resumes following.
  * - Next run re-evaluates at-bottom to decide again.
  */
 export function useTimelineFollowOutputMode<
   TScrollEl extends Element | Window,
   TItemEl extends Element,
 >({ virtualizer, scrollerRef }: Args<TScrollEl, TItemEl>) {
-  const runId = useIntentRunsStore((s) => s.currentRunId);
   const isGenerating = useIntentRunsStore(selectIsGenerating);
-
   const stateRef = useRef<"idle" | "following" | "suspended">("idle");
-  const lastRunIdRef = useRef<string | null>(null);
+  const suspendUntilRef = useRef<number>(0);
 
+  // Determines whether the user is at the bottom of the timeline.
   const atBottom = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return true;
@@ -47,23 +48,39 @@ export function useTimelineFollowOutputMode<
   useEffect(() => {
     if (!isGenerating) {
       stateRef.current = "idle";
+      suspendUntilRef.current = 0;
       return;
     }
 
-    if (lastRunIdRef.current !== runId) {
-      lastRunIdRef.current = runId;
-      stateRef.current = atBottom() ? "following" : "suspended";
-    }
-  }, [runId, isGenerating, atBottom]);
+    stateRef.current = atBottom() ? "following" : "suspended";
+    suspendUntilRef.current = 0;
+  }, [isGenerating, atBottom]);
 
-  // If user scrolls away during this run, suspend until the run changes.
+  // Detect scroll adjustments to pause or resume following during a run.
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
 
     const onScroll = () => {
-      if (isGenerating && stateRef.current === "following" && !atBottom()) {
-        stateRef.current = "suspended"; // stay suspended until next run
+      if (!isGenerating) return;
+
+      const now = Date.now();
+      const isAtBottom = atBottom();
+
+      console.log("useTimelineFollowOutputMode -> onScroll", {
+        isAtBottom,
+        state: stateRef.current,
+      });
+
+      if (stateRef.current === "following" && !isAtBottom) {
+        stateRef.current = "suspended";
+        suspendUntilRef.current = now + TEMPORARY_SUSPEND_MS;
+        return;
+      }
+
+      if (stateRef.current === "suspended" && isAtBottom && now >= suspendUntilRef.current) {
+        stateRef.current = "following";
+        suspendUntilRef.current = 0;
       }
     };
     el.addEventListener("scroll", onScroll, { passive: true });
@@ -71,10 +88,22 @@ export function useTimelineFollowOutputMode<
   }, [isGenerating, atBottom, scrollerRef]);
 
   // callers can gate "jump to bottom on new content" with this check
-  const shouldAutoFollow = useCallback(
-    () => isGenerating && stateRef.current === "following",
-    [isGenerating]
-  );
+  const shouldAutoFollow = useCallback(() => {
+    if (!isGenerating) return false;
+
+    if (stateRef.current === "suspended") {
+      const now = Date.now();
+      const isAtBottom = atBottom();
+      if (now >= suspendUntilRef.current && isAtBottom) {
+        stateRef.current = "following";
+        suspendUntilRef.current = 0;
+        return true;
+      }
+      return false;
+    }
+
+    return stateRef.current === "following";
+  }, [isGenerating, atBottom]);
 
   return { shouldAutoFollow, atBottom };
 }

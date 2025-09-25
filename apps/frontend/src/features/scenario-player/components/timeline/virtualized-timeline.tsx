@@ -31,7 +31,6 @@ interface TimelineProps {
   /** Whether we are currently fetching more data **/
   isFetching?: boolean;
   onLoadMore?: () => Promise<unknown>;
-  onTurnDeleted?: () => void;
   onStarterSelect?: (characterId: string, message: string) => void;
 }
 
@@ -45,7 +44,6 @@ export function VirtualizedTimeline(props: TimelineProps) {
     isFetching,
     isPending,
     onLoadMore,
-    onTurnDeleted,
     onStarterSelect,
   } = props;
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -61,15 +59,12 @@ export function VirtualizedTimeline(props: TimelineProps) {
     isUpdating,
     handleDeleteTurn,
     handleConfirmDelete,
-    setShowDeleteDialog,
+    handleCancelDelete,
     handleEditTurn,
     handleRetryTurn,
     handleRetrySubmit,
     handleRetryClose,
-  } = useTurnActions({
-    onTurnDeleted,
-    onTurnUpdated: onTurnDeleted,
-  });
+  } = useTurnActions();
 
   // If a run is diverging from the current branch at a specific turn,
   // temporarily hide everything *after* that turn so DraftTurn appears at the correct place.
@@ -120,7 +115,8 @@ export function VirtualizedTimeline(props: TimelineProps) {
   });
   const items = v.getVirtualItems();
   const scrollToEnd = useCallback(() => {
-    v.scrollBy(Number.MAX_SAFE_INTEGER, { align: "end" });
+    console.log("scrollToEnd");
+    v.scrollBy(Number.MAX_SAFE_INTEGER, { align: "end", behavior: "auto" });
   }, [v]);
 
   // set up scrolling and auto-load behaviors
@@ -218,15 +214,13 @@ export function VirtualizedTimeline(props: TimelineProps) {
         </div>
       </div>
 
-      {showDeleteDialog && (
-        <TurnDeleteDialog
-          isOpen={showDeleteDialog}
-          onOpenChange={(d) => setShowDeleteDialog(d.open)}
-          onConfirmDelete={handleConfirmDelete}
-          isDeleting={isDeleting}
-          cascade={turnToDelete?.cascade}
-        />
-      )}
+      <TurnDeleteDialog
+        isOpen={showDeleteDialog}
+        cascade={turnToDelete?.cascade}
+        isDeleting={isDeleting}
+        onSubmit={handleConfirmDelete}
+        onClose={handleCancelDelete}
+      />
       <RetryIntentDialog
         isOpen={Boolean(retryTurn)}
         turn={retryTurn}

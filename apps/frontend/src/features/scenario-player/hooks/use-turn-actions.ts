@@ -11,14 +11,8 @@ import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenar
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-interface UseTurnActionsOptions {
-  onTurnDeleted?: () => void;
-  onTurnUpdated?: () => void;
-}
-
-export function useTurnActions(options: UseTurnActionsOptions = {}) {
+export function useTurnActions() {
   const trpc = useTRPC();
-  const { onTurnDeleted, onTurnUpdated } = options;
   const qc = useQueryClient();
   const { scenario } = useScenarioContext();
   const [turnToDelete, setTurnToDelete] = useState<{ id: string; cascade: boolean } | null>(null);
@@ -39,7 +33,6 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
         // Anchor may have changed; ensure we reload environment and reset timeline slices
         qc.invalidateQueries(trpc.play.environment.pathFilter());
         qc.invalidateQueries(trpc.play.timeline.pathFilter());
-        onTurnDeleted?.();
         setShowDeleteDialog(false);
         setTurnToDelete(null);
       },
@@ -49,8 +42,8 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
     trpc.play.updateTurnContent.mutationOptions({
       onSuccess: () => {
         showSuccessToast({ title: "Turn updated", description: "Changes saved." });
+        qc.invalidateQueries(trpc.play.timeline.pathFilter());
         setEditingTurnId(null);
-        onTurnUpdated?.();
       },
     })
   );
@@ -120,7 +113,6 @@ export function useTurnActions(options: UseTurnActionsOptions = {}) {
     handleDeleteTurn,
     handleConfirmDelete,
     handleCancelDelete,
-    setShowDeleteDialog,
 
     // Edit handler
     handleEditTurn,

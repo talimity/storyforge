@@ -86,18 +86,23 @@ export class MockAdapter extends ProviderAdapter {
           chunkDelay: 80,
           wordsPerChunk: 4,
         },
+        "mock-lorem": {
+          text:
+            " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur vel convallis felis. Vivamus vestibulum dui turpis, eu aliquam enim faucibus a. Duis ac varius nisi. Etiam blandit tempor dictum. Proin at magna nec turpis tincidunt fermentum. Donec vestibulum tellus turpis, vitae tempor dolor pretium sed. Proin tempor placerat pulvinar. Fusce in bibendum nulla, eu eleifend metus.\n" +
+            "\n" +
+            "Vivamus mattis sodales mauris, id finibus sapien aliquet a. Pellentesque tincidunt nec tortor sed porta. Aliquam dictum risus vitae tristique malesuada. Duis vitae sodales libero, nec porttitor ligula. Fusce aliquet lobortis fermentum. Nullam mi leo, porttitor a lobortis nec, rhoncus sed augue. Phasellus sit amet scelerisque massa, sed vulputate augue. Etiam aliquam nisi id porta consectetur. Praesent molestie metus lorem, quis condimentum nisl bibendum vitae. Morbi efficitur purus a mi rhoncus sagittis. Suspendisse potenti. Cras nec posuere orci, ut bibendum arcu.\n" +
+            "\n" +
+            "Nulla faucibus auctor quam, ac vestibulum massa pellentesque in. Ut gravida diam ac mattis scelerisque. Curabitur dictum arcu ut magna placerat varius in ac dui. Ut at elit placerat, mattis nunc eget, varius libero. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. In lacinia accumsan lectus eget semper. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum vel tellus laoreet, feugiat quam at, aliquam turpis. Nullam quam dolor, mattis ut mauris eu, accumsan ultricies lacus. Morbi a luctus enim. Ut ut mi vel neque hendrerit tincidunt vel eget lacus. Curabitur ex justo, vestibulum eu dignissim sed, faucibus vitae mauris. Nulla vel ultricies massa, id imperdiet lorem. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nulla facilisi. Maecenas sodales vulputate enim, in varius massa cursus eget. ",
+          delay: 200,
+          chunkDelay: 10,
+          wordsPerChunk: 1,
+        },
         "mock-error": {
           text: "This response simulates an error scenario.",
           delay: 100,
         },
       },
-      models: config.models ?? [
-        "mock-fast",
-        "mock-slow",
-        "mock-creative",
-        "mock-error",
-        "mock-default",
-      ],
+      models: [],
       streaming: {
         defaultChunkDelay:
           config.streaming?.defaultChunkDelay ?? defaultStreaming.defaultChunkDelay,
@@ -105,6 +110,8 @@ export class MockAdapter extends ProviderAdapter {
           config.streaming?.defaultWordsPerChunk ?? defaultStreaming.defaultWordsPerChunk,
       },
     };
+
+    this.config.models = config.models ?? Object.keys(this.config.modelResponses);
 
     // Add built-in patterns for common test scenarios
     this.config.patterns.push(

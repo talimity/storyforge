@@ -24,12 +24,10 @@ export function PlayerPage() {
   const { addTurn } = useScenarioIntentActions();
   const { startIntent, cancelIntent } = useIntentEngine(scenario.id);
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
-  const { turns, hasNextPage, isFetching, isPending, fetchNextPage, refetch } = useScenarioTimeline(
-    {
-      scenarioId: scenario.id,
-      leafTurnId: previewLeafTurnId ?? null,
-    }
-  );
+  const { turns, hasNextPage, isFetching, isPending, fetchNextPage } = useScenarioTimeline({
+    scenarioId: scenario.id,
+    leafTurnId: previewLeafTurnId ?? null,
+  });
 
   useEffect(() => {
     return () => {
@@ -106,7 +104,6 @@ export function PlayerPage() {
       isFetching={isFetching}
       isPending={isPending}
       onLoadMore={fetchNextPage}
-      onTurnDeleted={refetch}
       onStarterSelect={handleStarterSelect}
     />
   );

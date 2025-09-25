@@ -8,7 +8,7 @@
     "clean": "pnpm -r run clean",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
-    "dev": "pnpm -r --parallel run dev",
+    "dev": "concurrently -c blue,green pnpm:dev:*",
     "fmt": "pnpm -r --parallel run fmt",
     "lint": "pnpm -r --parallel run lint && pnpm --parallel run typecheck",
     "typecheck": "pnpm --parallel run typecheck",
@@ -22,6 +22,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.1.3",
     "ccusage": "^15.5.2",
+    "concurrently": "^9.2.1",
     "npm-run-all": "^4.1.5",
     "tsx": "catalog:",
     "typescript": "catalog:"

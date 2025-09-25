@@ -52,7 +52,8 @@
         "noThenProperty": {
           "level": "off",
           "options": {}
-        }
+        },
+        "noAssignInExpressions": "off"
       },
       "style": {
         "noNonNullAssertion": "error",

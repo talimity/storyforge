@@ -20,12 +20,14 @@ export function AutoFollowOnDraft() {
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const tick = useIntentRunsStore(selectDraftTick);
   const lastTickRef = useRef(tick);
+  const throttleUntilRef = useRef(0);
 
   useEffect(() => {
     if (!isGenerating) return;
     if (tick === lastTickRef.current) return;
     lastTickRef.current = tick;
-    if (!shouldAutoFollow()) return;
+    if (!shouldAutoFollow() || Date.now() < throttleUntilRef.current) return;
+    throttleUntilRef.current = Date.now() + 100;
     scrollToEnd();
   }, [isGenerating, tick, scrollToEnd, shouldAutoFollow]);
 

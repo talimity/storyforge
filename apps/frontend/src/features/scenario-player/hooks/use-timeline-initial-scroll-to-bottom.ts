@@ -22,7 +22,7 @@ export function useTimelineInitialScrollToBottom<
     if (turns.length > 1) {
       console.log("useTimelineInitialScrollToBottom -> scroll to end");
       const count = virtualizer.options.count;
-      virtualizer.scrollToIndex(count - 1, { align: "end" });
+      virtualizer.scrollToIndex(count - 1, { align: "end", behavior: "smooth" });
     }
 
     setTimeout(() => {

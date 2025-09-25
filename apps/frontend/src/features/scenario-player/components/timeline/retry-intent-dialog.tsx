@@ -1,7 +1,7 @@
 import { Box, HStack, SegmentGroup, Stack, Text, VStack } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { IntentInput, IntentKind, TimelineTurn } from "@storyforge/contracts";
-import { useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { AutosizeTextarea, Button, Dialog } from "@/components/ui/index";
 import { CharacterMiniSelect } from "@/features/scenario-player/components/intent-panel/character-mini-select";
@@ -46,7 +46,7 @@ const INTENT_KIND_SEGMENTS: Array<{ value: IntentKind; label: string; descriptio
   },
 ];
 
-export function RetryIntentDialog(props: RetryIntentDialogProps) {
+export const RetryIntentDialog = memo(function RetryIntentDialog(props: RetryIntentDialogProps) {
   const { isOpen, turn, isSubmitting = false, onSubmit, onClose } = props;
   const { participants, participantsById, characters, charactersById } = useScenarioContext();
 
@@ -220,4 +220,4 @@ export function RetryIntentDialog(props: RetryIntentDialogProps) {
       </Dialog.Content>
     </Dialog.Root>
   );
-}
+});

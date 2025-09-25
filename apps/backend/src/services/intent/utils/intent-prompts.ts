@@ -18,7 +18,7 @@ export function getTurnIntentPrompt(args: {
       break;
     case "guided_control":
       mappedKind = "Character Direction";
-      prompt = `Direction for ${targetName}: ${text}`;
+      prompt = `Incorporate this direction into ${targetName}'s turn: ${text}`;
       break;
     case "narrative_constraint":
       mappedKind = "Narrative Constraint";
@@ -26,7 +26,7 @@ export function getTurnIntentPrompt(args: {
       break;
     case "continue_story":
       mappedKind = "Continue Story";
-      prompt = "Continue the story as you like.";
+      prompt = "Matching the current tone and pace of the scene, continue the story as you like.";
       break;
     default:
       assertNever(kind);

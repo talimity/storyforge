@@ -37,9 +37,9 @@ export function useBranchPreview() {
   const commitPreview = useCallback(async () => {
     if (!previewLeafTurnId) return;
     await switchTimeline.mutateAsync({ scenarioId: scenario.id, leafTurnId: previewLeafTurnId });
-    setPreviewLeaf(null);
-    qc.invalidateQueries(trpc.play.timeline.pathFilter());
-    qc.invalidateQueries(trpc.play.environment.pathFilter());
+    await qc.invalidateQueries(trpc.play.timeline.pathFilter());
+    await qc.invalidateQueries(trpc.play.environment.pathFilter());
+    setPreviewLeaf(null); // do this after invalidate resolves to avoid flickering
   }, [previewLeafTurnId, switchTimeline, scenario.id, setPreviewLeaf, qc, trpc]);
 
   const exitPreview = useCallback(() => setPreviewLeaf(null), [setPreviewLeaf]);

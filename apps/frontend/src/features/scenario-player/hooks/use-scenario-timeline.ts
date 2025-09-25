@@ -58,6 +58,5 @@ export function useScenarioTimeline({
     isPending: query.isPending,
     isFetching: query.isFetchingNextPage || query.isPending,
     fetchNextPage: query.fetchNextPage,
-    refetch: query.refetch,
   };
 }

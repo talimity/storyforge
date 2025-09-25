@@ -10,7 +10,7 @@ import { logger } from "./logging.js";
 import { resources } from "./resources.js";
 
 const fastify = Fastify({
-  maxParamLength: 5000,
+  routerOptions: { maxParamLength: 5000 }, // needed for batched trpc queries
   bodyLimit: 1024 * 1024 * 15, // 15MB
   logger: config.logging.pretty
     ? {
