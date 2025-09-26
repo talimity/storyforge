@@ -68,7 +68,6 @@
 │  │  │  │  ├── timeline
 │  │  │  │  │  ├── invariants
 │  │  │  │  │  │  ├── turn-content.ts
-│  │  │  │  │  │  ├── turn-progression.ts
 │  │  │  │  │  │  └── turn.ts
 │  │  │  │  │  ├── timeline.queries.ts
 │  │  │  │  │  ├── timeline.service.ts
@@ -210,12 +209,12 @@
 │      │  │  │  │  ├── use-scenario-timeline.ts
 │      │  │  │  │  ├── use-timeline-auto-load-more.ts
 │      │  │  │  │  ├── use-timeline-follow-output-mode.ts
-│      │  │  │  │  ├── use-timeline-initial-scroll-to-bottom.ts
+│      │  │  │  │  ├── use-timeline-initial-anchor.ts
 │      │  │  │  │  ├── use-timeline-keep-bottom-distance.ts
+│      │  │  │  │  ├── use-timeline-scroll-controller.ts
 │      │  │  │  │  └── use-turn-actions.ts
 │      │  │  │  ├── providers
-│      │  │  │  │  ├── scenario-provider.tsx
-│      │  │  │  │  └── timeline-scroll-provider.tsx
+│      │  │  │  │  └── scenario-provider.tsx
 │      │  │  │  ├── stores
 │      │  │  │  │  ├── intent-run-store.ts
 │      │  │  │  │  └── scenario-player-store.ts
@@ -378,7 +377,6 @@
 │  │  │  ├── migrations
 │  │  │  ├── relations.ts
 │  │  │  ├── schema
-│  │  │  │  ├── chapters.ts
 │  │  │  │  ├── character-examples.ts
 │  │  │  │  ├── character-starters.ts
 │  │  │  │  ├── characters.ts
@@ -500,4 +498,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
 
-100 directories, 401 files
+100 directories, 399 files

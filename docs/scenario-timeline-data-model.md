@@ -1,8 +1,8 @@
+! Note: this document is replaced by [timeline-intent-architecture.md](./architecture/timeline-intent-architecture.md) and [timeline-events-concepts.md](./architecture/timeline-events-concepts.md).
+
 # Scenario Timeline & Player Intents
 
 Describes the model for the Timeline and Player Intent systems.
-
-Note: any code or types are illustrative, only the concepts are important.
 
 ## Definitions
 
