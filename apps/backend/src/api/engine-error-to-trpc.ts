@@ -35,32 +35,6 @@ export function engineErrorToTRPC(e: EngineError): never {
         code: "CONFLICT",
         message: "Cannot promote multiple turns to root.",
       });
-    // turn progression invariants
-    case "ParentTurnNotFound":
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Parent turn not found.",
-      });
-    case "ChapterNotFound":
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Chapter not found.",
-      });
-    case "ChapterScenarioMismatch":
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Chapter does not belong to the scenario.",
-      });
-    case "ParentTurnScenarioMismatch":
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Parent turn does not belong to the scenario.",
-      });
-    case "ChapterProgressionInvalid":
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Turn cannot be appended to the chapter because it would be out of sequence.",
-      });
     // turn content invariants
     case "MissingPresentationLayer":
       throw new TRPCError({

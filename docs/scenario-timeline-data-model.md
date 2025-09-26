@@ -127,12 +127,9 @@ Turn text content is stored in a separate table, `turn_layers`.
 ## Queries
 
 1. **`getScenarioEnvironment(scenarioId)`**
-
-- scenario (id, title, currentTurnId), participants (+characterId), characters (id, name, avatar), all chapters (id,
-  index, title, firstTurnId).
+- scenario (id, title, currentTurnId), participants (+characterId), characters (id, name, avatar)
 
 2. **`getTimelineWindow({ anchorLeafId, leafTurnId, windowSize, layer })`**
-
 - Recursive CTE: build `anchor` (anchorLeafId→root) to compute `anchorTotalDepth` and per-id `depthFromAnchor`.
 - Build `page` (leafTurnId→root), join siblings (prev/next, count, index).
 - Slice `LIMIT windowSize` (leaf→root), then order **depth DESC** (root→leaf).
@@ -141,7 +138,6 @@ Turn text content is stored in a separate table, `turn_layers`.
 ## Services (sketch)
 
 1. **`IntentService.createAndStart(params)`**
-
 - Get `WorkflowRunnerManager` singleton, then get the runner for `turn_generation` workflows
 - Get `IntentRunManager` singleton
 - Insert `pending` intent into DB, commit
@@ -154,7 +150,6 @@ Turn text content is stored in a separate table, `turn_layers`.
     - Insert turn under a parent, maintain `sibling_order`, inherit `chapter_id` unless overridden.
 
 ## tRPC Routers
-
 - `play.environment` → `getScenarioEnvironment`
 - `play.timeline` → `getTimelineWindow`
 - `play.createIntent` → `createIntent`

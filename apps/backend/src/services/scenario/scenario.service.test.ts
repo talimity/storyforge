@@ -176,18 +176,10 @@ describe("ScenarioService", () => {
 
       const char1Participant = participants.find((p) => p.characterId === char1.id);
 
-      // Get the chapter
-      const chapter = await db
-        .select()
-        .from(schema.chapters)
-        .where(eq(schema.chapters.scenarioId, scenario.id))
-        .get();
-
       // Create a turn for char1
-      if (char1Participant && chapter) {
+      if (char1Participant) {
         await db.insert(schema.turns).values({
           scenarioId: scenario.id,
-          chapterId: chapter.id,
           authorParticipantId: char1Participant.id,
           parentTurnId: null,
           siblingOrder: "a",

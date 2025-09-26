@@ -42,7 +42,6 @@ type TurnLite = {
   scenarioId: string;
   parentTurnId: string | null;
   siblingOrder: string;
-  chapterId: string;
 };
 
 type ScenarioLite = { id: string; anchorTurnId: string | null };

@@ -122,7 +122,6 @@ export const playRouter = router({
         id: r.id,
         turnNo: r.turn_no,
         scenarioId: r.scenario_id,
-        chapterId: r.chapter_id,
         parentTurnId: r.parent_turn_id,
         authorParticipantId: r.author_participant_id,
         swipes: {

@@ -24,25 +24,13 @@ export const relations = defineRelations(schema, (r) => ({
   },
   scenarios: {
     characters: r.many.characters(),
-    chapters: r.many.chapters(),
     turns: r.many.turns(),
     participants: r.many.scenarioParticipants(),
-  },
-  chapters: {
-    scenario: r.one.scenarios({
-      from: r.chapters.scenarioId,
-      to: r.scenarios.id,
-    }),
-    turns: r.many.turns(),
   },
   turns: {
     authorParticipant: r.one.scenarioParticipants({
       from: r.turns.authorParticipantId,
       to: r.scenarioParticipants.id,
-    }),
-    chapter: r.one.chapters({
-      from: r.turns.chapterId,
-      to: r.chapters.id,
     }),
     scenario: r.one.scenarios({
       from: r.turns.scenarioId,

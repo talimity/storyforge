@@ -1,12 +1,11 @@
 import { type SqliteDatabase, type SqliteTransaction, schema } from "@storyforge/db";
 import { after, combine } from "@storyforge/utils";
-import { asc, eq, isNull, sql } from "drizzle-orm";
+import { eq, isNull, sql } from "drizzle-orm";
 import { EngineError } from "../../engine-error.js";
 import { ServiceError } from "../../service-error.js";
 import { getGeneratingIntent } from "../intent/intent.queries.js";
 import { canCreateTurn, canPromoteChildren } from "./invariants/turn.js";
 import { validateTurnLayers } from "./invariants/turn-content.js";
-import { canAppendTurnToChapter } from "./invariants/turn-progression.js";
 import { resolveLeafFrom } from "./utils/leaf.js";
 import {
   type DeletionSnapshot,
@@ -16,7 +15,6 @@ import {
 } from "./utils/mutation-planner.js";
 
 const {
-  chapters: tChapters,
   scenarios: tScenarios,
   scenarioParticipants: tScenarioParticipants,
   turns: tTurns,
@@ -24,8 +22,6 @@ const {
 } = schema;
 
 const makeLoaders = (tx: SqliteTransaction) => ({
-  loadChapter: (id: string) =>
-    tx.select().from(tChapters).where(eq(tChapters.id, id)).limit(1).get(),
   loadTurn: (id: string) => tx.select().from(tTurns).where(eq(tTurns.id, id)).limit(1).get(),
   loadAuthorParticipant: (id: string) => loadParticipantMembership(tx, id),
 });
@@ -33,12 +29,11 @@ const makeLoaders = (tx: SqliteTransaction) => ({
 interface InsertTurnArgs {
   scenarioId: string;
   authorParticipantId: string;
-  chapterId: string;
   parentTurnId: string | null; // null for root creation
   layers: { key: string; content: string }[];
 }
 
-interface AdvanceTurnArgs extends Omit<InsertTurnArgs, "parentTurnId" | "chapterId"> {
+interface AdvanceTurnArgs extends Omit<InsertTurnArgs, "parentTurnId"> {
   /** When provided, insert under this parent instead of continuing from anchor */
   branchFromTurnId?: string;
 }
@@ -73,26 +68,10 @@ export class TimelineService {
         });
       }
 
-      // TODO: This iteration of chapters is not used and will eventually be
-      // removed. Constraints require a chapter ID so we set one just to satisfy
-      // the schema, but the entire table will be dropped and chapters will be
-      // event-sourced by TimelineEvents system when that is implemented.
-      const [firstChapter] = await tx
-        .select()
-        .from(tChapters)
-        .where(eq(tChapters.scenarioId, scenarioId))
-        .orderBy(asc(tChapters.index))
-        .limit(1);
-      if (!firstChapter) {
-        throw new ServiceError("NotFound", {
-          message: `No chapters found for scenario ${scenarioId}.`,
-        });
-      }
-      const targetChapterId = firstChapter.id;
       const parentTurnId = await this.getParentTurnIdForAdvance(tx, scenarioId, branchFromTurnId);
 
       const { branchFromTurnId: _, ...rest } = args;
-      const turn = await this.insertTurn({ ...rest, chapterId: targetChapterId, parentTurnId }, tx);
+      const turn = await this.insertTurn({ ...rest, parentTurnId }, tx);
 
       // Since this is an advance operation, the new turn becomes the scenario's
       // active timeline anchor.
@@ -230,19 +209,13 @@ export class TimelineService {
    * Inserts a new turn into the turn graph under the specified parent turn.
    */
   private async insertTurn(args: InsertTurnArgs, outerTx?: SqliteTransaction) {
-    const { scenarioId, chapterId, authorParticipantId, parentTurnId, layers } = args;
+    const { scenarioId, authorParticipantId, parentTurnId, layers } = args;
 
     const operation = async (tx: SqliteTransaction) => {
       const loaders = makeLoaders(tx);
       const check = combine(
         validateTurnLayers(layers),
-        await canCreateTurn({ scenarioId, authorParticipantId, loaders }),
-        await canAppendTurnToChapter({
-          targetChapterId: chapterId,
-          parentTurnId,
-          scenarioId,
-          loaders,
-        })
+        await canCreateTurn({ scenarioId, authorParticipantId, loaders })
       );
       if (!check.ok) throw new EngineError(check.error);
 
@@ -254,7 +227,6 @@ export class TimelineService {
         .insert(schema.turns)
         .values({
           scenarioId,
-          chapterId,
           parentTurnId,
           siblingOrder: String(nextOrder),
           authorParticipantId,

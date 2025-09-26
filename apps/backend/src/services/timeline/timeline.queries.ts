@@ -9,7 +9,6 @@ import { resolveLeafFrom } from "./utils/leaf.js";
 type TimelineRow = {
   id: string;
   scenario_id: string;
-  chapter_id: string;
   parent_turn_id: string | null; // null for root turns
   author_participant_id: string;
 
@@ -198,7 +197,6 @@ export async function getTimelineWindow(
 
 SELECT e.id,
        t.scenario_id,
-       t.chapter_id,
        e.parent_turn_id,
        t.author_participant_id,
 

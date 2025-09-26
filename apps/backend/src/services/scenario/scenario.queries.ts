@@ -42,7 +42,6 @@ export async function getScenarioDetail(db: SqliteDatabase, scenarioId: string) 
   return db.query.scenarios.findFirst({
     where: { id: scenarioId },
     with: {
-      chapters: true,
       participants: {
         columns: { id: true, role: true, orderIndex: true, isUserProxy: true },
         with: { character: scenarioCharaSummaryColumns },
@@ -79,10 +78,6 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
           },
         },
       },
-      chapters: {
-        columns: { id: true, index: true, name: true },
-        orderBy: (c) => [c.index],
-      },
     },
   });
 
@@ -110,11 +105,6 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
       .map((p) => p.character)
       .filter(isDefined)
       .map((c) => ({ id: c.id, name: c.name, ...getCharaAssetPaths(c) })),
-    chapters: result.chapters.map((c) => ({
-      id: c.id,
-      index: c.index,
-      title: c.name,
-    })),
   };
 }
 

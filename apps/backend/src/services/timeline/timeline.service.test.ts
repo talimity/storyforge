@@ -6,7 +6,6 @@ import { createTestDatabase } from "../../test/setup.js";
 import { TimelineService } from "./timeline.service.js";
 
 const TEST_SCENARIO_ID = "test-scenario";
-const TEST_CHAPTER_ID = "test-chapter";
 const TEST_PARTICIPANT_ID = "test-participant";
 
 const RANKS = ranksBetween("", "", 5);
@@ -23,7 +22,6 @@ async function createTurn(
       scenarioId: TEST_SCENARIO_ID,
       parentTurnId: opts.parent ?? null,
       siblingOrder: opts.siblingOrder ?? RANKS[0],
-      chapterId: TEST_CHAPTER_ID,
       authorParticipantId: TEST_PARTICIPANT_ID,
     })
     .returning()
@@ -48,11 +46,6 @@ describe("TimelineService.deleteTurn", () => {
       name: "Test Scenario",
       description: "A scenario for testing",
       anchorTurnId: null,
-    });
-    await db.insert(schema.chapters).values({
-      id: TEST_CHAPTER_ID,
-      scenarioId: TEST_SCENARIO_ID,
-      name: "Ch 1",
     });
     await db
       .insert(schema.scenarioParticipants)

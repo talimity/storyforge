@@ -74,15 +74,6 @@ export const environmentOutputSchema = z.object({
       })
     )
     .describe("Characters in the scenario"),
-  chapters: z
-    .array(
-      z.object({
-        id: z.string(),
-        index: z.number(),
-        title: z.string().nullable(),
-      })
-    )
-    .describe("Chapters in the scenario, in order"),
   generatingIntent: z
     .lazy(() => intentSchema)
     .nullable()
@@ -108,7 +99,6 @@ export const loadTimelineInputSchema = z.object({
 export const timelineTurnSchema = z.object({
   id: z.string(),
   scenarioId: z.string(),
-  chapterId: z.string(),
   parentTurnId: z
     .string()
     .nullable()
@@ -155,7 +145,6 @@ export const addTurnInputSchema = z.object({
   scenarioId: z.string(),
   text: z.string(),
   authorParticipantId: z.string(),
-  chapterId: z.string(),
   parentTurnId: z.string().optional(),
 });
 

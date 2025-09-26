@@ -58,7 +58,6 @@ export class TurnContentService {
         .select({
           id: tTurns.id,
           scenarioId: tTurns.scenarioId,
-          chapterId: tTurns.chapterId,
           parentTurnId: tTurns.parentTurnId,
           authorParticipantId: tTurns.authorParticipantId,
           createdAt: tTurns.createdAt,

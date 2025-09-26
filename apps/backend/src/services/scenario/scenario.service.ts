@@ -45,11 +45,6 @@ export class ScenarioService {
       const [sc] = await tx.insert(schema.scenarios).values(scenarioData).returning().all();
 
       await tx
-        .insert(schema.chapters)
-        .values({ scenarioId: sc.id, name: "Chapter 1", index: 0 })
-        .execute();
-
-      await tx
         .insert(schema.scenarioParticipants)
         .values({
           scenarioId: sc.id,

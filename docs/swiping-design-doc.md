@@ -56,9 +56,6 @@ Repository structure and affected modules are under `apps/backend/src/services/{
 * **Advance** currently sets anchor to the newly created turn.
 * **Delete** logic already includes a recursive CTE to resolve the **first‑child path leaf** when adjusting anchor; we will extract and reuse that.
 * **Content layers** require a `presentation` layer and disallow duplicate layer keys (validation exists).
-* **Chapter progression** rules already enforced (same chapter or next chapter; root insertion only for first chapter).
-  These invariants live under `apps/backend/src/services/timeline/invariants/*` and are used by the service.
-* **Monorepo layout** (APIs/routers, services, frontend features) is stable.
 
 ---
 
@@ -127,17 +124,13 @@ Add a public method to insert a new turn under an explicit parent (or `null`) **
 async branchTurn(args: {
   scenarioId: string;
   authorParticipantId: string;
-  parentTurnId: string | null; // null = new root child (first chapter)
-  chapterId?: string;          // defaults to parent's chapter
+  parentTurnId: string | null; // null = new root child
   layers: { key: string; content: string }[]; // must include presentation
 }, outerTx?: SqliteTransaction) {
   const op = async (tx: SqliteTransaction) => {
-    // load parent if provided; set target chapter (default: parent.chapterId)
+    // load parent if provided
     // reuse invariant checks via private insertTurn(...)
-    const turn = await this["insertTurn"](
-      { ...args, chapterId: args.chapterId ?? (await loadParentChapterId(tx, args.parentTurnId)) },
-      tx
-    );
+    const turn = await this["insertTurn"](args, tx);
 
     // new turn becomes anchor
     await tx.update(schema.scenarios)
@@ -151,8 +144,7 @@ async branchTurn(args: {
 ```
 
 > Notes:
-> • Invariants enforced by `validateTurnLayers`, `canCreateTurn`, `canAppendTurnToChapter` remain unchanged.
-> • `canAppendTurnToChapter` already allows **same chapter** or **next chapter**, and only allows **root insertion** when targeting the **first chapter**.
+> • Invariants enforced by `validateTurnLayers`, `canCreateTurn` remain unchanged.
 
 **C. Keep `advanceTurn` behavior** (already sets anchor → new leaf).
 
@@ -392,7 +384,7 @@ Again, anchor moves to the first `new_turn` of this fresh run automatically.
 
 ## 9) Migration / compatibility
 
-* **No DB migrations.** We reuse `turns`, `turn_layers`, `intents`, `intent_effects`, and `scenarios.anchor_turn_id`. The invariants already present (`validateTurnLayers`, `canCreateTurn`, `canAppendTurnToChapter`) apply equally to branch inserts.
+* **No DB migrations.** We reuse `turns`, `turn_layers`, `intents`, `intent_effects`, and `scenarios.anchor_turn_id`. The invariants already present (`validateTurnLayers`, `canCreateTurn`) apply equally to branch inserts.
 
 ---
 
@@ -421,7 +413,7 @@ type SwitchTimelineOutput = { success: boolean };
 
 ```ts
 // timeline.service.ts
-branchTurn({ scenarioId, authorParticipantId, parentTurnId, chapterId, layers }, tx?)
+branchTurn({ scenarioId, authorParticipantId, parentTurnId, layers }, tx?)
 resolveLeafFrom(tx, fromTurnId) -> Promise<string> // extracted from existing CTE in mutation-planner.ts
 
 // intent.service.ts

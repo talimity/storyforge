@@ -7,7 +7,6 @@ import { chooseNextActorFair } from "./actor-selection.js";
 describe("chooseNextActorFair", () => {
   let db: SqliteDatabase;
   let scenarioId: string;
-  let chapterId: string;
   let aliceParticipantId: string;
   let bobParticipantId: string;
   let narratorParticipantId: string;
@@ -23,13 +22,6 @@ describe("chooseNextActorFair", () => {
       .returning({ id: schema.scenarios.id })
       .get();
     scenarioId = scenarioRow.id;
-
-    const chapterRow = await db
-      .insert(schema.chapters)
-      .values({ scenarioId, name: "Chapter 1" })
-      .returning({ id: schema.chapters.id })
-      .get();
-    chapterId = chapterRow.id;
 
     const characterRows = await db
       .insert(schema.characters)
@@ -169,7 +161,6 @@ describe("chooseNextActorFair", () => {
       .insert(schema.turns)
       .values({
         scenarioId,
-        chapterId,
         parentTurnId,
         authorParticipantId: authorId,
         siblingOrder,

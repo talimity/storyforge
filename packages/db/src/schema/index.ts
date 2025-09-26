@@ -1,4 +1,3 @@
-export * from "./chapters.js";
 export * from "./character-examples.js";
 export * from "./character-starters.js";
 export * from "./characters.js";
