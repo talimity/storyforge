@@ -9,10 +9,10 @@ import { TimelineTurnRow } from "@/features/scenario-player/components/timeline/
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
 import { useTimelineAutoLoadMore } from "@/features/scenario-player/hooks/use-timeline-auto-load-more";
 import { useTimelineFollowOutputMode } from "@/features/scenario-player/hooks/use-timeline-follow-output-mode";
-import { useTimelineInitialScrollToBottom } from "@/features/scenario-player/hooks/use-timeline-initial-scroll-to-bottom";
+import { useInitialScroll } from "@/features/scenario-player/hooks/use-timeline-initial-anchor";
 import { useTimelineKeepBottomDistance } from "@/features/scenario-player/hooks/use-timeline-keep-bottom-distance";
+import { useTimelineScrollController } from "@/features/scenario-player/hooks/use-timeline-scroll-controller";
 import { useTurnActions } from "@/features/scenario-player/hooks/use-turn-actions";
-import { TimelineScrollProvider } from "@/features/scenario-player/providers/timeline-scroll-provider";
 import {
   selectCurrentRun,
   useIntentRunsStore,
@@ -48,7 +48,6 @@ export function VirtualizedTimeline(props: TimelineProps) {
   } = props;
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
-  // delete/edit actions
   const {
     turnToDelete,
     showDeleteDialog,
@@ -66,8 +65,9 @@ export function VirtualizedTimeline(props: TimelineProps) {
     handleRetryClose,
   } = useTurnActions();
 
-  // If a run is diverging from the current branch at a specific turn,
-  // temporarily hide everything *after* that turn so DraftTurn appears at the correct place.
+  // If the active run is generating a new branch, we want to temporarily hide
+  // all turns under the branching point, so that the DraftTurn (the list's
+  // footer) appears in the spot where the new leaf would be.
   const run = useIntentRunsStore(selectCurrentRun);
   const cutoffId = run?.truncateAfterTurnId ?? null;
   const visibleTurns = useMemo(() => {
@@ -76,25 +76,29 @@ export function VirtualizedTimeline(props: TimelineProps) {
     return idx >= 0 ? turns.slice(0, idx + 1) : turns;
   }, [turns, cutoffId]);
 
-  // set up react-virtual
+  // Set up list virtualization
   const includeEmptyState = !isPending && visibleTurns.length === 0;
   const virtualCount = 1 + (includeEmptyState ? 1 : visibleTurns.length) + 1; // header + (empty state or turn list) + footer
   const v = useVirtualizer({
     count: virtualCount,
     getScrollElement: () => scrollerRef.current,
-    // Note that while docs suggest erring on larger side for estimating dynamic
-    // item sizes to avoid scroll jitter, because our infinite list is bottom-up
-    // you actually want to pick a value smaller than most items. If you don't
-    // do this then iOS safari momentum scrolling frequently gets stuck.
+    // react-virtual docs advise erring on larger side for estimating dynamic
+    // item sizes to avoid scroll jitter, because our infinite list grows
+    // upwards instead of downwards (so the scrolling direction as we add new
+    // items is inversed) the advice needs to be reversed as well. Failing to do
+    // this causes Safari momentum scrolling to abruptly stop every time an
+    // estimation is larger than a new virtualized row's real size.
     // https://github.com/TanStack/react-virtual/issues/884
     estimateSize: () => 50,
-    overscan: 10,
-    // rangeExtractor lets us manually render items outside of the visible range
+    scrollPaddingEnd: 50,
+    overscan: 5,
+    // rangeExtractor lets selectively disable virtualization for certain items.
+    // we do this to avoid unmounting the turn being edited so we don't lose
+    // unsaved changes.
     rangeExtractor: (range) => {
       const base = defaultRangeExtractor(range);
       if (!editingTurnId) return base;
 
-      // include the editing turn in the virtual list to prevent losing state when scrolling
       const editIndex = visibleTurns.findIndex((t) => t.id === editingTurnId);
       if (editIndex === -1) return base;
       return [...new Set([...base, editIndex + 1])].sort((a, b) => a - b); // add 1 to account for header
@@ -113,30 +117,37 @@ export function VirtualizedTimeline(props: TimelineProps) {
       handleChange(...args);
     },
   });
+  const totalSize = v.getTotalSize();
   const items = v.getVirtualItems();
-  const scrollToEnd = useCallback(() => {
-    console.log("scrollToEnd");
-    v.scrollBy(Number.MAX_SAFE_INTEGER, { align: "end", behavior: "auto" });
-  }, [v]);
 
-  // set up scrolling and auto-load behaviors
-  const initialDataReceived = useTimelineInitialScrollToBottom({ virtualizer: v, turns });
+  // Scroll to bottom after mounting and receiving initial data
+  const { pendingInitialScroll } = useInitialScroll({ virtualizer: v, scrollerRef, turns });
+  // Tuck all imperative scroll logic into a single controller
+  useTimelineScrollController({
+    virtualizer: v,
+    scrollerRef,
+    visibleTurns,
+    hasNextPage,
+    isFetching,
+    onLoadMore,
+  });
+  // Monitor scroll position to keep relative position as new data is prepended
   const { handleChange } = useTimelineKeepBottomDistance({ virtualizer: v, turns });
-  const { shouldAutoFollow } = useTimelineFollowOutputMode({ virtualizer: v, scrollerRef });
-  useTimelineAutoLoadMore({ initialDataReceived, items, isFetching, onLoadMore, hasNextPage });
+  // Monitor scroll events to enable or disable auto-following during generations
+  useTimelineFollowOutputMode({ virtualizer: v, scrollerRef });
+  // Load new data when reaching the top of the list
+  useTimelineAutoLoadMore({ pendingInitialScroll, items, isFetching, onLoadMore, hasNextPage });
 
   // micro-optimizations/placebos
-  // we can't avoid re-rendering react-virtualizer while scrolling, so we want
-  // to use plain divs instead of chakra Boxes to save a few ms of emotionjs
-  // cost, which requires resolving theme variables for our style object
+  // Chakra <Box> components incur a couple ms of emotionjs overhead/bloat, so
+  // we use divs bring react-virtual scroll rerenders down to the minimum. To
+  // do that we need to pull the Chakra theme tokens to apply correct spacing.
   const pyKey = useBreakpointValue(LIST_PADDING_Y_BREAKPOINTS) ?? 0;
   const [py] = useToken("space", [String(pyKey)]);
   const [maxW] = useToken("sizes", ["3xl"]);
-  const totalSize = v.getTotalSize();
-  const scrollerStyles = useMemo(
-    () => ({
-      container: { overflowY: "auto", contain: "content", height: "100%" } as const,
-      list: {
+  const virtualListStyles = useMemo(
+    () =>
+      ({
         height: `${totalSize}px`,
         width: "100%",
         position: "relative" as const,
@@ -144,8 +155,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
         paddingBottom: py,
         marginInline: "auto",
         maxWidth: maxW,
-      } as const,
-    }),
+      }) as const,
     [totalSize, py, maxW]
   );
 
@@ -159,58 +169,60 @@ export function VirtualizedTimeline(props: TimelineProps) {
 
   return (
     <>
-      <div ref={scrollerRef} style={scrollerStyles.container} data-testid="timeline-scroller">
-        <div style={scrollerStyles.list} data-testid="timeline-virtual-list">
-          <TimelineScrollProvider value={{ scrollToEnd, shouldAutoFollow }}>
-            {items.map((row) => {
-              const isHeader = row.key === "header";
-              const isFooter = row.key === "footer";
-              const isEmpty = row.key === "empty";
-              const rowIdx = row.index - 1 - (includeEmptyState ? 1 : 0);
+      <div
+        ref={scrollerRef}
+        style={{ overflowY: "auto", contain: "content", height: "100%" }}
+        data-testid="timeline-scroller"
+      >
+        <div style={virtualListStyles} data-testid="timeline-virtual-list">
+          {items.map((row) => {
+            const isHeader = row.key === "header";
+            const isFooter = row.key === "footer";
+            const isEmpty = row.key === "empty";
+            const rowIdx = row.index - 1 - (includeEmptyState ? 1 : 0);
 
-              return (
-                <div
-                  key={row.key}
-                  data-index={row.index}
-                  ref={v.measureElement}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    transform: `translateY(${row.start}px)`,
-                  }}
-                >
-                  {isHeader ? (
-                    <TimelineHeader
-                      scenarioTitle={scenarioTitle}
-                      chapterTitle={chapterTitle}
-                      isFetching={isFetching}
-                    />
-                  ) : isEmpty ? (
-                    <TimelineEmptyState
-                      scenarioId={scenarioId}
-                      onStarterSelect={onStarterSelect}
-                      isPending={isPending}
-                      turns={turns}
-                    />
-                  ) : isFooter ? (
-                    <TimelineFooter />
-                  ) : (
-                    <TimelineTurnRow
-                      turn={visibleTurns[rowIdx]}
-                      prevTurn={rowIdx > 0 ? visibleTurns[rowIdx - 1] : null}
-                      nextTurn={rowIdx < visibleTurns.length - 1 ? visibleTurns[rowIdx + 1] : null}
-                      onDelete={handleDeleteTurn}
-                      onEdit={handleEditTurn}
-                      onRetry={handleRetryTurn}
-                      isUpdating={editingTurnId === row.key && isUpdating}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </TimelineScrollProvider>
+            return (
+              <div
+                key={row.key}
+                data-index={row.index}
+                ref={v.measureElement}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  transform: `translateY(${row.start}px)`,
+                }}
+              >
+                {isHeader ? (
+                  <TimelineHeader
+                    scenarioTitle={scenarioTitle}
+                    chapterTitle={chapterTitle}
+                    isFetching={isFetching}
+                  />
+                ) : isEmpty ? (
+                  <TimelineEmptyState
+                    scenarioId={scenarioId}
+                    onStarterSelect={onStarterSelect}
+                    isPending={isPending}
+                    turns={turns}
+                  />
+                ) : isFooter ? (
+                  <TimelineFooter />
+                ) : (
+                  <TimelineTurnRow
+                    turn={visibleTurns[rowIdx]}
+                    prevTurn={rowIdx > 0 ? visibleTurns[rowIdx - 1] : null}
+                    nextTurn={rowIdx < visibleTurns.length - 1 ? visibleTurns[rowIdx + 1] : null}
+                    onDelete={handleDeleteTurn}
+                    onEdit={handleEditTurn}
+                    onRetry={handleRetryTurn}
+                    isUpdating={editingTurnId === row.key && isUpdating}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

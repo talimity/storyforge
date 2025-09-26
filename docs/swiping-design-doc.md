@@ -8,7 +8,7 @@ This document specifies the first implementation of **branching (“swipes”)**
 
 Storyforge is a single‑user desktop application for directing semi‑autonomous characters in a turn‑based narrative, emphasizing **branching as a first‑class concept** and enabling low‑friction exploration of alternate paths.
 
-The **timeline** is a rooted tree of turns; the **active timeline** is the path from the root to the **anchor** leaf, which is also the context for generation. The existing **skinny timeline** API provides one content layer (default: `presentation`) for each turn in a sliding window, and includes swipe metadata (`left_turn_id`, `right_turn_id`, `swipe_count`, `swipe_no`) so the UI can hint at alternates without loading every branch.
+The **timeline** is a rooted tree of turns; the **active timeline** is the path from the root to the **anchor** leaf, which is also the context for generation. The existing `getTimelineWindow` API provides one content layer (default: `presentation`) for each turn in a sliding window, and includes swipe metadata (`left_turn_id`, `right_turn_id`, `swipe_count`, `swipe_no`) so the UI can hint at alternates without loading every branch.
 
 Branching is intent‑agnostic. Any intent kind (manual control, guided control, narrative constraint, continue story, etc.) could optionally be executed **from an earlier point** in the timeline, which creates an alternate branch. Otherwise, intents default to extending the active timeline, using the `advanceTurn` operation.
 
@@ -379,7 +379,7 @@ Again, anchor moves to the first `new_turn` of this fresh run automatically.
 
 **Integration (API)**
 
-* `play.createIntent` with/without `branchFrom`; verify anchor movement and skinny timeline window correctness.
+* `play.createIntent` with/without `branchFrom`; verify anchor movement and timeline window correctness.
 * `play.resolveLeaf` and `play.switchTimeline` end‑to‑end with guard conditions.
 
 **UI (component)**

@@ -2,7 +2,7 @@
 
 Describes the model for the Timeline and Player Intent systems.
 
-Note: any code or types are illustrative, only the concepts are important. 
+Note: any code or types are illustrative, only the concepts are important.
 
 ## Definitions
 
@@ -57,25 +57,31 @@ v0++ concepts:
 
 ### Timeline API
 
-- **Paging model:** **cursor-by-ancestor**. Each page asks for `leafTurnId`, returns a window up toward the root (
-  root→leaf order), plus `cursors.nextLeafId` (the parent of the top row) or `null` if you hit root.
+- **Paging model:** Timeline is stored as an adjacency list where each turn stores its parent. Each page asks for
+  `leafTurnId`, returns a window up toward the root (root→leaf order), plus `cursors.nextLeafId` (the parent of the top
+  row) or `null` if you hit root.
 - **Window size:** `windowSize` (e.g., 12) is the number of turns to return, starting from the leaf turn. The server
   computes the slice from the leaf up to the root.
-- **Turn content:** timeline returns **one layer only** (default `"presentation"`).
+- **Turn content:** timeline API returns one layer only (default `"presentation"`).
 - **Swipes:** include prev/next sibling ids `swipeCount` + `swipeNo` (1-based) for each turn. Allows UI to hint at
   alternate branches without loading all branches.
 - **Numbering:** turn numbers derived by server by traversing the tree from the leaf up to the root. Each turn has a
   `turnNo` (1-based relative to root) for UI display.
-- **Skinny timeline:** timeline API returns only ids + metadata. Participants/characters/chapters are loaded once via *
-  *play.environment** and cached client‑side.
+- **Skinny timeline DTO:** timeline API returns only ids + turn text content + metadata. Actual
+  participants/characters/chapters are loaded once via `play.environment` procedure and cached client‑side, rather than
+  every timeline turn object duplicating the same character names, avatars, etc. data.
 
 ### Intents & effects
 
 - **Intent** is the player input (mode, text, knobs). It’s not a turn or layer.
-- **Intent effects** map an intent → the turn(s) it caused (`sequence` 0..N).
-  Direct Control can create the player‑authored turn as `sequence=0`; the engine may add an immediate reaction as
-  `sequence=1`.
-- Keep a simple **mock generation** path now (one new prose turn on the mainline).
+- Kicking off an **intent run** selects an *executor* for the intent kind, which is a generator function that runs one
+  or more *commands*.
+    - Direct Control: `insertTurn` command with player's input, verbatim; `chooseActor` command; `generateTurn` command
+      for selected actor
+    - Narrative Constraint: `generateTurn` command for narrator; `insertTurn` with generation output; `chooseActor`;
+      `generateTurn` for selected actor; `insertTurn` with generation output
+- **Intent effects** map an intent → the turn(s) it caused (`sequence` 0..N). Each `insertTurn` triggers a `new_turn`
+  effect. In the future, timeline events could possibly be effects too.
 
 ### Bootstrapping & UI data strategy
 
@@ -86,7 +92,7 @@ v0++ concepts:
 
 ## Sqlite schema approximation
 
-#### `turns`
+### `turns`
 
 - `id TEXT PK`
 - `scenario_id TEXT FK`
@@ -96,7 +102,7 @@ v0++ concepts:
 
 Turn text content is stored in a separate table, `turn_layers`.
 
-#### `intents`
+### `intents`
 
 - `id TEXT PK`
 - `scenario_id TEXT FK -> scenarios.id NOT NULL`
@@ -107,7 +113,7 @@ Turn text content is stored in a separate table, `turn_layers`.
 - `input_text TEXT`
 - ~~`branch_policy TEXT CHECK in ('mainline','new_branch','replace_leaf') DEFAULT 'mainline'`~~
 
-#### `intent_effects`
+### `intent_effects`
 
 - `intent_id TEXT FK -> intents.id NOT NULL`
 - `sequence INTEGER NOT NULL`
@@ -132,10 +138,6 @@ Turn text content is stored in a separate table, `turn_layers`.
 - Slice `LIMIT windowSize` (leaf→root), then order **depth DESC** (root→leaf).
     - Compute `nextLeafId = top.parent_turn_id ?? null`.
 
-3. *(Optional for badges now or later)* **`getIntentProvenanceForTurns(turnIds[])`**
-
-- Map `turnId -> { intentId, mode, … }` from `intent_effects` + `intents`.
-
 ## Services (sketch)
 
 1. **`IntentService.createAndStart(params)`**
@@ -143,12 +145,11 @@ Turn text content is stored in a separate table, `turn_layers`.
 - Get `WorkflowRunnerManager` singleton, then get the runner for `turn_generation` workflows
 - Get `IntentRunManager` singleton
 - Insert `pending` intent into DB, commit
-- Get generator for the selected intent kind
+- Get executor for the selected intent kind
     - Generator will yield commands, which run workflows and apply side effects
         - Manual control: insert turn (player input text) -> choose actor -> generate turn -> insert turn
         - Guided control: generate turn -> insert turn
         - Narrative constraint: generate turn (narrator) -> insert turn -> choose actor -> generate turn
-
 2. **`TimelineService.advanceTurn(params)`**
     - Insert turn under a parent, maintain `sibling_order`, inherit `chapter_id` unless overridden.
 
@@ -159,13 +160,3 @@ Turn text content is stored in a separate table, `turn_layers`.
 - `play.createIntent` → `createIntent`
 - `play.intentProgress` → async generator yielding events from turn engine (stubbed for now)
 - `play.intentResult` → load `intent` + `intent_effects`, plus updated `scenario.current_turn_id`
-
-## Frontend wiring (sketch)
-
-- **Bootstrap on mount:** keep result in React Query, expose via something like `useScenarioCtx`
-- **Timeline list:** `useInfiniteQuery({ initialPageParam: anchorLeafId, getNextPageParam: nextLeafId })`
-- **Input panel:** POST `intent`, then subscribe to `play.intentProgress` for updates; invalidate timeline query as
-  turn_committed events come in to show the new turn.
-
-Frontend should not try to reimplement the graph logic and should depend on the server. As far as the frontend is
-concerned, the scenario is just an array of turns (a single timeline), not a tree.

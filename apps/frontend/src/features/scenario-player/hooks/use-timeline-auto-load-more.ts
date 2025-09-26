@@ -1,12 +1,13 @@
 import type { VirtualItem } from "@tanstack/react-virtual";
 import { useEffect, useRef } from "react";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 
 type Args = {
   items: VirtualItem[];
   isFetching?: boolean;
   hasNextPage?: boolean;
   onLoadMore?: () => Promise<unknown>;
-  initialDataReceived: boolean;
+  pendingInitialScroll: boolean;
 };
 
 export function useTimelineAutoLoadMore({
@@ -14,13 +15,15 @@ export function useTimelineAutoLoadMore({
   isFetching,
   hasNextPage,
   onLoadMore,
-  initialDataReceived,
+  pendingInitialScroll,
 }: Args) {
+  const pendingScrollTarget = useScenarioPlayerStore((s) => s.pendingScrollTarget);
+  const enabled = !pendingInitialScroll && !pendingScrollTarget;
   const lockRef = useRef(false);
   useEffect(() => {
     if (isFetching) return;
     if (!hasNextPage || !onLoadMore) return; // no more data or no load more handler
-    if (!initialDataReceived) return; // wait for initial data
+    if (!enabled) return; // wait for initial data
 
     const first = items.at(0);
     const atTop = first?.key === "header";
@@ -34,5 +37,5 @@ export function useTimelineAutoLoadMore({
           lockRef.current = false;
         });
     }
-  }, [items, isFetching, hasNextPage, onLoadMore, initialDataReceived]);
+  }, [items, isFetching, hasNextPage, onLoadMore, enabled]);
 }

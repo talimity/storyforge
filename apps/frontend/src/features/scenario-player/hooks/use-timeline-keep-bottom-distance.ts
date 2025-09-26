@@ -14,6 +14,7 @@ export function useTimelineKeepBottomDistance<
   TItemEl extends Element,
 >({ virtualizer, turns }: Args<TScrollEl, TItemEl>) {
   const { scenario } = useScenarioContext();
+  const hasPendingScrollTarget = useScenarioPlayerStore((s) => s.pendingScrollTarget !== null);
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
   const timelineLeafTurnId = previewLeafTurnId ?? scenario.anchorTurnId;
 
@@ -24,14 +25,17 @@ export function useTimelineKeepBottomDistance<
   const handleChange: VirtualizerOptions<TScrollEl, TItemEl>["onChange"] = useCallback(
     (instance: Virtualizer<TScrollEl, TItemEl>, sync: boolean) => {
       if (!sync) return;
-      console.log("useTimelineKeepBottomDistance -> handleChange");
       prevBottomDistanceRef.current = instance.getTotalSize() - (instance.scrollOffset ?? 0);
     },
     []
   );
 
   const keepBottomDistance = useCallback(() => {
-    console.log("useTimelineKeepBottomDistance -> keepBottomDistance");
+    if (hasPendingScrollTarget) return;
+    console.log("useTimelineKeepBottomDistance -> keepBottomDistance", {
+      totalSize: virtualizer.getTotalSize(),
+      bottomDistance: prevBottomDistanceRef.current,
+    });
     const totalSize = virtualizer.getTotalSize();
     virtualizer.scrollToOffset(totalSize - prevBottomDistanceRef.current, {
       align: "start",
@@ -41,22 +45,21 @@ export function useTimelineKeepBottomDistance<
     //       I don't have time to dig into it, but very curious about the reason,
     //       plz comment if you find out.
     virtualizer.scrollOffset = totalSize - prevBottomDistanceRef.current;
-  }, [virtualizer]);
+  }, [hasPendingScrollTarget, virtualizer]);
 
   const firstTurnId = turns.at(0)?.id;
   useLayoutEffect(() => {
+    if (hasPendingScrollTarget) return;
     let skipEffect = false;
     if (prevFirstTurnIdRef.current === firstTurnId) skipEffect = true; // do not scroll if first turn is the same (no new data added to top)
     if (prevLeafTurnIdRef.current !== timelineLeafTurnId) skipEffect = true; // do not scroll if the branch has changed, distances may be different
     prevFirstTurnIdRef.current = firstTurnId;
     if (!skipEffect) {
-      console.log("useTimelineKeepBottomDistance -> useLayoutEffect");
       keepBottomDistance();
     } else {
       prevLeafTurnIdRef.current = timelineLeafTurnId;
-      console.log("useTimelineKeepBottomDistance -> useLayoutEffect -> skip effect");
     }
-  }, [keepBottomDistance, firstTurnId, timelineLeafTurnId]);
+  }, [hasPendingScrollTarget, keepBottomDistance, firstTurnId, timelineLeafTurnId]);
 
   return { handleChange };
 }

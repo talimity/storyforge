@@ -3,6 +3,7 @@ import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/reac
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { useCallback, useEffect, useRef } from "react";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { showErrorToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
@@ -11,6 +12,7 @@ type BranchFrom = { kind: "turn_parent" | "intent_start"; targetId: string };
 export function useIntentEngine(scenarioId: string) {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
+  const setPendingScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
   const startRun = useIntentRunsStore((s) => s.startRun);
   const applyEvent = useIntentRunsStore((s) => s.applyEvent);
   const clearActiveIntent = useIntentRunsStore((s) => s.clearActiveRun);
@@ -74,17 +76,19 @@ export function useIntentEngine(scenarioId: string) {
     trpc.play.intentProgress.subscriptionOptions(subscriptionInput, {
       enabled: subscriptionEnabled,
 
-      onData: (event) => {
+      onData: async (event) => {
         if (!currentRunId) return;
         applyEvent(event);
 
         if (event.type === "effect_committed") {
           // Get the next authoritative data from server
-          queryClient.invalidateQueries({ queryKey: [["play", "timeline"]] });
           queryClient.invalidateQueries({ queryKey: [["play", "environment"]] });
+          await queryClient.invalidateQueries({ queryKey: [["play", "timeline"]] });
+          setPendingScrollTarget({ kind: "bottom" });
         }
         if (event.type === "intent_finished") {
           clearActiveIntent();
+          setPendingScrollTarget({ kind: "bottom" });
         }
         if (event.type === "intent_failed") {
           if (event.cancelled) {

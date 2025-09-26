@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
-import { useTimelineScroll } from "@/features/scenario-player/providers/timeline-scroll-provider";
 import {
   type IntentRunsState,
   selectIsGenerating,
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 
 // primitive tick that changes on each streaming token
 const selectDraftTick = (s: IntentRunsState) => {
@@ -16,9 +16,10 @@ const selectDraftTick = (s: IntentRunsState) => {
 };
 
 export function AutoFollowOnDraft() {
-  const { scrollToEnd, shouldAutoFollow } = useTimelineScroll();
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const tick = useIntentRunsStore(selectDraftTick);
+  const shouldAutoFollow = useScenarioPlayerStore((s) => s.shouldAutoFollow);
+  const setPendingScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
   const lastTickRef = useRef(tick);
   const throttleUntilRef = useRef(0);
 
@@ -28,8 +29,8 @@ export function AutoFollowOnDraft() {
     lastTickRef.current = tick;
     if (!shouldAutoFollow() || Date.now() < throttleUntilRef.current) return;
     throttleUntilRef.current = Date.now() + 100;
-    scrollToEnd();
-  }, [isGenerating, tick, scrollToEnd, shouldAutoFollow]);
+    setPendingScrollTarget({ kind: "bottom" });
+  }, [isGenerating, tick, setPendingScrollTarget, shouldAutoFollow]);
 
   return null;
 }

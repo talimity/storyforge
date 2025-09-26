@@ -1,5 +1,3 @@
-// apps/frontend/src/features/scenario-player/hooks/use-branch-preview.ts
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { useTRPC } from "@/lib/trpc";
@@ -12,9 +10,10 @@ export function useBranchPreview() {
   const trpc = useTRPC();
   const qc = useQueryClient();
 
+  const isGenerating = useIntentRunsStore(selectIsGenerating);
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
   const setPreviewLeaf = useScenarioPlayerStore((s) => s.setPreviewLeaf);
-  const isGenerating = useIntentRunsStore(selectIsGenerating);
+  const setPendingScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
 
   const resolveLeaf = useMutation(trpc.play.resolveLeaf.mutationOptions());
   const switchTimeline = useMutation(trpc.play.switchTimeline.mutationOptions());
@@ -22,16 +21,27 @@ export function useBranchPreview() {
   const previewSibling = useCallback(
     async (siblingId: string | null | undefined) => {
       if (isGenerating || !siblingId) return;
+
       const { leafTurnId } = await resolveLeaf.mutateAsync({
         scenarioId: scenario.id,
         fromTurnId: siblingId,
       });
-      // If the resolved leaf equals the current anchor, we are effectively on the active timeline
+
+      setPendingScrollTarget({ kind: "turn", turnId: siblingId, edge: "end" });
+
+      // If the resolved leaf equals the current anchor turn, we are effectively on the active timeline
       // so clear preview; otherwise set preview to that leaf.
       const anchor = scenario.anchorTurnId ?? null;
       setPreviewLeaf(leafTurnId && anchor && leafTurnId === anchor ? null : leafTurnId);
     },
-    [isGenerating, resolveLeaf, scenario.id, scenario.anchorTurnId, setPreviewLeaf]
+    [
+      isGenerating,
+      resolveLeaf,
+      scenario.id,
+      scenario.anchorTurnId,
+      setPreviewLeaf,
+      setPendingScrollTarget,
+    ]
   );
 
   const commitPreview = useCallback(async () => {
