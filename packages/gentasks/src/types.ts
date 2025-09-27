@@ -9,6 +9,8 @@ import type { WritingAssistantCtx, WritingAssistantSources } from "./tasks/writi
 type IntentKind = "manual_control" | "guided_control" | "narrative_constraint" | "continue_story";
 
 export type TurnCtxDTO = {
+  /** Internal ID of the turn. */
+  turnId: string;
   /** The 1-based turn number. */
   turnNo: number;
   /**
@@ -35,6 +37,20 @@ export type TurnCtxDTO = {
   };
   /** Map of other layers of the turn, keyed by layer name. */
   layers: Record<string, string>;
+  /** Timeline events associated with this turn, grouped by position. */
+  events: {
+    before: TimelineEventDTO[];
+    after: TimelineEventDTO[];
+  };
+};
+
+export type TimelineEventDTO = {
+  id: string;
+  kind: string;
+  orderKey: string;
+  payloadVersion: number;
+  payload: unknown;
+  prompt?: string;
 };
 
 export type CharacterCtxDTO = {

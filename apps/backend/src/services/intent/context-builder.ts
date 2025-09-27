@@ -10,6 +10,8 @@ import type { CharacterCtxDTO, TurnGenCtx } from "@storyforge/gentasks";
 import { assertDefined } from "@storyforge/utils";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { getFullTimelineTurnCtx } from "../timeline/timeline.queries.js";
+import { TimelineStateService } from "../timeline-events/timeline-state.service.js";
+import { eventDTOsByTurn } from "../timeline-events/utils/event-dtos.js";
 import { getTurnIntentPrompt } from "./utils/intent-prompts.js";
 
 interface BuildContextArgs {
@@ -25,20 +27,35 @@ export class IntentContextBuilder {
   ) {}
 
   async buildContext(args: BuildContextArgs): Promise<TurnGenCtx> {
-    const { actorParticipantId, intent, leafTurnId } = args;
+    const { actorParticipantId, intent, leafTurnId = null } = args;
+    const stateService = new TimelineStateService(this.db);
 
-    const [charaData, turns, scenario] = await Promise.all([
-      this.loadParticipantCharaData(actorParticipantId),
-      getFullTimelineTurnCtx(this.db, {
-        leafTurnId: leafTurnId ?? null,
-        scenarioId: this.scenarioId,
-      }),
-      this.loadScenarioData(),
+    const derivationPromise = stateService.deriveState(this.scenarioId, leafTurnId);
+    const charaDataPromise = this.loadParticipantCharaData(actorParticipantId);
+    const scenarioPromise = this.loadScenarioData();
+    const turnsPromise = getFullTimelineTurnCtx(this.db, {
+      leafTurnId,
+      scenarioId: this.scenarioId,
+    });
+
+    const [charaData, derivation, scenario, turns] = await Promise.all([
+      charaDataPromise,
+      derivationPromise,
+      scenarioPromise,
+      turnsPromise,
     ]);
+
     const { characters, userProxyName, currentActorName } = charaData;
 
+    // Enrich turn DTO with events
+    const eventsByTurn = eventDTOsByTurn(derivation.events, derivation.hints);
+    const enrichedTurns = turns.map((t) => ({
+      ...t,
+      events: eventsByTurn[t.turnId] ?? { before: [], after: [] },
+    }));
+
     return {
-      turns,
+      turns: enrichedTurns,
       characters,
       // TODO: this is definitely not a good way to do this
       // templates may need raw kind for switch case behavior, but also need

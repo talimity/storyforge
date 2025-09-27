@@ -29,5 +29,6 @@ export {
   ContextFor,
   SourcesFor,
   TaskKind,
+  TimelineEventDTO,
   TurnCtxDTO,
 } from "./types.js";

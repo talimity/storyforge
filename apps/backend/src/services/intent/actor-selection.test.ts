@@ -1,7 +1,11 @@
+import { presenceChangeTimelineEventPayloadSchema } from "@storyforge/contracts";
 import { type SqliteDatabase, schema } from "@storyforge/db";
+import { presenceChangeSpec } from "@storyforge/timeline-events";
+import { createId } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createTestDatabase } from "../../test/setup.js";
+import { getAuthorHistoryWindow } from "../timeline/timeline.queries.js";
 import { chooseNextActorFair } from "./actor-selection.js";
 
 describe("chooseNextActorFair", () => {
@@ -73,18 +77,21 @@ describe("chooseNextActorFair", () => {
     narratorParticipantId = narratorParticipant.id;
   });
 
-  it("returns the first participant when no history exists", async () => {
-    const nextActor = await chooseNextActorFair(db, scenarioId, {});
-    expect(nextActor).toBe(aliceParticipantId);
-  });
-
   it("ignores narrator turns when narrator is not eligible", async () => {
     const aliceTurn = await createTurn(aliceParticipantId, null);
     const narratorTurn = await createTurn(narratorParticipantId, aliceTurn);
     await setAnchor(narratorTurn);
 
+    const history = await getAuthorHistoryWindow(db, {
+      scenarioId,
+      leafTurnId: narratorTurn,
+      windowSize: 8,
+    });
+    expect(history).toEqual([narratorParticipantId, aliceParticipantId]);
+
     const nextActor = await chooseNextActorFair(db, scenarioId, {
       leafTurnId: narratorTurn,
+      includeNarrator: false,
     });
 
     expect(nextActor).toBe(bobParticipantId);
@@ -110,6 +117,7 @@ describe("chooseNextActorFair", () => {
 
     const nextActor = await chooseNextActorFair(db, scenarioId, {
       leafTurnId: aliceTurn,
+      includeNarrator: false,
     });
 
     expect(nextActor).toBe(bobParticipantId);
@@ -140,7 +148,15 @@ describe("chooseNextActorFair", () => {
 
     const nextActor = await chooseNextActorFair(db, scenarioId, {
       leafTurnId: branchTurn,
+      includeNarrator: false,
     });
+
+    const history = await getAuthorHistoryWindow(db, {
+      scenarioId,
+      leafTurnId: branchTurn,
+      windowSize: 8,
+    });
+    expect(history).toContain(bobParticipantId);
 
     expect(nextActor).toBe(caraParticipant.id);
   });
@@ -151,8 +167,62 @@ describe("chooseNextActorFair", () => {
       .set({ status: "inactive" })
       .where(eq(schema.scenarioParticipants.id, bobParticipantId));
 
-    const nextActor = await chooseNextActorFair(db, scenarioId, {});
+    const nextActor = await chooseNextActorFair(db, scenarioId, {
+      leafTurnId: null,
+      includeNarrator: false,
+    });
     expect(nextActor).toBe(aliceParticipantId);
+  });
+
+  it("ignores participants marked inactive via presence events", async () => {
+    const rootTurn = await createTurn(aliceParticipantId, null);
+    await insertPresenceEvent({
+      turnId: rootTurn,
+      participantId: bobParticipantId,
+      active: false,
+    });
+    await setAnchor(rootTurn);
+
+    const nextActor = await chooseNextActorFair(db, scenarioId, {
+      leafTurnId: rootTurn,
+      includeNarrator: false,
+    });
+
+    expect(nextActor).toBe(aliceParticipantId);
+  });
+
+  it("falls back to narrator when all characters are inactive", async () => {
+    const rootTurn = await createTurn(aliceParticipantId, null);
+    const secondTurn = await createTurn(bobParticipantId, rootTurn);
+    await insertPresenceEvent({
+      turnId: rootTurn,
+      participantId: aliceParticipantId,
+      active: false,
+      orderKey: "l",
+    });
+    await insertPresenceEvent({
+      turnId: secondTurn,
+      participantId: bobParticipantId,
+      active: false,
+      orderKey: "m",
+    });
+    await setAnchor(secondTurn);
+
+    const nextActor = await chooseNextActorFair(db, scenarioId, {
+      leafTurnId: secondTurn,
+      includeNarrator: false,
+    });
+
+    expect(nextActor).toBe(narratorParticipantId);
+
+    // if we evaluate next actor for the turn before bob's inactive presence
+    // event, then bob should still be eligible
+    const nextActorForRootTurn = await chooseNextActorFair(db, scenarioId, {
+      leafTurnId: rootTurn,
+      includeNarrator: false,
+    });
+
+    expect(nextActorForRootTurn).toBe(bobParticipantId);
   });
 
   async function createTurn(authorId: string, parentTurnId: string | null): Promise<string> {
@@ -187,5 +257,32 @@ describe("chooseNextActorFair", () => {
       .update(schema.scenarios)
       .set({ anchorTurnId: turnId })
       .where(eq(schema.scenarios.id, scenarioId));
+  }
+
+  async function insertPresenceEvent(args: {
+    turnId: string;
+    participantId: string;
+    active: boolean;
+    position?: "before" | "after";
+    orderKey?: string;
+    reason?: string | null;
+  }) {
+    const eventId = createId();
+    const payload = presenceChangeTimelineEventPayloadSchema.parse({
+      participantId: args.participantId,
+      active: args.active,
+      reason: args.reason ?? null,
+    });
+
+    await db.insert(schema.timelineEvents).values({
+      id: eventId,
+      scenarioId,
+      turnId: args.turnId,
+      position: args.position ?? "after",
+      orderKey: args.orderKey ?? "m",
+      kind: "presence_change",
+      payloadVersion: presenceChangeSpec.latest,
+      payload: payload,
+    });
   }
 });

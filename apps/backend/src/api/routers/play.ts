@@ -3,10 +3,18 @@ import {
   addTurnOutputSchema,
   createIntentInputSchema,
   createIntentOutputSchema,
+  deleteTimelineEventInputSchema,
+  deleteTimelineEventOutputSchema,
   environmentInputSchema,
   environmentOutputSchema,
   generationInfoInputSchema,
   generationInfoOutputSchema,
+  insertChapterBreakEventInputSchema,
+  insertChapterBreakEventOutputSchema,
+  insertParticipantPresenceEventInputSchema,
+  insertParticipantPresenceEventOutputSchema,
+  insertSceneSetEventInputSchema,
+  insertSceneSetEventOutputSchema,
   intentInterruptInputSchema,
   intentInterruptOutputSchema,
   intentProgressInputSchema,
@@ -34,6 +42,7 @@ import {
   resolveLeafForScenario,
 } from "../../services/timeline/timeline.queries.js";
 import { TimelineService } from "../../services/timeline/timeline.service.js";
+import { TimelineEventsService } from "../../services/timeline-events/timeline-events.service.js";
 import { TurnContentService } from "../../services/turn/turn-content.service.js";
 import { WorkflowRunnerManager } from "../../services/workflows/workflow-runner-manager.js";
 import { publicProcedure, router } from "../index.js";
@@ -151,6 +160,7 @@ export const playRouter = router({
                 targetParticipantId: r.intent_target_participant_id,
               }
             : null,
+        events: r.events,
       }));
 
       // Cursor-by-ancestor: take TOP row's parent (root-most in this page)
@@ -431,6 +441,89 @@ export const playRouter = router({
       const { turnId, layer, content } = input;
       const contentService = new TurnContentService(ctx.db);
       await contentService.updateTurnContent({ turnId, layer, content });
+      return { success: true };
+    }),
+
+  insertChapterBreakEvent: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/play/events/chapter-break",
+        tags: ["play"],
+        summary: "Inserts a chapter break event on the timeline",
+      },
+    })
+    .input(insertChapterBreakEventInputSchema)
+    .output(insertChapterBreakEventOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const service = new TimelineEventsService(ctx.db);
+      const event = await service.insertChapterBreak({
+        scenarioId: input.scenarioId,
+        turnId: input.turnId,
+        nextChapterTitle: input.nextChapterTitle,
+      });
+      return { eventId: event.id };
+    }),
+
+  insertParticipantPresenceEvent: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/play/events/participant-presence",
+        tags: ["play"],
+        summary: "Inserts a participant presence event on the timeline",
+      },
+    })
+    .input(insertParticipantPresenceEventInputSchema)
+    .output(insertParticipantPresenceEventOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const service = new TimelineEventsService(ctx.db);
+      const event = await service.insertParticipantPresence({
+        scenarioId: input.scenarioId,
+        turnId: input.turnId,
+        participantId: input.participantId,
+        active: input.active,
+        status: input.status ?? null,
+      });
+      return { eventId: event.id };
+    }),
+
+  insertSceneSetEvent: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/play/events/scene-set",
+        tags: ["play"],
+        summary: "Inserts a scene change event on the timeline",
+      },
+    })
+    .input(insertSceneSetEventInputSchema)
+    .output(insertSceneSetEventOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const service = new TimelineEventsService(ctx.db);
+      const event = await service.insertSceneSet({
+        scenarioId: input.scenarioId,
+        turnId: input.turnId,
+        sceneName: input.sceneName,
+        description: input.description ?? null,
+      });
+      return { eventId: event.id };
+    }),
+
+  deleteTimelineEvent: publicProcedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/api/play/events/{eventId}",
+        tags: ["play"],
+        summary: "Removes a timeline event",
+      },
+    })
+    .input(deleteTimelineEventInputSchema)
+    .output(deleteTimelineEventOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const service = new TimelineEventsService(ctx.db);
+      await service.deleteEvent(input.eventId);
       return { success: true };
     }),
 });

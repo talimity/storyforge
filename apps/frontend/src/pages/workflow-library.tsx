@@ -1,5 +1,6 @@
 import { Box, Container, Grid, HStack, Skeleton, Tabs, Text } from "@chakra-ui/react";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
+import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuImport, LuListPlus, LuMapPin, LuPlus, LuWorkflow } from "react-icons/lu";
@@ -114,7 +115,7 @@ export function WorkflowsPage() {
               ) : workflowsQuery.isLoading ? (
                 <Grid templateColumns="repeat(auto-fit, 360px)" gap={4}>
                   {[...Array(8)].map(() => (
-                    <WorkflowCardSkeleton key={crypto.randomUUID()} />
+                    <WorkflowCardSkeleton key={createId()} />
                   ))}
                 </Grid>
               ) : (
@@ -132,7 +133,7 @@ export function WorkflowsPage() {
               {assignmentsQuery.isLoading ? (
                 <Grid templateColumns="repeat(auto-fit, 360px)" gap={4}>
                   {[...Array(6)].map(() => (
-                    <Box key={crypto.randomUUID()} layerStyle="surface" borderRadius="md" p={4}>
+                    <Box key={createId()} layerStyle="surface" borderRadius="md" p={4}>
                       <Skeleton height="16px" mb={2} />
                       <Skeleton height="12px" width="60%" />
                     </Box>

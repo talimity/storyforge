@@ -1,12 +1,19 @@
-import type { IntentKind, IntentStatus } from "@storyforge/contracts";
+import {
+  type IntentKind,
+  type IntentStatus,
+  type TimelineEvent,
+  timelineEventSchema,
+} from "@storyforge/contracts";
 import type { Intent, SqliteDatabase, SqliteTxLike } from "@storyforge/db";
 import type { TurnCtxDTO } from "@storyforge/gentasks";
 import { sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { getTurnIntentPrompt } from "../intent/utils/intent-prompts.js";
+import { TimelineStateService } from "../timeline-events/timeline-state.service.js";
+import { eventDTOsByTurn } from "../timeline-events/utils/event-dtos.js";
 import { resolveLeafFrom } from "./utils/leaf.js";
 
-type TimelineRow = {
+type TimelineRowRecord = {
   id: string;
   scenario_id: string;
   parent_turn_id: string | null; // null for root turns
@@ -35,6 +42,10 @@ type TimelineRow = {
   intent_effect_count: number | null;
   intent_input_text: string | null;
   intent_target_participant_id: string | null;
+};
+
+type TimelineRow = TimelineRowRecord & {
+  events: { before: TimelineEvent[]; after: TimelineEvent[] };
 };
 
 /**
@@ -93,16 +104,15 @@ export async function getTimelineWindow(
     layer?: string;
   }
 ): Promise<TimelineRow[]> {
-  const { scenarioId, leafTurnId, cursorTurnId, windowSize, layer = "presentation" } = args;
-
-  const params = {
+  const {
     scenarioId,
+    leafTurnId = null,
+    cursorTurnId = null,
     windowSize,
-    leafTurnId: leafTurnId ?? null,
-    cursorTurnId: cursorTurnId ?? null,
-    layer,
-  };
+    layer = "presentation",
+  } = args;
 
+  const params = { scenarioId, windowSize, leafTurnId, cursorTurnId, layer };
   const query = sql`WITH RECURSIVE
     -- 0) Resolve the target leaf turn ID, using scenario anchor turn if no alternate leaf node provided
     leaf_turn AS (SELECT COALESCE(
@@ -229,7 +239,64 @@ FROM enriched e
 ORDER BY e.turn_no;
   `;
 
-  return db.all<TimelineRow>(query);
+  const stateService = new TimelineStateService(db);
+  const [rows, derivation] = await Promise.all([
+    db.all<TimelineRowRecord>(query),
+    stateService.deriveState(scenarioId, leafTurnId),
+  ]);
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const eventsByTurn = eventDTOsByTurn(derivation.events, derivation.hints);
+
+  return rows.map((row) => {
+    const untypedEvents = eventsByTurn[row.id] ?? { before: [], after: [] };
+    return {
+      ...row,
+      events: {
+        before: untypedEvents.before.map((ev) => timelineEventSchema.parse(ev)),
+        after: untypedEvents.after.map((ev) => timelineEventSchema.parse(ev)),
+      },
+    };
+  });
+}
+
+export async function getAuthorHistoryWindow(
+  db: SqliteDatabase,
+  args: { scenarioId: string; leafTurnId?: string | null; windowSize: number }
+): Promise<string[]> {
+  const { scenarioId, leafTurnId = null, windowSize } = args;
+
+  const rows = await db.all<{ author_participant_id: string }>(sql`
+    WITH RECURSIVE
+      leaf AS (
+        SELECT COALESCE(${leafTurnId}, (SELECT anchor_turn_id FROM scenarios WHERE id = ${scenarioId})) AS id
+      ),
+      path AS (
+        SELECT t.id, 0 AS depth, t.parent_turn_id
+          FROM turns t
+         WHERE t.id = (SELECT id FROM leaf) AND t.scenario_id = ${scenarioId}
+        UNION ALL
+        SELECT parent.id, path.depth + 1, parent.parent_turn_id
+          FROM turns parent
+          JOIN path ON path.parent_turn_id = parent.id
+         WHERE parent.scenario_id = ${scenarioId}
+      ),
+      limited AS (
+        SELECT id, depth
+          FROM path
+         ORDER BY depth ASC
+         LIMIT ${windowSize}
+      )
+    SELECT turns.author_participant_id
+      FROM limited
+      JOIN turns ON turns.id = limited.id
+     ORDER BY limited.depth ASC;
+  `);
+
+  return rows.map((row) => row.author_participant_id);
 }
 /**
  * Get the content of all layers for the given turn IDs.
@@ -266,11 +333,8 @@ export async function getTurnContentLayers(
  */
 export async function getFullTimelineTurnCtx(
   db: SqliteTxLike,
-  args: {
-    leafTurnId: string | null;
-    scenarioId: string;
-  }
-): Promise<TurnCtxDTO[]> {
+  args: { leafTurnId: string | null; scenarioId: string }
+): Promise<Omit<TurnCtxDTO, "events">[]> {
   const { leafTurnId, scenarioId } = args;
 
   // We build the entire parent chain from leaf to root (depth 0..N), compute
@@ -279,6 +343,7 @@ export async function getFullTimelineTurnCtx(
   // presentation content is extracted via a conditional aggregate for direct
   // access.
   const rows = await db.all<{
+    turn_id: string;
     turn_no: number;
     author_name: string;
     author_type: "character" | "narrator";
@@ -338,26 +403,39 @@ export async function getFullTimelineTurnCtx(
                    FROM intent_effects ie
                             JOIN intents i ON i.id = ie.intent_id AND i.scenario_id = ${scenarioId}
                    WHERE ie.kind = 'new_turn')
-SELECT e.turn_no, e.author_name, e.author_type, e.presentation, e.layers_json,
-       im.intent_id, im.intent_kind, im.intent_input_text, im.intent_target_participant_id
+SELECT e.id AS turn_id,
+       e.turn_no,
+       e.author_name,
+       e.author_type,
+       e.presentation,
+       e.layers_json,
+       im.intent_id,
+       im.intent_kind,
+       im.intent_input_text,
+       im.intent_target_participant_id
 FROM enriched e
 LEFT JOIN intent_map im ON im.turn_id = e.id
 ORDER BY turn_no ASC;
   `);
 
   // Shape to TurnCtxDTO
-  return rows.map((r) => ({
-    turnNo: r.turn_no,
-    authorName: r.author_name,
-    authorType: r.author_type,
-    content: r.presentation ?? "",
-    layers: r.layers_json ? JSON.parse(r.layers_json) : {},
-    intent: getTurnIntentPrompt({
-      kind: r.intent_kind,
-      targetName: r.author_name, // TODO: in the future it may not always be the turn author
-      text: r.intent_input_text,
-    }),
-  }));
+  return rows.map((r) => {
+    const layers = r.layers_json ? JSON.parse(r.layers_json) : {};
+
+    return {
+      turnId: r.turn_id,
+      turnNo: r.turn_no,
+      authorName: r.author_name,
+      authorType: r.author_type,
+      content: r.presentation ?? "",
+      layers,
+      intent: getTurnIntentPrompt({
+        kind: r.intent_kind,
+        targetName: r.author_name,
+        text: r.intent_input_text,
+      }),
+    };
+  });
 }
 
 /** Resolve deepest leaf id under a given turn id within a scenario, after validating membership. */

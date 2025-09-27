@@ -1,5 +1,5 @@
 import { type SqliteDatabase, schema, type Turn } from "@storyforge/db";
-import { ranksBetween } from "@storyforge/utils";
+import { createId, ranksBetween } from "@storyforge/utils";
 import { eq, isNull } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createTestDatabase } from "../../test/setup.js";
@@ -14,7 +14,7 @@ async function createTurn(
   db: SqliteDatabase,
   opts: { parent?: string | null; siblingOrder?: string }
 ): Promise<Turn> {
-  const id = crypto.randomUUID();
+  const id = createId();
   const turn = await db
     .insert(schema.turns)
     .values({

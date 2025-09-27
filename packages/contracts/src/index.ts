@@ -5,4 +5,5 @@ export * from "./schemas/play.js";
 export * from "./schemas/provider.js";
 export * from "./schemas/scenario.js";
 export * from "./schemas/templates.js";
+export * from "./schemas/timeline-events.js";
 export * from "./schemas/workflows.js";

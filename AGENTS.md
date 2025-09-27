@@ -87,12 +87,13 @@ storyforge
 
 - **Type soundness**:
   - 🚫 Explicit `any` usage is FORBIDDEN
-  - 🚫 Type assertions (`as SomeType`) are FORBIDDEN
-    - Use an `asserts` guard: `function assertSomeType(value: unknown): asserts value is SomeType`, or...
+  - 🚫 Type casting (`... as SomeType`) is FORBIDDEN
     - Use a type guard: `function isSomeType(value: unknown): value is SomeType`, or...
+    - Use an `asserts` guard: `function assertSomeType(value: unknown): asserts value is SomeType`, or...
     - Use Zod.
+    - (Note that `as const` is not casting, it *narrows* inferred types so it is fine to use)
   - 🚫 Non-null assertions (`!`) are FORBIDDEN
-    - Use Zod, `assertDefined` or an `asserts` guard.
+    - Use Zod, `assertDefined` from the utils package, or an `asserts` guard.
 - **Classes and Interfaces**:
   - Prefer modules and functions over classes
     - Polymorphism: use TS interfaces

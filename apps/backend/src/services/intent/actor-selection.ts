@@ -1,7 +1,8 @@
 import { type SqliteDatabase, scenarioParticipants } from "@storyforge/db";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
-import { getTimelineWindow } from "../timeline/timeline.queries.js";
+import { getAuthorHistoryWindow } from "../timeline/timeline.queries.js";
+import { TimelineStateService } from "../timeline-events/timeline-state.service.js";
 
 interface ChooseNextActorOpts {
   includeNarrator?: boolean;
@@ -29,14 +30,18 @@ export async function chooseNextActorFair(
   scenarioId: string,
   opts: ChooseNextActorOpts
 ): Promise<string> {
-  const { includeNarrator = false, leafTurnId, windowSize } = opts;
+  const { includeNarrator = false, leafTurnId = null, windowSize } = opts;
 
   const participantTypes = includeNarrator
     ? (["character", "narrator"] as const)
     : (["character"] as const);
 
   const participants = await db
-    .select({ id: scenarioParticipants.id, orderIndex: scenarioParticipants.orderIndex })
+    .select({
+      id: scenarioParticipants.id,
+      orderIndex: scenarioParticipants.orderIndex,
+      type: scenarioParticipants.type,
+    })
     .from(scenarioParticipants)
     .where(
       and(
@@ -47,86 +52,84 @@ export async function chooseNextActorFair(
     )
     .orderBy(asc(scenarioParticipants.orderIndex));
 
+  const narrator = await db.query.scenarioParticipants.findFirst({
+    where: { scenarioId, type: "narrator" },
+    columns: { id: true },
+  });
+
   if (participants.length === 0) {
+    if (narrator?.id) return narrator.id;
     throw new ServiceError("NotFound", {
       message: `No active participants found for scenario ${scenarioId}`,
     });
   }
 
-  if (participants.length === 1) {
-    return participants[0].id;
+  // Use state service to derive the current timeline state so we know which
+  // actors are present in the scene.
+  const stateService = new TimelineStateService(db);
+  const derivation = await stateService.deriveState(scenarioId, leafTurnId);
+  const { presence } = derivation.final;
+
+  const eligibleParticipants = participants.filter((participant) => {
+    const actorPresence = presence.participantPresence[participant.id];
+    // no presence value just means active
+    if (!actorPresence) return true;
+    return actorPresence.active;
+  });
+
+  if (eligibleParticipants.length === 0) {
+    if (narrator?.id) return narrator.id;
+    throw new ServiceError("NotFound", {
+      message: `No eligible participants available for scenario ${scenarioId}`,
+    });
+  }
+
+  if (eligibleParticipants.length === 1) {
+    return eligibleParticipants[0].id;
   }
 
   const orderedIds: string[] = [];
   const indexById = new Map<string, number>();
-  for (let i = 0; i < participants.length; i += 1) {
-    const participant = participants[i];
+  for (let i = 0; i < eligibleParticipants.length; i += 1) {
+    const participant = eligibleParticipants[i];
     orderedIds.push(participant.id);
     indexById.set(participant.id, i);
   }
 
   const eligibleIds = new Set(orderedIds);
-  const effectiveWindowSize = windowSize ?? Math.max(participants.length * 4, 16);
 
-  const timelineRows = await getTimelineWindow(db, {
+  const authorHistory = await getAuthorHistoryWindow(db, {
     scenarioId,
-    leafTurnId: leafTurnId ?? null,
-    cursorTurnId: leafTurnId ?? null,
-    windowSize: effectiveWindowSize,
-    layer: "presentation",
+    leafTurnId,
+    windowSize: windowSize ?? Math.max(eligibleParticipants.length * 4, 16),
   });
 
-  const history: string[] = [];
-  for (const row of timelineRows) {
-    if (eligibleIds.has(row.author_participant_id)) {
-      history.push(row.author_participant_id);
+  const history = authorHistory.filter((id) => eligibleIds.has(id));
+
+  const seenInCycle = new Set<string>();
+  let lastEligible: string | undefined;
+
+  for (const participantId of history) {
+    if (!eligibleIds.has(participantId)) continue;
+    if (!lastEligible) {
+      lastEligible = participantId;
+    }
+    if (!seenInCycle.has(participantId)) {
+      seenInCycle.add(participantId);
+      if (seenInCycle.size === orderedIds.length) break;
     }
   }
 
-  history.reverse();
+  for (const participantId of orderedIds) {
+    if (!seenInCycle.has(participantId)) {
+      return participantId;
+    }
+  }
 
-  const lastEligible = history[0];
-  if (!lastEligible || !indexById.has(lastEligible)) {
+  if (!lastEligible) {
     return orderedIds[0];
   }
 
-  const seenInCycle = new Set<string>();
-  for (const participantId of history) {
-    if (!seenInCycle.has(participantId)) {
-      seenInCycle.add(participantId);
-    }
-    if (seenInCycle.size === orderedIds.length) {
-      break;
-    }
-  }
-
-  if (seenInCycle.size < orderedIds.length) {
-    const missingNext = findNextMatching(orderedIds, indexById, lastEligible, (id) => {
-      return !seenInCycle.has(id);
-    });
-    if (missingNext) {
-      return missingNext;
-    }
-  }
-
-  const fallback = findNextMatching(orderedIds, indexById, lastEligible, () => true);
-  return fallback ?? orderedIds[0];
-}
-
-function findNextMatching(
-  orderedIds: string[],
-  indexById: Map<string, number>,
-  afterId: string,
-  predicate: (id: string) => boolean
-): string | undefined {
-  const total = orderedIds.length;
-  const startIndex = indexById.get(afterId) ?? -1;
-  for (let offset = 1; offset <= total; offset += 1) {
-    const candidateIndex = (startIndex + offset + total) % total;
-    const candidate = orderedIds[candidateIndex];
-    if (predicate(candidate)) {
-      return candidate;
-    }
-  }
-  return undefined;
+  const startIndex = indexById.get(lastEligible) ?? 0;
+  return orderedIds[(startIndex + 1) % orderedIds.length];
 }

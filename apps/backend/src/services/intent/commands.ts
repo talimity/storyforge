@@ -60,7 +60,7 @@ export function makeCommands(deps: IntentExecDeps) {
     }): IntentCommandGenerator<string> {
       const participantId = await chooseNextActorFair(db, scenarioId, {
         leafTurnId: args.afterTurnId ?? null,
-        includeNarrator: args.includeNarrator,
+        includeNarrator: !!args.includeNarrator,
       });
 
       yield { type: "actor_selected", intentId, participantId: participantId, ts: now() };

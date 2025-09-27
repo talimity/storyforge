@@ -5,7 +5,7 @@ import { createDatabaseConfig } from "./src/config.js";
 const dbConfig = createDatabaseConfig();
 
 export default defineConfig({
-  schema: "./src/schema/*",
+  schema: "./src/schema.ts",
   out: "./src/migrations",
   dialect: "sqlite",
   dbCredentials: { url: dbConfig.path },

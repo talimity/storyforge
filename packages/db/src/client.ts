@@ -3,7 +3,7 @@ import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { createDatabaseConfig } from "./config.js";
 import { relations } from "./relations.js";
-import * as schema from "./schema/index.js";
+import { schema } from "./schema.js";
 
 async function getDbClient() {
   const config = createDatabaseConfig();
