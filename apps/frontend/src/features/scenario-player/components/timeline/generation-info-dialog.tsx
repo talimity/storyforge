@@ -47,7 +47,10 @@ const STATUS_COLOR: Record<string, string> = {
 export function GenerationInfoDialog({ turnId, isOpen, onOpenChange }: GenerationInfoDialogProps) {
   const trpc = useTRPC();
   const query = useQuery(
-    trpc.play.generationInfo.queryOptions({ turnId }, { enabled: isOpen, refetchOnMount: "always" })
+    trpc.timeline.generationInfo.queryOptions(
+      { turnId },
+      { enabled: isOpen, refetchOnMount: "always" }
+    )
   );
 
   const content = useMemo(() => {

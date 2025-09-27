@@ -1,4 +1,3 @@
-import { presenceChangeTimelineEventPayloadSchema } from "@storyforge/contracts";
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import { presenceChangeSpec } from "@storyforge/timeline-events";
 import { createId } from "@storyforge/utils";
@@ -268,10 +267,10 @@ describe("chooseNextActorFair", () => {
     reason?: string | null;
   }) {
     const eventId = createId();
-    const payload = presenceChangeTimelineEventPayloadSchema.parse({
+    const payload = presenceChangeSpec.schema.parse({
       participantId: args.participantId,
       active: args.active,
-      reason: args.reason ?? null,
+      status: args.reason ?? null,
     });
 
     await db.insert(schema.timelineEvents).values({

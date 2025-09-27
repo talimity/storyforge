@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { characterStarterSchema, characterSummarySchema } from "./character.js";
+import { intentSchema } from "./intents.js";
 
 // Input schemas
 export const scenarioIdSchema = z.object({
@@ -116,6 +117,44 @@ export const scenarioCharacterStartersResponseSchema = z.object({
   charactersWithStarters: z.array(characterWithStartersSchema),
 });
 
+export const playEnvironmentOutputSchema = z.object({
+  scenario: z
+    .object({
+      id: z.string(),
+      title: z.string(),
+      rootTurnId: z.string().nullable().describe("First turn in the scenario"),
+      anchorTurnId: z
+        .string()
+        .nullable()
+        .describe("Identifies the last turn in the scenario's active timeline"),
+    })
+    .describe("Scenario metadata"),
+  participants: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.enum(["character", "narrator", "deleted_character"]),
+        status: z.enum(["active", "inactive"]),
+        characterId: z.string().nullable(),
+      })
+    )
+    .describe("Participants in the scenario (including narrator)"),
+  characters: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        imagePath: z.string().nullable(),
+        avatarPath: z.string().nullable(),
+      })
+    )
+    .describe("Characters in the scenario"),
+  generatingIntent: z
+    .lazy(() => intentSchema)
+    .nullable()
+    .describe("Currently generating intent, if any"),
+});
+
 // Export inferred types
 export type Scenario = z.infer<typeof scenarioSchema>;
 export type ScenarioWithCharacters = z.infer<typeof scenarioWithCharactersSchema>;
@@ -133,3 +172,4 @@ export type ScenarioCharacterStartersResponse = z.infer<
 export type ScenarioSearchQuery = z.infer<typeof scenarioSearchQuerySchema>;
 export type ScenarioSearchResult = z.infer<typeof scenarioSearchResultSchema>;
 export type ScenarioSearchResponse = z.infer<typeof scenarioSearchResponseSchema>;
+export type PlayEnvironmentOutput = z.infer<typeof playEnvironmentOutputSchema>;

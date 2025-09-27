@@ -1,13 +1,13 @@
 import type {
-  EnvironmentOutput,
   IntentInput,
   IntentKind,
+  PlayEnvironmentOutput,
   TimelineTurn,
 } from "@storyforge/contracts";
 import { assertNever } from "@storyforge/utils";
 import { z } from "zod";
 
-type ScenarioParticipant = EnvironmentOutput["participants"][number];
+type ScenarioParticipant = PlayEnvironmentOutput["participants"][number];
 
 export const INTENT_KIND_CONFIG: Record<
   IntentKind,

@@ -99,7 +99,7 @@ async function seedScenario(db: SqliteDatabase) {
   return sc.id;
 }
 
-describe("play.intentProgress subscription (runner events)", () => {
+describe("intents.intentProgress subscription (runner events)", () => {
   let db: SqliteDatabase;
 
   beforeAll(async () => {
@@ -114,7 +114,7 @@ describe("play.intentProgress subscription (runner events)", () => {
     const { caller } = await createFreshTestCaller(db);
 
     // Start an intent (continue story)
-    const { intentId } = await caller.play.createIntent({
+    const { intentId } = await caller.intents.createIntent({
       scenarioId,
       parameters: { kind: "continue_story" },
     });
@@ -156,7 +156,7 @@ describe("play.intentProgress subscription (runner events)", () => {
     const scenarioId = await seedScenario(db);
     const { caller } = await createFreshTestCaller(db);
 
-    const { intentId } = await caller.play.createIntent({
+    const { intentId } = await caller.intents.createIntent({
       scenarioId,
       parameters: { kind: "continue_story" },
     });
@@ -223,13 +223,13 @@ describe("play.intentProgress subscription (runner events)", () => {
     });
 
     const { caller } = await createFreshTestCaller(db);
-    const { intentId } = await caller.play.createIntent({
+    const { intentId } = await caller.intents.createIntent({
       scenarioId,
       parameters: { kind: "continue_story" },
     });
 
     // Cancel soon after start to ensure it's still running
-    const interruptResult = await caller.play.interruptIntent({
+    const interruptResult = await caller.intents.interruptIntent({
       intentId,
     });
     expect(interruptResult.success).toBe(true);
@@ -246,7 +246,7 @@ describe("play.intentProgress subscription (runner events)", () => {
     expect(row?.status).toBe("cancelled");
 
     // Check result procedure
-    const result = await caller.play.intentResult({ intentId });
+    const result = await caller.intents.intentResult({ intentId });
     expect(result.id).toBe(intentId);
     expect(result.status).toBe("cancelled");
   });
@@ -260,7 +260,7 @@ describe("play.intentProgress subscription (runner events)", () => {
       columns: { id: true },
     });
 
-    const { intentId } = await caller.play.createIntent({
+    const { intentId } = await caller.intents.createIntent({
       scenarioId,
       parameters: { kind: "manual_control", text: "hi", targetParticipantId: chara?.id ?? "" },
     });
@@ -270,7 +270,7 @@ describe("play.intentProgress subscription (runner events)", () => {
       if (ev.type === "intent_finished") break;
     }
 
-    const res = await caller.play.intentResult({ intentId });
+    const res = await caller.intents.intentResult({ intentId });
     expect(res.id).toBe(intentId);
     expect(res.status).toBe("finished");
     expect(res.effects.length).toBe(2);
@@ -292,7 +292,7 @@ describe("play.intentProgress subscription (runner events)", () => {
     }
 
     const manualText = "Player writes first turn";
-    const { intentId } = await caller.play.createIntent({
+    const { intentId } = await caller.intents.createIntent({
       scenarioId,
       parameters: {
         kind: "manual_control",
@@ -305,7 +305,7 @@ describe("play.intentProgress subscription (runner events)", () => {
       if (ev.type === "intent_finished") break;
     }
 
-    const timeline = await caller.play.timeline({ scenarioId, windowSize: 20 });
+    const timeline = await caller.timeline.window({ scenarioId, windowSize: 20 });
     const turnsFromIntent = timeline.timeline.filter(
       (t) => t.intentProvenance?.intentId === intentId
     );

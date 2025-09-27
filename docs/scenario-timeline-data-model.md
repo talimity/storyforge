@@ -85,7 +85,7 @@ v0++ concepts:
 
 ### Bootstrapping & UI data strategy
 
-- On entering the player, call **`/api/play/environment`** to fetch scenario, participants (+characters), and
+- On entering the player, call **`/api/scenario/playEnvironment`** to fetch scenario, participants (+characters), and
   eventually, the fully derived chapter/timeline events state for the current timeline.
 - Timeline calls only return ids, turn numbers, and requested content; UI maps names/avatars from store.
 - React Query `useInfiniteQuery` with `pageParam = leafTurnId` and `getNextPageParam = nextLeafId`.

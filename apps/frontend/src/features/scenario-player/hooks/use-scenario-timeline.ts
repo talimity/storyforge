@@ -22,7 +22,7 @@ export function useScenarioTimeline({
 }: UseScenarioTimelineOptions) {
   const trpc = useTRPC();
   const query = useInfiniteQuery(
-    trpc.play.timeline.infiniteQueryOptions(
+    trpc.timeline.window.infiniteQueryOptions(
       { scenarioId, layer, windowSize, timelineLeafTurnId: leafTurnId ?? undefined },
       {
         getNextPageParam: (prev) => prev.cursors.nextCursor ?? undefined,

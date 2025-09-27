@@ -17,14 +17,14 @@ export function useIntentEngine(scenarioId: string) {
   const applyEvent = useIntentRunsStore((s) => s.applyEvent);
   const clearActiveIntent = useIntentRunsStore((s) => s.clearActiveRun);
   const currentRunId = useIntentRunsStore((s) => s.currentRunId);
-  const { data: env } = useQuery(trpc.play.environment.queryOptions({ scenarioId }));
+  const { data: env } = useQuery(trpc.scenarios.playEnvironment.queryOptions({ id: scenarioId }));
   const createIntent = useMutation(
-    trpc.play.createIntent.mutationOptions({
+    trpc.intents.createIntent.mutationOptions({
       onError: (err) => showErrorToast({ title: "Failed to start intent", error: err }),
     })
   );
   const interruptIntent = useMutation(
-    trpc.play.interruptIntent.mutationOptions({
+    trpc.intents.interruptIntent.mutationOptions({
       onError: (err) => showErrorToast({ title: "Failed to cancel intent", error: err }),
     })
   );
@@ -73,7 +73,7 @@ export function useIntentEngine(scenarioId: string) {
   const subscriptionEnabled = Boolean(activeIntentId);
   const subscriptionInput = subscriptionEnabled ? { intentId: String(activeIntentId) } : skipToken;
   useSubscription(
-    trpc.play.intentProgress.subscriptionOptions(subscriptionInput, {
+    trpc.intents.intentProgress.subscriptionOptions(subscriptionInput, {
       enabled: subscriptionEnabled,
 
       onData: async (event) => {
@@ -82,8 +82,8 @@ export function useIntentEngine(scenarioId: string) {
 
         if (event.type === "effect_committed") {
           // Get the next authoritative data from server
-          queryClient.invalidateQueries({ queryKey: [["play", "environment"]] });
-          await queryClient.invalidateQueries({ queryKey: [["play", "timeline"]] });
+          queryClient.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
+          await queryClient.invalidateQueries(trpc.timeline.window.pathFilter());
           setPendingScrollTarget({ kind: "bottom" });
         }
         if (event.type === "intent_finished") {

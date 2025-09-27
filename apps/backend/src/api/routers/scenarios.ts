@@ -1,5 +1,6 @@
 import {
   createScenarioSchema,
+  playEnvironmentOutputSchema,
   scenarioCharacterStartersResponseSchema,
   scenarioIdSchema,
   scenarioSchema,
@@ -11,9 +12,11 @@ import {
 } from "@storyforge/contracts";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { getGeneratingIntent } from "../../services/intent/intent.queries.js";
 import {
   getScenarioCharacterStarters,
   getScenarioDetail,
+  getScenarioEnvironment,
   listScenarios,
   searchScenarios,
 } from "../../services/scenario/scenario.queries.js";
@@ -40,6 +43,7 @@ export const scenariosRouter = router({
       const rows = await searchScenarios(ctx.db, input);
       return { scenarios: rows };
     }),
+
   list: publicProcedure
     .meta({
       openapi: {
@@ -81,33 +85,6 @@ export const scenariosRouter = router({
       }
 
       return transformScenarioDetail(scenario);
-    }),
-
-  getCharacterStarters: publicProcedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: "/api/scenarios/{id}/character-starters",
-        tags: ["scenarios"],
-        summary: "Get character starters for all characters in a scenario",
-      },
-    })
-    .input(scenarioIdSchema)
-    .output(scenarioCharacterStartersResponseSchema)
-    .query(async ({ input, ctx }) => {
-      try {
-        const charactersWithStarters = await getScenarioCharacterStarters(ctx.db, input.id);
-
-        return {
-          charactersWithStarters,
-        };
-      } catch (error) {
-        ctx.logger.error(error, `Error fetching character starters for scenario ${input.id}`);
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Scenario not found",
-        });
-      }
     }),
 
   create: publicProcedure
@@ -174,5 +151,50 @@ export const scenariosRouter = router({
           message: "Scenario not found",
         });
       }
+    }),
+
+  getCharacterStarters: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/scenarios/{id}/character-starters",
+        tags: ["scenarios"],
+        summary: "Get character starters for all characters in a scenario",
+      },
+    })
+    .input(scenarioIdSchema)
+    .output(scenarioCharacterStartersResponseSchema)
+    .query(async ({ input, ctx }) => {
+      try {
+        const charactersWithStarters = await getScenarioCharacterStarters(ctx.db, input.id);
+
+        return {
+          charactersWithStarters,
+        };
+      } catch (error) {
+        ctx.logger.error(error, `Error fetching character starters for scenario ${input.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scenario not found",
+        });
+      }
+    }),
+
+  playEnvironment: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/scenarios/{id}/play-environment",
+        tags: ["scenarios"],
+        summary: "Returns initial data for setting up the scenario player environment",
+      },
+    })
+    .input(scenarioIdSchema)
+    .output(playEnvironmentOutputSchema)
+    .query(async ({ input, ctx }) => {
+      const { id: scenarioId } = input;
+      const env = await getScenarioEnvironment(ctx.db, scenarioId);
+      const generatingIntent = await getGeneratingIntent(ctx.db, scenarioId);
+      return { ...env, generatingIntent };
     }),
 });

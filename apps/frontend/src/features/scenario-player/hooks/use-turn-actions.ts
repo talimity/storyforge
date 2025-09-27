@@ -24,25 +24,25 @@ export function useTurnActions() {
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const { createIntent, isCreatingIntent } = useScenarioIntentActions();
   const { mutate: deleteTurn, isPending: isDeleting } = useMutation(
-    trpc.play.deleteTurn.mutationOptions({
+    trpc.timeline.deleteTurn.mutationOptions({
       onSuccess: () => {
         showSuccessToast({
           title: "Turn deleted",
           description: "Turn deleted from the scenario timeline.",
         });
         // Anchor may have changed; ensure we reload environment and reset timeline slices
-        qc.invalidateQueries(trpc.play.environment.pathFilter());
-        qc.invalidateQueries(trpc.play.timeline.pathFilter());
+        qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
+        qc.invalidateQueries(trpc.timeline.window.pathFilter());
         setShowDeleteDialog(false);
         setTurnToDelete(null);
       },
     })
   );
   const { mutate: editTurn, isPending: isUpdating } = useMutation(
-    trpc.play.updateTurnContent.mutationOptions({
+    trpc.timeline.updateTurnContent.mutationOptions({
       onSuccess: () => {
         showSuccessToast({ title: "Turn updated", description: "Changes saved." });
-        qc.invalidateQueries(trpc.play.timeline.pathFilter());
+        qc.invalidateQueries(trpc.timeline.window.pathFilter());
         setEditingTurnId(null);
       },
     })

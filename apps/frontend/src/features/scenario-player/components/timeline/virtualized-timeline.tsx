@@ -90,7 +90,8 @@ export function VirtualizedTimeline(props: TimelineProps) {
     // estimation is larger than a new virtualized row's real size.
     // https://github.com/TanStack/react-virtual/issues/884
     estimateSize: () => 50,
-    scrollPaddingEnd: 50,
+    scrollPaddingEnd: 80,
+    paddingEnd: 80,
     overscan: 5,
     // rangeExtractor lets selectively disable virtualization for certain items.
     // we do this to avoid unmounting the turn being edited so we don't lose

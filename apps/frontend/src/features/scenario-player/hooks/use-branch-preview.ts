@@ -15,8 +15,8 @@ export function useBranchPreview() {
   const setPreviewLeaf = useScenarioPlayerStore((s) => s.setPreviewLeaf);
   const setPendingScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
 
-  const resolveLeaf = useMutation(trpc.play.resolveLeaf.mutationOptions());
-  const switchTimeline = useMutation(trpc.play.switchTimeline.mutationOptions());
+  const resolveLeaf = useMutation(trpc.timeline.resolveLeaf.mutationOptions());
+  const switchTimeline = useMutation(trpc.timeline.switchTimeline.mutationOptions());
 
   const previewSibling = useCallback(
     async (siblingId: string | null | undefined) => {
@@ -47,8 +47,8 @@ export function useBranchPreview() {
   const commitPreview = useCallback(async () => {
     if (!previewLeafTurnId) return;
     await switchTimeline.mutateAsync({ scenarioId: scenario.id, leafTurnId: previewLeafTurnId });
-    await qc.invalidateQueries(trpc.play.timeline.pathFilter());
-    await qc.invalidateQueries(trpc.play.environment.pathFilter());
+    await qc.invalidateQueries(trpc.timeline.window.pathFilter());
+    await qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
     setPreviewLeaf(null); // do this after invalidate resolves to avoid flickering
   }, [previewLeafTurnId, switchTimeline, scenario.id, setPreviewLeaf, qc, trpc]);
 
