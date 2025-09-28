@@ -111,10 +111,19 @@ export class TimelineStateDeriver {
       final[name] = state as any;
     }
 
+    const serializedEvents = envelopes.map((ev) => ({
+      id: ev.id,
+      turnId: ev.turnId,
+      orderKey: ev.orderKey,
+      kind: ev.kind,
+      payloadVersion: ev.payloadVersion,
+      payload: ev.payload as Record<string, unknown>,
+    }));
+
     return {
       final,
       hints,
-      events: /* args.mode.mode === "allEvents" ? */ rows /* : undefined, */,
+      events: serializedEvents,
     };
   }
 

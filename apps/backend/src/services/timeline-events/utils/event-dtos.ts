@@ -18,15 +18,19 @@ export function eventDTOsByTurn(
     const spec = timelineEvents[ev.kind]; // union of all specs
     const bag = hints.get(ev.id) ?? {};
     const hint = bag[timelineEventKindToConcern[ev.kind] as keyof TimelineState]; // unknown
+    const payload =
+      typeof ev.payload === "string"
+        ? (JSON.parse(ev.payload) as Record<string, unknown>)
+        : ev.payload;
 
     const dto: TimelineEventDTO = {
       id: ev.id,
       kind: ev.kind,
       orderKey: ev.orderKey,
       payloadVersion: ev.payloadVersion,
-      payload: ev.payload,
+      payload,
       // biome-ignore lint/suspicious/noExplicitAny: types are not narrowed by ev.kind
-      prompt: spec.toPrompt?.(ev as any, hint as any),
+      prompt: spec.toPrompt?.({ ...ev, payload } as any, hint as any),
     };
 
     const bucket = (grouped[ev.turnId] ??= []);
