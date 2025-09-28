@@ -8,7 +8,7 @@ Timeline events are narrative happenings that sit alongside turns in StoryForge'
 
 Key traits:
 - They share timeline semantics with turns (they belong to a scenario, occur at a point in the turn tree, and can branch).
-- They are not free-floating; every event is associated with a specific turn so we only need one graph structure.
+- They normally anchor to a turn so we only need one graph structure, but an event may omit the anchor to represent initial scenario state before the first turn.
 - They are produced via intent effects, just like turns, making them part of the same provenance ledger.
 
 ## Event Lifecycle

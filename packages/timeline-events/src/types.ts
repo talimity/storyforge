@@ -20,18 +20,17 @@ export interface TimelineEventSpec<K extends string, P, H = unknown> {
   toPrompt?: (ev: TimelineEventEnvelope<K, P>, hint?: H) => string;
 }
 
-export type RawTimelineEvent = Omit<TimelineEventEnvelopeOf<AnyTimelineEventKind>, "payload"> & {
-  payload: Record<string, unknown>;
-};
-
 export type TimelineEventEnvelope<K extends string = AnyTimelineEventKind, P = unknown> = {
   id: string;
-  turnId: string;
-  position: "before" | "after";
+  turnId: string | null;
   orderKey: string;
   kind: K;
   payloadVersion: number;
   payload: P;
+};
+
+export type RawTimelineEvent = Omit<TimelineEventEnvelopeOf<AnyTimelineEventKind>, "payload"> & {
+  payload: Record<string, unknown>;
 };
 
 export type AnyTimelineEventKind = keyof TimelineEventPayloadMap;

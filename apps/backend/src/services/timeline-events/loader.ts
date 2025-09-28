@@ -20,20 +20,34 @@ WITH RECURSIVE
              SELECT p.id, path.depth + 1, p.parent_turn_id
              FROM turns p
                       JOIN path ON path.parent_turn_id = p.id
-             WHERE p.scenario_id = ${scenarioId})
-SELECT e.id,
-       e.turn_id         AS turnId,
-       e.position,
-       e.order_key       AS orderKey,
-       e.kind,
-       e.payload_version AS payloadVersion,
-       e.payload
-FROM timeline_events e
-         JOIN path ON path.id = e.turn_id
-WHERE e.scenario_id = ${scenarioId}
-ORDER BY path.depth ASC,
-         CASE e.position WHEN 'before' THEN 0 ELSE 1 END ASC,
-         e.order_key ASC;
+             WHERE p.scenario_id = ${scenarioId}),
+    meta AS (SELECT COALESCE(MAX(depth), -1) AS max_depth FROM path),
+    ordered_events AS (
+      SELECT e.id,
+             e.turn_id         AS turnId,
+             e.order_key       AS orderKey,
+             e.kind,
+             e.payload_version AS payloadVersion,
+             e.payload,
+             CASE
+               WHEN e.turn_id IS NULL THEN -1
+               ELSE meta.max_depth - path.depth
+             END AS event_depth
+      FROM timeline_events e
+               LEFT JOIN path ON path.id = e.turn_id
+               CROSS JOIN meta
+      WHERE e.scenario_id = ${scenarioId}
+        AND (e.turn_id IS NULL OR path.id IS NOT NULL)
+    )
+SELECT id,
+       turnId,
+       orderKey,
+       kind,
+       payloadVersion,
+       payload
+FROM ordered_events
+ORDER BY event_depth ASC,
+         orderKey ASC;
     `);
   }
 
@@ -43,7 +57,6 @@ ORDER BY path.depth ASC,
     return this.db.all<RawTimelineEvent>(sql`
         SELECT e.id,
                e.turn_id         AS turnId,
-               e.position,
                e.order_key       AS orderKey,
                e.kind,
                e.payload_version AS payloadVersion,
@@ -52,7 +65,6 @@ ORDER BY path.depth ASC,
         WHERE e.scenario_id = ${scenarioId}
           AND e.turn_id IN (${sql.join(literals, sql`, `)})
         ORDER BY e.turn_id,
-                 CASE e.position WHEN 'before' THEN 0 ELSE 1 END,
                  e.order_key;
     `);
   }

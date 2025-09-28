@@ -262,7 +262,6 @@ describe("chooseNextActorFair", () => {
     turnId: string;
     participantId: string;
     active: boolean;
-    position?: "before" | "after";
     orderKey?: string;
     reason?: string | null;
   }) {
@@ -277,7 +276,6 @@ describe("chooseNextActorFair", () => {
       id: eventId,
       scenarioId,
       turnId: args.turnId,
-      position: args.position ?? "after",
       orderKey: args.orderKey ?? "m",
       kind: "presence_change",
       payloadVersion: presenceChangeSpec.latest,

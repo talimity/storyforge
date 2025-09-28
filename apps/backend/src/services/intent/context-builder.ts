@@ -51,7 +51,7 @@ export class IntentContextBuilder {
     const eventsByTurn = eventDTOsByTurn(derivation.events, derivation.hints);
     const enrichedTurns = turns.map((t) => ({
       ...t,
-      events: eventsByTurn[t.turnId] ?? { before: [], after: [] },
+      events: eventsByTurn[t.turnId] ?? [],
     }));
 
     return {

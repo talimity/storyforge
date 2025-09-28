@@ -5,16 +5,17 @@ This document explains the timeline events system: what qualifies as an event, h
 
 ## System Overview
 - **Events extend the timeline ledger.** They capture structural or long-lived state changes (chapter breaks, scene presence, etc.) that accompany turns without always emitting prose.
-- **Turns remain the spine.** Each event is anchored to a specific turn and inherits all branching semantics from the turn tree, so no parallel graph or bespoke ordering rules are required.
+- **Turns remain the spine.** Most events attach to a specific turn and inherit all branching semantics from the turn tree. An event may omit `turn_id` to act as an initial state mutation that fires before the first turn of the scenario.
 - **State is derived, not stored.** Consumers reconstruct the current scenario state by reducing events along the active root→leaf path; snapshots are a future optimisation, not part of the conceptual model.
 - **Concerns isolate responsibilities.** Each area of derived state (chapters, presence, future inventories) is implemented as an independent reducer that only handles the event kinds it understands.
 - **Derived hints enrich DTOs.** Reducers can emit lightweight hints (e.g., computed chapter numbers) that decorate events when they are returned to clients or handed to generators.
 
 ## Event Model & Storage
-- Events live in the `timeline_events` table. Key columns: `turn_id` anchor, `position` (`before`/`after` relative to the turn), and a lexicographic `order_key` that ensures deterministic ordering within the same turn+position slot.
+- Events live in the `timeline_events` table. Key columns: optional `turn_id` anchor and a lexicographic `order_key` that ensures deterministic ordering either within a turn or across the scenario’s initial events.
+- Events with a null `turn_id` define the scenario’s initial state. They always execute before the first turn and do not need to be reordered when turns are inserted, deleted, or shuffled.
 - The table enforces that a turn and scenario match to avoid orphaned records. Cascading deletes keep events aligned with turn pruning.
 - Event payloads are versioned JSON blobs. Each event kind owns a spec (`kind`, `latest` version, Zod schema, parser) that upgrades legacy payloads on read.
-- Position and order let the system interleave multiple events with a single turn while permitting author-controlled ordering (e.g., presence changes before narrations).
+- Ordering is entirely driven by `order_key`. For turn-bound events, the key establishes their order relative to that turn. For initial (null `turn_id`) events, the key establishes their order before all turns.
 
 ## Derivation Pipeline
 1. **Loader** (`TimelineEventLoader`) fetches events along a requested path. A single recursive SQL query walks from the selected leaf (default anchor) to the root and returns ordered events for those turns.
@@ -33,7 +34,7 @@ This pipeline is stateless and path-scoped: asking for a different leaf simply r
 
 ## Event Registry & Prompt Surface
 - Event specs live alongside concerns and expose optional `toPrompt` formatters. These formatter hooks convert typed payloads plus concern hints into short, prompt-friendly strings (e.g., “Chapter 3 begins”).
-- The helper `eventDTOsByTurn` groups events by turn and applies the formatter, producing DTOs split into `before`/`after` buckets. UI and generation contexts can therefore render structured event banners without reimplementing parsing.
+- The helper `eventDTOsByTurn` groups events by turn and applies the formatter, producing a single chronologically ordered list per turn. UI and generation contexts can therefore render structured event banners without reimplementing parsing.
 
 ## Integration Points
 - **Timeline windows** enrich turn rows with associated events and derived prompts, letting clients render chapter boundaries or status pips inline with turns.
@@ -43,7 +44,7 @@ This pipeline is stateless and path-scoped: asking for a different leaf simply r
 
 ## Operational APIs
 - The backend exposes explicit mutations for inserting and deleting events (chapter breaks, presence changes, scene sets).
-- Event insertion defaults to the `after` slot of a turn but allows callers to place events `before` the prose when necessary, ensuring reproducible ordering for things like stage directions.
+- Event insertion assigns the next `order_key` within its anchor bucket (initial state or the selected turn), ensuring reproducible ordering for things like stage directions.
 - Deletion simply removes the record; derived state naturally reflects the change on the next reduction pass because state is not cached.
 
 ## Branching & Anchor Semantics

@@ -4,13 +4,13 @@ import type { TimelineConcernSpec, TimelineEventSpec } from "../types.js";
 const presenceChangeEventSchema = z.object({
   participantId: z.string(),
   active: z.boolean(),
-  status: z.string().optional(),
+  status: z.string().nullish(),
 });
 
 const presenceStateSchema = z.object({
   participantPresence: z.record(
     z.string(),
-    z.object({ active: z.boolean(), status: z.string().optional() })
+    z.object({ active: z.boolean(), status: z.string().nullish() })
   ),
 });
 

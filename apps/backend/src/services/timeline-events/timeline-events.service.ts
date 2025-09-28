@@ -1,12 +1,10 @@
 import { type SqliteDatabase, type SqliteTransaction, schema } from "@storyforge/db";
 import { chapterBreakSpec, presenceChangeSpec } from "@storyforge/timeline-events";
 import { after } from "@storyforge/utils";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 
 const { timelineEvents, turns, scenarioParticipants } = schema;
-
-type EventPosition = "before" | "after";
 
 export interface InsertChapterBreakArgs {
   scenarioId: string;
@@ -47,8 +45,10 @@ export class TimelineEventsService {
           scenarioId: args.scenarioId,
           turnId: args.turnId,
           kind: "chapter_break",
-          position: "after",
-          orderKey: await this.nextEventOrderKey(tx, args.turnId, "after"),
+          orderKey: await this.nextEventOrderKey(tx, {
+            scenarioId: args.scenarioId,
+            turnId: args.turnId,
+          }),
           payloadVersion: 1,
           payload,
         })
@@ -71,7 +71,7 @@ export class TimelineEventsService {
       const payload = presenceChangeSpec.schema.parse({
         participantId: args.participantId,
         active: args.active,
-        reason: args.status,
+        status: args.status,
       });
 
       const [event] = await tx
@@ -80,8 +80,10 @@ export class TimelineEventsService {
           scenarioId: args.scenarioId,
           turnId: args.turnId,
           kind: "presence_change",
-          position: "after",
-          orderKey: await this.nextEventOrderKey(tx, args.turnId, "after"),
+          orderKey: await this.nextEventOrderKey(tx, {
+            scenarioId: args.scenarioId,
+            turnId: args.turnId,
+          }),
           payloadVersion: 1,
           payload,
         })
@@ -130,13 +132,20 @@ export class TimelineEventsService {
 
   private async nextEventOrderKey(
     tx: SqliteTransaction,
-    turnId: string,
-    position: EventPosition
+    args: { scenarioId: string; turnId: string | null }
   ): Promise<string> {
+    const conditions =
+      args.turnId === null
+        ? and(eq(timelineEvents.scenarioId, args.scenarioId), sql`turn_id IS NULL`)
+        : and(
+            eq(timelineEvents.scenarioId, args.scenarioId),
+            eq(timelineEvents.turnId, args.turnId)
+          );
+
     const rows = await tx
       .select({ orderKey: timelineEvents.orderKey })
       .from(timelineEvents)
-      .where(and(eq(timelineEvents.turnId, turnId), eq(timelineEvents.position, position)))
+      .where(conditions)
       .orderBy(timelineEvents.orderKey);
 
     const last = rows.at(-1)?.orderKey ?? "";

@@ -53,10 +53,7 @@ export const timelineTurnSchema = z.object({
     })
     .nullable()
     .describe("Details about the intent that created this turn, if available"),
-  events: z.object({
-    before: z.array(timelineEventSchema),
-    after: z.array(timelineEventSchema),
-  }),
+  events: z.array(timelineEventSchema),
 });
 export const queryTimelineOutputSchema = z.object({
   timeline: z.array(timelineTurnSchema).describe("Array of turns in the loaded timeline slice"),

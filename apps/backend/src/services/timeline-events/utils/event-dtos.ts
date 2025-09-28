@@ -9,9 +9,12 @@ import {
 export function eventDTOsByTurn(
   events: RawTimelineEvent[],
   hints: Map<string, Partial<Record<keyof TimelineState, unknown>>>
-): Record<string, { before: TimelineEventDTO[]; after: TimelineEventDTO[] }> {
-  const grouped: Record<string, { before: TimelineEventDTO[]; after: TimelineEventDTO[] }> = {};
+): Record<string, TimelineEventDTO[]> {
+  const grouped: Record<string, TimelineEventDTO[]> = {};
   for (const ev of events) {
+    if (ev.turnId === null) {
+      continue;
+    }
     const spec = timelineEvents[ev.kind]; // union of all specs
     const bag = hints.get(ev.id) ?? {};
     const hint = bag[timelineEventKindToConcern[ev.kind] as keyof TimelineState]; // unknown
@@ -26,8 +29,8 @@ export function eventDTOsByTurn(
       prompt: spec.toPrompt?.(ev as any, hint as any),
     };
 
-    const slot = (grouped[ev.turnId] ??= { before: [], after: [] });
-    (ev.position === "before" ? slot.before : slot.after).push(dto);
+    const bucket = (grouped[ev.turnId] ??= []);
+    bucket.push(dto);
   }
   return grouped;
 }

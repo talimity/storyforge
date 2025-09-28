@@ -45,7 +45,7 @@ type TimelineRowRecord = {
 };
 
 type TimelineRow = TimelineRowRecord & {
-  events: { before: TimelineEvent[]; after: TimelineEvent[] };
+  events: TimelineEvent[];
 };
 
 /**
@@ -252,13 +252,10 @@ ORDER BY e.turn_no;
   const eventsByTurn = eventDTOsByTurn(derivation.events, derivation.hints);
 
   return rows.map((row) => {
-    const untypedEvents = eventsByTurn[row.id] ?? { before: [], after: [] };
+    const untypedEvents = eventsByTurn[row.id] ?? [];
     return {
       ...row,
-      events: {
-        before: untypedEvents.before.map((ev) => timelineEventSchema.parse(ev)),
-        after: untypedEvents.after.map((ev) => timelineEventSchema.parse(ev)),
-      },
+      events: untypedEvents.map((ev) => timelineEventSchema.parse(ev)),
     };
   });
 }

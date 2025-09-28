@@ -1,10 +1,6 @@
 import { chapterBreakSpec, presenceChangeSpec } from "@storyforge/timeline-events";
 import { z } from "zod";
 
-export const timelineEventPositionSchema = z
-  .enum(["before", "after"])
-  .describe("Position of the event relative to the associated turn.");
-
 // TODO: remove
 export const sceneSetTimelineEventPayloadSchema = z.object({
   sceneName: z.string(),
@@ -16,30 +12,27 @@ export const timelineEventKindSchema = z.enum(["chapter_break", "scene_set", "pr
 export const timelineEventSchema = z.discriminatedUnion("kind", [
   z.object({
     id: z.string(),
-    turnId: z.string(),
-    position: timelineEventPositionSchema,
     orderKey: z.string(),
     payloadVersion: z.number().int().min(1),
     kind: z.literal("chapter_break"),
     payload: chapterBreakSpec.schema,
+    prompt: z.string().optional(),
   }),
   z.object({
     id: z.string(),
-    turnId: z.string(),
-    position: timelineEventPositionSchema,
     orderKey: z.string(),
     payloadVersion: z.number().int().min(1),
     kind: z.literal("scene_set"),
     payload: sceneSetTimelineEventPayloadSchema,
+    prompt: z.string().optional(),
   }),
   z.object({
     id: z.string(),
-    turnId: z.string(),
-    position: timelineEventPositionSchema,
     orderKey: z.string(),
     payloadVersion: z.number().int().min(1),
     kind: z.literal("presence_change"),
     payload: presenceChangeSpec.schema,
+    prompt: z.string().optional(),
   }),
 ]);
 
@@ -72,7 +65,6 @@ export const deleteTimelineEventInputSchema = z.object({ eventId: z.string() });
 export const deleteTimelineEventOutputSchema = z.object({ success: z.boolean() });
 
 export type TimelineEventKind = z.infer<typeof timelineEventKindSchema>;
-export type TimelineEventPosition = z.infer<typeof timelineEventPositionSchema>;
 export type TimelineEvent = z.infer<typeof timelineEventSchema>;
 export type InsertChapterBreakEventInput = z.infer<typeof insertChapterBreakEventInputSchema>;
 export type InsertChapterBreakEventOutput = z.infer<typeof insertChapterBreakEventOutputSchema>;

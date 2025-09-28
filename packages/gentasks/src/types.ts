@@ -37,11 +37,8 @@ export type TurnCtxDTO = {
   };
   /** Map of other layers of the turn, keyed by layer name. */
   layers: Record<string, string>;
-  /** Timeline events associated with this turn, grouped by position. */
-  events: {
-    before: TimelineEventDTO[];
-    after: TimelineEventDTO[];
-  };
+  /** Timeline events associated with this turn, ordered chronologically. */
+  events: TimelineEventDTO[];
 };
 
 export type TimelineEventDTO = {
