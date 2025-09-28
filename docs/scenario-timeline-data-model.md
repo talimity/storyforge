@@ -1,4 +1,4 @@
-! Note: this document is replaced by [timeline-intent-architecture.md](./architecture/timeline-intent-architecture.md) and [timeline-events-concepts.md](./architecture/timeline-events-concepts.md).
+! Note: this document is replaced by [timeline-intent-architecture.md](./architecture/timeline-intent-architecture.md) and [timeline-events-architecture.md](./architecture/timeline-events-architecture.md).
 
 # Scenario Timeline & Player Intents
 

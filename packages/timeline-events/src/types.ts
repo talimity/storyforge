@@ -44,19 +44,16 @@ export type HintFns<K extends AnyTimelineEventKind, Final> = Partial<{
   [P in K]: (state: Final, ev: TimelineEventEnvelopeOf<P>) => unknown;
 }>;
 
-export interface TimelineConcernSpec<
-  Name extends string,
-  Kinds extends AnyTimelineEventKind,
-  Final,
-> {
-  name: Name;
-  eventKinds: readonly Kinds[];
-  initial: () => Final;
+export interface TimelineConcernSpec<N extends string, Ks extends AnyTimelineEventKind, S> {
+  name: N;
+  eventKinds: readonly Ks[];
+  initial: () => S;
+  schema: z.ZodType<S>;
   /** Reducer for handling events of the specified kinds */
-  step: (state: Final, ev: TimelineEventEnvelopeOf<Kinds>) => Final;
+  step: (state: S, ev: TimelineEventEnvelopeOf<Ks>) => S;
   /**
    * Optional per-kind hint functions for constructing timeline DTOs, such
    * as to receive the derived chapter number from each chapter_break event.
    */
-  hints?: HintFns<Kinds, Final>;
+  hints?: HintFns<Ks, S>;
 }

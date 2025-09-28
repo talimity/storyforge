@@ -2,7 +2,7 @@
  * parameterize Deriver properly after fighting with TS for hours
  * unsuccessfully. We keep the bad casts mostly isolated to this module */
 
-import { type TimelineFinalState, timelineConcerns, timelineEvents } from "./registry.js";
+import { type TimelineState, timelineConcerns, timelineEvents } from "./registry.js";
 import type { AnyTimelineEventKind, RawTimelineEvent, TimelineEventEnvelopeOf } from "./types.js";
 
 // export type TimelineDeriveRunMode =
@@ -11,9 +11,9 @@ import type { AnyTimelineEventKind, RawTimelineEvent, TimelineEventEnvelopeOf } 
 //   | { mode: "allEvents" };
 
 export type TimelineDerivationResult = {
-  final: TimelineFinalState;
+  final: TimelineState;
   // eventId -> { [concernName]: hint }
-  hints: Map<string, Partial<Record<keyof TimelineFinalState, unknown>>>;
+  hints: Map<string, Partial<Record<keyof TimelineState, unknown>>>;
   events: RawTimelineEvent[];
 };
 
@@ -31,10 +31,11 @@ export class TimelineStateDeriver {
 
   async run(args: {
     scenarioId: string;
-    leafTurnId: string | null;
+    leafTurnId?: string | null;
     // mode: TimelineDeriveRunMode;
   }): Promise<TimelineDerivationResult> {
-    const rows = await this.loader.loadOrderedEventsAlongPath(args.scenarioId, args.leafTurnId);
+    const { scenarioId, leafTurnId = null } = args;
+    const rows = await this.loader.loadOrderedEventsAlongPath(scenarioId, leafTurnId);
 
     // Parsed envelopes remain a union across all kinds.
     const envelopes: TimelineEventEnvelopeOf<AnyTimelineEventKind>[] = rows.map((row) => {
@@ -58,14 +59,14 @@ export class TimelineStateDeriver {
     // Initialize final state from concerns
     const final = Object.fromEntries(
       Object.entries(timelineConcerns).map(([name, c]) => [name, c.initial()])
-    ) as TimelineFinalState;
+    ) as TimelineState;
 
-    const hints = new Map<string, Partial<Record<keyof TimelineFinalState, unknown>>>();
+    const hints = new Map<string, Partial<Record<keyof TimelineState, unknown>>>();
 
     // Reduce each concern independently
     for (const [name, concern] of Object.entries(timelineConcerns) as [
-      keyof TimelineFinalState,
-      (typeof timelineConcerns)[keyof TimelineFinalState],
+      keyof TimelineState,
+      (typeof timelineConcerns)[keyof TimelineState],
     ][]) {
       let state = final[name];
 

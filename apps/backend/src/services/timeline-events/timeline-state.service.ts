@@ -11,7 +11,7 @@ export class TimelineStateService {
     this.deriver = new TimelineStateDeriver(this.loader);
   }
 
-  async deriveState(scenarioId: string, leafTurnId: string | null) {
+  async deriveState(scenarioId: string, leafTurnId?: string | null) {
     return this.deriver.run({ scenarioId, leafTurnId });
   }
 }

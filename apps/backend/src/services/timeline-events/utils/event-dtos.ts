@@ -1,20 +1,20 @@
 import type { TimelineEventDTO } from "@storyforge/gentasks";
 import {
   type RawTimelineEvent,
-  type TimelineFinalState,
+  type TimelineState,
   timelineEventKindToConcern,
   timelineEvents,
 } from "@storyforge/timeline-events";
 
 export function eventDTOsByTurn(
   events: RawTimelineEvent[],
-  hints: Map<string, Partial<Record<keyof TimelineFinalState, unknown>>>
+  hints: Map<string, Partial<Record<keyof TimelineState, unknown>>>
 ): Record<string, { before: TimelineEventDTO[]; after: TimelineEventDTO[] }> {
   const grouped: Record<string, { before: TimelineEventDTO[]; after: TimelineEventDTO[] }> = {};
   for (const ev of events) {
     const spec = timelineEvents[ev.kind]; // union of all specs
     const bag = hints.get(ev.id) ?? {};
-    const hint = bag[timelineEventKindToConcern[ev.kind] as keyof TimelineFinalState]; // unknown
+    const hint = bag[timelineEventKindToConcern[ev.kind] as keyof TimelineState]; // unknown
 
     const dto: TimelineEventDTO = {
       id: ev.id,

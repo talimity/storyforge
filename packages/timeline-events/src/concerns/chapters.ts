@@ -1,14 +1,24 @@
 import { assertDefined } from "@storyforge/utils";
 import { z } from "zod";
-import type { TimelineConcernSpec, TimelineEventEnvelopeOf, TimelineEventSpec } from "../types.js";
+import type { TimelineConcernSpec, TimelineEventSpec } from "../types.js";
 
 const chapterBreakEventSchema = z.object({
   nextChapterTitle: z.string().optional(),
 });
 
+const chaptersStateSchema = z.object({
+  chapters: z.array(
+    z.object({
+      number: z.number(),
+      title: z.string(),
+      turnId: z.string().nullable(),
+    })
+  ),
+});
+
 export type ChapterBreakEvent = z.infer<typeof chapterBreakEventSchema>;
+export type ChaptersState = z.infer<typeof chaptersStateSchema>;
 type ChapterBreakHint = { chapterNumber: number };
-export type ChaptersState = { count: number; last?: TimelineEventEnvelopeOf<"chapter_break"> };
 
 export const chapterBreakSpec: TimelineEventSpec<
   "chapter_break",
@@ -33,11 +43,25 @@ export const chapterBreakSpec: TimelineEventSpec<
 export const chaptersConcern: TimelineConcernSpec<"chapters", "chapter_break", ChaptersState> = {
   name: "chapters",
   eventKinds: ["chapter_break"],
-  initial: () => ({ count: 0 }),
-  step: (s, ev) => ({ count: s.count + 1, last: ev }),
+  schema: chaptersStateSchema,
+  initial: () => ({ chapters: [] }),
+  step: (s, ev) => {
+    return {
+      chapters: [
+        ...s.chapters,
+        {
+          number: s.chapters.length + 1,
+          title: ev.payload.nextChapterTitle ?? "",
+          turnId: ev.turnId,
+        },
+      ],
+    };
+  },
   hints: {
     // lets us decorate chapter break events with their calculated number as
     // we reduce the chapters concern
-    chapter_break: (s) => ({ chapterNumber: s.count + 1 }),
+    chapter_break: (s) => ({
+      chapterNumber: s.chapters.length,
+    }),
   },
 };

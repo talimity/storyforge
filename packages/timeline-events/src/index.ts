@@ -8,10 +8,11 @@ export {
 export {
   TimelineConcerns,
   TimelineEvents,
-  TimelineFinalState,
+  TimelineState,
   timelineConcerns,
   timelineEventKindToConcern,
   timelineEvents,
+  timelineStateSchema,
 } from "./registry.js";
 export {
   RawTimelineEvent,

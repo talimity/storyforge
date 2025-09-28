@@ -1,4 +1,5 @@
 import type { ChatCompletionMessage, ChatCompletionResponse } from "@storyforge/inference";
+import { timelineStateSchema } from "@storyforge/timeline-events";
 import { z } from "zod";
 import { intentKindSchema, intentStatusSchema } from "./intents.js";
 import { timelineEventSchema } from "./timeline-events.js";
@@ -92,6 +93,27 @@ export const switchTimelineInputSchema = z.object({
 export const switchTimelineOutputSchema = z.object({
   success: z.boolean(),
   newAnchorTurnId: z.string(),
+});
+
+// State
+export const timelineStateInputSchema = z.object({
+  scenarioId: z.string(),
+  atTurnId: z
+    .string()
+    .nullish()
+    .describe(
+      "Specifies the leaf turn for which state should be derived; defaults to scenario's anchor turn"
+    ),
+  // TODO: implement reducing part of state
+  // forConcerns: z
+  //   .array(z.string())
+  //   .optional()
+  //   .describe("Concerns to include in the state; defaults to all"),
+});
+export const timelineStateOutputSchema = z.object({
+  state: timelineStateSchema.describe(
+    "Derived state of the timeline at the specified turn, keyed by concern"
+  ),
 });
 
 // Gen info

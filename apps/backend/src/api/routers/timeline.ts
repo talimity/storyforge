@@ -9,6 +9,8 @@ import {
   resolveLeafOutputSchema,
   switchTimelineInputSchema,
   switchTimelineOutputSchema,
+  timelineStateInputSchema,
+  timelineStateOutputSchema,
   updateTurnContentInputSchema,
 } from "@storyforge/contracts";
 import { sqliteTimestampToDate } from "@storyforge/db";
@@ -20,6 +22,7 @@ import {
   resolveLeafForScenario,
 } from "../../services/timeline/timeline.queries.js";
 import { TimelineService } from "../../services/timeline/timeline.service.js";
+import { TimelineStateService } from "../../services/timeline-events/timeline-state.service.js";
 import { TurnContentService } from "../../services/turn/turn-content.service.js";
 import { publicProcedure, router } from "../index.js";
 
@@ -228,6 +231,24 @@ export const timelineRouter = router({
       const contentService = new TurnContentService(ctx.db);
       await contentService.updateTurnContent({ turnId, layer, content });
       return { success: true };
+    }),
+
+  state: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/timeline/state",
+        tags: ["timeline"],
+        summary: "Returns the derived state of the timeline, optionally for a specific turn",
+      },
+    })
+    .input(timelineStateInputSchema)
+    .output(timelineStateOutputSchema)
+    .query(async ({ input, ctx }) => {
+      const { scenarioId, atTurnId } = input;
+      const stateService = new TimelineStateService(ctx.db);
+      const derivation = await stateService.deriveState(scenarioId, atTurnId);
+      return { state: derivation.final };
     }),
 
   generationInfo: publicProcedure

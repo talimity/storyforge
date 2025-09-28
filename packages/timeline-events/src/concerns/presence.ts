@@ -7,11 +7,15 @@ const presenceChangeEventSchema = z.object({
   status: z.string().optional(),
 });
 
+const presenceStateSchema = z.object({
+  participantPresence: z.record(
+    z.string(),
+    z.object({ active: z.boolean(), status: z.string().optional() })
+  ),
+});
+
 export type PresenceChangeEvent = z.infer<typeof presenceChangeEventSchema>;
-type ParticipantId = string;
-export type PresenceState = {
-  participantPresence: Record<ParticipantId, { active: boolean; status?: string }>;
-};
+export type PresenceState = z.infer<typeof presenceStateSchema>;
 
 export const presenceChangeSpec: TimelineEventSpec<"presence_change", PresenceChangeEvent> = {
   kind: "presence_change",
@@ -32,6 +36,7 @@ export const presenceChangeSpec: TimelineEventSpec<"presence_change", PresenceCh
 export const presenceConcern: TimelineConcernSpec<"presence", "presence_change", PresenceState> = {
   name: "presence",
   eventKinds: ["presence_change"],
+  schema: presenceStateSchema,
   // Characters not listed are assumed to be present
   initial: () => ({ participantPresence: {} }),
   step: (s, ev) => ({
