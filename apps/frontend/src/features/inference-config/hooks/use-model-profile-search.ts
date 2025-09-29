@@ -10,7 +10,7 @@ export function useModelProfileSearch(options: { enabled?: boolean } = {}) {
   const { data, isLoading, error } = useQuery(
     trpc.providers.searchModelProfiles.queryOptions(
       { q: searchQuery },
-      { placeholderData: keepPreviousData, enabled, staleTime: 60000 }
+      { placeholderData: keepPreviousData, enabled, staleTime: 30 * 1000 }
     )
   );
 

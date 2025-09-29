@@ -2,15 +2,16 @@ import { z } from "zod";
 import type { TimelineConcernSpec, TimelineEventSpec } from "../types.js";
 
 const chapterBreakEventSchema = z.object({
-  nextChapterTitle: z.string().optional(),
+  nextChapterTitle: z.string().nullable(),
 });
 
 const chaptersStateSchema = z.object({
   chapters: z.array(
     z.object({
       number: z.number(),
-      title: z.string(),
+      title: z.string().nullable(),
       turnId: z.string().nullable(),
+      eventId: z.string(),
     })
   ),
 });
@@ -45,8 +46,9 @@ export const chaptersConcern: TimelineConcernSpec<"chapters", "chapter_break", C
         ...s.chapters,
         {
           number: s.chapters.length + 1,
-          title: ev.payload.nextChapterTitle ?? "",
+          title: ev.payload.nextChapterTitle,
           turnId: ev.turnId,
+          eventId: ev.id,
         },
       ],
     };

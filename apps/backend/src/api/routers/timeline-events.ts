@@ -7,6 +7,8 @@ import {
   insertParticipantPresenceEventOutputSchema,
   insertSceneSetEventInputSchema,
   insertSceneSetEventOutputSchema,
+  renameChapterBreakEventInputSchema,
+  renameChapterBreakEventOutputSchema,
 } from "@storyforge/contracts";
 import { TimelineEventsService } from "../../services/timeline-events/timeline-events.service.js";
 import { publicProcedure, router } from "../index.js";
@@ -76,6 +78,27 @@ export const timelineEventsRouter = router({
         description: input.description ?? null,
       });
       return { eventId: event.id };
+    }),
+
+  renameChapter: publicProcedure
+    .meta({
+      openapi: {
+        method: "PATCH",
+        path: "/api/timeline/events/chapter-break/{eventId}",
+        tags: ["timeline", "timeline-events"],
+        summary: "Renames a chapter's title given its event ID",
+      },
+    })
+    .input(renameChapterBreakEventInputSchema)
+    .output(renameChapterBreakEventOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const service = new TimelineEventsService(ctx.db);
+      const updated = await service.renameChapterBreak({
+        scenarioId: input.scenarioId,
+        eventId: input.eventId,
+        nextChapterTitle: input.nextChapterTitle,
+      });
+      return { eventId: updated.id, payloadVersion: updated.payloadVersion };
     }),
 
   deleteTimelineEvent: publicProcedure

@@ -1,34 +1,41 @@
 import { Box, Group, HStack, Menu, MenuSeparator, Portal, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
-  LuBetweenHorizontalEnd,
   LuCheck,
   LuChevronRight,
   LuEllipsisVertical,
   LuInfo,
+  LuListEnd,
   LuMoveDown,
   LuMoveUp,
   LuPencil,
   LuRefreshCw,
+  LuTableOfContents,
   LuTrash,
   LuX,
 } from "react-icons/lu";
 import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialog";
 import { AutosizeTextarea, Avatar, Button, Prose } from "@/components/ui/index";
+import { IntentProvenanceIndicator } from "@/features/scenario-player/components/timeline/intent-provenance-indicator";
+import { getIntentProvenanceDisplay } from "@/features/scenario-player/components/timeline/intent-provenance-utils";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
+import { useChapterActions } from "@/features/scenario-player/hooks/use-chapter-actions";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import {
   selectIsGenerating,
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
+import { showSuccessToast } from "@/lib/error-handling";
 import { getApiUrl } from "@/lib/get-api-url";
 import { GenerationInfoDialog } from "./generation-info-dialog.js";
 
 export interface TurnItemProps {
   turn: TimelineTurn;
+  prevTurn: TimelineTurn | null;
+  nextTurn: TimelineTurn | null;
   onDelete?: (turnId: string, cascade: boolean) => void;
   onEdit?: (turnId: string, content: string) => void;
   onRetry?: (turn: TimelineTurn) => void;
@@ -37,7 +44,7 @@ export interface TurnItemProps {
 }
 
 function TurnItemImpl(props: TurnItemProps) {
-  const { turn, onDelete, onEdit, onRetry, isUpdating } = props;
+  const { turn, prevTurn, nextTurn, onDelete, onEdit, onRetry, isUpdating } = props;
   const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
   const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
   const isEditing = editingTurnId === turn.id;
@@ -50,6 +57,12 @@ function TurnItemImpl(props: TurnItemProps) {
   const avatarSrc = getApiUrl(authorChar?.avatarPath ?? undefined);
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const { isPreviewing, previewSibling } = useBranchPreview();
+  const { insertChapterAtTurn, isInsertingChapter } = useChapterActions();
+
+  const provenanceDisplay = useMemo(
+    () => getIntentProvenanceDisplay(turn, prevTurn, nextTurn),
+    [turn, prevTurn, nextTurn]
+  );
 
   const isDirty = editedContent !== turn.content.text;
 
@@ -106,7 +119,17 @@ function TurnItemImpl(props: TurnItemProps) {
     setShowGenerationInfo(details.open);
   }, []);
 
-  const hasIntent = Boolean(turn.intentProvenance);
+  const handleInsertChapterBreak = useCallback(async () => {
+    if (isGenerating) return;
+    try {
+      await insertChapterAtTurn({ turnId: turn.id });
+      showSuccessToast({ title: "Chapter break inserted" });
+    } catch {
+      // error toast emitted in hook
+    }
+  }, [insertChapterAtTurn, isGenerating, turn.id]);
+
+  const hasIntent = Boolean(turn.provenance);
 
   return (
     <>
@@ -133,9 +156,12 @@ function TurnItemImpl(props: TurnItemProps) {
                 <Text fontSize="md" fontWeight="bold">
                   {authorName}
                 </Text>
-                <Text fontSize="xs" color="content.muted">
-                  #{turn.turnNo}
-                </Text>
+                <HStack gap={2}>
+                  <Text fontSize="xs" color="content.muted">
+                    #{turn.turnNo}
+                  </Text>
+                  {provenanceDisplay && <IntentProvenanceIndicator display={provenanceDisplay} />}
+                </HStack>
               </Stack>
             </HStack>
 
@@ -225,15 +251,22 @@ function TurnItemImpl(props: TurnItemProps) {
                           {/* Insert submenu */}
                           <Menu.Root>
                             <Menu.TriggerItem>
-                              <LuBetweenHorizontalEnd />
+                              <LuListEnd />
                               <Box flex="1">Insert</Box>
                               <LuChevronRight />
                             </Menu.TriggerItem>
                             <Portal>
                               <Menu.Positioner>
                                 <Menu.Content>
-                                  <Menu.Item onClick={doNothing} value="chapter-break">
-                                    Chapter Break...
+                                  <Menu.Item
+                                    onClick={() => {
+                                      void handleInsertChapterBreak();
+                                    }}
+                                    value="chapter-break"
+                                    disabled={isInsertingChapter || isGenerating}
+                                  >
+                                    <LuTableOfContents />
+                                    Chapter Separator
                                   </Menu.Item>
                                 </Menu.Content>
                               </Menu.Positioner>
@@ -358,5 +391,5 @@ export const TurnItem = memo(
     prev.turn.content.text === next.turn.content.text &&
     prev.turn.swipes?.swipeNo === next.turn.swipes?.swipeNo &&
     prev.turn.swipes?.swipeCount === next.turn.swipes?.swipeCount &&
-    prev.turn.intentProvenance?.intentStatus === next.turn.intentProvenance?.intentStatus
+    prev.turn.provenance?.intentStatus === next.turn.provenance?.intentStatus
 );

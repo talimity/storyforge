@@ -4,15 +4,21 @@ import { after } from "@storyforge/utils";
 import { and, eq, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 
-const { timelineEvents, turns, scenarioParticipants } = schema;
+const { timelineEvents, turns, scenarioParticipants, scenarios } = schema;
 
-export interface InsertChapterBreakArgs {
+interface InsertChapterBreakArgs {
   scenarioId: string;
   turnId: string;
-  nextChapterTitle: string;
+  nextChapterTitle: string | null;
 }
 
-export interface InsertPresenceChangeArgs {
+interface RenameChapterBreakArgs {
+  scenarioId: string;
+  eventId: string;
+  nextChapterTitle: string | null;
+}
+
+interface InsertPresenceChangeArgs {
   scenarioId: string;
   turnId: string;
   participantId: string;
@@ -20,7 +26,7 @@ export interface InsertPresenceChangeArgs {
   status?: string | null;
 }
 
-export interface InsertSceneSetArgs {
+interface InsertSceneSetArgs {
   scenarioId: string;
   turnId: string;
   sceneName: string;
@@ -35,9 +41,21 @@ export class TimelineEventsService {
     outerTx?: SqliteTransaction
   ): Promise<{ id: string }> {
     const op = async (tx: SqliteTransaction) => {
-      await assertTurnBelongsToScenario(tx, args.scenarioId, args.turnId);
+      if (args.turnId) {
+        await assertTurnBelongsToScenario(tx, args.scenarioId, args.turnId);
+      }
 
-      const payload = chapterBreakSpec.schema.parse(args);
+      await this.ensureInitialChapterEvent(tx, args.scenarioId);
+
+      if (await this.hasChapterBreakOnTurn(tx, args.scenarioId, args.turnId)) {
+        throw new ServiceError("InvalidInput", {
+          message: `A chapter break already exists on turn ${args.turnId ?? "<initial>"}.`,
+        });
+      }
+
+      const payload = chapterBreakSpec.schema.parse({
+        nextChapterTitle: args.nextChapterTitle,
+      });
 
       const [event] = await tx
         .insert(timelineEvents)
@@ -49,12 +67,62 @@ export class TimelineEventsService {
             scenarioId: args.scenarioId,
             turnId: args.turnId,
           }),
-          payloadVersion: 1,
+          payloadVersion: chapterBreakSpec.latest,
           payload,
         })
         .returning({ id: timelineEvents.id });
 
       return event;
+    };
+
+    return outerTx ? op(outerTx) : this.db.transaction(op);
+  }
+
+  async renameChapterBreak(
+    args: RenameChapterBreakArgs,
+    outerTx?: SqliteTransaction
+  ): Promise<{ id: string; payloadVersion: number }> {
+    const op = async (tx: SqliteTransaction) => {
+      const existing = await tx
+        .select({
+          id: timelineEvents.id,
+          scenarioId: timelineEvents.scenarioId,
+          kind: timelineEvents.kind,
+        })
+        .from(timelineEvents)
+        .where(eq(timelineEvents.id, args.eventId))
+        .limit(1);
+
+      const event = existing.at(0);
+      if (!event || event.scenarioId !== args.scenarioId) {
+        throw new ServiceError("NotFound", {
+          message: `Timeline event ${args.eventId} not found in scenario ${args.scenarioId}.`,
+        });
+      }
+
+      if (event.kind !== "chapter_break") {
+        throw new ServiceError("InvalidInput", {
+          message: `Timeline event ${args.eventId} is not a chapter break event.`,
+        });
+      }
+
+      const payload = chapterBreakSpec.schema.parse({
+        nextChapterTitle: args.nextChapterTitle,
+      });
+
+      const [updated] = await tx
+        .update(timelineEvents)
+        .set({
+          payloadVersion: chapterBreakSpec.latest,
+          payload,
+        })
+        .where(eq(timelineEvents.id, args.eventId))
+        .returning({
+          id: timelineEvents.id,
+          payloadVersion: timelineEvents.payloadVersion,
+        });
+
+      return updated;
     };
 
     return outerTx ? op(outerTx) : this.db.transaction(op);
@@ -84,7 +152,7 @@ export class TimelineEventsService {
             scenarioId: args.scenarioId,
             turnId: args.turnId,
           }),
-          payloadVersion: 1,
+          payloadVersion: presenceChangeSpec.latest,
           payload,
         })
         .returning({ id: timelineEvents.id });
@@ -151,6 +219,57 @@ export class TimelineEventsService {
     const last = rows.at(-1)?.orderKey ?? "";
     return after(last);
   }
+
+  private async ensureInitialChapterEvent(tx: SqliteTransaction, scenarioId: string) {
+    const existing = await tx
+      .select({ id: timelineEvents.id })
+      .from(timelineEvents)
+      .where(
+        and(
+          eq(timelineEvents.scenarioId, scenarioId),
+          eq(timelineEvents.kind, "chapter_break"),
+          sql`turn_id IS NULL`
+        )
+      )
+      .limit(1);
+
+    if (existing.at(0)) return;
+
+    const scenario = await assertScenarioExists(tx, scenarioId);
+
+    const payload = chapterBreakSpec.schema.parse({
+      nextChapterTitle: scenario.name,
+    });
+
+    await tx.insert(timelineEvents).values({
+      scenarioId,
+      turnId: null,
+      kind: "chapter_break",
+      orderKey: await this.nextEventOrderKey(tx, { scenarioId, turnId: null }),
+      payloadVersion: chapterBreakSpec.latest,
+      payload,
+    });
+  }
+
+  private async hasChapterBreakOnTurn(
+    tx: SqliteTransaction,
+    scenarioId: string,
+    turnId: string | null
+  ) {
+    const existing = await tx
+      .select({ id: timelineEvents.id })
+      .from(timelineEvents)
+      .where(
+        and(
+          eq(timelineEvents.scenarioId, scenarioId),
+          eq(timelineEvents.kind, "chapter_break"),
+          turnId === null ? sql`turn_id IS NULL` : eq(timelineEvents.turnId, turnId)
+        )
+      )
+      .limit(1);
+
+    return Boolean(existing.at(0));
+  }
 }
 
 async function assertTurnBelongsToScenario(
@@ -170,6 +289,23 @@ async function assertTurnBelongsToScenario(
       message: `Turn ${turnId} not found in scenario ${scenarioId}.`,
     });
   }
+}
+
+async function assertScenarioExists(tx: SqliteTransaction, scenarioId: string) {
+  const rows = await tx
+    .select({ id: scenarios.id, name: scenarios.name })
+    .from(scenarios)
+    .where(eq(scenarios.id, scenarioId))
+    .limit(1);
+
+  const scenario = rows.at(0);
+  if (!scenario) {
+    throw new ServiceError("NotFound", {
+      message: `Scenario ${scenarioId} not found`,
+    });
+  }
+
+  return scenario;
 }
 
 async function assertParticipantBelongsToScenario(

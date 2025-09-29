@@ -306,13 +306,11 @@ describe("intents.intentProgress subscription (runner events)", () => {
     }
 
     const timeline = await caller.timeline.window({ scenarioId, windowSize: 20 });
-    const turnsFromIntent = timeline.timeline.filter(
-      (t) => t.intentProvenance?.intentId === intentId
-    );
+    const turnsFromIntent = timeline.timeline.filter((t) => t.provenance?.intentId === intentId);
 
     expect(turnsFromIntent).toHaveLength(2);
     for (const turn of turnsFromIntent) {
-      const prov = turn.intentProvenance;
+      const prov = turn.provenance;
       expect(prov).not.toBeNull();
       if (!prov) {
         throw new Error("Expected intent provenance on timeline turn");
@@ -325,8 +323,8 @@ describe("intents.intentProgress subscription (runner events)", () => {
     }
 
     const [playerTurn, followUpTurn] = turnsFromIntent;
-    const playerProv = playerTurn.intentProvenance;
-    const followUpProv = followUpTurn.intentProvenance;
+    const playerProv = playerTurn.provenance;
+    const followUpProv = followUpTurn.provenance;
     expect(playerProv).not.toBeNull();
     expect(followUpProv).not.toBeNull();
     if (!playerProv || !followUpProv) {

@@ -8,6 +8,7 @@ export function useScenarioIntentActions() {
   const queryClient = useQueryClient();
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries(trpc.timeline.window.pathFilter());
+    queryClient.invalidateQueries(trpc.timeline.state.pathFilter());
     queryClient.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
   }, [queryClient, trpc]);
   const { mutateAsync: createIntent, isPending: isCreatingIntent } = useMutation(

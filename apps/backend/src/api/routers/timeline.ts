@@ -109,7 +109,7 @@ export const timelineRouter = router({
 
         createdAt: sqliteTimestampToDate(r.created_at),
         updatedAt: sqliteTimestampToDate(r.updated_at),
-        intentProvenance:
+        provenance:
           r.intent_id && r.intent_kind && r.intent_status
             ? {
                 intentId: r.intent_id,

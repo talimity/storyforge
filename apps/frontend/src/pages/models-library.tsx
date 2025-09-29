@@ -94,7 +94,7 @@ export function ModelsPage() {
               ) : modelProfileList.length === 0 ? (
                 <EmptyState
                   icon={<TbCube />}
-                  title="No model profiles configured"
+                  title="No model profiles yet"
                   description="Create a model profile to use for generating content."
                   actionLabel="Add Model"
                   onActionClick={() => setIsCreateModelDialogOpen(true)}

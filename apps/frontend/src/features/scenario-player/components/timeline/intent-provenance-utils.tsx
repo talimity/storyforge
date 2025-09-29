@@ -27,11 +27,11 @@ export function getIntentProvenanceDisplay(
   prevTurn: TimelineTurn | null,
   nextTurn: TimelineTurn | null
 ): IntentProvenanceDisplay | null {
-  const provenance = turn.intentProvenance;
+  const provenance = turn.provenance;
   if (!provenance) return null;
 
-  const prev = prevTurn?.intentProvenance;
-  const next = nextTurn?.intentProvenance;
+  const prev = prevTurn?.provenance;
+  const next = nextTurn?.provenance;
   const seq = provenance.effectSequence;
 
   const connectTopFromPrev =

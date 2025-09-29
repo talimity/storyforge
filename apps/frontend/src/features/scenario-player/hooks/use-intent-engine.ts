@@ -82,8 +82,11 @@ export function useIntentEngine(scenarioId: string) {
 
         if (event.type === "effect_committed") {
           // Get the next authoritative data from server
-          queryClient.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
-          await queryClient.invalidateQueries(trpc.timeline.window.pathFilter());
+          await Promise.all([
+            queryClient.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
+            queryClient.invalidateQueries(trpc.timeline.window.pathFilter()),
+            queryClient.invalidateQueries(trpc.timeline.state.pathFilter()),
+          ]);
           setPendingScrollTarget({ kind: "bottom" });
         }
         if (event.type === "intent_finished") {

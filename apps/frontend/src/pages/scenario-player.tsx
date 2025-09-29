@@ -14,7 +14,7 @@ import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenar
 import { useActiveScenario } from "@/hooks/use-active-scenario";
 
 export function PlayerPage() {
-  const { scenario, participants } = useScenarioContext();
+  const { scenario, participants, chapters, deriveChapterLabel } = useScenarioContext();
   const { setActiveScenario } = useActiveScenario();
   const selectedCharacterId = useScenarioPlayerStore((s) => s.selectedCharacterId);
   const setSelectedCharacter = useScenarioPlayerStore((s) => s.setSelectedCharacter);
@@ -88,11 +88,14 @@ export function PlayerPage() {
     await addTurn({ scenarioId: scenario.id, text: message, authorParticipantId: actor.id });
   };
 
+  const firstChapter = chapters.at(0);
+  const firstChapterLabel = firstChapter ? deriveChapterLabel(firstChapter) : undefined;
+
   const timeline = (
     <VirtualizedTimeline
       scenarioId={scenario.id}
       scenarioTitle={scenario.title}
-      chapterTitle={"Chapter 1"} // TODO: Rework chapters to be derived from timeline events
+      firstChapterLabel={firstChapterLabel}
       turns={turns}
       hasNextPage={hasNextPage}
       isFetching={isFetching}

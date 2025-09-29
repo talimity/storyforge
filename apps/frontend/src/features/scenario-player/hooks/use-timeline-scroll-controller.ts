@@ -72,7 +72,7 @@ export function useTimelineScrollController<
         // virtualizer and let it measure new items before attempting to scroll
         // to them.
         requestAnimationFrame(() => {
-          v.scrollToIndex(turnVirtualIndex, { align: "end", behavior: "auto" });
+          v.scrollToIndex(turnVirtualIndex, { align: pendingScrollTarget.edge, behavior: "auto" });
           setPendingScrollTarget(null);
           console.debug(
             "useTimelineScrollController: scrolled to target turn",

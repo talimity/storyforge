@@ -7,7 +7,6 @@ import {
   Portal,
   Show,
   Skeleton,
-  Text,
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
@@ -16,6 +15,7 @@ import { Navigate, Outlet, useNavigate, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/index";
 import { PlayerWidgetSidebar } from "@/features/scenario-player/components/player-widget-sidebar";
+import { ScenarioNavigation } from "@/features/scenario-player/components/scenario-navigation";
 
 import {
   ScenarioProvider,
@@ -95,11 +95,9 @@ function PlayerShellInner() {
           </Show>
         </HStack>
 
-        {/* Center Section - Scenario Title */}
+        {/* Center Section - Story Nav */}
         <Box flex="1" textAlign="center" px={4}>
-          <Text fontWeight="medium" fontSize="sm" lineClamp={1}>
-            {scenario.title}
-          </Text>
+          <ScenarioNavigation />
         </Box>
 
         {/* Right Section - Meta Toolbar */}

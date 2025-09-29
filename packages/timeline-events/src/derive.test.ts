@@ -45,8 +45,8 @@ describe("TimelineStateDeriver", () => {
     const result = await deriver.run({ scenarioId: "scenario-1", leafTurnId: "turn-1" });
 
     expect(result.final.chapters.chapters).toEqual([
-      { number: 1, title: "Prologue", turnId: null },
-      { number: 2, title: "Act I", turnId: "turn-1" },
+      { number: 1, title: "Prologue", turnId: null, eventId: "init-chapter" },
+      { number: 2, title: "Act I", turnId: "turn-1", eventId: "chapter-2" },
     ]);
     expect(result.final.presence.participantPresence).toEqual({
       "char-A": { active: false, status: null },
@@ -54,11 +54,11 @@ describe("TimelineStateDeriver", () => {
 
     expect(result.events.map((ev) => ev.id)).toEqual(["init-chapter", "chapter-2", "presence-1"]);
     expect(result.events[0].state.chapters.chapters).toEqual([
-      { number: 1, title: "Prologue", turnId: null },
+      { number: 1, title: "Prologue", turnId: null, eventId: "init-chapter" },
     ]);
     expect(result.events[1].state.chapters.chapters).toEqual([
-      { number: 1, title: "Prologue", turnId: null },
-      { number: 2, title: "Act I", turnId: "turn-1" },
+      { number: 1, title: "Prologue", turnId: null, eventId: "init-chapter" },
+      { number: 2, title: "Act I", turnId: "turn-1", eventId: "chapter-2" },
     ]);
     expect(result.events[2].state.presence.participantPresence).toEqual({
       "char-A": { active: false, status: null },
@@ -92,6 +92,8 @@ describe("TimelineStateDeriver", () => {
     const result = await deriver.run({ scenarioId: "scn", mode: { mode: "final" } });
 
     expect(result.events).toEqual([]);
-    expect(result.final.chapters.chapters).toEqual([{ number: 1, title: "Prelude", turnId: null }]);
+    expect(result.final.chapters.chapters).toEqual([
+      { number: 1, title: "Prelude", turnId: null, eventId: "chapter" },
+    ]);
   });
 });

@@ -41,7 +41,7 @@ export const timelineTurnSchema = z.object({
     .describe("Content for this turn in the specified layer"),
   createdAt: z.date(),
   updatedAt: z.date(),
-  intentProvenance: z
+  provenance: z
     .object({
       intentId: z.string(),
       intentKind: intentKindSchema,

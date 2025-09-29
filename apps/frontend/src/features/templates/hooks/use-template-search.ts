@@ -11,7 +11,7 @@ export function useTemplateSearch(options: { task?: TaskKind; enabled?: boolean 
   const { data, isLoading, error } = useQuery(
     trpc.templates.list.queryOptions(
       { task, search: searchQuery || undefined },
-      { placeholderData: keepPreviousData, enabled, staleTime: 60000 }
+      { placeholderData: keepPreviousData, enabled, staleTime: 30 * 1000 }
     )
   );
 

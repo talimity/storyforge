@@ -1,6 +1,6 @@
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import { chapterBreakSpec } from "@storyforge/timeline-events";
-import { createId } from "@storyforge/utils";
+import { and, eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ScenarioService } from "../services/scenario/scenario.service.js";
 import { TimelineService } from "../services/timeline/timeline.service.js";
@@ -64,25 +64,29 @@ describe("timeline events integration", () => {
       })
     ).id;
 
-    // Seed an initial chapter event (null turn) to name the opening chapter.
-    initialChapterEventId = createId();
-    const initialPayload = chapterBreakSpec.schema.parse({ nextChapterTitle: "Prologue" });
-    await db.insert(schema.timelineEvents).values({
-      id: initialChapterEventId,
-      scenarioId,
-      turnId: null,
-      orderKey: "m",
-      kind: "chapter_break",
-      payloadVersion: chapterBreakSpec.latest,
-      payload: initialPayload,
-    });
-
     const chapterInsert = await caller.timelineEvents.insertChapterBreakEvent({
       scenarioId,
       turnId: rootTurnId,
       nextChapterTitle: "Rising Action",
     });
     chapterBreakEventId = chapterInsert.eventId;
+
+    const initialChapter = await db
+      .select({ id: schema.timelineEvents.id })
+      .from(schema.timelineEvents)
+      .where(
+        and(
+          eq(schema.timelineEvents.scenarioId, scenarioId),
+          eq(schema.timelineEvents.kind, "chapter_break"),
+          sql`turn_id IS NULL`
+        )
+      )
+      .limit(1);
+    const initial = initialChapter[0];
+    if (!initial) {
+      throw new Error("Expected initial chapter event to be created");
+    }
+    initialChapterEventId = initial.id;
 
     const presenceInsert = await caller.timelineEvents.insertParticipantPresenceEvent({
       scenarioId,
@@ -102,8 +106,8 @@ describe("timeline events integration", () => {
     const { state } = await caller.timeline.state({ scenarioId, atTurnId: rootTurnId });
 
     expect(state.chapters.chapters).toEqual([
-      { number: 1, title: "Prologue", turnId: null },
-      { number: 2, title: "Rising Action", turnId: rootTurnId },
+      { number: 1, title: "Timeline Event Scenario", turnId: null, eventId: initialChapterEventId },
+      { number: 2, title: "Rising Action", turnId: rootTurnId, eventId: chapterBreakEventId },
     ]);
 
     expect(state.presence.participantPresence).toEqual({
@@ -134,14 +138,55 @@ describe("timeline events integration", () => {
     ]);
     const [initial, chapter, presence] = derivation.events;
     expect(initial.state.chapters.chapters).toEqual([
-      { number: 1, title: "Prologue", turnId: null },
+      {
+        number: 1,
+        title: "Timeline Event Scenario",
+        turnId: null,
+        eventId: initialChapterEventId,
+      },
     ]);
     expect(chapter.state.chapters.chapters).toEqual([
-      { number: 1, title: "Prologue", turnId: null },
-      { number: 2, title: "Rising Action", turnId: rootTurnId },
+      {
+        number: 1,
+        title: "Timeline Event Scenario",
+        turnId: null,
+        eventId: initialChapterEventId,
+      },
+      {
+        number: 2,
+        title: "Rising Action",
+        turnId: rootTurnId,
+        eventId: chapterBreakEventId,
+      },
     ]);
     expect(presence.state.presence.participantPresence).toEqual({
       [bobParticipantId]: { active: false, status: "Captured" },
     });
+  });
+  it("renames chapter break events", async () => {
+    const rename = await caller.timelineEvents.renameChapter({
+      scenarioId,
+      eventId: chapterBreakEventId,
+      nextChapterTitle: "A New Beginning",
+    });
+
+    expect(rename.eventId).toBe(chapterBreakEventId);
+    expect(rename.payloadVersion).toBe(chapterBreakSpec.latest);
+
+    const stateAfterRename = await caller.timeline.state({ scenarioId, atTurnId: rootTurnId });
+    expect(stateAfterRename.state.chapters.chapters).toEqual([
+      { number: 1, title: "Timeline Event Scenario", turnId: null, eventId: initialChapterEventId },
+      { number: 2, title: "A New Beginning", turnId: rootTurnId, eventId: chapterBreakEventId },
+    ]);
+  });
+
+  it("rejects inserting duplicate chapter breaks for the same turn", async () => {
+    await expect(
+      caller.timelineEvents.insertChapterBreakEvent({
+        scenarioId,
+        turnId: rootTurnId,
+        nextChapterTitle: "Another Chapter",
+      })
+    ).rejects.toThrow("chapter break already exists");
   });
 });

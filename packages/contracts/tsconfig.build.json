@@ -9,6 +9,7 @@
   },
   "exclude": ["**/*.test.ts", "src/test/**", "**/__tests__/**"],
   "references": [
+    { "path": "../timeline-events/tsconfig.build.json" },
     { "path": "../inference/tsconfig.build.json" },
     { "path": "../prompt-rendering/tsconfig.build.json" },
     { "path": "../gentasks/tsconfig.build.json" }

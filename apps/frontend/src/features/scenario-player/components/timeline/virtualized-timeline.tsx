@@ -2,6 +2,7 @@ import { Box, Heading, Text, useBreakpointValue, useToken } from "@chakra-ui/rea
 import type { TimelineTurn } from "@storyforge/contracts";
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useMemo, useRef } from "react";
+import { ChapterSeparator } from "@/features/scenario-player/components/timeline/chapter-separator";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-turn";
 import { RetryIntentDialog } from "@/features/scenario-player/components/timeline/retry-intent-dialog";
@@ -23,7 +24,7 @@ const LIST_PADDING_Y_BREAKPOINTS = { base: 4, md: 6 };
 interface TimelineProps {
   scenarioId: string;
   scenarioTitle: string;
-  chapterTitle?: string;
+  firstChapterLabel?: string;
   turns: TimelineTurn[];
   hasNextPage?: boolean;
   /** Whether we are still awaiting initial data **/
@@ -38,7 +39,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
   const {
     scenarioId,
     scenarioTitle,
-    chapterTitle,
+    firstChapterLabel,
     turns,
     hasNextPage,
     isFetching,
@@ -198,7 +199,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
                 {isHeader ? (
                   <TimelineHeader
                     scenarioTitle={scenarioTitle}
-                    chapterTitle={chapterTitle}
+                    chapterLabel={firstChapterLabel}
                     isFetching={isFetching}
                   />
                 ) : isEmpty ? (
@@ -247,15 +248,19 @@ export function VirtualizedTimeline(props: TimelineProps) {
 
 function TimelineHeader({
   scenarioTitle,
-  chapterTitle,
+  chapterLabel,
   isFetching,
-}: Pick<TimelineProps, "scenarioTitle" | "chapterTitle" | "isFetching">) {
+}: {
+  scenarioTitle: string;
+  chapterLabel?: string;
+  isFetching?: boolean;
+}) {
   return (
     <Box textAlign="center" py={8}>
       <Heading size="lg" mb={2}>
         {scenarioTitle}
       </Heading>
-      <Text color="content.muted">{chapterTitle || "No chapters"}</Text>
+      <ChapterSeparator label={chapterLabel} />
 
       {isFetching && (
         <Box mt={4}>

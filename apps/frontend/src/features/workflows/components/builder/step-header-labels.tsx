@@ -9,14 +9,14 @@ export function StepHeaderLabels(props: { modelProfileId?: string; templateId?: 
   const modelQuery = useQuery(
     trpc.providers.getModelProfileById.queryOptions(
       { id: String(modelProfileId) },
-      { enabled: Boolean(modelProfileId), staleTime: 120 * 100 }
+      { enabled: Boolean(modelProfileId) }
     )
   );
 
   const templateQuery = useQuery(
     trpc.templates.getById.queryOptions(
       { id: String(templateId) },
-      { enabled: Boolean(templateId), staleTime: 120 * 100 }
+      { enabled: Boolean(templateId) }
     )
   );
 

@@ -33,6 +33,7 @@ export function useTurnActions() {
         // Anchor may have changed; ensure we reload environment and reset timeline slices
         qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
         qc.invalidateQueries(trpc.timeline.window.pathFilter());
+        qc.invalidateQueries(trpc.timeline.state.pathFilter());
         setShowDeleteDialog(false);
         setTurnToDelete(null);
       },

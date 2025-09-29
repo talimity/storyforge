@@ -40,9 +40,19 @@ export const timelineEventSchema = z.discriminatedUnion("kind", [
 export const insertChapterBreakEventInputSchema = z.object({
   scenarioId: z.string(),
   turnId: z.string(),
-  nextChapterTitle: z.string(),
+  nextChapterTitle: z.string().nullable(),
 });
 export const insertChapterBreakEventOutputSchema = z.object({ eventId: z.string() });
+
+export const renameChapterBreakEventInputSchema = z.object({
+  scenarioId: z.string(),
+  eventId: z.string(),
+  nextChapterTitle: z.string().nullable(),
+});
+export const renameChapterBreakEventOutputSchema = z.object({
+  eventId: z.string(),
+  payloadVersion: z.number().int().min(1),
+});
 
 export const insertParticipantPresenceEventInputSchema = z.object({
   scenarioId: z.string(),
@@ -68,6 +78,8 @@ export type TimelineEventKind = z.infer<typeof timelineEventKindSchema>;
 export type TimelineEvent = z.infer<typeof timelineEventSchema>;
 export type InsertChapterBreakEventInput = z.infer<typeof insertChapterBreakEventInputSchema>;
 export type InsertChapterBreakEventOutput = z.infer<typeof insertChapterBreakEventOutputSchema>;
+export type RenameChapterBreakEventInput = z.infer<typeof renameChapterBreakEventInputSchema>;
+export type RenameChapterBreakEventOutput = z.infer<typeof renameChapterBreakEventOutputSchema>;
 export type DeleteTimelineEventInput = z.infer<typeof deleteTimelineEventInputSchema>;
 export type DeleteTimelineEventOutput = z.infer<typeof deleteTimelineEventOutputSchema>;
 export type InsertParticipantPresenceEventInput = z.infer<

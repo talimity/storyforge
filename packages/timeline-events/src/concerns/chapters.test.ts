@@ -4,7 +4,7 @@ import { chapterBreakSpec, chaptersConcern } from "./chapters.js";
 
 function makeChapterEvent(
   overrides: Partial<TimelineEventEnvelopeOf<"chapter_break">> & {
-    payload?: { nextChapterTitle?: string };
+    payload?: { nextChapterTitle: string | null };
   }
 ): TimelineEventEnvelopeOf<"chapter_break"> {
   return {
@@ -14,7 +14,7 @@ function makeChapterEvent(
     kind: "chapter_break",
     payloadVersion: overrides.payloadVersion ?? chapterBreakSpec.latest,
     payload: {
-      nextChapterTitle: overrides.payload?.nextChapterTitle,
+      nextChapterTitle: overrides.payload?.nextChapterTitle || null,
     },
   };
 }
@@ -31,15 +31,17 @@ describe("chaptersConcern", () => {
       initial,
       makeChapterEvent({ id: "init", turnId: null, payload: { nextChapterTitle: "Prologue" } })
     );
-    expect(afterFirst.chapters).toEqual([{ number: 1, title: "Prologue", turnId: null }]);
+    expect(afterFirst.chapters).toEqual([
+      { number: 1, title: "Prologue", turnId: null, eventId: "init" },
+    ]);
 
     const afterSecond = chaptersConcern.step(
       afterFirst,
       makeChapterEvent({ id: "ch2", turnId: "turn-1", payload: { nextChapterTitle: "Act 1" } })
     );
     expect(afterSecond.chapters).toEqual([
-      { number: 1, title: "Prologue", turnId: null },
-      { number: 2, title: "Act 1", turnId: "turn-1" },
+      { number: 1, title: "Prologue", turnId: null, eventId: "init" },
+      { number: 2, title: "Act 1", turnId: "turn-1", eventId: "ch2" },
     ]);
   });
 
@@ -54,7 +56,7 @@ describe("chaptersConcern", () => {
     });
     expect(promptFirst).toBe("Chapter 1 begins: Prelude");
 
-    const secondEvent = makeChapterEvent({ id: "ev2", payload: {} });
+    const secondEvent = makeChapterEvent({ id: "ev2", payload: { nextChapterTitle: null } });
     const stateAfterSecond = chaptersConcern.step(state, secondEvent);
     const promptSecond = chapterBreakSpec.toPrompt?.(secondEvent, {
       chapters: stateAfterSecond,
