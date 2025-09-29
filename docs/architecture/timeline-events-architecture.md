@@ -8,7 +8,7 @@ This document explains the timeline events system: what qualifies as an event, h
 - **Turns remain the spine.** Most events attach to a specific turn and inherit all branching semantics from the turn tree. An event may omit `turn_id` to act as an initial state mutation that fires before the first turn of the scenario.
 - **State is derived, not stored.** Consumers reconstruct the current scenario state by reducing events along the active root→leaf path; snapshots are a future optimisation, not part of the conceptual model.
 - **Concerns isolate responsibilities.** Each area of derived state (chapters, presence, future inventories) is implemented as an independent reducer that only handles the event kinds it understands.
-- **Derived hints enrich DTOs.** Reducers can emit lightweight hints (e.g., computed chapter numbers) that decorate events when they are returned to clients or handed to generators.
+- **Per-event state snapshots.** The derivation pipeline can attach the timeline state after each event so callers decorate events however they like (chapter numbers, presence summaries, etc.).
 
 ## Event Model & Storage
 - Events live in the `timeline_events` table. Key columns: optional `turn_id` anchor and a lexicographic `order_key` that ensures deterministic ordering either within a turn or across the scenario’s initial events.
@@ -20,20 +20,20 @@ This document explains the timeline events system: what qualifies as an event, h
 ## Derivation Pipeline
 1. **Loader** (`TimelineEventLoader`) fetches events along a requested path. A single recursive SQL query walks from the selected leaf (default anchor) to the root and returns ordered events for those turns.
 2. **State Deriver** (`TimelineStateDeriver`) parses raw rows via the event registry, normalising payloads and handing them to concern reducers.
-3. **Concerns** reduce events sequentially, producing a `final` state object (one slice per concern) plus an optional `hints` map keyed by event id.
-4. **Result** packages the ordered event list, derived final state, and hint lookup. No caching is performed yet; repeated calls recompute the reduction.
+3. **Concerns** reduce events sequentially, producing a `final` state object (one slice per concern).
+4. **Result** packages the ordered event list, derived final state, and optional per-event state snapshots. No caching is performed yet; repeated calls recompute the reduction.
 
 This pipeline is stateless and path-scoped: asking for a different leaf simply reruns the reduction for that branch without affecting other timelines.
 
 ## Concern Registry
 - Concerns are registered in `timelineConcerns`, each declaring the event kinds they handle, an `initial` state factory, and a pure `step` reducer.
 - Current concerns:
-  - **Chapters** count chapter breaks and remember the last event, emitting hints with human-readable chapter numbers for prompts.
+  - **Chapters** maintains a list of named chapters derived from the chapter breaks present in the timeline.
   - **Presence** maintains a map of participant presence flags so services can tell who is in the scene.
 - Additional concerns (scene metadata, inventories, goals, secrets) can be added incrementally without touching existing reducers. Concerns never mutate each other’s state; they only read the shared event stream.
 
 ## Event Registry & Prompt Surface
-- Event specs live alongside concerns and expose optional `toPrompt` formatters. These formatter hooks convert typed payloads plus concern hints into short, prompt-friendly strings (e.g., “Chapter 3 begins”).
+- Event specs live alongside concerns and expose optional `toPrompt` formatters. These formatter hooks convert typed payloads plus the derived timeline state into short, prompt-friendly strings (e.g., “Chapter 3 begins”).
 - The helper `eventDTOsByTurn` groups events by turn and applies the formatter, producing a single chronologically ordered list per turn. UI and generation contexts can therefore render structured event banners without reimplementing parsing.
 
 ## Integration Points

@@ -43,17 +43,23 @@ describe("chaptersConcern", () => {
     ]);
   });
 
-  it("emits hints exposing the derived chapter number", () => {
+  it("formats prompts using the derived chapter number from state", () => {
     const initial = chaptersConcern.initial();
     const event = makeChapterEvent({ id: "ev", payload: { nextChapterTitle: "Prelude" } });
     const state = chaptersConcern.step(initial, event);
 
-    const hint = chaptersConcern.hints?.chapter_break?.(state, event);
-    expect(hint).toEqual({ chapterNumber: 1 });
+    const promptFirst = chapterBreakSpec.toPrompt?.(event, {
+      chapters: state,
+      presence: { participantPresence: {} },
+    });
+    expect(promptFirst).toBe("Chapter 1 begins: Prelude");
 
-    const secondEvent = makeChapterEvent({ id: "ev2", turnId: "turn-1" });
+    const secondEvent = makeChapterEvent({ id: "ev2", payload: {} });
     const stateAfterSecond = chaptersConcern.step(state, secondEvent);
-    const secondHint = chaptersConcern.hints?.chapter_break?.(stateAfterSecond, secondEvent);
-    expect(secondHint).toEqual({ chapterNumber: 2 });
+    const promptSecond = chapterBreakSpec.toPrompt?.(secondEvent, {
+      chapters: stateAfterSecond,
+      presence: { participantPresence: {} },
+    });
+    expect(promptSecond).toBe("Chapter 2 begins");
   });
 });

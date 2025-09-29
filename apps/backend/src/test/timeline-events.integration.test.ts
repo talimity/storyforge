@@ -132,8 +132,16 @@ describe("timeline events integration", () => {
       chapterBreakEventId,
       presenceEventId,
     ]);
-
-    expect(derivation.hints.get(initialChapterEventId)?.chapters).toEqual({ chapterNumber: 1 });
-    expect(derivation.hints.get(chapterBreakEventId)?.chapters).toEqual({ chapterNumber: 2 });
+    const [initial, chapter, presence] = derivation.events;
+    expect(initial.state.chapters.chapters).toEqual([
+      { number: 1, title: "Prologue", turnId: null },
+    ]);
+    expect(chapter.state.chapters.chapters).toEqual([
+      { number: 1, title: "Prologue", turnId: null },
+      { number: 2, title: "Rising Action", turnId: rootTurnId },
+    ]);
+    expect(presence.state.presence.participantPresence).toEqual({
+      [bobParticipantId]: { active: false, status: "Captured" },
+    });
   });
 });

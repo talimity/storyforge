@@ -11,7 +11,7 @@ class StubLoader implements TimelineEventDataLoader {
 }
 
 describe("TimelineStateDeriver", () => {
-  it("reduces events into final state and emits hints", async () => {
+  it("reduces events into final state and captures per-event states", async () => {
     const events: RawTimelineEvent[] = [
       {
         id: "init-chapter",
@@ -53,13 +53,16 @@ describe("TimelineStateDeriver", () => {
     });
 
     expect(result.events.map((ev) => ev.id)).toEqual(["init-chapter", "chapter-2", "presence-1"]);
-
-    const firstHint = result.hints.get("init-chapter");
-    expect(firstHint?.chapters).toEqual({ chapterNumber: 1 });
-    const secondHint = result.hints.get("chapter-2");
-    expect(secondHint?.chapters).toEqual({ chapterNumber: 2 });
-
-    expect(result.hints.get("presence-1")).toBeUndefined();
+    expect(result.events[0].state.chapters.chapters).toEqual([
+      { number: 1, title: "Prologue", turnId: null },
+    ]);
+    expect(result.events[1].state.chapters.chapters).toEqual([
+      { number: 1, title: "Prologue", turnId: null },
+      { number: 2, title: "Act I", turnId: "turn-1" },
+    ]);
+    expect(result.events[2].state.presence.participantPresence).toEqual({
+      "char-A": { active: false, status: null },
+    });
   });
 
   it("passes scenario and leaf IDs to the loader", async () => {
@@ -71,5 +74,24 @@ describe("TimelineStateDeriver", () => {
     await deriver.run({ scenarioId: "scenario-99", leafTurnId: "leaf-1" });
 
     expect(loader.loadOrderedEventsAlongPath).toHaveBeenCalledWith("scenario-99", "leaf-1");
+  });
+
+  it("can skip event state collection in final mode", async () => {
+    const events: RawTimelineEvent[] = [
+      {
+        id: "chapter",
+        turnId: null,
+        orderKey: "m",
+        kind: "chapter_break",
+        payloadVersion: 1,
+        payload: { nextChapterTitle: "Prelude" },
+      },
+    ];
+    const deriver = new TimelineStateDeriver(new StubLoader(events));
+
+    const result = await deriver.run({ scenarioId: "scn", mode: { mode: "final" } });
+
+    expect(result.events).toEqual([]);
+    expect(result.final.chapters.chapters).toEqual([{ number: 1, title: "Prelude", turnId: null }]);
   });
 });

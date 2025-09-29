@@ -58,50 +58,55 @@ export type ScenarioEnvironment = Awaited<ReturnType<typeof getScenarioEnvironme
  * Fetches all necessary data to bootstrap the Scenario Player environment.
  */
 export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: string) {
-  const result = await db.query.scenarios.findFirst({
-    where: { id: scenarioId },
-    columns: { id: true, name: true, rootTurnId: true, anchorTurnId: true },
-    with: {
-      participants: {
-        columns: {
-          id: true,
-          type: true,
-          status: true,
-          characterId: true,
-          isUserProxy: true,
-        },
-        orderBy: (p) => [p.orderIndex],
-        with: {
-          character: {
-            columns: { id: true, name: true },
-            extras: { hasPortrait: sql<number>`portrait IS NOT NULL` },
+  const [scenario, rootTurn] = await Promise.all([
+    db.query.scenarios.findFirst({
+      where: { id: scenarioId },
+      columns: { id: true, name: true, anchorTurnId: true },
+      with: {
+        participants: {
+          columns: {
+            id: true,
+            type: true,
+            status: true,
+            characterId: true,
+            isUserProxy: true,
+          },
+          orderBy: (p) => [p.orderIndex],
+          with: {
+            character: {
+              columns: { id: true, name: true },
+              extras: { hasPortrait: sql<number>`portrait IS NOT NULL` },
+            },
           },
         },
       },
-    },
-  });
+    }),
+    db.query.turns.findFirst({
+      columns: { id: true },
+      where: { scenarioId, parentTurnId: { isNull: true } },
+    }),
+  ]);
 
-  if (!result) {
+  if (!scenario) {
     throw new ServiceError("NotFound", {
       message: `Scenario with id ${scenarioId} not found`,
     });
   }
 
-  // Transform the data to match the API contract
   return {
     scenario: {
-      id: result.id,
-      title: result.name,
-      rootTurnId: result.rootTurnId,
-      anchorTurnId: result.anchorTurnId,
+      id: scenario.id,
+      title: scenario.name,
+      rootTurnId: rootTurn?.id ?? null,
+      anchorTurnId: scenario.anchorTurnId,
     },
-    participants: result.participants.map((p) => ({
+    participants: scenario.participants.map((p) => ({
       id: p.id,
       type: p.type,
       status: p.status,
       characterId: p.characterId,
     })),
-    characters: result.participants
+    characters: scenario.participants
       .map((p) => p.character)
       .filter(isDefined)
       .map((c) => ({ id: c.id, name: c.name, ...getCharaAssetPaths(c) })),

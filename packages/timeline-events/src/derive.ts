@@ -2,20 +2,23 @@
  * parameterize Deriver properly after fighting with TS for hours
  * unsuccessfully. We keep the bad casts mostly isolated to this module */
 
-import { type TimelineState, timelineConcerns, timelineEvents } from "./registry.js";
+import {
+  type TimelineState,
+  timelineConcerns,
+  timelineEventKindToConcern,
+  timelineEvents,
+} from "./registry.js";
 import type { AnyTimelineEventKind, RawTimelineEvent, TimelineEventEnvelopeOf } from "./types.js";
 
-// export type TimelineDeriveRunMode =
-//   | { mode: "final" }
-//   | { mode: "perTurn"; turnIds: readonly string[] }
-//   | { mode: "allEvents" };
+export type TimelineDeriveMode = { mode: "final" } | { mode: "events" };
 
-export type TimelineDerivationResult = {
-  final: TimelineState;
-  // eventId -> { [concernName]: hint }
-  hints: Map<string, Partial<Record<keyof TimelineState, unknown>>>;
-  events: RawTimelineEvent[];
+export type DerivedTimelineEvent = TimelineEventEnvelopeOf<AnyTimelineEventKind> & {
+  state: TimelineState;
 };
+
+export type TimelineDerivationResult =
+  | { final: TimelineState; events: DerivedTimelineEvent[] }
+  | { final: TimelineState; events: [] };
 
 export interface TimelineEventDataLoader {
   loadOrderedEventsAlongPath(
@@ -32,14 +35,15 @@ export class TimelineStateDeriver {
   async run(args: {
     scenarioId: string;
     leafTurnId?: string | null;
-    // mode: TimelineDeriveRunMode;
+    mode?: TimelineDeriveMode;
   }): Promise<TimelineDerivationResult> {
-    const { scenarioId, leafTurnId = null } = args;
+    const { scenarioId, leafTurnId = null, mode = { mode: "events" } } = args;
+    const collectEvents = mode.mode === "events";
     const rows = await this.loader.loadOrderedEventsAlongPath(scenarioId, leafTurnId);
 
     // Parsed envelopes remain a union across all kinds.
     const envelopes: TimelineEventEnvelopeOf<AnyTimelineEventKind>[] = rows.map((row) => {
-      const spec = timelineEvents[row.kind as keyof typeof timelineEvents];
+      const spec = timelineEvents[row.kind];
 
       // Depending on whether the row was fetched with raw sql or the drizzle
       // querybuilder, payload can be a parsed object or still the string.
@@ -56,90 +60,41 @@ export class TimelineStateDeriver {
       };
     });
 
-    // Initialize final state from concerns
-    const final = Object.fromEntries(
+    // Initialize state from concerns
+    const stateByConcern = Object.fromEntries(
       Object.entries(timelineConcerns).map(([name, c]) => [name, c.initial()])
     ) as TimelineState;
 
-    const hints = new Map<string, Partial<Record<keyof TimelineState, unknown>>>();
+    const derivedEvents: DerivedTimelineEvent[] = [];
 
-    // Reduce each concern independently
-    for (const [name, concern] of Object.entries(timelineConcerns) as [
-      keyof TimelineState,
-      (typeof timelineConcerns)[keyof TimelineState],
-    ][]) {
-      let state = final[name];
+    for (const ev of envelopes) {
+      const concernName = timelineEventKindToConcern[ev.kind];
+      const concern = timelineConcerns[concernName];
 
-      for (const ev of envelopes) {
-        // intersection of every concern's eventKinds is `never` so we have to
-        // cast.
-        if (!(concern.eventKinds as string[]).includes(ev.kind)) {
-          continue;
-        }
+      // Apply reducer; we know this concern can handle this event type due to runtime mapping.
+      stateByConcern[concernName] = (concern as any).step(stateByConcern[concernName], ev);
 
-        // Apply reducer; we know this concern can handle this event type due
-        // to runtime check against the concern's eventKinds.
-        state = (concern as any).step(state, ev);
-
-        // TODO: I am not sure if `perTurn` mode hints will work, because to
-        // correctly calculate hints (such as chapter numbers) we would need to
-        // run the hint function for ALL turns from the top, not just those
-        // within the selected turn IDs (since the state of selected IDs depends
-        // on the state of earlier turns that may not have been requested).
-        // const wantsHints =
-        //   args.mode.mode === "allEvents" ||
-        //   (args.mode.mode === "perTurn" && args.mode.turnIds.includes(ev.turnId));
-
-        if (/* wantsHints && */ concern.hints) {
-          const hintFn = (concern.hints as any)[ev.kind] as
-            | ((s: unknown, e: unknown) => unknown)
-            | undefined;
-          if (hintFn) {
-            const h = hintFn(state, ev);
-            if (h !== undefined) {
-              const bag = hints.get(ev.id) ?? {};
-              bag[name] = h;
-              hints.set(ev.id, bag);
-            }
-          }
-        }
+      if (collectEvents) {
+        derivedEvents.push({
+          ...ev,
+          state: cloneState(stateByConcern),
+        });
       }
-
-      // state is not narrowed to a particular concern here, so we have to cast.
-      // it is absolutely not worth it to try to type this correctly, runtime
-      // checks and unit tests can restore safety.
-      final[name] = state as any;
     }
 
-    const serializedEvents = envelopes.map((ev) => ({
-      id: ev.id,
-      turnId: ev.turnId,
-      orderKey: ev.orderKey,
-      kind: ev.kind,
-      payloadVersion: ev.payloadVersion,
-      payload: ev.payload as Record<string, unknown>,
-    }));
+    const finalState = collectEvents ? cloneState(stateByConcern) : stateByConcern;
 
-    return {
-      final,
-      hints,
-      events: serializedEvents,
-    };
+    if (collectEvents) {
+      return { final: finalState, events: derivedEvents };
+    }
+
+    return { final: finalState, events: [] };
   }
+}
 
-  // After consideration I don't think this "modes" API is useful. The only work
-  // we short circuit in the different modes is the hint functions, which cost
-  // basically nothing. A more useful API optimization might be to only
-  // calculate the full state for a single concern and skip any unrelated
-  // events.
-
-  // finalState(scenarioId: string, leafTurnId: string | null) {
-  //   return this.run({ scenarioId, leafTurnId, mode: { mode: "final" } });
-  // }
-  // hintsFor(scenarioId: string, leafTurnId: string | null, turnIds: string[]) {
-  //   return this.run({ scenarioId, leafTurnId, mode: { mode: "perTurn", turnIds } });
-  // }
-  // full(scenarioId: string, leafTurnId: string | null) {
-  //   return this.run({ scenarioId, leafTurnId, mode: { mode: "allEvents" } });
-  // }
+function cloneState(state: TimelineState): TimelineState {
+  if (typeof globalThis.structuredClone === "function") {
+    return globalThis.structuredClone(state);
+  }
+  return JSON.parse(JSON.stringify(state));
 }

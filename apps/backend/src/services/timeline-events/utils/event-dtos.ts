@@ -1,14 +1,8 @@
 import type { TimelineEventDTO } from "@storyforge/gentasks";
-import {
-  type RawTimelineEvent,
-  type TimelineState,
-  timelineEventKindToConcern,
-  timelineEvents,
-} from "@storyforge/timeline-events";
+import { type DerivedTimelineEvent, timelineEvents } from "@storyforge/timeline-events";
 
 export function eventDTOsByTurn(
-  events: RawTimelineEvent[],
-  hints: Map<string, Partial<Record<keyof TimelineState, unknown>>>
+  events: DerivedTimelineEvent[]
 ): Record<string, TimelineEventDTO[]> {
   const grouped: Record<string, TimelineEventDTO[]> = {};
   for (const ev of events) {
@@ -16,21 +10,14 @@ export function eventDTOsByTurn(
       continue;
     }
     const spec = timelineEvents[ev.kind]; // union of all specs
-    const bag = hints.get(ev.id) ?? {};
-    const hint = bag[timelineEventKindToConcern[ev.kind] as keyof TimelineState]; // unknown
-    const payload =
-      typeof ev.payload === "string"
-        ? (JSON.parse(ev.payload) as Record<string, unknown>)
-        : ev.payload;
-
     const dto: TimelineEventDTO = {
       id: ev.id,
       kind: ev.kind,
       orderKey: ev.orderKey,
       payloadVersion: ev.payloadVersion,
-      payload,
+      payload: ev.payload,
       // biome-ignore lint/suspicious/noExplicitAny: types are not narrowed by ev.kind
-      prompt: spec.toPrompt?.({ ...ev, payload } as any, hint as any),
+      prompt: spec.toPrompt?.(ev as any, ev.state),
     };
 
     const bucket = (grouped[ev.turnId] ??= []);

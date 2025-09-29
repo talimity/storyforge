@@ -1,4 +1,3 @@
-import { assertDefined } from "@storyforge/utils";
 import { z } from "zod";
 import type { TimelineConcernSpec, TimelineEventSpec } from "../types.js";
 
@@ -18,13 +17,8 @@ const chaptersStateSchema = z.object({
 
 export type ChapterBreakEvent = z.infer<typeof chapterBreakEventSchema>;
 export type ChaptersState = z.infer<typeof chaptersStateSchema>;
-type ChapterBreakHint = { chapterNumber: number };
 
-export const chapterBreakSpec: TimelineEventSpec<
-  "chapter_break",
-  ChapterBreakEvent,
-  ChapterBreakHint
-> = {
+export const chapterBreakSpec: TimelineEventSpec<"chapter_break", ChapterBreakEvent> = {
   kind: "chapter_break",
   latest: 1,
   schema: chapterBreakEventSchema,
@@ -32,11 +26,11 @@ export const chapterBreakSpec: TimelineEventSpec<
     version: 1,
     payload: chapterBreakSpec.schema.parse(payload),
   }),
-  toPrompt: (ev, hint) => {
-    assertDefined(hint);
+  toPrompt: (ev, state) => {
+    const chapterNumber = state.chapters.chapters.length;
     return ev.payload.nextChapterTitle
-      ? `Chapter ${hint.chapterNumber} begins: ${ev.payload.nextChapterTitle}`
-      : `Chapter ${hint.chapterNumber} begins`;
+      ? `Chapter ${chapterNumber} begins: ${ev.payload.nextChapterTitle}`
+      : `Chapter ${chapterNumber} begins`;
   },
 };
 
@@ -56,12 +50,5 @@ export const chaptersConcern: TimelineConcernSpec<"chapters", "chapter_break", C
         },
       ],
     };
-  },
-  hints: {
-    // lets us decorate chapter break events with their calculated number as
-    // we reduce the chapters concern
-    chapter_break: (s) => ({
-      chapterNumber: s.chapters.length,
-    }),
   },
 };

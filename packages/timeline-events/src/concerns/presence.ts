@@ -25,7 +25,7 @@ export const presenceChangeSpec: TimelineEventSpec<"presence_change", PresenceCh
     version: 1,
     payload: presenceChangeEventSchema.parse(payload),
   }),
-  toPrompt: (ev) => {
+  toPrompt: (ev, _state) => {
     const status =
       ev.payload.status || ev.payload.active ? `Enters the scene.` : `Leaves the scene.`;
     // TODO: how to get character names into this? maybe just save it in event payload for simplicity

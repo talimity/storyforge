@@ -48,7 +48,7 @@ export class IntentContextBuilder {
     const { characters, userProxyName, currentActorName } = charaData;
 
     // Enrich turn DTO with events
-    const eventsByTurn = eventDTOsByTurn(derivation.events, derivation.hints);
+    const eventsByTurn = eventDTOsByTurn(derivation.events);
     const enrichedTurns = turns.map((t) => ({
       ...t,
       events: eventsByTurn[t.turnId] ?? [],

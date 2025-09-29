@@ -11,7 +11,7 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
-import { LuArrowLeft, LuEllipsisVertical, LuMenu, LuSettings } from "react-icons/lu";
+import { LuArrowLeft, LuMenu, LuSettings } from "react-icons/lu";
 import { Navigate, Outlet, useNavigate, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/index";
@@ -75,17 +75,24 @@ function PlayerShellInner() {
         {/* Left Section */}
         <HStack gap={3}>
           {/* Mobile menu button */}
-          <Show when={isMobile}>
-            <IconButton variant="ghost" size="sm" onClick={() => setMobileDrawerOpen(true)}>
-              <LuMenu />
-            </IconButton>
+          <Show
+            when={!isMobile}
+            fallback={
+              <IconButton variant="ghost" size="sm" onClick={() => setMobileDrawerOpen(true)}>
+                <LuMenu />
+              </IconButton>
+            }
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              data-testid="scenario-back-button"
+            >
+              <LuArrowLeft />
+              Back to Library
+            </Button>
           </Show>
-
-          {/* Back button */}
-          <Button variant="ghost" size="sm" onClick={handleBack} data-testid="scenario-back-button">
-            <LuArrowLeft />
-            Back to Library
-          </Button>
         </HStack>
 
         {/* Center Section - Scenario Title */}
@@ -99,9 +106,6 @@ function PlayerShellInner() {
         <HStack gap={2}>
           <IconButton variant="ghost" size="sm">
             <LuSettings />
-          </IconButton>
-          <IconButton variant="ghost" size="sm">
-            <LuEllipsisVertical />
           </IconButton>
         </HStack>
       </Flex>

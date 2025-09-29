@@ -249,7 +249,7 @@ ORDER BY e.turn_no;
     return [];
   }
 
-  const eventsByTurn = eventDTOsByTurn(derivation.events, derivation.hints);
+  const eventsByTurn = eventDTOsByTurn(derivation.events);
 
   return rows.map((row) => {
     const untypedEvents = eventsByTurn[row.id] ?? [];

@@ -1,12 +1,10 @@
-/* biome-ignore-all lint/suspicious/noExplicitAny: too dumb and lazy to type
- * this shit correctly */
 // do not put runtime code here or it will cause dependency cycles
 import type { z } from "zod";
-import type { TimelineEventPayloadMap } from "./registry.js";
+import type { TimelineEventPayloadMap, TimelineState } from "./registry.js";
 
 export type TimelineEventVersion = number;
 
-export interface TimelineEventSpec<K extends string, P, H = unknown> {
+export interface TimelineEventSpec<K extends string, P> {
   kind: K;
   latest: TimelineEventVersion;
   schema: z.ZodType<P>;
@@ -16,8 +14,8 @@ export interface TimelineEventSpec<K extends string, P, H = unknown> {
    * from an older version, it may be converted to the latest version.
    */
   parse: (event: { payloadVersion: number; payload: unknown }) => { version: number; payload: P };
-  /** Optional formatter for prompt-facing DTOs (uses hint if present) */
-  toPrompt?: (ev: TimelineEventEnvelope<K, P>, hint?: H) => string;
+  /** Optional formatter for prompt-facing DTOs using the derived state post-event. */
+  toPrompt?: (ev: TimelineEventEnvelope<K, P>, state: TimelineState) => string;
 }
 
 export type TimelineEventEnvelope<K extends string = AnyTimelineEventKind, P = unknown> = {
@@ -39,10 +37,6 @@ export type TimelineEventEnvelopeOf<K extends AnyTimelineEventKind> = TimelineEv
   TimelineEventPayloadMap[K]
 >;
 
-export type HintFns<K extends AnyTimelineEventKind, Final> = Partial<{
-  [P in K]: (state: Final, ev: TimelineEventEnvelopeOf<P>) => unknown;
-}>;
-
 export interface TimelineConcernSpec<N extends string, Ks extends AnyTimelineEventKind, S> {
   name: N;
   eventKinds: readonly Ks[];
@@ -50,9 +44,4 @@ export interface TimelineConcernSpec<N extends string, Ks extends AnyTimelineEve
   schema: z.ZodType<S>;
   /** Reducer for handling events of the specified kinds */
   step: (state: S, ev: TimelineEventEnvelopeOf<Ks>) => S;
-  /**
-   * Optional per-kind hint functions for constructing timeline DTOs, such
-   * as to receive the derived chapter number from each chapter_break event.
-   */
-  hints?: HintFns<Ks, S>;
 }
