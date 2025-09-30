@@ -38,6 +38,10 @@ interface AdvanceTurnArgs extends Omit<InsertTurnArgs, "parentTurnId"> {
   branchFromTurnId?: string;
 }
 
+interface InsertTurnAfterArgs extends Omit<InsertTurnArgs, "parentTurnId"> {
+  targetTurnId: string;
+}
+
 interface SwitchAnchorArgs {
   scenarioId: string;
   fromTurnId: string;
@@ -83,6 +87,83 @@ export class TimelineService {
       return turn;
     };
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
+  }
+
+  /**
+   * Inserts a new turn immediately after the given target turn within the same branch.
+   * Any existing children of the target are reparented to the newly inserted turn,
+   * preserving their relative sibling order. If the target turn is the scenario's
+   * anchor, the anchor is updated to the new turn to maintain the leaf invariant.
+   */
+  async insertTurnAfter(args: InsertTurnAfterArgs, outerTx?: SqliteTransaction) {
+    const { scenarioId, targetTurnId, authorParticipantId, layers } = args;
+    const op = async (tx: SqliteTransaction) => {
+      const [scenario] = await tx
+        .select()
+        .from(tScenarios)
+        .where(eq(tScenarios.id, scenarioId))
+        .limit(1);
+      if (!scenario) {
+        throw new ServiceError("NotFound", {
+          message: `Scenario with ID ${scenarioId} not found.`,
+        });
+      }
+
+      const target = await tx
+        .select()
+        .from(tTurns)
+        .where(eq(tTurns.id, targetTurnId))
+        .limit(1)
+        .then((rows) => rows[0]);
+      if (!target || target.scenarioId !== scenarioId) {
+        throw new ServiceError("NotFound", {
+          message: `Turn with ID ${targetTurnId} not found in scenario ${scenarioId}.`,
+        });
+      }
+
+      const existingChildren = await tx
+        .select({ id: tTurns.id })
+        .from(tTurns)
+        .where(eq(tTurns.parentTurnId, targetTurnId))
+        .orderBy(tTurns.siblingOrder)
+        .all();
+
+      const newTurn = await this.insertTurn(
+        {
+          scenarioId,
+          authorParticipantId,
+          parentTurnId: targetTurnId,
+          layers,
+        },
+        tx
+      );
+
+      if (existingChildren.length > 0) {
+        let orderCursor = "";
+        for (const child of existingChildren) {
+          orderCursor = after(orderCursor);
+          await tx
+            .update(tTurns)
+            .set({
+              parentTurnId: newTurn.id,
+              siblingOrder: orderCursor,
+              updatedAt: new Date(),
+            })
+            .where(eq(tTurns.id, child.id));
+        }
+      }
+
+      if (scenario.anchorTurnId === targetTurnId) {
+        await tx
+          .update(tScenarios)
+          .set({ anchorTurnId: newTurn.id })
+          .where(eq(tScenarios.id, scenarioId));
+      }
+
+      return newTurn;
+    };
+
+    return outerTx ? op(outerTx) : this.db.transaction(op);
   }
 
   /**

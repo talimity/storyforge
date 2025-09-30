@@ -18,11 +18,13 @@ export function useTurnActions() {
   const [turnToDelete, setTurnToDelete] = useState<{ id: string; cascade: boolean } | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [retryTurn, setRetryTurn] = useState<TimelineTurn | null>(null);
+  const [manualTurnTarget, setManualTurnTarget] = useState<TimelineTurn | null>(null);
   const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
   const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
   const startRun = useIntentRunsStore((s) => s.startRun);
   const isGenerating = useIntentRunsStore(selectIsGenerating);
-  const { createIntent, isCreatingIntent } = useScenarioIntentActions();
+  const { createIntent, insertTurnAfter, isCreatingIntent, isInsertingTurnAfter } =
+    useScenarioIntentActions();
   const { mutate: deleteTurn, isPending: isDeleting } = useMutation(
     trpc.timeline.deleteTurn.mutationOptions({
       onSuccess: () => {
@@ -78,6 +80,14 @@ export function useTurnActions() {
     [isGenerating]
   );
 
+  const handleInsertManualTurn = useCallback(
+    (turn: TimelineTurn) => {
+      if (isGenerating) return;
+      setManualTurnTarget(turn);
+    },
+    [isGenerating]
+  );
+
   const handleRetrySubmit = useCallback(
     async (input: IntentInput) => {
       if (!retryTurn || !retryTurn.parentTurnId) return;
@@ -96,6 +106,28 @@ export function useTurnActions() {
     setRetryTurn(null);
   }, []);
 
+  const handleManualInsertSubmit = useCallback(
+    async (input: { authorParticipantId: string; text: string }) => {
+      if (!manualTurnTarget) return;
+      await insertTurnAfter({
+        scenarioId: scenario.id,
+        targetTurnId: manualTurnTarget.id,
+        authorParticipantId: input.authorParticipantId,
+        text: input.text,
+      });
+      showSuccessToast({
+        title: "Turn inserted",
+        description: "Manual turn added to the timeline.",
+      });
+      setManualTurnTarget(null);
+    },
+    [insertTurnAfter, manualTurnTarget, scenario.id]
+  );
+
+  const handleManualInsertClose = useCallback(() => {
+    setManualTurnTarget(null);
+  }, []);
+
   return {
     // Delete state
     turnToDelete,
@@ -105,6 +137,10 @@ export function useTurnActions() {
     // Retry state
     retryTurn,
     isRetrying: isCreatingIntent,
+
+    // Manual insert state
+    manualTurnTarget,
+    isInsertingManualTurn: isInsertingTurnAfter,
 
     // Edit state
     editingTurnId,
@@ -122,5 +158,10 @@ export function useTurnActions() {
     handleRetryTurn,
     handleRetrySubmit,
     handleRetryClose,
+
+    // Manual insert handlers
+    handleInsertManualTurn,
+    handleManualInsertSubmit,
+    handleManualInsertClose,
   };
 }

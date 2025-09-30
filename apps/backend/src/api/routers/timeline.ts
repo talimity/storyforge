@@ -3,6 +3,8 @@ import {
   addTurnOutputSchema,
   generationInfoInputSchema,
   generationInfoOutputSchema,
+  insertTurnAfterInputSchema,
+  insertTurnAfterOutputSchema,
   queryTimelineInputSchema,
   queryTimelineOutputSchema,
   resolveLeafInputSchema,
@@ -187,6 +189,29 @@ export const timelineRouter = router({
       const turnGraph = new TimelineService(ctx.db);
       const turn = await turnGraph.advanceTurn({
         scenarioId: input.scenarioId,
+        authorParticipantId: input.authorParticipantId,
+        branchFromTurnId: input.parentTurnId,
+        layers: [{ key: "presentation", content: input.text }],
+      });
+      return { turnId: turn.id };
+    }),
+
+  insertTurnAfter: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/timeline/turn/insert-after",
+        tags: ["timeline"],
+        summary: "Insert a new turn after the specified turn and reparent existing children",
+      },
+    })
+    .input(insertTurnAfterInputSchema)
+    .output(insertTurnAfterOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const timeline = new TimelineService(ctx.db);
+      const turn = await timeline.insertTurnAfter({
+        scenarioId: input.scenarioId,
+        targetTurnId: input.targetTurnId,
         authorParticipantId: input.authorParticipantId,
         layers: [{ key: "presentation", content: input.text }],
       });

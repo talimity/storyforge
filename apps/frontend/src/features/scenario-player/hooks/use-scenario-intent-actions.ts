@@ -17,6 +17,16 @@ export function useScenarioIntentActions() {
   const { mutateAsync: addTurn, isPending: isAddingTurn } = useMutation(
     trpc.timeline.addTurn.mutationOptions({ onSuccess: invalidate })
   );
+  const { mutateAsync: insertTurnAfter, isPending: isInsertingTurnAfter } = useMutation(
+    trpc.timeline.insertTurnAfter.mutationOptions({ onSuccess: invalidate })
+  );
 
-  return { createIntent, addTurn, isCreatingIntent, isAddingTurn };
+  return {
+    createIntent,
+    addTurn,
+    insertTurnAfter,
+    isCreatingIntent,
+    isAddingTurn,
+    isInsertingTurnAfter,
+  };
 }

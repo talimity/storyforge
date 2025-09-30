@@ -5,6 +5,7 @@ import { useCallback, useMemo, useRef } from "react";
 import { ChapterSeparator } from "@/features/scenario-player/components/timeline/chapter-separator";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-turn";
+import { InsertTurnDialog } from "@/features/scenario-player/components/timeline/insert-turn-dialog";
 import { RetryIntentDialog } from "@/features/scenario-player/components/timeline/retry-intent-dialog";
 import { TimelineTurnRow } from "@/features/scenario-player/components/timeline/timeline-turn-row";
 import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
@@ -64,6 +65,11 @@ export function VirtualizedTimeline(props: TimelineProps) {
     handleRetryTurn,
     handleRetrySubmit,
     handleRetryClose,
+    manualTurnTarget,
+    isInsertingManualTurn,
+    handleInsertManualTurn,
+    handleManualInsertSubmit,
+    handleManualInsertClose,
   } = useTurnActions();
 
   // If the active run is generating a new branch, we want to temporarily hide
@@ -219,6 +225,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
                     onDelete={handleDeleteTurn}
                     onEdit={handleEditTurn}
                     onRetry={handleRetryTurn}
+                    onInsertManual={handleInsertManualTurn}
                     isUpdating={editingTurnId === row.key && isUpdating}
                   />
                 )}
@@ -241,6 +248,13 @@ export function VirtualizedTimeline(props: TimelineProps) {
         isSubmitting={isRetrying}
         onSubmit={handleRetrySubmit}
         onClose={handleRetryClose}
+      />
+      <InsertTurnDialog
+        isOpen={Boolean(manualTurnTarget)}
+        turn={manualTurnTarget}
+        isSubmitting={isInsertingManualTurn}
+        onSubmit={handleManualInsertSubmit}
+        onClose={handleManualInsertClose}
       />
     </>
   );

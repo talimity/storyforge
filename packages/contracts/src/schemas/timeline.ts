@@ -71,6 +71,13 @@ export const addTurnInputSchema = z.object({
   parentTurnId: z.string().optional(),
 });
 export const addTurnOutputSchema = z.object({ turnId: z.string() });
+export const insertTurnAfterInputSchema = z.object({
+  scenarioId: z.string(),
+  targetTurnId: z.string(),
+  text: z.string(),
+  authorParticipantId: z.string(),
+});
+export const insertTurnAfterOutputSchema = z.object({ turnId: z.string() });
 export const updateTurnContentInputSchema = z.object({
   turnId: z.string(),
   layer: z.string().default("presentation"),
@@ -175,6 +182,8 @@ export type LoadTimelineOutput = z.infer<typeof queryTimelineOutputSchema>;
 export type TimelineTurn = z.infer<typeof timelineTurnSchema>;
 export type AddTurnInput = z.infer<typeof addTurnInputSchema>;
 export type AddTurnOutput = z.infer<typeof addTurnOutputSchema>;
+export type InsertTurnAfterInput = z.infer<typeof insertTurnAfterInputSchema>;
+export type InsertTurnAfterOutput = z.infer<typeof insertTurnAfterOutputSchema>;
 export type UpdateTurnContentInput = z.infer<typeof updateTurnContentInputSchema>;
 export type ResolveLeafInput = z.infer<typeof resolveLeafInputSchema>;
 export type ResolveLeafOutput = z.infer<typeof resolveLeafOutputSchema>;

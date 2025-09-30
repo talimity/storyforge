@@ -221,6 +221,7 @@ export class TimelineEventsService {
   }
 
   private async ensureInitialChapterEvent(tx: SqliteTransaction, scenarioId: string) {
+    await assertScenarioExists(tx, scenarioId);
     const existing = await tx
       .select({ id: timelineEvents.id })
       .from(timelineEvents)
@@ -235,10 +236,8 @@ export class TimelineEventsService {
 
     if (existing.at(0)) return;
 
-    const scenario = await assertScenarioExists(tx, scenarioId);
-
     const payload = chapterBreakSpec.schema.parse({
-      nextChapterTitle: scenario.name,
+      nextChapterTitle: null,
     });
 
     await tx.insert(timelineEvents).values({

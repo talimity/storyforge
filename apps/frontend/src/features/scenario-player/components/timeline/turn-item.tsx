@@ -5,6 +5,7 @@ import {
   LuCheck,
   LuChevronRight,
   LuEllipsisVertical,
+  LuFilePlus,
   LuInfo,
   LuListEnd,
   LuMoveDown,
@@ -39,12 +40,13 @@ export interface TurnItemProps {
   onDelete?: (turnId: string, cascade: boolean) => void;
   onEdit?: (turnId: string, content: string) => void;
   onRetry?: (turn: TimelineTurn) => void;
+  onInsertManual?: (turn: TimelineTurn) => void;
 
   isUpdating?: boolean;
 }
 
 function TurnItemImpl(props: TurnItemProps) {
-  const { turn, prevTurn, nextTurn, onDelete, onEdit, onRetry, isUpdating } = props;
+  const { turn, prevTurn, nextTurn, onDelete, onEdit, onRetry, onInsertManual, isUpdating } = props;
   const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
   const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
   const isEditing = editingTurnId === turn.id;
@@ -110,6 +112,10 @@ function TurnItemImpl(props: TurnItemProps) {
   const handleRetry = useCallback(() => {
     onRetry?.(turn);
   }, [onRetry, turn]);
+
+  const handleInsertManual = useCallback(() => {
+    onInsertManual?.(turn);
+  }, [onInsertManual, turn]);
 
   const handleGenerationInfo = useCallback(() => {
     setShowGenerationInfo(true);
@@ -258,6 +264,14 @@ function TurnItemImpl(props: TurnItemProps) {
                             <Portal>
                               <Menu.Positioner>
                                 <Menu.Content>
+                                  <Menu.Item
+                                    onClick={handleInsertManual}
+                                    value="manual-turn"
+                                    disabled={isGenerating || !onInsertManual}
+                                  >
+                                    <LuFilePlus />
+                                    Manual Turn
+                                  </Menu.Item>
                                   <Menu.Item
                                     onClick={() => {
                                       void handleInsertChapterBreak();
