@@ -11,11 +11,12 @@ export function createDatabaseConfig(overrides?: Partial<DatabaseConfig>): Datab
 
   assertIsDatabaseConfig(dbConfig);
 
+  // TODO: Use $HOME or XDG_DATA_HOME if not set
   if (!path.isAbsolute(dbConfig.path)) {
     dbConfig.path = path.resolve(process.cwd(), "..", "..", dbConfig.path);
   }
 
-  console.log("Using database at path:", dbConfig.path);
+  console.debug("[db] Using database at path:", dbConfig.path);
   mkdirSync(path.dirname(dbConfig.path), { recursive: true });
 
   return dbConfig;

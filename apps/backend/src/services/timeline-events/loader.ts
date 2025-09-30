@@ -29,12 +29,14 @@ WITH RECURSIVE
              e.kind,
              e.payload_version AS payloadVersion,
              e.payload,
+             COALESCE(t.is_ghost, 0)                                    AS turnIsGhost,
              CASE
                WHEN e.turn_id IS NULL THEN -1
                ELSE meta.max_depth - path.depth
              END AS event_depth
       FROM timeline_events e
                LEFT JOIN path ON path.id = e.turn_id
+               LEFT JOIN turns t ON t.id = e.turn_id
                CROSS JOIN meta
       WHERE e.scenario_id = ${scenarioId}
         AND (e.turn_id IS NULL OR path.id IS NOT NULL)
@@ -44,7 +46,8 @@ SELECT id,
        orderKey,
        kind,
        payloadVersion,
-       payload
+       payload,
+       turnIsGhost
 FROM ordered_events
 ORDER BY event_depth ASC,
          orderKey ASC;
@@ -60,8 +63,10 @@ ORDER BY event_depth ASC,
                e.order_key       AS orderKey,
                e.kind,
                e.payload_version AS payloadVersion,
-               e.payload
+               e.payload,
+               COALESCE(t.is_ghost, 0) AS turnIsGhost
         FROM timeline_events e
+                 LEFT JOIN turns t ON t.id = e.turn_id
         WHERE e.scenario_id = ${scenarioId}
           AND e.turn_id IN (${sql.join(literals, sql`, `)})
         ORDER BY e.turn_id,

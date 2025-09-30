@@ -18,6 +18,7 @@ export const turns = sqliteTable(
     authorParticipantId: text("author_participant_id")
       .notNull()
       .references(() => scenarioParticipants.id, { onDelete: "restrict" }),
+    isGhost: integer("is_ghost", { mode: "boolean" }).notNull().default(false),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),

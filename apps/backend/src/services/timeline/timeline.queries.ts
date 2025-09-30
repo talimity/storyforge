@@ -18,6 +18,7 @@ type TimelineRowRecord = {
   scenario_id: string;
   parent_turn_id: string | null; // null for root turns
   author_participant_id: string;
+  is_ghost: number;
 
   left_turn_id: string | null; // Previous sibling turn ID
   right_turn_id: string | null; // Next sibling turn ID
@@ -209,6 +210,7 @@ SELECT e.id,
        t.scenario_id,
        e.parent_turn_id,
        t.author_participant_id,
+       t.is_ghost                                           AS is_ghost,
 
        e.prev_sibling_id                                      AS left_turn_id,
        e.next_sibling_id                                      AS right_turn_id,
@@ -272,11 +274,11 @@ export async function getAuthorHistoryWindow(
         SELECT COALESCE(${leafTurnId}, (SELECT anchor_turn_id FROM scenarios WHERE id = ${scenarioId})) AS id
       ),
       path AS (
-        SELECT t.id, 0 AS depth, t.parent_turn_id
+        SELECT t.id, 0 AS depth, t.parent_turn_id, t.is_ghost
           FROM turns t
          WHERE t.id = (SELECT id FROM leaf) AND t.scenario_id = ${scenarioId}
         UNION ALL
-        SELECT parent.id, path.depth + 1, parent.parent_turn_id
+        SELECT parent.id, path.depth + 1, parent.parent_turn_id, parent.is_ghost
           FROM turns parent
           JOIN path ON path.parent_turn_id = parent.id
          WHERE parent.scenario_id = ${scenarioId}
@@ -284,6 +286,7 @@ export async function getAuthorHistoryWindow(
       limited AS (
         SELECT id, depth
           FROM path
+         WHERE is_ghost = 0 -- exclude ghost turns when choosing recent authors
          ORDER BY depth ASC
          LIMIT ${windowSize}
       )
@@ -350,6 +353,7 @@ export async function getFullTimelineTurnCtx(
     intent_kind: Intent["kind"] | null;
     intent_input_text: string | null;
     intent_target_participant_id: string | null;
+    is_ghost: number;
   }>(sql`WITH RECURSIVE
     scenario_anchor AS (SELECT anchor_turn_id AS id
                         FROM scenarios
@@ -384,7 +388,8 @@ export async function getFullTimelineTurnCtx(
                         -- presentation layer content
                         MAX(CASE WHEN l.key = 'presentation' THEN l.content END) AS presentation,
                         -- aggregate all layers into a single JSON object
-                        json_group_object(l.key, l.content)                      AS layers_json
+                        json_group_object(l.key, l.content)                      AS layers_json,
+                        MAX(t.is_ghost)                                         AS is_ghost
                  FROM path p
                           JOIN turns t ON t.id = p.id
                           JOIN scenario_participants sp ON sp.id = t.author_participant_id
@@ -412,6 +417,7 @@ SELECT e.id AS turn_id,
        im.intent_target_participant_id
 FROM enriched e
 LEFT JOIN intent_map im ON im.turn_id = e.id
+WHERE e.is_ghost = 0
 ORDER BY turn_no ASC;
   `);
 
@@ -425,6 +431,7 @@ ORDER BY turn_no ASC;
       authorName: r.author_name,
       authorType: r.author_type,
       content: r.presentation ?? "",
+      isGhost: Boolean(r.is_ghost),
       layers,
       intent: getTurnIntentPrompt({
         kind: r.intent_kind,

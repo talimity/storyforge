@@ -9,6 +9,8 @@ import {
   queryTimelineOutputSchema,
   resolveLeafInputSchema,
   resolveLeafOutputSchema,
+  setTurnGhostInputSchema,
+  setTurnGhostOutputSchema,
   switchTimelineInputSchema,
   switchTimelineOutputSchema,
   timelineStateInputSchema,
@@ -96,6 +98,7 @@ export const timelineRouter = router({
         scenarioId: r.scenario_id,
         parentTurnId: r.parent_turn_id,
         authorParticipantId: r.author_participant_id,
+        isGhost: Boolean(r.is_ghost),
         swipes: {
           leftTurnId: r.left_turn_id,
           rightTurnId: r.right_turn_id,
@@ -255,6 +258,23 @@ export const timelineRouter = router({
       const { turnId, layer, content } = input;
       const contentService = new TurnContentService(ctx.db);
       await contentService.updateTurnContent({ turnId, layer, content });
+      return { success: true };
+    }),
+
+  setTurnGhost: publicProcedure
+    .meta({
+      openapi: {
+        method: "PATCH",
+        path: "/api/timeline/turn/{turnId}/ghost",
+        tags: ["timeline"],
+        summary: "Marks or unmarks a turn as a ghost turn",
+      },
+    })
+    .input(setTurnGhostInputSchema)
+    .output(setTurnGhostOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const timeline = new TimelineService(ctx.db);
+      await timeline.setTurnGhostState(input);
       return { success: true };
     }),
 

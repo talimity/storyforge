@@ -50,6 +50,20 @@ export function useTurnActions() {
       },
     })
   );
+  const { mutate: setTurnGhost, isPending: isTogglingGhost } = useMutation(
+    trpc.timeline.setTurnGhost.mutationOptions({
+      onSuccess: (_data, variables) => {
+        showSuccessToast({
+          title: variables.isGhost ? "Turn ghosted" : "Turn restored",
+          description: variables.isGhost
+            ? "Turn will be skipped in prompts and scenario state."
+            : "Turn will be included in prompts and scenario state again.",
+        });
+        qc.invalidateQueries(trpc.timeline.window.pathFilter());
+        qc.invalidateQueries(trpc.timeline.state.pathFilter());
+      },
+    })
+  );
 
   const handleDeleteTurn = useCallback((turnId: string, cascade: boolean) => {
     setTurnToDelete({ id: turnId, cascade });
@@ -128,6 +142,13 @@ export function useTurnActions() {
     setManualTurnTarget(null);
   }, []);
 
+  const handleToggleGhostTurn = useCallback(
+    (turnId: string, isGhost: boolean) => {
+      setTurnGhost({ turnId, isGhost });
+    },
+    [setTurnGhost]
+  );
+
   return {
     // Delete state
     turnToDelete,
@@ -145,6 +166,7 @@ export function useTurnActions() {
     // Edit state
     editingTurnId,
     isUpdating,
+    isTogglingGhost,
 
     // Delete handlers
     handleDeleteTurn,
@@ -163,5 +185,8 @@ export function useTurnActions() {
     handleInsertManualTurn,
     handleManualInsertSubmit,
     handleManualInsertClose,
+
+    // Ghost toggle handler
+    handleToggleGhostTurn,
   };
 }

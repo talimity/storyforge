@@ -106,7 +106,7 @@ describe("timeline events integration", () => {
     const { state } = await caller.timeline.state({ scenarioId, atTurnId: rootTurnId });
 
     expect(state.chapters.chapters).toEqual([
-      { number: 1, title: "Timeline Event Scenario", turnId: null, eventId: initialChapterEventId },
+      { number: 1, title: null, turnId: null, eventId: initialChapterEventId },
       { number: 2, title: "Rising Action", turnId: rootTurnId, eventId: chapterBreakEventId },
     ]);
 
@@ -140,7 +140,7 @@ describe("timeline events integration", () => {
     expect(initial.state.chapters.chapters).toEqual([
       {
         number: 1,
-        title: "Timeline Event Scenario",
+        title: null,
         turnId: null,
         eventId: initialChapterEventId,
       },
@@ -148,7 +148,7 @@ describe("timeline events integration", () => {
     expect(chapter.state.chapters.chapters).toEqual([
       {
         number: 1,
-        title: "Timeline Event Scenario",
+        title: null,
         turnId: null,
         eventId: initialChapterEventId,
       },
@@ -163,20 +163,21 @@ describe("timeline events integration", () => {
       [bobParticipantId]: { active: false, status: "Captured" },
     });
   });
+
   it("renames chapter break events", async () => {
     const rename = await caller.timelineEvents.renameChapter({
       scenarioId,
-      eventId: chapterBreakEventId,
+      eventId: initialChapterEventId,
       nextChapterTitle: "A New Beginning",
     });
 
-    expect(rename.eventId).toBe(chapterBreakEventId);
+    expect(rename.eventId).toBe(initialChapterEventId);
     expect(rename.payloadVersion).toBe(chapterBreakSpec.latest);
 
     const stateAfterRename = await caller.timeline.state({ scenarioId, atTurnId: rootTurnId });
     expect(stateAfterRename.state.chapters.chapters).toEqual([
-      { number: 1, title: "Timeline Event Scenario", turnId: null, eventId: initialChapterEventId },
-      { number: 2, title: "A New Beginning", turnId: rootTurnId, eventId: chapterBreakEventId },
+      { number: 1, title: "A New Beginning", turnId: null, eventId: initialChapterEventId },
+      { number: 2, title: "Rising Action", turnId: rootTurnId, eventId: chapterBreakEventId },
     ]);
   });
 

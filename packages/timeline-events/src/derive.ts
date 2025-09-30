@@ -42,7 +42,8 @@ export class TimelineStateDeriver {
     const rows = await this.loader.loadOrderedEventsAlongPath(scenarioId, leafTurnId);
 
     // Parsed envelopes remain a union across all kinds.
-    const envelopes: TimelineEventEnvelopeOf<AnyTimelineEventKind>[] = rows.map((row) => {
+    const parsedRows = rows.map((row) => {
+      const { turnIsGhost, ...rest } = row;
       const spec = timelineEvents[row.kind];
 
       // Depending on whether the row was fetched with raw sql or the drizzle
@@ -54,9 +55,12 @@ export class TimelineStateDeriver {
         payload: normalized,
       });
       return {
-        ...row,
-        payloadVersion: version,
-        payload,
+        envelope: {
+          ...rest,
+          payloadVersion: version,
+          payload,
+        } satisfies TimelineEventEnvelopeOf<AnyTimelineEventKind>,
+        turnIsGhost,
       };
     });
 
@@ -67,12 +71,14 @@ export class TimelineStateDeriver {
 
     const derivedEvents: DerivedTimelineEvent[] = [];
 
-    for (const ev of envelopes) {
+    for (const { envelope: ev, turnIsGhost } of parsedRows) {
       const concernName = timelineEventKindToConcern[ev.kind];
       const concern = timelineConcerns[concernName];
 
-      // Apply reducer; we know this concern can handle this event type due to runtime mapping.
-      stateByConcern[concernName] = (concern as any).step(stateByConcern[concernName], ev);
+      if (!turnIsGhost || ev.turnId === null) {
+        // Apply reducer; we know this concern can handle this event type due to runtime mapping.
+        stateByConcern[concernName] = (concern as any).step(stateByConcern[concernName], ev);
+      }
 
       if (collectEvents) {
         derivedEvents.push({

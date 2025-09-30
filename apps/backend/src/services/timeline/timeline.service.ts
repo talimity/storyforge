@@ -166,6 +166,25 @@ export class TimelineService {
     return outerTx ? op(outerTx) : this.db.transaction(op);
   }
 
+  async setTurnGhostState(args: { turnId: string; isGhost: boolean }) {
+    const { turnId, isGhost } = args;
+
+    await this.db.transaction(async (tx) => {
+      const turn = await tx
+        .select({ id: tTurns.id })
+        .from(tTurns)
+        .where(eq(tTurns.id, turnId))
+        .limit(1)
+        .then((rows) => rows[0]);
+
+      if (!turn) {
+        throw new ServiceError("NotFound", { message: `Turn with ID ${turnId} not found.` });
+      }
+
+      await tx.update(tTurns).set({ isGhost, updatedAt: new Date() }).where(eq(tTurns.id, turnId));
+    });
+  }
+
   /**
    * Determines the parent of a turn to be inserted into the turn graph. Raises
    * an error if a branching operation is attempted on an empty scenario.

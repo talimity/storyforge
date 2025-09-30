@@ -26,6 +26,7 @@ export const timelineTurnSchema = z.object({
     .nullable()
     .describe("Previous turn in this timeline (or null for the root turn)"),
   authorParticipantId: z.string().describe("Participant ID of the author of this turn"),
+  isGhost: z.boolean().describe("Whether this turn is marked as a ghost turn"),
   turnNo: z.number().describe("1-based position of this turn from the timeline root"),
   swipes: z
     .object({
@@ -83,6 +84,11 @@ export const updateTurnContentInputSchema = z.object({
   layer: z.string().default("presentation"),
   content: z.string(),
 });
+export const setTurnGhostInputSchema = z.object({
+  turnId: z.string(),
+  isGhost: z.boolean(),
+});
+export const setTurnGhostOutputSchema = z.object({ success: z.boolean() });
 
 // Branch preview/switch schemas
 export const resolveLeafInputSchema = z.object({
@@ -185,6 +191,8 @@ export type AddTurnOutput = z.infer<typeof addTurnOutputSchema>;
 export type InsertTurnAfterInput = z.infer<typeof insertTurnAfterInputSchema>;
 export type InsertTurnAfterOutput = z.infer<typeof insertTurnAfterOutputSchema>;
 export type UpdateTurnContentInput = z.infer<typeof updateTurnContentInputSchema>;
+export type SetTurnGhostInput = z.infer<typeof setTurnGhostInputSchema>;
+export type SetTurnGhostOutput = z.infer<typeof setTurnGhostOutputSchema>;
 export type ResolveLeafInput = z.infer<typeof resolveLeafInputSchema>;
 export type ResolveLeafOutput = z.infer<typeof resolveLeafOutputSchema>;
 export type SwitchTimelineInput = z.infer<typeof switchTimelineInputSchema>;

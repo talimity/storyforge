@@ -29,6 +29,7 @@ export type TimelineEventEnvelope<K extends string = AnyTimelineEventKind, P = u
 
 export type RawTimelineEvent = Omit<TimelineEventEnvelopeOf<AnyTimelineEventKind>, "payload"> & {
   payload: Record<string, unknown>;
+  turnIsGhost: boolean;
 };
 
 export type AnyTimelineEventKind = keyof TimelineEventPayloadMap;

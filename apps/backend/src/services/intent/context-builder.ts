@@ -53,6 +53,7 @@ export class IntentContextBuilder {
       ...t,
       events: eventsByTurn[t.turnId] ?? [],
     }));
+    const nextTurnNumber = (turns.at(-1)?.turnNo ?? 0) + 1;
 
     return {
       turns: enrichedTurns,
@@ -73,7 +74,7 @@ export class IntentContextBuilder {
             },
           }
         : {}),
-      nextTurnNumber: (turns.at(-1)?.turnNo ?? 0) + 1,
+      nextTurnNumber,
       stepInputs: {},
       globals: {
         char: currentActorName,

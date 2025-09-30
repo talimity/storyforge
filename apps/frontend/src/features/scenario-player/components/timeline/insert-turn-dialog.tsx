@@ -130,16 +130,18 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
         }
       }}
       placement="center"
+      lazyMount
+      unmountOnExit
     >
       <Dialog.Content maxW="lg">
         <Dialog.Header>
-          <Dialog.Title>{turnLabel || "Insert manual turn"}</Dialog.Title>
+          <Dialog.Title>{turnLabel || "Insert turn"}</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
           <Stack gap={4}>
             <Text color="content.muted" fontSize="sm">
-              Choose who speaks and optionally pre-fill the turn. The story anchor will switch to
-              this new branch without triggering generation.
+              Select an author and write the content of the new turn. No generation will be
+              triggered for this new turn.
             </Text>
 
             <Stack gap={2}>
@@ -164,7 +166,7 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
                         {(items) => items.map((item) => item.label).join(", ")}
                       </SelectValueText>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent portalled={false}>
                       {authorOptions.map((option) => (
                         <SelectItem key={option.value} item={option}>
                           <HStack gap={3} align="center">

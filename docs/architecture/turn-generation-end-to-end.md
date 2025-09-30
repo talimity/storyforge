@@ -13,6 +13,7 @@ This guide traces how a single turn is produced, starting from the player UI and
 
 3. **Workflow runner prepares prompt context**
    - `generateTurn` uses `IntentContextBuilder` to assemble the `TurnGenCtx`: full timeline, character roster, current intent metadata, step inputs, and globals. This context satisfies the `TurnGenSources` contract.
+   - Ghost turns (deactivated timeline nodes) are filtered from the prompt context, so the model never sees them, but their turn numbers still influence the `nextTurnNumber` that the workflow receives.
    - The workflow runner (from `@storyforge/gentasks`) loads the configured turn-generation workflow, template, and model profile. It compiles the prompt template with the turn-generation source registry and renders chat messages under budget control.
 
 4. **Inference adapter executes the request**

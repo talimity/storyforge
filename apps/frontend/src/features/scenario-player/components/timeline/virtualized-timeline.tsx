@@ -70,6 +70,8 @@ export function VirtualizedTimeline(props: TimelineProps) {
     handleInsertManualTurn,
     handleManualInsertSubmit,
     handleManualInsertClose,
+    isTogglingGhost,
+    handleToggleGhostTurn,
   } = useTurnActions();
 
   // If the active run is generating a new branch, we want to temporarily hide
@@ -226,7 +228,9 @@ export function VirtualizedTimeline(props: TimelineProps) {
                     onEdit={handleEditTurn}
                     onRetry={handleRetryTurn}
                     onInsertManual={handleInsertManualTurn}
+                    onToggleGhost={handleToggleGhostTurn}
                     isUpdating={editingTurnId === row.key && isUpdating}
+                    isTogglingGhost={isTogglingGhost}
                   />
                 )}
               </div>

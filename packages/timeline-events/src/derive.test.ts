@@ -20,6 +20,7 @@ describe("TimelineStateDeriver", () => {
         kind: "chapter_break",
         payloadVersion: 1,
         payload: { nextChapterTitle: "Prologue" },
+        turnIsGhost: false,
       },
       {
         id: "chapter-2",
@@ -28,6 +29,7 @@ describe("TimelineStateDeriver", () => {
         kind: "chapter_break",
         payloadVersion: 1,
         payload: { nextChapterTitle: "Act I" },
+        turnIsGhost: false,
       },
       {
         id: "presence-1",
@@ -36,6 +38,7 @@ describe("TimelineStateDeriver", () => {
         kind: "presence_change",
         payloadVersion: 1,
         payload: { participantId: "char-A", active: false, status: null },
+        turnIsGhost: false,
       },
     ];
 
@@ -85,6 +88,7 @@ describe("TimelineStateDeriver", () => {
         kind: "chapter_break",
         payloadVersion: 1,
         payload: { nextChapterTitle: "Prelude" },
+        turnIsGhost: false,
       },
     ];
     const deriver = new TimelineStateDeriver(new StubLoader(events));
@@ -95,5 +99,27 @@ describe("TimelineStateDeriver", () => {
     expect(result.final.chapters.chapters).toEqual([
       { number: 1, title: "Prelude", turnId: null, eventId: "chapter" },
     ]);
+  });
+
+  it("retains ghost turn events but skips their state effects", async () => {
+    const events: RawTimelineEvent[] = [
+      {
+        id: "ghost-presence",
+        turnId: "turn-ghost",
+        orderKey: "a",
+        kind: "presence_change",
+        payloadVersion: 1,
+        payload: { participantId: "char-1", active: false, status: "banished" },
+        turnIsGhost: true,
+      },
+    ];
+    const deriver = new TimelineStateDeriver(new StubLoader(events));
+
+    const result = await deriver.run({ scenarioId: "scn" });
+
+    expect(result.final.presence.participantPresence).toEqual({});
+    expect(result.events).toHaveLength(1);
+    expect(result.events[0].id).toBe("ghost-presence");
+    expect(result.events[0].state.presence.participantPresence).toEqual({});
   });
 });

@@ -1,0 +1,1 @@
+ALTER TABLE `turns` ADD `is_ghost` integer DEFAULT false NOT NULL;

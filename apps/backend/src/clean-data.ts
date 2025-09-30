@@ -17,9 +17,8 @@ export async function cleanData(db: SqliteDatabase) {
 }
 
 async function markPendingAndRunningIntentsAsFailed(db: SqliteDatabase) {
-  // Set any unresolved intents to failed on startup (single-process app;
-  // generations do not survive restarts). This clears the unique partial
-  // index on (scenarioId) where status IN ('pending','running').
+  // Set any unresolved intents to failed on startup. This clears the unique
+  // partial index on (scenarioId) where status IN ('pending','running').
   const rows = await db
     .update(schema.intents)
     .set({ status: "failed" })

@@ -6,6 +6,7 @@ import {
   LuChevronRight,
   LuEllipsisVertical,
   LuFilePlus,
+  LuGhost,
   LuInfo,
   LuListEnd,
   LuMoveDown,
@@ -41,12 +42,25 @@ export interface TurnItemProps {
   onEdit?: (turnId: string, content: string) => void;
   onRetry?: (turn: TimelineTurn) => void;
   onInsertManual?: (turn: TimelineTurn) => void;
+  onToggleGhost?: (turnId: string, isGhost: boolean) => void;
 
   isUpdating?: boolean;
+  isTogglingGhost?: boolean;
 }
 
 function TurnItemImpl(props: TurnItemProps) {
-  const { turn, prevTurn, nextTurn, onDelete, onEdit, onRetry, onInsertManual, isUpdating } = props;
+  const {
+    turn,
+    prevTurn,
+    nextTurn,
+    onDelete,
+    onEdit,
+    onRetry,
+    onInsertManual,
+    onToggleGhost,
+    isUpdating,
+    isTogglingGhost,
+  } = props;
   const editingTurnId = useScenarioPlayerStore((state) => state.editingTurnId);
   const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
   const isEditing = editingTurnId === turn.id;
@@ -100,6 +114,10 @@ function TurnItemImpl(props: TurnItemProps) {
 
   const doNothing = useCallback(() => {}, []);
 
+  const handleToggleGhost = useCallback(() => {
+    onToggleGhost?.(turn.id, !turn.isGhost);
+  }, [onToggleGhost, turn.id, turn.isGhost]);
+
   const handleSwipe = useCallback(
     async (dir: "left" | "right") => {
       if (isGenerating) return;
@@ -145,6 +163,7 @@ function TurnItemImpl(props: TurnItemProps) {
         borderRadius="md"
         data-turn-id={turn.id}
         data-testid="turn-item"
+        opacity={turn.isGhost ? 0.5 : 1}
       >
         <Stack gap={2}>
           <HStack justify="space-between" pb={1}>
@@ -166,6 +185,11 @@ function TurnItemImpl(props: TurnItemProps) {
                   <Text fontSize="xs" color="content.muted">
                     #{turn.turnNo}
                   </Text>
+                  {turn.isGhost ? (
+                    <Text as="span" fontSize="xs" color="content.muted">
+                      <LuGhost aria-label="Ghost turn" />
+                    </Text>
+                  ) : null}
                   {provenanceDisplay && <IntentProvenanceIndicator display={provenanceDisplay} />}
                 </HStack>
               </Stack>
@@ -322,6 +346,16 @@ function TurnItemImpl(props: TurnItemProps) {
                           </Menu.Root>
 
                           <MenuSeparator />
+                          <Menu.Item
+                            value="toggle-ghost"
+                            onClick={handleToggleGhost}
+                            disabled={isTogglingGhost}
+                          >
+                            <LuGhost />
+                            <Box flex="1">{turn.isGhost ? "Restore Turn" : "Ghost Turn"}</Box>
+                          </Menu.Item>
+
+                          <MenuSeparator />
                           {/* Generation Info */}
                           {hasIntent && (
                             <Menu.Item
@@ -405,5 +439,6 @@ export const TurnItem = memo(
     prev.turn.content.text === next.turn.content.text &&
     prev.turn.swipes?.swipeNo === next.turn.swipes?.swipeNo &&
     prev.turn.swipes?.swipeCount === next.turn.swipes?.swipeCount &&
-    prev.turn.provenance?.intentStatus === next.turn.provenance?.intentStatus
+    prev.turn.provenance?.intentStatus === next.turn.provenance?.intentStatus &&
+    prev.turn.isGhost === next.turn.isGhost
 );

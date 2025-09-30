@@ -7,6 +7,7 @@ This document captures the mental model behind the timeline and intent systems a
 - **Scenario**: the container for everything else. Each scenario has a roster of participants, a rooted turn tree, and a pointer to the active timeline.
 - **Participant**: a narrator or character that can author turns. Participants mirror scenario membership and carry ordering metadata used for rotation.
 - **Turn**: a node in the scenario's turn tree. Turns hold layered content ("presentation" prose, hidden reasoning, etc.) and link back to their author.
+- **Ghost turn**: a turn flagged as inactive. Ghosts stay in the graph (and keep their numbering and children) but are skipped when deriving timeline state or rendering prompts.
 - **Timeline**: any root→leaf path through the turn tree. The **anchor** is the leaf that defines the active timeline; it always resolves to an actual leaf node, never an interior point.
 - **Intent**: a player action that may lead to one or more new turns. Intents own execution state, branching instructions, and the provenance trail that links back to the turns they spawned.
 - **Effect**: a durable record tying an intent to the structural change it caused (currently new turns). Effects provide the glue between the intent ledger, the turn graph, and observability tooling.
