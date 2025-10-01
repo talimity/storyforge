@@ -120,31 +120,32 @@ describe("TimelineService.deleteTurn", () => {
       expect(scenario!.anchorTurnId).toBe(a.id);
     });
 
-    it("finds leaf when setting new anchor that has children", async () => {
+    it("prefers the most recently updated leaf when setting new anchor that has children", async () => {
       // When deleting an anchor and the new proposed anchor has children,
-      // we must traverse down to find the actual leaf
+      // we must traverse down to find the actual leaf. The resolution strategy
+      // should track the most recently interacted-with branch.
       //       A
       //      / \
       //     B   C    <- current anchor
       //   / | \
-      //  D  E  F      <- D should become the new anchor (first child path leaf)
+      //  D  E  F      <- F should become the new anchor (most recent branch)
       const a = await createTurn(db, { parent: null });
       const b = await createTurn(db, { parent: a.id, siblingOrder: RANKS[0] });
       const c = await createTurn(db, { parent: a.id, siblingOrder: RANKS[1] });
-      const d = await createTurn(db, { parent: b.id, siblingOrder: RANKS[0] });
+      /* d */ await createTurn(db, { parent: b.id, siblingOrder: RANKS[0] });
       /* e */ await createTurn(db, { parent: b.id, siblingOrder: RANKS[1] });
-      /* f */ await createTurn(db, { parent: b.id, siblingOrder: RANKS[2] });
+      const f = await createTurn(db, { parent: b.id, siblingOrder: RANKS[2] });
       await setAnchor(db, TEST_SCENARIO_ID, c.id);
 
       // Delete C (the anchor). B would be set as new anchor, but it has children
-      // So the actual anchor should be D (first child in the path)
+      // So the actual anchor should be F (most recently updated child path)
       await service.deleteTurn(c.id, true);
 
       const scenario = await db.query.scenarios.findFirst({
         where: { id: TEST_SCENARIO_ID },
       });
-      // Should find D as the leaf (following first child path from B)
-      expect(scenario!.anchorTurnId).toBe(d.id);
+      // Should find F as the leaf (following most recent path from B)
+      expect(scenario!.anchorTurnId).toBe(f.id);
     });
 
     it("preserves order of remaining siblings", async () => {
@@ -393,6 +394,87 @@ describe("TimelineService.deleteTurn", () => {
     expect(aTurn).toBeDefined();
     const children = await getTurnsByParent(db, a.id);
     expect(children.map((t) => t.id)).toEqual([b.id, c.id]);
+  });
+});
+
+describe("TimelineService.switchAnchor", () => {
+  let db: SqliteDatabase;
+  let service: TimelineService;
+
+  beforeEach(async () => {
+    db = await createTestDatabase();
+    service = new TimelineService(db);
+
+    await db.insert(schema.scenarios).values({
+      id: TEST_SCENARIO_ID,
+      name: "Test Scenario",
+      description: "A scenario for testing",
+      anchorTurnId: null,
+    });
+
+    await db
+      .insert(schema.scenarioParticipants)
+      .values({ id: TEST_PARTICIPANT_ID, scenarioId: TEST_SCENARIO_ID });
+  });
+
+  it("follows the most recently updated branch down to a leaf", async () => {
+    const baseTime = new Date("2024-06-01T00:00:00.000Z");
+    const root = await createTurn(db, { parent: null, siblingOrder: RANKS[0] });
+
+    const legacyBranch = await createTurn(db, {
+      parent: root.id,
+      siblingOrder: RANKS[0],
+    });
+    const legacyLeaf = await createTurn(db, {
+      parent: legacyBranch.id,
+      siblingOrder: RANKS[0],
+    });
+
+    const activeBranch = await createTurn(db, {
+      parent: root.id,
+      siblingOrder: RANKS[1],
+    });
+    const olderActiveLeaf = await createTurn(db, {
+      parent: activeBranch.id,
+      siblingOrder: RANKS[0],
+    });
+    const newestActiveLeaf = await createTurn(db, {
+      parent: activeBranch.id,
+      siblingOrder: RANKS[1],
+    });
+
+    await db
+      .update(schema.turns)
+      .set({ updatedAt: new Date(baseTime.getTime() + 1_000) })
+      .where(eq(schema.turns.id, legacyBranch.id));
+    await db
+      .update(schema.turns)
+      .set({ updatedAt: new Date(baseTime.getTime() + 2_000) })
+      .where(eq(schema.turns.id, legacyLeaf.id));
+
+    await db
+      .update(schema.turns)
+      .set({ updatedAt: new Date(baseTime.getTime() + 10_000) })
+      .where(eq(schema.turns.id, activeBranch.id));
+    await db
+      .update(schema.turns)
+      .set({ updatedAt: new Date(baseTime.getTime() + 11_000) })
+      .where(eq(schema.turns.id, olderActiveLeaf.id));
+    await db
+      .update(schema.turns)
+      .set({ updatedAt: new Date(baseTime.getTime() + 50_000) })
+      .where(eq(schema.turns.id, newestActiveLeaf.id));
+
+    await setAnchor(db, TEST_SCENARIO_ID, legacyLeaf.id);
+
+    const newAnchor = await service.switchAnchor({
+      scenarioId: TEST_SCENARIO_ID,
+      fromTurnId: root.id,
+    });
+
+    expect(newAnchor).toBe(newestActiveLeaf.id);
+    const scenario = await db.query.scenarios.findFirst({ where: { id: TEST_SCENARIO_ID } });
+    expect(scenario!.anchorTurnId).toBe(newestActiveLeaf.id);
   });
 });
 

@@ -460,5 +460,5 @@ export async function resolveLeafForScenario(
     });
   }
 
-  return resolveLeafFrom(db, fromTurnId);
+  return resolveLeafFrom(db, fromTurnId, { strategy: "mostRecentUpdated" });
 }

@@ -138,7 +138,9 @@ export async function executeDeletionPlan(
 
   if (plan.anchorPlan.kind === "set") {
     // Find the actual leaf turn by traversing down from the proposed anchor (left-most policy)
-    const leafTurnId = await resolveLeafFrom(tx, plan.anchorPlan.turnId);
+    const leafTurnId = await resolveLeafFrom(tx, plan.anchorPlan.turnId, {
+      strategy: "mostRecentUpdated",
+    });
     await tx
       .update(schema.scenarios)
       .set({ anchorTurnId: leafTurnId })

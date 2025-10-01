@@ -368,7 +368,9 @@ export class TimelineService {
         });
       }
 
-      const leafId = await resolveLeafFrom(tx, fromTurnId);
+      const leafId = await resolveLeafFrom(tx, fromTurnId, {
+        strategy: "mostRecentUpdated",
+      });
       await tx
         .update(tScenarios)
         .set({ anchorTurnId: leafId })

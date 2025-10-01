@@ -1,12 +1,38 @@
 import type { SqliteTxLike } from "@storyforge/db";
-import { sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
+
+export type LeafResolutionStrategy = "leftmost" | "mostRecentCreated" | "mostRecentUpdated";
+
+export interface ResolveLeafOptions {
+  strategy?: LeafResolutionStrategy;
+}
+
+const DEFAULT_STRATEGY: LeafResolutionStrategy = "leftmost";
+
+const strategyComparators: Record<LeafResolutionStrategy, SQL> = {
+  leftmost: sql`sibling.sibling_order < child.sibling_order`,
+  mostRecentCreated: sql`
+    sibling.created_at > child.created_at
+    OR (sibling.created_at = child.created_at AND sibling.sibling_order > child.sibling_order)
+  `,
+  mostRecentUpdated: sql`
+    sibling.updated_at > child.updated_at
+    OR (sibling.updated_at = child.updated_at AND sibling.sibling_order > child.sibling_order)
+  `,
+};
 
 /**
- * Resolve the deepest leaf under the given turn by following the left-most
- * child at each step (first by sibling_order). If the input is already a leaf,
- * it is returned unchanged.
+ * Resolve the deepest leaf under the given turn using the provided strategy.
+ * If the input is already a leaf, it is returned unchanged.
  */
-export async function resolveLeafFrom(tx: SqliteTxLike, fromTurnId: string): Promise<string> {
+export async function resolveLeafFrom(
+  tx: SqliteTxLike,
+  fromTurnId: string,
+  options: ResolveLeafOptions = {}
+): Promise<string> {
+  const { strategy = DEFAULT_STRATEGY } = options;
+  const comparator = strategyComparators[strategy];
+
   const row = await tx.get<{ id: string }>(sql`
     WITH RECURSIVE leaf_path AS (
       SELECT id, 0 as depth
@@ -15,13 +41,13 @@ export async function resolveLeafFrom(tx: SqliteTxLike, fromTurnId: string): Pro
 
       UNION ALL
 
-      SELECT t.id, lp.depth + 1
-      FROM turns t
-      INNER JOIN leaf_path lp ON t.parent_turn_id = lp.id
+      SELECT child.id, lp.depth + 1
+      FROM turns child
+      INNER JOIN leaf_path lp ON child.parent_turn_id = lp.id
       WHERE NOT EXISTS (
         SELECT 1
-        FROM turns t2
-        WHERE t2.parent_turn_id = lp.id AND t2.sibling_order < t.sibling_order
+        FROM turns sibling
+        WHERE sibling.parent_turn_id = lp.id AND (${comparator})
       )
     )
     SELECT lp.id
@@ -33,3 +59,9 @@ export async function resolveLeafFrom(tx: SqliteTxLike, fromTurnId: string): Pro
 
   return row?.id ?? fromTurnId;
 }
+
+export const leafResolutionStrategies = {
+  leftmost: "leftmost",
+  mostRecentCreated: "mostRecentCreated",
+  mostRecentUpdated: "mostRecentUpdated",
+} as const satisfies Record<string, LeafResolutionStrategy>;
