@@ -1,7 +1,7 @@
 import { Box, Heading, Text, useBreakpointValue, useToken } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
-import { useCallback, useMemo, useRef } from "react";
+import { memo, useCallback, useMemo, useRef } from "react";
 import { ChapterSeparator } from "@/features/scenario-player/components/timeline/chapter-separator";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-turn";
@@ -264,7 +264,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
   );
 }
 
-function TimelineHeader({
+const TimelineHeader = memo(function TimelineHeader({
   scenarioTitle,
   chapterLabel,
   isFetching,
@@ -275,7 +275,7 @@ function TimelineHeader({
 }) {
   return (
     <Box textAlign="center" py={8}>
-      <Heading size="lg" mb={2}>
+      <Heading size="2xl" mb={2}>
         {scenarioTitle}
       </Heading>
       <ChapterSeparator label={chapterLabel} />
@@ -289,7 +289,7 @@ function TimelineHeader({
       )}
     </Box>
   );
-}
+});
 
 function TimelineEmptyState({
   scenarioId,
@@ -308,10 +308,10 @@ function TimelineEmptyState({
   );
 }
 
-function TimelineFooter() {
+const TimelineFooter = memo(function TimelineFooter() {
   return (
     <Box px={2} pb={2}>
       <DraftTurn />
     </Box>
   );
-}
+});

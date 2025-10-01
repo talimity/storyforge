@@ -17,6 +17,7 @@ import {
   LuSquareUserRound,
   LuTrash,
 } from "react-icons/lu";
+import { Link } from "react-router-dom";
 import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
 import { getApiUrl } from "@/lib/get-api-url";
@@ -43,7 +44,6 @@ export function CharacterCard({
     isDeleteDialogOpen,
     deleteCharacterMutation,
     handleDelete,
-    handleEdit,
     openDeleteDialog,
     closeDeleteDialog,
   } = useCharacterActions(character.id);
@@ -104,15 +104,17 @@ export function CharacterCard({
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
-                    <Menu.Item value="edit" onClick={handleEdit}>
-                      <LuPencilLine />
-                      <Box flex="1">Edit</Box>
+                    <Menu.Item value="edit" asChild>
+                      <Link to={`/characters/${character.id}/edit`}>
+                        <LuPencilLine />
+                        <Box flex="1">Edit</Box>
+                      </Link>
                     </Menu.Item>
                     <Menu.Item
                       value="delete"
                       color="fg.error"
                       _hover={{ bg: "bg.error", color: "fg.error" }}
-                      onClick={openDeleteDialog}
+                      onSelect={openDeleteDialog}
                       disabled={deleteCharacterMutation.isPending}
                     >
                       <LuTrash />

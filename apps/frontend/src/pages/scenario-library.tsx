@@ -2,7 +2,7 @@ import { Center, Container, Grid, HStack, Text, VStack } from "@chakra-ui/react"
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuBookOpen, LuImport, LuPlus } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button, EmptyState, PageHeader } from "@/components/ui";
 import { ChatImportDialog } from "@/features/scenario-import/components/chat-import-dialog";
 import { ScenarioCard } from "@/features/scenarios/components/scenario-card";
@@ -24,13 +24,11 @@ export function ScenarioLibraryPage() {
               <LuImport />
               Import Chat
             </Button>
-            <Button
-              variant="solid"
-              colorPalette="primary"
-              onClick={() => navigate("/scenarios/create")}
-            >
-              <LuPlus />
-              Create Scenario
+            <Button variant="solid" colorPalette="primary" asChild>
+              <Link to="/scenarios/create">
+                <LuPlus />
+                Create Scenario
+              </Link>
             </Button>
           </HStack>
         </PageHeader.Controls>

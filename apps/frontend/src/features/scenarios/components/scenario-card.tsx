@@ -8,7 +8,7 @@ import {
   LuPlay,
   LuTrash,
 } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/index";
 import { CharacterPile } from "@/features/characters/components/character-pile";
 import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
@@ -21,19 +21,13 @@ interface ScenarioCardProps {
 }
 
 export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
-  const navigate = useNavigate();
   const {
     isDeleteDialogOpen,
     deleteScenarioMutation,
     handleDelete,
-    handleEdit,
     openDeleteDialog,
     closeDeleteDialog,
   } = useScenarioActions(scenario.id);
-
-  const handlePlay = () => {
-    navigate(`/play/${scenario.id}`);
-  };
 
   return (
     <Card.Root
@@ -80,9 +74,11 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
 
           {/* Actions */}
           <HStack gap={2} width="100%" pt={2}>
-            <Button variant="solid" colorPalette="primary" size="sm" flex={1} onClick={handlePlay}>
-              <LuPlay />
-              Play
+            <Button variant="solid" colorPalette="primary" size="sm" flex={1} asChild>
+              <Link to={`/play/${scenario.id}`}>
+                <LuPlay />
+                Play
+              </Link>
             </Button>
             {!readOnly && (
               <Menu.Root positioning={{ placement: "bottom-end" }}>
@@ -99,9 +95,11 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
                 <Portal>
                   <Menu.Positioner>
                     <Menu.Content>
-                      <Menu.Item value="edit" onClick={handleEdit}>
-                        <LuPencilLine />
-                        <Box flex="1">Edit</Box>
+                      <Menu.Item value="edit" asChild>
+                        <Link to={`/scenarios/${scenario.id}/edit`}>
+                          <LuPencilLine />
+                          <Box flex="1">Edit</Box>
+                        </Link>
                       </Menu.Item>
                       <Menu.Item
                         value="delete"

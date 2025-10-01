@@ -12,7 +12,7 @@ import { ServiceError } from "../../service-error.js";
 import type { ScenarioService } from "../scenario/scenario.service.js";
 import type { TimelineService } from "../timeline/timeline.service.js";
 
-const { characters: tCharacters, scenarioParticipants: tParticipants } = schema;
+const { characters: tCharacters, scenarioParticipants: tParticipants, turns: tTurns } = schema;
 
 interface ImportArgs {
   fileDataUri: string;
@@ -144,6 +144,11 @@ export class ChatImportService {
         const participantId = participantMap.get(message.name);
         if (!participantId) continue;
 
+        // Messages which have is_system set to `true` seem to be 'ghost'/inactive
+        // Note that this is distinct from is_system being set to `""` which
+        // seems to indicate a diagetic narrator/system message (idk man shit's weird)
+        const isGhost = message.is_system === true;
+
         const layers = [
           {
             key: "presentation",
@@ -161,7 +166,7 @@ export class ChatImportService {
           });
         }
 
-        await this.timelineService.advanceTurn(
+        const newTurn = await this.timelineService.advanceTurn(
           {
             scenarioId: scenario.id,
             authorParticipantId: participantId,
@@ -169,6 +174,10 @@ export class ChatImportService {
           },
           tx
         );
+
+        if (isGhost) {
+          await tx.update(tTurns).set({ isGhost: true }).where(eq(tTurns.id, newTurn.id));
+        }
 
         turnCount++;
       }
@@ -212,14 +221,6 @@ export class ChatImportService {
     if (message.name === "SillyTavern System" && message.extra?.isSmallSys === true) {
       // These messages are ST UI messages, not diagetic content. 'small' means
       // they are not included in the prompt so we do not want them either.
-      return true;
-    }
-
-    // Messages which have is_system set to true seem to be 'ghost'/inactive
-    // messages and should be skipped.
-    // Note that this is distinct from is_system being set to empty string which
-    // seems to indicate a diagetic narrator/system message (idk man shit's weird)
-    if (message.is_system === true) {
       return true;
     }
 

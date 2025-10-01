@@ -1,6 +1,16 @@
-import { Box, Group, HStack, Menu, MenuSeparator, Portal, Stack, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Group,
+  Heading,
+  HStack,
+  Menu,
+  MenuSeparator,
+  Portal,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { memo, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   LuCheck,
   LuChevronRight,
@@ -19,7 +29,7 @@ import {
 } from "react-icons/lu";
 import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialog";
-import { AutosizeTextarea, Avatar, Button, Prose } from "@/components/ui/index";
+import { AutosizeTextarea, Avatar, Button, Prose, Tooltip } from "@/components/ui/index";
 import { IntentProvenanceIndicator } from "@/features/scenario-player/components/timeline/intent-provenance-indicator";
 import { getIntentProvenanceDisplay } from "@/features/scenario-player/components/timeline/intent-provenance-utils";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
@@ -48,7 +58,7 @@ export interface TurnItemProps {
   isTogglingGhost?: boolean;
 }
 
-function TurnItemImpl(props: TurnItemProps) {
+export function TurnItem(props: TurnItemProps) {
   const {
     turn,
     prevTurn,
@@ -178,16 +188,24 @@ function TurnItemImpl(props: TurnItemProps) {
                 />
               )}
               <Stack gap={0}>
-                <Text fontSize="md" fontWeight="bold">
+                <Heading size="md" fontWeight="bold">
                   {authorName}
-                </Text>
+                </Heading>
                 <HStack gap={2}>
-                  <Text fontSize="xs" color="content.muted">
-                    #{turn.turnNo}
-                  </Text>
+                  <Tooltip content={turn.createdAt.toLocaleString() ?? "Unknown"}>
+                    <Text fontSize="xs" color="content.muted">
+                      #{turn.turnNo}
+                    </Text>
+                  </Tooltip>
                   {turn.isGhost ? (
                     <Text as="span" fontSize="xs" color="content.muted">
-                      <LuGhost aria-label="Ghost turn" />
+                      <Tooltip
+                        content={
+                          "This turn is not included in prompts or factored into the timeline's current state."
+                        }
+                      >
+                        <LuGhost aria-label="Ghost turn" />
+                      </Tooltip>
                     </Text>
                   ) : null}
                   {provenanceDisplay && <IntentProvenanceIndicator display={provenanceDisplay} />}
@@ -247,7 +265,7 @@ function TurnItemImpl(props: TurnItemProps) {
                               gap="1"
                               flexDirection="column"
                               justifyContent="center"
-                              onClick={handleEditClick}
+                              onSelect={handleEditClick}
                             >
                               <LuPencil />
                               Edit
@@ -258,7 +276,7 @@ function TurnItemImpl(props: TurnItemProps) {
                               gap="1"
                               flexDirection="column"
                               justifyContent="center"
-                              onClick={handleRetry}
+                              onSelect={handleRetry}
                               disabled={isGenerating || !turn.parentTurnId}
                             >
                               <LuRefreshCw />
@@ -267,13 +285,13 @@ function TurnItemImpl(props: TurnItemProps) {
                           </Group>
 
                           {/* Move Up */}
-                          <Menu.Item value="move-up" onClick={doNothing}>
+                          <Menu.Item value="move-up" onSelect={doNothing}>
                             <LuMoveUp />
                             <Box flex="1">Move Up</Box>
                           </Menu.Item>
 
                           {/* Move Down */}
-                          <Menu.Item value="move-down" onClick={doNothing}>
+                          <Menu.Item value="move-down" onSelect={doNothing}>
                             <LuMoveDown />
                             <Box flex="1">Move Down</Box>
                           </Menu.Item>
@@ -289,7 +307,7 @@ function TurnItemImpl(props: TurnItemProps) {
                               <Menu.Positioner>
                                 <Menu.Content>
                                   <Menu.Item
-                                    onClick={handleInsertManual}
+                                    onSelect={handleInsertManual}
                                     value="manual-turn"
                                     disabled={isGenerating || !onInsertManual}
                                   >
@@ -297,7 +315,7 @@ function TurnItemImpl(props: TurnItemProps) {
                                     Manual Turn
                                   </Menu.Item>
                                   <Menu.Item
-                                    onClick={() => {
+                                    onSelect={() => {
                                       void handleInsertChapterBreak();
                                     }}
                                     value="chapter-break"
@@ -328,7 +346,7 @@ function TurnItemImpl(props: TurnItemProps) {
                                     value="delete-single"
                                     color="fg.error"
                                     _hover={{ bg: "bg.error", color: "fg.error" }}
-                                    onClick={() => handleDelete(false)}
+                                    onSelect={() => handleDelete(false)}
                                   >
                                     This turn only
                                   </Menu.Item>
@@ -336,7 +354,7 @@ function TurnItemImpl(props: TurnItemProps) {
                                     value="delete-cascade"
                                     color="fg.error"
                                     _hover={{ bg: "bg.error", color: "fg.error" }}
-                                    onClick={() => handleDelete(true)}
+                                    onSelect={() => handleDelete(true)}
                                   >
                                     This and all below
                                   </Menu.Item>
@@ -348,7 +366,7 @@ function TurnItemImpl(props: TurnItemProps) {
                           <MenuSeparator />
                           <Menu.Item
                             value="toggle-ghost"
-                            onClick={handleToggleGhost}
+                            onSelect={handleToggleGhost}
                             disabled={isTogglingGhost}
                           >
                             <LuGhost />
@@ -357,16 +375,14 @@ function TurnItemImpl(props: TurnItemProps) {
 
                           <MenuSeparator />
                           {/* Generation Info */}
-                          {hasIntent && (
-                            <Menu.Item
-                              value="generation-info"
-                              onClick={handleGenerationInfo}
-                              disabled={!hasIntent}
-                            >
-                              <LuInfo />
-                              Gen Info
-                            </Menu.Item>
-                          )}
+                          <Menu.Item
+                            value="generation-info"
+                            onSelect={handleGenerationInfo}
+                            disabled={!hasIntent}
+                          >
+                            <LuInfo />
+                            Gen Info
+                          </Menu.Item>
                         </Menu.Content>
                       </Menu.Positioner>
                     </Portal>
@@ -385,7 +401,7 @@ function TurnItemImpl(props: TurnItemProps) {
             />
           ) : (
             // TODO: Make maxW configurable
-            <Prose maxW="80ch" size="lg" data-testid="turn-content">
+            <Prose maxW="85ch" size="lg" data-testid="turn-content">
               <Markdown>{turn.content.text}</Markdown>
             </Prose>
           )}
@@ -430,15 +446,3 @@ function TurnItemImpl(props: TurnItemProps) {
     </>
   );
 }
-
-export const TurnItem = memo(
-  TurnItemImpl,
-  (prev, next) =>
-    prev.turn.id === next.turn.id &&
-    prev.turn.turnNo === next.turn.turnNo &&
-    prev.turn.content.text === next.turn.content.text &&
-    prev.turn.swipes?.swipeNo === next.turn.swipes?.swipeNo &&
-    prev.turn.swipes?.swipeCount === next.turn.swipes?.swipeCount &&
-    prev.turn.provenance?.intentStatus === next.turn.provenance?.intentStatus &&
-    prev.turn.isGhost === next.turn.isGhost
-);

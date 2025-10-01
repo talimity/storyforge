@@ -1,11 +1,11 @@
-import { Separator, Stack, Text } from "@chakra-ui/react";
+import { Heading, Separator, Stack } from "@chakra-ui/react";
 
 export function ChapterSeparator({ label }: { label?: string }) {
   return (
     <Stack p={8} textAlign="center">
-      <Text color="content.muted" fontWeight="medium">
+      <Heading color="content.muted" fontWeight="medium">
         {label ?? "No chapters"}
-      </Text>
+      </Heading>
       <Separator />
     </Stack>
   );

@@ -47,7 +47,8 @@ export function ModelProfileForm({
 }: ModelProfileFormProps) {
   const trpc = useTRPC();
   const [selectedProviderId, setSelectedProviderId] = useState(initialData?.providerId || "");
-  const [modelSearchQuery, setModelSearchQuery] = useState("");
+  const [modelSearchInput, setModelSearchInput] = useState("");
+  const [debouncedModelSearchQuery, setDebouncedModelSearchQuery] = useState("");
   const [isTemplateDialogOpen, setTemplateDialogOpen] = useState(false);
 
   const providersQuery = useQuery(trpc.providers.list.queryOptions());
@@ -56,7 +57,7 @@ export function ModelProfileForm({
   // Search models when provider is selected
   const searchModelsQuery = useQuery(
     trpc.providers.searchModels.queryOptions(
-      { providerId: selectedProviderId, query: modelSearchQuery },
+      { providerId: selectedProviderId, query: debouncedModelSearchQuery },
       { enabled: !!selectedProviderId }
     )
   );
@@ -98,6 +99,16 @@ export function ModelProfileForm({
       }
     }
   }, [watchedProviderId, selectedProviderId, setValue, initialData?.providerId]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedModelSearchQuery(modelSearchInput.trim());
+    }, 300);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [modelSearchInput]);
 
   const handleFormSubmit = (data: ModelProfileFormData) => {
     onSubmit(data);
@@ -159,8 +170,8 @@ export function ModelProfileForm({
               >
                 <HStack gap={2}>
                   <Input
-                    value={modelSearchQuery}
-                    onChange={(e) => setModelSearchQuery(e.target.value)}
+                    value={modelSearchInput}
+                    onChange={(e) => setModelSearchInput(e.target.value)}
                     placeholder="Search models..."
                   />
                   {searchModelsQuery.isLoading && <Spinner size="sm" />}

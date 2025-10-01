@@ -33,7 +33,7 @@ export function IntentPanel(props: IntentPanelProps) {
   if (previewLeafTurnId) {
     return (
       <VStack gap={2} minH="100px" justify="center">
-        <Text fontSize="sm" color="content.muted">
+        <Text fontSize="sm" color="contentContrast.muted">
           You're viewing an alternate timeline for this scenario.
         </Text>
         <HStack gap={2}>

@@ -7,7 +7,7 @@ export const sillyTavernMessageSchema = z
     mes: z.string(),
     is_user: z.boolean().nullish(),
     is_system: z.union([z.boolean(), z.string()]).nullish(),
-    send_date: z.string().nullish(),
+    send_date: z.union([z.string(), z.number()]).nullish(),
     gen_started: z.string().nullish(),
     gen_finished: z.string().nullish(),
     force_avatar: z.string().nullish(),

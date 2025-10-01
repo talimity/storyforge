@@ -68,7 +68,7 @@ export function CharacterPile({
                     my={1}
                     key={character.id}
                     value={character.id}
-                    onClick={onCharacterClick ? () => onCharacterClick(character) : undefined}
+                    onSelect={onCharacterClick ? () => onCharacterClick(character) : undefined}
                   >
                     <CharacterListItem character={character} />
                   </Menu.Item>

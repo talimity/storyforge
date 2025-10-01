@@ -80,12 +80,14 @@ export function CharacterLibraryPage() {
             onChange={(value) => setViewMode(value as "grid" | "list")}
           />
           <SplitButton
-            buttonLabel="Import Characters"
-            menuItems={[{ label: "Create New Character", value: "create" }]}
-            onClick={() => setIsImportModalOpen(true)}
+            buttonLabel="Create Character"
+            menuItems={[
+              { label: "New Character", value: "create", path: "/characters/create" },
+              { label: "Import Character", value: "import" },
+            ]}
             onSelect={({ value }) => {
-              if (value === "create") {
-                navigate("/characters/create");
+              if (value === "import") {
+                setIsImportModalOpen(true);
               }
             }}
             colorPalette="primary"

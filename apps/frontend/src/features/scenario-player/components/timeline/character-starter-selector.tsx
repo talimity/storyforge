@@ -154,7 +154,7 @@ export function CharacterStarterSelector({
                 border="1px solid"
                 borderColor="border"
               >
-                <Prose size="lg" maxW="80ch">
+                <Prose maxW="85ch" size="lg">
                   <Markdown>{currentStarter.message}</Markdown>
                 </Prose>
               </Box>

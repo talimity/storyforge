@@ -1,7 +1,7 @@
 import { Box, createListCollection, HStack, Stack, Text } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { AutosizeTextarea, Avatar, Button, Dialog } from "@/components/ui/index";
@@ -43,7 +43,7 @@ type AuthorOption = {
   avatarUrl: string | null;
 };
 
-export function InsertTurnDialog(props: InsertTurnDialogProps) {
+export const InsertTurnDialog = memo(function InsertTurnDialog(props: InsertTurnDialogProps) {
   const { isOpen, turn, isSubmitting = false, onSubmit, onClose } = props;
   const { participants, participantsById, charactersById } = useScenarioContext();
 
@@ -243,4 +243,4 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
       </Dialog.Content>
     </Dialog.Root>
   );
-}
+});

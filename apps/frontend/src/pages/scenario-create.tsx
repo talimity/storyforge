@@ -29,7 +29,7 @@ export function ScenarioCreatePage() {
     })
   );
 
-  const handleSubmit = (formData: {
+  const handleSubmit = async (formData: {
     name: string;
     description: string;
     participants: Array<{
@@ -41,12 +41,14 @@ export function ScenarioCreatePage() {
     const characterIds = formData.participants.map((p) => p.characterId);
     const userProxyCharacterId = formData.participants.find((p) => p.isUserProxy)?.characterId;
 
-    createScenarioMutation.mutate({
+    const result = await createScenarioMutation.mutateAsync({
       name: formData.name,
       description: formData.description,
       characterIds,
       userProxyCharacterId,
     });
+
+    navigate(`/play/${result.id}`);
   };
 
   const handleCancel = () => {

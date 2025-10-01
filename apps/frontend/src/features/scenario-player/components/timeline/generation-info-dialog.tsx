@@ -124,7 +124,9 @@ export function GenerationInfoDialog({ turnId, isOpen, onOpenChange }: Generatio
                 {data.meta.intentConstraint && (
                   <DataList.Item>
                     <DataList.ItemLabel>Guidance Text</DataList.ItemLabel>
-                    <DataList.ItemValue>{data.meta.intentConstraint}</DataList.ItemValue>
+                    <DataList.ItemValue>
+                      <Text whiteSpace="pre-wrap">{data.meta.intentConstraint}</Text>
+                    </DataList.ItemValue>
                   </DataList.Item>
                 )}
                 <DataList.Item>

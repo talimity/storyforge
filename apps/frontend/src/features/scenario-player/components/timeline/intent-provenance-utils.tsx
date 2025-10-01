@@ -1,13 +1,13 @@
 import type { IntentKind, IntentStatus, TimelineTurn } from "@storyforge/contracts";
-import { FaDiagramNext, FaMasksTheater } from "react-icons/fa6";
-import { LuClapperboard } from "react-icons/lu";
+import { FaMasksTheater } from "react-icons/fa6";
+import { LuClapperboard, LuPlay } from "react-icons/lu";
 import { RiQuillPenLine } from "react-icons/ri";
 
 const intentKindLabels: Record<IntentKind, React.ReactNode> = {
   manual_control: <FaMasksTheater />,
   guided_control: <LuClapperboard />,
   narrative_constraint: <RiQuillPenLine />,
-  continue_story: <FaDiagramNext />,
+  continue_story: <LuPlay />,
 };
 
 export interface IntentProvenanceDisplay {

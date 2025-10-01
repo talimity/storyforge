@@ -1,11 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTRPC } from "@/lib/trpc";
 
 export function useScenarioActions(scenarioId: string) {
   const trpc = useTRPC();
-  const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -25,10 +23,6 @@ export function useScenarioActions(scenarioId: string) {
     deleteScenarioMutation.mutate({ id: scenarioId });
   };
 
-  const handleEdit = () => {
-    navigate(`/scenarios/${scenarioId}/edit`);
-  };
-
   const openDeleteDialog = () => {
     setIsDeleteDialogOpen(true);
   };
@@ -41,7 +35,6 @@ export function useScenarioActions(scenarioId: string) {
     isDeleteDialogOpen,
     deleteScenarioMutation,
     handleDelete,
-    handleEdit,
     openDeleteDialog,
     closeDeleteDialog,
   };

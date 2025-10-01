@@ -1,4 +1,4 @@
-import { Badge } from "@chakra-ui/react";
+import { Badge, Text } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/index";
 import type { IntentProvenanceDisplay } from "./intent-provenance-utils";
 
@@ -19,11 +19,15 @@ export function IntentProvenanceIndicator(props: IntentProvenanceIndicatorProps)
     <>
       {display.label ? (
         display.description ? (
-          <Tooltip content={display.description} positioning={{ placement: "left" }}>
+          <Tooltip
+            content={<Text whiteSpace="pre-wrap">{display.description}</Text>}
+            interactive
+            positioning={{ placement: "left" }}
+          >
             <Badge
               size="xs"
               colorPalette={isGenerating ? "orange" : "neutral"}
-              variant="subtle"
+              variant="surface"
               textAlign="center"
               whiteSpace="nowrap"
             >

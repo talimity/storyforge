@@ -106,6 +106,7 @@ export const RetryIntentDialog = memo(function RetryIntentDialog(props: RetryInt
   return (
     <Dialog.Root
       open={isOpen}
+      lazyMount
       onOpenChange={(details) => !details.open && onClose()}
       placement="center"
     >
