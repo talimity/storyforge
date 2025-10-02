@@ -47,6 +47,7 @@ const INTENT_KIND_SEGMENTS: Array<{ value: IntentKind; label: string; descriptio
 ];
 
 export const RetryIntentDialog = memo(function RetryIntentDialog(props: RetryIntentDialogProps) {
+  "use no memo"; // something about this does not work well with react compiler
   const { isOpen, turn, isSubmitting = false, onSubmit, onClose } = props;
   const { participants, participantsById, characters, charactersById } = useScenarioContext();
 
