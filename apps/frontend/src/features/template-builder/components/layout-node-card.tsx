@@ -1,8 +1,8 @@
 import { Text } from "@chakra-ui/react";
-import { forwardRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MessageNodeEdit } from "@/features/template-builder/components/nodes/message-node-edit";
 import { MessageNodeView } from "@/features/template-builder/components/nodes/message-node-view";
+import { NodeFrame } from "@/features/template-builder/components/nodes/node-frame";
 import { SlotReferenceEdit } from "@/features/template-builder/components/nodes/slot-reference-edit";
 import { SlotReferenceView } from "@/features/template-builder/components/nodes/slot-reference-view";
 import { useTemplateBuilderStore } from "@/features/template-builder/stores/template-builder-store";
@@ -14,26 +14,26 @@ interface LayoutNodeCardProps {
   onDelete?: (nodeId: string) => void;
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
+  containerRef?: React.Ref<HTMLDivElement>;
 }
 
-export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>((props, ref) => {
-  const { node, isDragging = false, onDelete, dragHandleProps, style } = props;
+export function LayoutNodeCard(props: LayoutNodeCardProps) {
+  const { node, isDragging = false, onDelete, dragHandleProps, style, containerRef } = props;
+
   const { slots, editingNodeId, startEditingNode, saveNodeEdit, cancelNodeEdit } =
     useTemplateBuilderStore(
-      useShallow((s) => ({
-        slots: s.slotsDraft,
-        editingNodeId: s.editingNodeId,
-        startEditingNode: s.startEditingNode,
-        saveNodeEdit: s.saveNodeEdit,
-        cancelNodeEdit: s.cancelNodeEdit,
+      useShallow((state) => ({
+        slots: state.slotsDraft,
+        editingNodeId: state.editingNodeId,
+        startEditingNode: state.startEditingNode,
+        saveNodeEdit: state.saveNodeEdit,
+        cancelNodeEdit: state.cancelNodeEdit,
       }))
     );
 
   const isEditing = editingNodeId === node.id;
 
-  const handleEdit = () => {
-    startEditingNode(node.id);
-  };
+  const handleEdit = () => startEditingNode(node.id);
 
   const handleSaveNode = (updatedNode: LayoutNodeDraft) => {
     saveNodeEdit(node.id, updatedNode);
@@ -43,20 +43,15 @@ export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>((p
     saveNodeEdit(node.id, updatedNode, updatedSlot);
   };
 
-  const handleCancel = () => {
-    cancelNodeEdit();
-  };
+  const handleCancel = () => cancelNodeEdit();
 
-  // Get the slot for slot references
   const slot = node.kind === "slot" ? slots[node.name] : undefined;
-  const kind = node.kind;
 
   if (isEditing) {
-    // Render edit mode based on node type
-    if (kind === "message") {
+    if (node.kind === "message") {
       return (
         <MessageNodeEdit
-          ref={ref}
+          containerRef={containerRef}
           style={style}
           node={node}
           isDragging={isDragging}
@@ -67,19 +62,26 @@ export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>((p
       );
     }
 
-    if (kind === "slot") {
+    if (node.kind === "slot") {
       if (!slot) {
         return (
-          <div ref={ref} style={style}>
+          <NodeFrame
+            containerRef={containerRef}
+            node={node}
+            isDragging={isDragging}
+            dragHandleProps={dragHandleProps}
+            style={style}
+          >
             <Text fontSize="sm" color="red.500">
               Slot "{node.name}" not found.
             </Text>
-          </div>
+          </NodeFrame>
         );
       }
+
       return (
         <SlotReferenceEdit
-          ref={ref}
+          containerRef={containerRef}
           style={style}
           node={node}
           slot={slot}
@@ -92,11 +94,10 @@ export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>((p
     }
   }
 
-  // Render view mode based on node type
-  if (kind === "message") {
+  if (node.kind === "message") {
     return (
       <MessageNodeView
-        ref={ref}
+        containerRef={containerRef}
         style={style}
         node={node}
         isDragging={isDragging}
@@ -107,10 +108,10 @@ export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>((p
     );
   }
 
-  if (kind === "slot") {
+  if (node.kind === "slot") {
     return (
       <SlotReferenceView
-        ref={ref}
+        containerRef={containerRef}
         style={style}
         node={node}
         slot={slot}
@@ -122,6 +123,5 @@ export const LayoutNodeCard = forwardRef<HTMLDivElement, LayoutNodeCardProps>((p
     );
   }
 
-  const badKind = kind satisfies never;
-  throw new Error(`Unsupported node kind: ${badKind}`);
-});
+  throw new Error("Unsupported node kind");
+}

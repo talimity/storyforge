@@ -35,15 +35,6 @@ pnpm db:generate --name=descriptive-name # Drizzle migration generation
 pnpm db:migrate # Run migrations against the database
 ```
 
-### Start server
-```bash
-# Dev servers
-# If you need to start the servers in the background, you MUST use the `devctl` helper:
-devctl restart    # Restart both dev servers
-devctl status     # "running" | "stopped"
-devctl logs 100   # Show last n lines of dev server logs (default 30)
-```
-
 **⚠️ IMPORTANT - Regarding pnpm flags**
 - DO NOT set `-w` flag for any of these commands. It will run the command in watch mode and block the Codex harness indefinitely.
   - If you're trying to run a command against specific packages, try `pnpm --filter=backend --filter=db build`.
@@ -131,7 +122,7 @@ storyforge
 - You MUST NOT run any blocking commands. 
   - That includes watch mode! DO NOT add `-w` flags to any of the build or code quality commands.
   - If you think you want `-w` to filter the pnpm workspace, you actually want `pnpm --filter=package [script]` instead
-- You MUST NOT run any git commands which modify the working tree. Do not attempt to commit, revert unrelated changes, or push under any circumstances. If you see changes that appear unrelated to your own, you must leave them in place. 
+- You MUST NEVER stage, unstage, reset, commit, push, stash, or make any changes whatsoever to the git worktree under any circumstances. 
 
 ---
 

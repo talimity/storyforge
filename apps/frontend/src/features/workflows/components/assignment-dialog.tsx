@@ -1,51 +1,30 @@
-import { createListCollection, HStack, Input, Stack } from "@chakra-ui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { HStack, Stack } from "@chakra-ui/react";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
+import { useStore } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import {
-  Button,
-  Dialog,
-  Field,
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValueText,
-} from "@/components/ui/index";
+import { useEffect } from "react";
+import { Dialog } from "@/components/ui";
 import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
 import { ScenarioSingleSelect } from "@/features/scenarios/components/scenario-selector";
+import { useAppForm } from "@/lib/app-form";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
+import {
+  type AssignmentFormValues,
+  assignmentFormDefaultValues,
+  assignmentFormSchema,
+} from "./assignment-form-schemas";
 
-const scopeOptions = [
+const scopeOptions: Array<{
+  value: "default" | "scenario" | "character" | "participant";
+  label: string;
+}> = [
   { value: "default", label: "Default" },
   { value: "scenario", label: "Scenario" },
   { value: "character", label: "Character" },
   { value: "participant", label: "Participant" },
-] as const;
-
-const baseSchema = z.object({
-  task: taskKindSchema,
-  workflowId: z.string().min(1, "Workflow is required"),
-  scopeKind: z.enum(["default", "scenario", "character", "participant"]),
-  scenarioId: z.string().optional(),
-  characterId: z.string().optional(),
-  participantId: z.string().optional(),
-});
-
-const assignmentSchema = baseSchema.refine((vals) => {
-  if (vals.scopeKind === "default") return true;
-  if (vals.scopeKind === "scenario") return Boolean(vals.scenarioId);
-  if (vals.scopeKind === "character") return Boolean(vals.characterId);
-  if (vals.scopeKind === "participant") return Boolean(vals.participantId);
-  return false;
-}, "Target id is required for selected scope kind");
-
-type AssignmentValues = z.infer<typeof assignmentSchema>;
+];
 
 interface AssignmentDialogProps {
   isOpen: boolean;
@@ -54,7 +33,7 @@ interface AssignmentDialogProps {
   /** Enables restricted editing: only workflow can change; scope + target are read-only */
   isEditMode?: boolean;
   /** Initial values when editing an existing assignment */
-  initialAssignment?: AssignmentValues;
+  initialAssignment?: AssignmentFormValues;
 }
 
 export function AssignmentDialog({
@@ -66,6 +45,7 @@ export function AssignmentDialog({
 }: AssignmentDialogProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
   const upsert = useMutation(
     trpc.workflows.upsertScope.mutationOptions({
       onSuccess: async () => {
@@ -76,47 +56,37 @@ export function AssignmentDialog({
     })
   );
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    setValue,
-    reset,
-  } = useForm<AssignmentValues>({
-    resolver: zodResolver(assignmentSchema),
-    defaultValues: initialAssignment || { task: defaultTask, scopeKind: "default" },
+  const initialValues = initialAssignment
+    ? { ...assignmentFormDefaultValues, ...initialAssignment }
+    : { ...assignmentFormDefaultValues, task: defaultTask, scopeKind: "default" as const };
+
+  const form = useAppForm({
+    defaultValues: initialValues,
+    validators: { onSubmit: assignmentFormSchema },
+    onSubmit: async ({ value }) => {
+      await upsert.mutateAsync(value);
+    },
   });
 
-  // Keep form in sync when switching between create/edit payloads
-  // or when dialog is reopened with different item
-  const syncDefaults = useCallback(() => {
-    reset(initialAssignment || { task: defaultTask, scopeKind: "default" });
-  }, [initialAssignment, defaultTask, reset]);
-
-  // Reset values when dialog opens or payload changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   useEffect(() => {
-    if (isOpen) syncDefaults();
-  }, [isOpen, syncDefaults]);
+    if (isOpen) {
+      form.reset(initialValues);
+      upsert.reset();
+    }
+  }, [isOpen]);
 
-  const selectedTask = watch("task");
-  const selectedScope = watch("scopeKind");
-  const selectedWorkflowId = watch("workflowId");
+  const selectedTask = useStore(form.store, (state) => state.values.task);
+  const selectedScope = useStore(form.store, (state) => state.values.scopeKind);
 
-  // Load workflows for the selected task for the workflow selector
-  const workflowsQuery = useQuery(trpc.workflows.list.queryOptions({ task: selectedTask }));
-  const workflowCollection = createListCollection({
-    items: (workflowsQuery.data?.workflows ?? []).map((wf) => ({
-      value: wf.id,
-      label: wf.name,
-    })),
-  });
+  const workflowsQuery = useQuery(
+    trpc.workflows.list.queryOptions({ task: selectedTask ?? defaultTask })
+  );
 
-  const scopeCollection = createListCollection({ items: scopeOptions });
-
-  const onSubmit = (vals: AssignmentValues) => {
-    upsert.mutate(vals);
-  };
+  const workflowOptions = (workflowsQuery.data?.workflows ?? []).map((wf) => ({
+    value: wf.id,
+    label: wf.name,
+  }));
 
   return (
     <Dialog.Root
@@ -128,143 +98,136 @@ export function AssignmentDialog({
       closeOnInteractOutside={false}
     >
       <Dialog.Content>
-        <Dialog.Header>
-          <Dialog.Title>{isEditMode ? "Edit Assignment" : "New Assignment"}</Dialog.Title>
-        </Dialog.Header>
-        <Dialog.Body>
-          <Stack gap={4}>
-            <Field label="Task" required invalid={!!errors.task} errorText={errors.task?.message}>
-              <TaskKindSelect
-                value={selectedTask}
-                onChange={(v) => setValue("task", taskKindSchema.parse(v))}
-                disabled={isEditMode}
-                inDialog
-              />
-            </Field>
+        <form
+          id="assignment-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit();
+          }}
+        >
+          <Dialog.Header>
+            <Dialog.Title>{isEditMode ? "Edit Assignment" : "New Assignment"}</Dialog.Title>
+          </Dialog.Header>
+          <Dialog.Body>
+            <Stack gap={4}>
+              <form.AppField name="task">
+                {(field) => (
+                  <field.Field label="Task" required>
+                    <TaskKindSelect
+                      value={field.state.value}
+                      onChange={(value) => {
+                        if (!value) return;
+                        field.handleChange(taskKindSchema.parse(value));
+                      }}
+                      disabled={isEditMode}
+                      inDialog
+                    />
+                  </field.Field>
+                )}
+              </form.AppField>
 
-            <Field
-              label="Workflow"
-              required
-              invalid={!!errors.workflowId}
-              errorText={errors.workflowId?.message}
-            >
-              <SelectRoot
-                collection={workflowCollection}
-                value={selectedWorkflowId ? [selectedWorkflowId] : []}
-                onValueChange={(d) => setValue("workflowId", d.value[0])}
-              >
-                <SelectTrigger>
-                  <SelectValueText
+              <form.AppField name="workflowId">
+                {(field) => (
+                  <field.Select
+                    label="Workflow"
+                    required
+                    options={workflowOptions}
                     placeholder={workflowsQuery.isLoading ? "Loading..." : "Select workflow"}
+                    disabled={workflowsQuery.isLoading}
+                    helperText={
+                      !workflowsQuery.isLoading && workflowOptions.length === 0
+                        ? "No workflows available for this task"
+                        : undefined
+                    }
                   />
-                </SelectTrigger>
-                <SelectContent portalled={false}>
-                  {(workflowsQuery.data?.workflows ?? []).map((wf) => (
-                    <SelectItem key={wf.id} item={{ value: wf.id, label: wf.name }}>
-                      {wf.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </SelectRoot>
-            </Field>
+                )}
+              </form.AppField>
 
-            <HStack gap={3} align="start">
-              <Field
-                label="Scope"
-                required
-                invalid={!!errors.scopeKind}
-                errorText={errors.scopeKind?.message}
-              >
-                <SelectRoot
-                  collection={scopeCollection}
-                  value={[selectedScope]}
-                  onValueChange={(d) =>
-                    setValue(
-                      "scopeKind",
-                      d.value[0] as "default" | "scenario" | "character" | "participant"
-                    )
-                  }
-                  disabled={isEditMode}
+              <HStack gap={3} align="start">
+                <form.AppField
+                  name="scopeKind"
+                  listeners={{
+                    onChange: ({ value }) => {
+                      if (value !== "scenario") {
+                        form.setFieldValue("scenarioId", undefined);
+                      }
+                      if (value !== "character") {
+                        form.setFieldValue("characterId", undefined);
+                      }
+                      if (value !== "participant") {
+                        form.setFieldValue("participantId", undefined);
+                      }
+                    },
+                  }}
                 >
-                  <SelectTrigger>
-                    <SelectValueText />
-                  </SelectTrigger>
-                  <SelectContent portalled={false}>
-                    {scopeOptions.map((opt) => (
-                      <SelectItem key={opt.value} item={opt}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectRoot>
-              </Field>
+                  {(field) => (
+                    <field.Select
+                      label="Scope"
+                      required
+                      options={scopeOptions}
+                      disabled={isEditMode}
+                    />
+                  )}
+                </form.AppField>
 
-              {selectedScope === "scenario" && (
-                <Field
-                  label="Scenario"
-                  required
-                  invalid={!!errors.scenarioId}
-                  errorText={errors.scenarioId?.message}
-                >
-                  <ScenarioSingleSelect
-                    inDialog
-                    value={watch("scenarioId") ?? null}
-                    onChange={(id) => setValue("scenarioId", id ?? undefined)}
-                    disabled={isEditMode}
-                  />
-                </Field>
-              )}
-              {selectedScope === "character" && (
-                <Field
-                  label="Character"
-                  required
-                  invalid={!!errors.characterId}
-                  errorText={errors.characterId?.message}
-                >
-                  <CharacterSingleSelect
-                    inDialog
-                    value={watch("characterId") ?? null}
-                    onChange={(id) => setValue("characterId", id ?? undefined)}
-                    disabled={isEditMode}
-                  />
-                </Field>
-              )}
-              {selectedScope === "participant" && (
-                <Field
-                  label="Participant ID"
-                  required
-                  invalid={!!errors.participantId}
-                  errorText={errors.participantId?.message}
-                >
-                  <Input
-                    placeholder="participant id"
-                    {...register("participantId")}
-                    disabled={isEditMode}
-                  />
-                </Field>
-              )}
-            </HStack>
-          </Stack>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.ActionTrigger asChild>
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={upsert.isPending}
-            >
-              Cancel
-            </Button>
-          </Dialog.ActionTrigger>
-          <Button
-            colorPalette="primary"
-            onClick={handleSubmit(onSubmit)}
-            loading={upsert.isPending}
-            disabled={upsert.isPending}
-          >
-            {isEditMode ? "Save Changes" : "Save Assignment"}
-          </Button>
-        </Dialog.Footer>
+                {selectedScope === "scenario" && (
+                  <form.AppField name="scenarioId">
+                    {(field) => (
+                      <field.Field label="Scenario" required>
+                        <ScenarioSingleSelect
+                          inDialog
+                          value={field.state.value ?? null}
+                          onChange={(id) => field.handleChange(id ?? undefined)}
+                          disabled={isEditMode}
+                        />
+                      </field.Field>
+                    )}
+                  </form.AppField>
+                )}
+
+                {selectedScope === "character" && (
+                  <form.AppField name="characterId">
+                    {(field) => (
+                      <field.Field label="Character" required>
+                        <CharacterSingleSelect
+                          inDialog
+                          value={field.state.value ?? null}
+                          onChange={(id) => field.handleChange(id ?? undefined)}
+                          disabled={isEditMode}
+                        />
+                      </field.Field>
+                    )}
+                  </form.AppField>
+                )}
+
+                {selectedScope === "participant" && (
+                  <form.AppField name="participantId">
+                    {(field) => (
+                      <field.TextInput
+                        label="Participant ID"
+                        required
+                        placeholder="participant id"
+                        disabled={isEditMode}
+                      />
+                    )}
+                  </form.AppField>
+                )}
+              </HStack>
+            </Stack>
+          </Dialog.Body>
+          <Dialog.Footer>
+            <form.AppForm>
+              <Dialog.ActionTrigger asChild>
+                <form.CancelButton variant="outline" onCancel={() => onOpenChange(false)}>
+                  Cancel
+                </form.CancelButton>
+              </Dialog.ActionTrigger>
+              <form.SubmitButton form="assignment-form" colorPalette="primary">
+                {isEditMode ? "Save Changes" : "Save Assignment"}
+              </form.SubmitButton>
+            </form.AppForm>
+          </Dialog.Footer>
+        </form>
       </Dialog.Content>
     </Dialog.Root>
   );

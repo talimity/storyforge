@@ -1,11 +1,7 @@
 import { createListCollection, HStack, Input, Spinner, Text, VStack } from "@chakra-ui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createModelProfileSchema } from "@storyforge/contracts";
-import type { TextInferenceCapabilities } from "@storyforge/inference";
+import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import type { z } from "zod";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Field,
@@ -14,153 +10,159 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValueText,
-} from "@/components/ui/index";
+} from "@/components/ui";
+import { useAppForm } from "@/lib/app-form";
 import { useTRPC } from "@/lib/trpc";
 import { CapabilitiesSelector } from "./capabilities-selector";
 import { JinjaTemplateDialog } from "./jinja-template-dialog";
-
-const modelProfileFormSchema = createModelProfileSchema.pick({
-  providerId: true,
-  displayName: true,
-  modelId: true,
-  textTemplate: true,
-  capabilityOverrides: true,
-});
-export type ModelProfileFormData = z.infer<typeof modelProfileFormSchema>;
+import {
+  type ModelProfileFormValues,
+  modelProfileFormDefaultValues,
+  modelProfileFormSchema,
+} from "./model-profile-form-schemas";
 
 interface ModelProfileFormProps {
-  initialData?: Partial<ModelProfileFormData>;
-  onSubmit: (data: ModelProfileFormData) => void;
+  initialData?: Partial<ModelProfileFormValues>;
+  onSubmit: (data: ModelProfileFormValues) => Promise<unknown> | unknown;
   onCancel: () => void;
-  isSubmitting?: boolean;
   submitLabel?: string;
 }
-
-const defaultCapabilityOverrides: Partial<TextInferenceCapabilities> = {};
 
 export function ModelProfileForm({
   initialData,
   onSubmit,
   onCancel,
-  isSubmitting = false,
   submitLabel = "Save Model Profile",
 }: ModelProfileFormProps) {
   const trpc = useTRPC();
-  const [selectedProviderId, setSelectedProviderId] = useState(initialData?.providerId || "");
+  const providersQuery = useQuery(trpc.providers.list.queryOptions());
+  const providers = providersQuery.data?.providers ?? [];
+
+  const initialValues = useMemo<ModelProfileFormValues>(
+    () => ({
+      ...modelProfileFormDefaultValues,
+      providerId: initialData?.providerId ?? "",
+      displayName: initialData?.displayName ?? "",
+      modelId: initialData?.modelId ?? "",
+      textTemplate: initialData?.textTemplate ?? null,
+      capabilityOverrides: initialData?.capabilityOverrides ?? {},
+    }),
+    [initialData]
+  );
+
+  const form = useAppForm({
+    defaultValues: initialValues,
+    validators: { onSubmit: modelProfileFormSchema },
+    onSubmit: async ({ value }) => {
+      await onSubmit(value);
+    },
+  });
+
+  useEffect(() => {
+    form.reset(initialValues);
+  }, [form, initialValues]);
+
+  const providerId = useStore(form.store, (state) => state.values.providerId ?? "");
+  const capabilityOverrides = useStore(
+    form.store,
+    (state) => state.values.capabilityOverrides ?? {}
+  );
+  const textTemplateValue = useStore(form.store, (state) => state.values.textTemplate ?? null);
+
+  const [selectedProviderId, setSelectedProviderId] = useState(providerId);
   const [modelSearchInput, setModelSearchInput] = useState("");
   const [debouncedModelSearchQuery, setDebouncedModelSearchQuery] = useState("");
   const [isTemplateDialogOpen, setTemplateDialogOpen] = useState(false);
 
-  const providersQuery = useQuery(trpc.providers.list.queryOptions());
-  const providers = providersQuery.data?.providers || [];
+  useEffect(() => {
+    const providerChanged = providerId !== selectedProviderId;
+    if (providerChanged) {
+      setSelectedProviderId(providerId);
+      setModelSearchInput("");
+      setDebouncedModelSearchQuery("");
+      if (!initialData?.providerId || initialData.providerId !== providerId) {
+        form.setFieldValue("modelId", "");
+      }
+    }
+  }, [form, providerId, selectedProviderId, initialData?.providerId]);
 
-  // Search models when provider is selected
-  const searchModelsQuery = useQuery(
-    trpc.providers.searchModels.queryOptions(
-      { providerId: selectedProviderId, query: debouncedModelSearchQuery },
-      { enabled: !!selectedProviderId }
-    )
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedModelSearchQuery(modelSearchInput.trim());
+    }, 300);
+    return () => window.clearTimeout(timeoutId);
+  }, [modelSearchInput]);
+
+  const providerOptions = useMemo(
+    () =>
+      createListCollection({
+        items: providers.map((provider) => ({
+          label: provider.name,
+          value: provider.id,
+        })),
+      }),
+    [providers]
   );
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<ModelProfileFormData>({
-    resolver: zodResolver(modelProfileFormSchema),
-    mode: "onChange",
-    reValidateMode: "onChange",
-    defaultValues: {
-      providerId: initialData?.providerId || "",
-      displayName: initialData?.displayName || "",
-      modelId: initialData?.modelId || "",
-      textTemplate: initialData?.textTemplate ?? null,
-      capabilityOverrides: initialData?.capabilityOverrides || defaultCapabilityOverrides,
-    },
-  });
+  const providerCapabilities = useMemo(
+    () => providers.find((p) => p.id === providerId)?.capabilities ?? undefined,
+    [providers, providerId]
+  );
 
-  const watchedProviderId = watch("providerId");
-  const capabilityOverrides = watch("capabilityOverrides");
-  const textTemplateValue = watch("textTemplate");
-  const providerCapabilities = providers.find((p) => p.id === watchedProviderId)?.capabilities;
   const effectiveTextCompletions =
     (capabilityOverrides?.textCompletions ?? providerCapabilities?.textCompletions) === true;
 
-  // Update provider selection state when form changes
-  useEffect(() => {
-    if (watchedProviderId && watchedProviderId !== selectedProviderId) {
-      setSelectedProviderId(watchedProviderId);
-      // Clear model selection when provider changes (only for create mode)
-      if (!initialData?.providerId) {
-        setValue("modelId", "");
-      }
-    }
-  }, [watchedProviderId, selectedProviderId, setValue, initialData?.providerId]);
+  const searchModelsQuery = useQuery(
+    trpc.providers.searchModels.queryOptions(
+      { providerId: selectedProviderId, query: debouncedModelSearchQuery },
+      { enabled: selectedProviderId.length > 0 }
+    )
+  );
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedModelSearchQuery(modelSearchInput.trim());
-    }, 300);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [modelSearchInput]);
-
-  const handleFormSubmit = (data: ModelProfileFormData) => {
-    onSubmit(data);
-  };
-
-  const providerOptions = createListCollection({
-    items: providers.map((provider) => ({
-      label: provider.name,
-      value: provider.id,
-    })),
-  });
-
-  const modelOptions = createListCollection({
-    items: (searchModelsQuery.data?.models || []).map((model) => ({
-      label: model.name || model.id,
-      value: model.id,
-      description: model.description,
-    })),
-  });
+  const modelOptions = useMemo(
+    () =>
+      createListCollection({
+        items: (searchModelsQuery.data?.models ?? []).map((model) => ({
+          label: model.name || model.id,
+          value: model.id,
+          description: model.description,
+        })),
+      }),
+    [searchModelsQuery.data?.models]
+  );
 
   return (
     <>
-      <form onSubmit={handleSubmit(handleFormSubmit)} id="model-profile-form">
+      <form
+        id="model-profile-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
         <VStack gap={4} align="stretch">
-          <Field label="Provider" required errorText={errors.providerId?.message}>
-            <Controller
-              name="providerId"
-              control={control}
-              render={({ field }) => (
-                <SelectRoot
-                  collection={providerOptions}
-                  value={field.value ? [field.value] : []}
-                  onValueChange={(details) => field.onChange(details.value[0])}
-                >
-                  <SelectTrigger>
-                    <SelectValueText placeholder="Select a provider" />
-                  </SelectTrigger>
-                  <SelectContent portalled={false}>
-                    {providerOptions.items.map((item) => (
-                      <SelectItem key={item.value} item={item}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectRoot>
-              )}
-            />
-          </Field>
+          <form.AppField name="providerId">
+            {(field) => (
+              <field.Select
+                label="Provider"
+                required
+                options={providerOptions.items}
+                placeholder={providersQuery.isLoading ? "Loading providers..." : "Select provider"}
+                disabled={providersQuery.isLoading}
+              />
+            )}
+          </form.AppField>
 
-          <Field label="Display Name" required errorText={errors.displayName?.message}>
-            <Input {...register("displayName")} placeholder="e.g., GPT-4o for Creative Writing" />
-          </Field>
+          <form.AppField name="displayName">
+            {(field) => (
+              <field.TextInput
+                label="Display Name"
+                required
+                placeholder="e.g., GPT-4o for Creative Writing"
+              />
+            )}
+          </form.AppField>
 
           {selectedProviderId && (
             <>
@@ -168,97 +170,92 @@ export function ModelProfileForm({
                 label="Model Search"
                 helperText="Search available models or enter manually below"
               >
-                <HStack gap={2}>
+                <HStack gap={2} align="center">
                   <Input
                     value={modelSearchInput}
-                    onChange={(e) => setModelSearchInput(e.target.value)}
+                    onChange={(event) => setModelSearchInput(event.target.value)}
                     placeholder="Search models..."
                   />
                   {searchModelsQuery.isLoading && <Spinner size="sm" />}
                 </HStack>
               </Field>
 
-              {modelOptions.items.length > 0 && (
-                <Field label="Available Models">
-                  <Controller
-                    name="modelId"
-                    control={control}
-                    render={({ field }) => (
-                      <SelectRoot
-                        collection={modelOptions}
-                        value={field.value ? [field.value] : []}
-                        onValueChange={(details) => field.onChange(details.value[0])}
-                      >
-                        <SelectTrigger>
-                          <SelectValueText placeholder="Select a model" />
-                        </SelectTrigger>
-                        <SelectContent portalled={false}>
-                          {modelOptions.items.map((item) => (
-                            <SelectItem key={item.value} item={item}>
-                              <VStack align="start" gap={1}>
-                                <Text>{item.label}</Text>
-                                {item.description && (
-                                  <Text fontSize="xs" color="content.muted" lineClamp={2}>
-                                    {item.description}
-                                  </Text>
-                                )}
-                              </VStack>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </SelectRoot>
+              <form.AppField name="modelId">
+                {(field) => (
+                  <>
+                    {modelOptions.items.length > 0 && (
+                      <field.Field label="Available Models">
+                        <SelectRoot
+                          collection={modelOptions}
+                          value={field.state.value ? [field.state.value] : []}
+                          onValueChange={(details) => {
+                            const next = details.value[0];
+                            if (!next) return;
+                            field.handleChange(next);
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValueText placeholder="Select a model" />
+                          </SelectTrigger>
+                          <SelectContent portalled={false}>
+                            {modelOptions.items.map((item) => (
+                              <SelectItem key={item.value} item={item}>
+                                <VStack align="start" gap={1}>
+                                  <Text>{item.label}</Text>
+                                  {item.description && (
+                                    <Text fontSize="xs" color="content.muted" lineClamp={2}>
+                                      {item.description}
+                                    </Text>
+                                  )}
+                                </VStack>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </SelectRoot>
+                      </field.Field>
                     )}
-                  />
-                </Field>
-              )}
 
-              <Field
-                label="Model ID"
-                required
-                errorText={errors.modelId?.message}
-                helperText="Enter model ID manually if not found in search above"
-              >
-                <Controller
-                  name="modelId"
-                  control={control}
-                  render={({ field }) => (
-                    <Input
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value)}
+                    <field.TextInput
+                      label="Model ID"
+                      required
+                      helperText="Enter model ID manually if not found in search above"
                       placeholder="e.g., gpt-4o-mini, deepseek-chat"
                     />
-                  )}
-                />
-              </Field>
+                  </>
+                )}
+              </form.AppField>
             </>
           )}
 
-          <Field label="Capability Overrides">
-            <Controller
-              name="capabilityOverrides"
-              control={control}
-              render={({ field }) => (
-                <CapabilitiesSelector
-                  value={field.value || {}}
-                  onChange={field.onChange}
-                  baseline={
-                    providers.find((p) => p.id === selectedProviderId)?.capabilities || undefined
-                  }
-                  helperText="Override provider capabilities for this specific model"
+          {!selectedProviderId && (
+            <form.AppField name="modelId">
+              {(field) => (
+                <field.TextInput
+                  label="Model ID"
+                  required
+                  helperText="Select a provider to search, or enter an ID manually"
+                  placeholder="e.g., gpt-4o-mini, deepseek-chat"
                 />
               )}
-            />
-          </Field>
+            </form.AppField>
+          )}
+
+          <form.AppField name="capabilityOverrides">
+            {(field) => (
+              <field.Field label="Capability Overrides">
+                <CapabilitiesSelector
+                  value={field.state.value ?? {}}
+                  onChange={(next) => field.handleChange(next ?? {})}
+                  baseline={providerCapabilities}
+                  helperText="Override provider capabilities for this specific model"
+                />
+              </field.Field>
+            )}
+          </form.AppField>
 
           {effectiveTextCompletions ? (
-            <Field
-              label="Text Completion Template"
-              helperText={
-                textTemplateValue
-                  ? "Template will be used for text completion requests."
-                  : undefined
-              }
-            >
+            <VStack align="stretch" gap={2}>
+              <Text fontWeight="medium">Text Completion Template</Text>
               <HStack justify="space-between">
                 <Text color="content.muted">
                   {textTemplateValue ? "Template configured" : "No template configured"}
@@ -267,53 +264,48 @@ export function ModelProfileForm({
                   {textTemplateValue ? "Edit Template" : "Add Template"}
                 </Button>
               </HStack>
-            </Field>
+            </VStack>
           ) : textTemplateValue ? (
-            <Field
-              label="Text Completion Template"
-              helperText="Enable text completions in provider capabilities to use this template."
-            >
+            <VStack align="stretch" gap={2}>
+              <Text fontWeight="medium">Text Completion Template</Text>
               <HStack justify="space-between">
                 <Text color="content.muted">Template saved but inactive</Text>
                 <Button
                   variant="outline"
                   colorPalette="red"
-                  onClick={() => setValue("textTemplate", null, { shouldDirty: true })}
+                  onClick={() => form.setFieldValue("textTemplate", null)}
                 >
                   Clear Template
                 </Button>
               </HStack>
-            </Field>
+            </VStack>
           ) : null}
-        </VStack>
 
-        <HStack justify="space-between" width="full" mt={6}>
-          <Button variant="ghost" onClick={onCancel} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            form="model-profile-form"
-            colorPalette="primary"
-            loading={isSubmitting}
-          >
-            {submitLabel}
-          </Button>
-        </HStack>
+          <HStack justify="space-between" width="full" mt={4}>
+            <form.AppForm>
+              <form.CancelButton variant="ghost" onCancel={onCancel}>
+                Cancel
+              </form.CancelButton>
+              <form.SubmitButton form="model-profile-form" colorPalette="primary">
+                {submitLabel}
+              </form.SubmitButton>
+            </form.AppForm>
+          </HStack>
+        </VStack>
       </form>
+
       <JinjaTemplateDialog
         isOpen={isTemplateDialogOpen}
         onOpenChange={setTemplateDialogOpen}
         initialTemplate={textTemplateValue ?? null}
-        onSave={(tpl) => {
-          const next = tpl.trim();
-          setValue("textTemplate", next.length > 0 ? next : null, {
-            shouldDirty: true,
-            shouldValidate: true,
-          });
+        onSave={(template) => {
+          const next = template.trim();
+          form.setFieldValue("textTemplate", next.length > 0 ? next : null);
           setTemplateDialogOpen(false);
         }}
       />
     </>
   );
 }
+
+export type ModelProfileFormData = ModelProfileFormValues;

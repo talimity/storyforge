@@ -11,13 +11,13 @@ export function useScenarioIntentActions() {
     queryClient.invalidateQueries(trpc.timeline.state.pathFilter());
     queryClient.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
   }, [queryClient, trpc]);
-  const { mutateAsync: createIntent, isPending: isCreatingIntent } = useMutation(
+  const { mutateAsync: createIntent } = useMutation(
     trpc.intents.createIntent.mutationOptions({ onSuccess: invalidate })
   );
-  const { mutateAsync: addTurn, isPending: isAddingTurn } = useMutation(
+  const { mutateAsync: addTurn } = useMutation(
     trpc.timeline.addTurn.mutationOptions({ onSuccess: invalidate })
   );
-  const { mutateAsync: insertTurnAfter, isPending: isInsertingTurnAfter } = useMutation(
+  const { mutateAsync: insertTurnAfter } = useMutation(
     trpc.timeline.insertTurnAfter.mutationOptions({ onSuccess: invalidate })
   );
 
@@ -25,8 +25,5 @@ export function useScenarioIntentActions() {
     createIntent,
     addTurn,
     insertTurnAfter,
-    isCreatingIntent,
-    isAddingTurn,
-    isInsertingTurnAfter,
   };
 }

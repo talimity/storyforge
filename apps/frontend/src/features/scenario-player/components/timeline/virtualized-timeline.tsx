@@ -55,7 +55,6 @@ export function VirtualizedTimeline(props: TimelineProps) {
     showDeleteDialog,
     isDeleting,
     retryTurn,
-    isRetrying,
     editingTurnId,
     isUpdating,
     handleDeleteTurn,
@@ -66,7 +65,6 @@ export function VirtualizedTimeline(props: TimelineProps) {
     handleRetrySubmit,
     handleRetryClose,
     manualTurnTarget,
-    isInsertingManualTurn,
     handleInsertManualTurn,
     handleManualInsertSubmit,
     handleManualInsertClose,
@@ -249,14 +247,12 @@ export function VirtualizedTimeline(props: TimelineProps) {
       <RetryIntentDialog
         isOpen={Boolean(retryTurn)}
         turn={retryTurn}
-        isSubmitting={isRetrying}
         onSubmit={handleRetrySubmit}
         onClose={handleRetryClose}
       />
       <InsertTurnDialog
         isOpen={Boolean(manualTurnTarget)}
         turn={manualTurnTarget}
-        isSubmitting={isInsertingManualTurn}
         onSubmit={handleManualInsertSubmit}
         onClose={handleManualInsertClose}
       />

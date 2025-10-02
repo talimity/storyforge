@@ -32,9 +32,8 @@ export function EditModelProfileDialog({
     })
   );
 
-  const handleSubmit = (data: ModelProfileFormData) => {
-    updateModelProfileMutation.mutate({ id: modelProfile.id, data });
-  };
+  const handleSubmit = (data: ModelProfileFormData) =>
+    updateModelProfileMutation.mutateAsync({ id: modelProfile.id, data });
 
   const handleCancel = () => {
     onOpenChange(false);
@@ -58,7 +57,6 @@ export function EditModelProfileDialog({
             initialData={modelProfile}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-            isSubmitting={updateModelProfileMutation.isPending}
             submitLabel="Save Changes"
           />
         </Dialog.Body>

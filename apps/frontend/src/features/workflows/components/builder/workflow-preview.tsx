@@ -19,7 +19,7 @@ import { Button, Field } from "@/components/ui";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
 import { ScenarioSingleSelect } from "@/features/scenarios/components/scenario-selector";
 import { useTRPC } from "@/lib/trpc";
-import type { WorkflowFormValues } from "./schemas";
+import type { WorkflowFormValues } from "./form-schemas";
 
 type Props = {
   values: WorkflowFormValues;

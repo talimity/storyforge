@@ -1,4 +1,7 @@
 import { ChakraProvider } from "@chakra-ui/react";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { FormDevtoolsPlugin } from "@tanstack/react-form-devtools";
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "next-themes";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -16,6 +19,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <ThemeProvider attribute="class">
           <RouterProvider router={router} />
           <Toaster />
+          <TanStackDevtools
+            config={{ position: "bottom-left", hideUntilHover: true }}
+            plugins={[
+              FormDevtoolsPlugin(),
+              {
+                name: "TanStack Query",
+                render: () => <ReactQueryDevtoolsPanel />,
+              },
+            ]}
+          />
         </ThemeProvider>
       </ChakraProvider>
     </TRPCReactProvider>

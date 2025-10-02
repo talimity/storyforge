@@ -1,7 +1,7 @@
 import { Textarea, type TextareaProps } from "@chakra-ui/react";
 import TextareaAutosize, { type TextareaAutosizeProps } from "react-textarea-autosize";
 
-type AutosizeTextareaProps = Omit<TextareaProps, "as"> &
+export type AutosizeTextareaProps = Omit<TextareaProps, "as"> &
   TextareaAutosizeProps & { ref?: React.Ref<HTMLTextAreaElement> };
 
 // replacement for Chakra's autosize prop as it has major issues when input gets long

@@ -37,7 +37,7 @@ export function TemplateCreatePage() {
     })
   );
 
-  const handleTemplateSubmit = (data: {
+  const handleTemplateSubmit = async (data: {
     metadata: {
       name: string;
       task: TaskKind;
@@ -50,7 +50,7 @@ export function TemplateCreatePage() {
 
     try {
       const draft = {
-        id: `template_${Date.now()}`, // Temporary ID
+        id: `template_${Date.now()}`,
         name: data.metadata.name,
         description: data.metadata.description || "",
         task: taskType,
@@ -60,7 +60,7 @@ export function TemplateCreatePage() {
 
       const compiledTemplate = compileDraft(draft);
 
-      createMutation.mutate({ ...compiledTemplate, task: taskType });
+      await createMutation.mutateAsync({ ...compiledTemplate, task: taskType });
     } catch (error) {
       showErrorToast({
         title: "Failed to create template",
@@ -93,7 +93,6 @@ export function TemplateCreatePage() {
         initialDraft={initialDraft}
         onSubmit={handleTemplateSubmit}
         onCancel={handleCancel}
-        isSubmitting={createMutation.isPending}
         submitLabel="Create Template"
         pageTitle="New Template"
         isEditMode={false}

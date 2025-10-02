@@ -2,7 +2,7 @@ import { HStack, Text } from "@chakra-ui/react";
 import { useRef } from "react";
 import { Button, Dialog } from "@/components/ui";
 
-interface UnsavedChangesDialogProps {
+export interface UnsavedChangesDialogProps {
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;

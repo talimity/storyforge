@@ -1,22 +1,22 @@
-import { createListCollection, HStack, Input, VStack } from "@chakra-ui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { createListCollection, HStack, VStack } from "@chakra-ui/react";
 import { createProviderConfigSchema, providerAuthInputSchema } from "@storyforge/contracts";
-import { Controller, useForm } from "react-hook-form";
+import { useStore } from "@tanstack/react-form";
 import type { z } from "zod";
+
 import {
   Button,
-  Field,
   SelectContent,
   SelectItem,
   SelectRoot,
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui/index";
+import { useAppForm } from "@/lib/app-form";
 import { emptyToNull, emptyToUndefined } from "@/lib/empty-to-null";
 import { CapabilitiesSelector } from "./capabilities-selector";
 
 const providerFormAuthInputSchema = providerAuthInputSchema.extend({
-  apiKey: providerAuthInputSchema.shape.apiKey.optional(), // let user keep existing key
+  apiKey: providerAuthInputSchema.shape.apiKey.optional(),
 });
 const providerFormSchema = createProviderConfigSchema
   .pick({ kind: true, name: true, baseUrl: true, capabilities: true })
@@ -34,13 +34,18 @@ type ProviderFormProps = {
   submitLabel?: string;
 };
 
+const providerKindItems = [
+  { label: "OpenRouter", value: "openrouter" },
+  { label: "DeepSeek", value: "deepseek" },
+  { label: "OpenAI Compatible", value: "openai-compatible" },
+  { label: "Mock", value: "mock" },
+] as const satisfies ReadonlyArray<{
+  label: string;
+  value: ProviderFormData["kind"];
+}>;
+
 const providerKindOptions = createListCollection({
-  items: [
-    { label: "OpenRouter", value: "openrouter" },
-    { label: "DeepSeek", value: "deepseek" },
-    { label: "OpenAI Compatible", value: "openai-compatible" },
-    { label: "Mock", value: "mock" },
-  ],
+  items: providerKindItems,
 });
 
 const defaultCapabilities = {
@@ -51,6 +56,50 @@ const defaultCapabilities = {
   textCompletions: true,
 };
 
+function cloneCapabilities(
+  value: ProviderFormData["capabilities"] | undefined
+): ProviderFormData["capabilities"] {
+  if (!value) {
+    return value ?? null;
+  }
+
+  return { ...value };
+}
+
+function buildDefaultValues(initial?: ProviderFormProps["initialData"]): ProviderFormData {
+  const capabilitiesSource = initial?.capabilities ?? defaultCapabilities;
+
+  return {
+    kind: initial?.kind ?? "openrouter",
+    name: initial?.name ?? "",
+    auth: { apiKey: undefined },
+    baseUrl: initial?.baseUrl ?? null,
+    capabilities: cloneCapabilities(capabilitiesSource),
+  };
+}
+
+function toNullIfEmpty(value: string): string | null {
+  const transformed = emptyToNull(value);
+  if (typeof transformed === "string") {
+    return transformed;
+  }
+
+  return null;
+}
+
+function toUndefinedIfEmpty(value: string): string | undefined {
+  const transformed = emptyToUndefined(value);
+  if (typeof transformed === "string") {
+    return transformed;
+  }
+
+  return undefined;
+}
+
+function isProviderKind(value: string): value is ProviderFormData["kind"] {
+  return providerKindItems.some((item) => item.value === value);
+}
+
 export function ProviderForm({
   initialData,
   onSubmit,
@@ -58,54 +107,63 @@ export function ProviderForm({
   isSubmitting = false,
   submitLabel = "Save Provider",
 }: ProviderFormProps) {
-  const isEditMode = !!initialData?.name;
+  const isEditMode = Boolean(initialData?.name);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    formState: { errors },
-  } = useForm<ProviderFormData>({
-    resolver: zodResolver(providerFormSchema),
-    mode: "onChange",
-    defaultValues: {
-      kind: initialData?.kind || "openrouter",
-      name: initialData?.name || "",
-      auth: undefined,
-      baseUrl: initialData?.baseUrl || null,
-      capabilities: initialData?.capabilities || defaultCapabilities,
+  const form = useAppForm({
+    defaultValues: buildDefaultValues(initialData),
+    validators: {
+      onChange: providerFormSchema,
+    },
+    onSubmit: ({ value }) => {
+      const apiKey = value.auth?.apiKey;
+      const normalizedApiKey =
+        apiKey === undefined || apiKey === null || apiKey === "" ? undefined : apiKey;
+      const normalizedCapabilities = value.kind === "openai-compatible" ? value.capabilities : null;
+
+      onSubmit({
+        ...value,
+        auth: { apiKey: normalizedApiKey },
+        baseUrl: value.baseUrl ?? null,
+        capabilities: normalizedCapabilities,
+      });
     },
   });
 
-  const watchedKind = watch("kind");
-  const isOpenAICompatible = watchedKind === "openai-compatible";
+  const isOpenAICompatible = useStore(
+    form.store,
+    (state) => state.values.kind === "openai-compatible"
+  );
 
-  const handleFormSubmit = (data: ProviderFormData) => {
-    // Normalize api key (empty string treated as undefined)
-    const key = data.auth?.apiKey || undefined;
-    // TODO: We need a button for user to clear an API key.
-    onSubmit({
-      ...data,
-      auth: { ...data.auth, apiKey: key },
-      capabilities: isOpenAICompatible ? data.capabilities : null,
-      baseUrl: data.baseUrl,
-    });
-  };
+  const internalIsSubmitting = useStore(form.store, (state) => state.isSubmitting);
+
+  const isBusy = Boolean(isSubmitting) || internalIsSubmitting;
+
+  const apiKeyHelperText = isEditMode
+    ? initialData?.auth.hasApiKey
+      ? "Leave empty to keep existing API key"
+      : "Enter a new API key"
+    : undefined;
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} id="provider-form">
+    <form
+      id="provider-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
       <VStack gap={4} align="stretch">
-        <Field label="Provider Type" required errorText={errors.kind?.message}>
-          <Controller
-            name="kind"
-            control={control}
-            render={({ field }) => (
+        <form.AppField name="kind">
+          {(field) => (
+            <field.Field label="Provider Type" required>
               <SelectRoot
                 collection={providerKindOptions}
-                value={field.value ? [field.value] : []}
+                value={field.state.value ? [field.state.value] : []}
                 onValueChange={(details) => {
-                  field.onChange(details.value[0]);
+                  const nextValue = details.value[0];
+                  if (nextValue && isProviderKind(nextValue)) {
+                    field.handleChange(nextValue);
+                  }
                 }}
               >
                 <SelectTrigger>
@@ -119,82 +177,72 @@ export function ProviderForm({
                   ))}
                 </SelectContent>
               </SelectRoot>
-            )}
-          />
-        </Field>
+            </field.Field>
+          )}
+        </form.AppField>
 
-        <Field
-          label="Display Name"
-          required
-          invalid={!!errors.name?.message}
-          errorText={errors.name?.message}
-        >
-          <Input
-            {...register("name")}
-            autoComplete="off"
-            placeholder="e.g., OpenRouter (Personal), Local vLLM"
-          />
-        </Field>
+        <form.AppField name="name">
+          {(field) => (
+            <field.TextInput
+              label="Display Name"
+              required
+              autoComplete="off"
+              placeholder="e.g., OpenRouter (Personal), Local vLLM"
+            />
+          )}
+        </form.AppField>
 
-        <Field
-          label="API Key"
-          invalid={!!errors.auth?.apiKey?.message}
-          errorText={errors.auth?.apiKey?.message}
-          helperText={
-            isEditMode && initialData?.auth.hasApiKey
-              ? "Leave empty to keep existing API key"
-              : isEditMode
-                ? "Enter a new API key"
-                : undefined
-          }
-        >
-          <Input
-            {...register("auth.apiKey", { setValueAs: emptyToUndefined })} // don't send null to server as it will clear existing key
-            type="password"
-            placeholder={
-              isEditMode && initialData?.auth.hasApiKey ? "••••••••" : "Enter your API key"
-            }
-          />
-        </Field>
+        <form.AppField name="auth.apiKey">
+          {(field) => (
+            <field.TextInput
+              label="API Key"
+              type="password"
+              helperText={apiKeyHelperText}
+              placeholder={
+                isEditMode && initialData?.auth.hasApiKey ? "••••••••" : "Enter your API key"
+              }
+              transform={toUndefinedIfEmpty}
+            />
+          )}
+        </form.AppField>
 
         {isOpenAICompatible && (
-          <Field
-            label="Base URL"
-            invalid={!!errors.baseUrl?.message}
-            errorText={errors.baseUrl?.message}
-          >
-            <Input
-              {...register("baseUrl", { setValueAs: emptyToNull })}
-              placeholder="e.g., http://localhost:8080/v1"
-            />
-          </Field>
+          <form.AppField name="baseUrl">
+            {(field) => (
+              <field.TextInput
+                label="Base URL"
+                placeholder="e.g., http://localhost:8080/v1"
+                transform={toNullIfEmpty}
+              />
+            )}
+          </form.AppField>
         )}
 
         {isOpenAICompatible && (
-          <Field label="Capabilities">
-            <Controller
-              name="capabilities"
-              control={control}
-              render={({ field }) => (
+          <form.AppField name="capabilities">
+            {(field) => (
+              <field.Field label="Capabilities">
                 <CapabilitiesSelector
-                  value={field.value || {}}
-                  onChange={field.onChange}
+                  value={field.state.value ?? {}}
+                  onChange={(next) => field.handleChange(next)}
                   allowInherit={false}
                   helperText="Configure what this provider supports"
                 />
-              )}
-            />
-          </Field>
+              </field.Field>
+            )}
+          </form.AppField>
         )}
       </VStack>
 
       <HStack justify="space-between" width="full" mt={6}>
-        <Button variant="ghost" onClick={onCancel} disabled={isSubmitting}>
+        <Button variant="ghost" onClick={onCancel} disabled={isBusy}>
           Cancel
         </Button>
-        <Button type="submit" form="provider-form" colorPalette="primary" loading={isSubmitting}>
-          {submitLabel}
-        </Button>
+        <form.AppForm>
+          <form.SubmitButton form="provider-form" colorPalette="primary">
+            {submitLabel}
+          </form.SubmitButton>
+        </form.AppForm>
       </HStack>
     </form>
   );

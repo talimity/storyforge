@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
-import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
+import { CharacterDeleteDialog } from "@/features/characters/components/character-delete-dialog";
 import {
   CharacterForm,
   type CharacterFormData,
@@ -59,35 +59,6 @@ export function CharacterEditPage() {
     })
   );
 
-  const handleSubmit = (formData: CharacterFormData) => {
-    if (!id) return;
-
-    updateCharacterMutation.mutate({
-      id,
-      name: formData.name,
-      description: formData.description,
-      cardType: formData.cardType,
-      starters: formData.starters,
-      styleInstructions: formData.styleInstructions ?? undefined,
-      imageDataUri: formData.imageDataUri,
-      portraitFocalPoint: formData.portraitFocalPoint,
-    });
-  };
-
-  const handleCancel = () => {
-    navigate("/characters");
-  };
-
-  const handleDelete = () => {
-    setShowDeleteDialog(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!id) return;
-    deleteCharacterMutation.mutate({ id });
-    setShowDeleteDialog(false);
-  };
-
   if (isLoadingCharacter) {
     return (
       <Container>
@@ -140,7 +111,7 @@ export function CharacterEditPage() {
             <Button
               colorPalette="red"
               variant="outline"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteDialog(true)}
               disabled={deleteCharacterMutation.isPending || updateCharacterMutation.isPending}
             >
               Delete Character
@@ -149,9 +120,10 @@ export function CharacterEditPage() {
         />
         <CharacterForm
           initialData={initialFormData}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isSubmitting={updateCharacterMutation.isPending}
+          onSubmit={(formData: CharacterFormData) =>
+            updateCharacterMutation.mutateAsync({ id: String(id), ...formData })
+          }
+          onCancel={() => navigate("/characters")}
           submitLabel="Update Character"
           portraitSrc={
             character.imagePath
@@ -166,7 +138,11 @@ export function CharacterEditPage() {
         isOpen={showDeleteDialog}
         onOpenChange={(details) => setShowDeleteDialog(details.open)}
         characterName={character.name}
-        onConfirmDelete={handleConfirmDelete}
+        onConfirmDelete={() => {
+          if (!id) return;
+          deleteCharacterMutation.mutate({ id });
+          setShowDeleteDialog(false);
+        }}
         isDeleting={deleteCharacterMutation.isPending}
       />
     </>

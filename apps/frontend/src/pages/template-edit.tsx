@@ -36,7 +36,7 @@ export function TemplateEditPage() {
     })
   );
 
-  const handleSubmit = (data: {
+  const handleSubmit = async (data: {
     metadata: { name: string; task: TaskKind; description?: string };
     layoutDraft: LayoutNodeDraft[];
     slotsDraft: Record<string, SlotDraft>;
@@ -55,7 +55,7 @@ export function TemplateEditPage() {
 
       const compiledTemplate = compileDraft(draft);
 
-      updateMutation.mutate({
+      await updateMutation.mutateAsync({
         id: templateQuery.data.id,
         data: {
           name: data.metadata.name,
@@ -116,7 +116,6 @@ export function TemplateEditPage() {
         initialDraft={initialDraft}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        isSubmitting={updateMutation.isPending}
         submitLabel="Save Changes"
         pageTitle={template.name}
         isEditMode={true}

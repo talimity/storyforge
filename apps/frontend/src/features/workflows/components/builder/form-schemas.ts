@@ -1,5 +1,6 @@
 import { genStepSchema, taskKindSchema } from "@storyforge/gentasks";
 import { z } from "zod";
+import { init } from "zod-empty";
 
 // Client-side refinements while remaining compatible with server schema
 export const workflowFormStepSchema = genStepSchema
@@ -32,5 +33,6 @@ export const workflowFormSchema = z.object({
   description: z.string().optional(),
   steps: z.array(workflowFormStepSchema).min(1, "Add at least one step"),
 });
+export const workflowFormDefaultValues = init(workflowFormSchema);
 
 export type WorkflowFormValues = z.infer<typeof workflowFormSchema>;

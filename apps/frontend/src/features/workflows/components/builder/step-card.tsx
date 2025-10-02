@@ -1,245 +1,193 @@
-import { Badge, Card, HStack, IconButton, Input, Separator, Stack } from "@chakra-ui/react";
-import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { Badge, Card, HStack, IconButton, Separator, Stack } from "@chakra-ui/react";
+import { useStore } from "@tanstack/react-form";
 import { LuChevronDown, LuChevronUp, LuCopy, LuTrash } from "react-icons/lu";
-import { Field } from "@/components/ui";
 import { ModelProfileSingleSelect } from "@/features/inference-config/components/model-profile-selector";
 import { TemplateSingleSelect } from "@/features/templates/components/template-selector";
+import { withFieldGroup } from "@/lib/app-form";
+import type { WorkflowFormValues } from "./form-schemas";
 import { GenParamsTextarea, StopSequencesTextarea } from "./json-editors";
 import { OutputsEditor } from "./outputs-editor";
-import type { WorkflowFormValues } from "./schemas";
 import { StepHeaderLabels } from "./step-header-labels";
 import { TransformsEditor } from "./transforms-editor";
 
-export function StepCard({
-  index,
-  onRemove,
-  onMoveUp,
-  onMoveDown,
-  onDuplicate,
-  isSubmitting,
-}: {
+const emptyStep: WorkflowFormValues["steps"][0] = {
+  id: "",
+  name: undefined,
+  modelProfileId: "",
+  promptTemplateId: "",
+  genParams: undefined,
+  stop: [],
+  maxOutputTokens: undefined,
+  maxContextTokens: undefined,
+  transforms: [],
+  outputs: [{ key: "content", capture: "assistantText" }],
+};
+
+type StepCardProps = {
+  task: WorkflowFormValues["task"];
   index: number;
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDuplicate: () => void;
-  isSubmitting: boolean;
-}) {
-  const { register, control, formState, setValue } = useFormContext<WorkflowFormValues>();
-  const namePath = `steps.${index}.name` as const;
-  const modelPath = `steps.${index}.modelProfileId` as const;
-  const templatePath = `steps.${index}.promptTemplateId` as const;
-  const stopPath = `steps.${index}.stop` as const;
-  const maxOutPath = `steps.${index}.maxOutputTokens` as const;
-  const maxCtxPath = `steps.${index}.maxContextTokens` as const;
-  const genParamsPath = `steps.${index}.genParams` as const;
-  const task = useWatch({ control, name: "task" });
-  const modelValue = useWatch({ control, name: modelPath }) as string;
-  const templateValue = useWatch({ control, name: templatePath }) as string;
+};
 
-  type StepErrorShape = Partial<{
-    modelProfileId: { message?: string };
-    promptTemplateId: { message?: string };
-    stop: { message?: string };
-    maxOutputTokens: { message?: string };
-    maxContextTokens: { message?: string };
-    genParams: { message?: string };
-  }>;
-  const stepErr = formState.errors?.steps?.[index] as unknown as StepErrorShape | undefined;
-  const stepHasErrors = Boolean(stepErr);
+export const StepCard = withFieldGroup({
+  defaultValues: emptyStep,
+  props: {
+    index: 0,
+    onRemove: () => {},
+    onMoveUp: () => {},
+    onMoveDown: () => {},
+    onDuplicate: () => {},
+    task: "turn_generation",
+    //satisfies ensures the props object matches, but then we need to use an
+    //assertion to widen literals or `index` is inferred as `0` instead of `number`
+  } satisfies StepCardProps as StepCardProps,
+  render: function Render({ group, task, index, onRemove, onMoveUp, onMoveDown, onDuplicate }) {
+    const modelProfileId = useStore(group.store, (s) => s.values.modelProfileId);
+    const templateId = useStore(group.store, (s) => s.values.promptTemplateId);
 
-  return (
-    <Card.Root layerStyle="surface">
-      <Stack p={4} gap={3}>
-        <HStack justify="space-between" align="center">
-          <HStack gap={2} wrap="wrap">
-            <Badge>Step {index + 1}</Badge>
-            {stepHasErrors && <Badge colorPalette="red">Has issues</Badge>}
-            <StepHeaderLabels
-              modelProfileId={modelValue || undefined}
-              templateId={templateValue || undefined}
-            />
+    // no obvious way to get `group.meta` to see isValid
+    const hasErrors = Object.keys(group.fieldsMap).some((key) => {
+      const meta = group.getFieldMeta(key as keyof typeof group.fieldsMap);
+      return Boolean(meta?.errors?.length);
+    });
+
+    return (
+      <Card.Root layerStyle="surface">
+        <Stack p={4} gap={3}>
+          <HStack justify="space-between" align="center">
+            <HStack gap={2} wrap="wrap">
+              <Badge>Step {index + 1}</Badge>
+              {hasErrors && <Badge colorPalette="red">Has issues</Badge>}
+              <StepHeaderLabels
+                modelProfileId={modelProfileId || undefined}
+                templateId={templateId || undefined}
+              />
+            </HStack>
+            <HStack gap={1}>
+              <IconButton aria-label="Move up" size="xs" variant="ghost" onClick={onMoveUp}>
+                <LuChevronUp />
+              </IconButton>
+              <IconButton aria-label="Move down" size="xs" variant="ghost" onClick={onMoveDown}>
+                <LuChevronDown />
+              </IconButton>
+              <IconButton aria-label="Duplicate" size="xs" variant="ghost" onClick={onDuplicate}>
+                <LuCopy />
+              </IconButton>
+              <IconButton
+                aria-label="Delete"
+                variant="ghost"
+                colorPalette="red"
+                size="xs"
+                onClick={onRemove}
+              >
+                <LuTrash />
+              </IconButton>
+            </HStack>
           </HStack>
-          <HStack gap={1}>
-            <IconButton
-              aria-label="Move up"
-              size="xs"
-              variant="ghost"
-              onClick={onMoveUp}
-              disabled={isSubmitting}
-            >
-              <LuChevronUp />
-            </IconButton>
-            <IconButton
-              aria-label="Move down"
-              size="xs"
-              variant="ghost"
-              onClick={onMoveDown}
-              disabled={isSubmitting}
-            >
-              <LuChevronDown />
-            </IconButton>
-            <IconButton
-              aria-label="Duplicate"
-              size="xs"
-              variant="ghost"
-              onClick={onDuplicate}
-              disabled={isSubmitting}
-            >
-              <LuCopy />
-            </IconButton>
-            <IconButton
-              aria-label="Delete"
-              variant="ghost"
-              colorPalette="red"
-              size="xs"
-              onClick={onRemove}
-              disabled={isSubmitting}
-            >
-              <LuTrash />
-            </IconButton>
-          </HStack>
-        </HStack>
 
-        <Field label="Step Name" helperText="For reference only (not used in prompts)">
-          <Input
-            {...register(namePath)}
-            autoComplete="off"
-            placeholder="e.g., plan, draft, write, etc."
-            disabled={isSubmitting}
-          />
-        </Field>
-
-        <Stack direction="row" gap={3} wrap="wrap">
-          <Field
-            label="Model Profile"
-            flex={1}
-            required
-            invalid={!!stepErr?.modelProfileId}
-            errorText={stepErr?.modelProfileId?.message}
-            helperText="Model and inference provider used for this step"
-          >
-            <Controller
-              name={modelPath}
-              control={control}
-              render={({ field }) => (
-                <ModelProfileSingleSelect
-                  value={field.value ? String(field.value) : null}
-                  onChange={(id) => field.onChange(id ?? "")}
-                  disabled={isSubmitting}
-                />
-              )}
-            />
-          </Field>
-          <Field
-            label="Prompt Template"
-            flex={1}
-            required
-            invalid={!!stepErr?.promptTemplateId}
-            errorText={stepErr?.promptTemplateId?.message}
-            helperText="Prompt template used for the model call"
-          >
-            <Controller
-              name={templatePath}
-              control={control}
-              render={({ field }) => (
-                <TemplateSingleSelect
-                  task={task}
-                  value={field.value ? String(field.value) : null}
-                  onChange={(id) => field.onChange(id ?? "")}
-                  disabled={isSubmitting}
-                />
-              )}
-            />
-          </Field>
-        </Stack>
-
-        <Field
-          label="Stop Sequences (JSON array)"
-          helperText='Example: ["###", "<END>"]'
-          invalid={!!stepErr?.stop}
-          errorText={stepErr?.stop?.message}
-        >
-          <Controller
-            control={control}
-            name={stopPath}
-            render={({ field }) => (
-              <StopSequencesTextarea
-                name={field.name}
-                value={Array.isArray(field.value) ? field.value : []}
-                onChangeArray={(arr) => field.onChange(arr)}
-                disabled={isSubmitting}
+          <group.AppField name="name">
+            {(field) => (
+              <field.TextInput
+                label="Step Name"
+                helperText="For reference only (not used in prompts)"
+                autoComplete="off"
+                placeholder="e.g., plan, draft, write, etc."
               />
             )}
-          />
-        </Field>
+          </group.AppField>
 
-        <Stack direction="row" gap={3} wrap="wrap">
-          <Field
-            label="Max Context Size (tokens)"
-            flex={1}
-            invalid={!!stepErr?.maxContextTokens}
-            errorText={stepErr?.maxContextTokens?.message}
-            helperText="Has precedence over prompt template settings"
-          >
-            <Input
-              type="number"
-              placeholder="auto"
-              disabled={isSubmitting}
-              {...register(maxCtxPath, {
-                setValueAs: (v) =>
-                  v === "" || v === null || Number.isNaN(v) ? undefined : Number(v),
-              })}
-            />
-          </Field>
-          <Field
-            label="Max Response Tokens"
-            flex={1}
-            invalid={!!stepErr?.maxOutputTokens}
-            errorText={stepErr?.maxOutputTokens?.message}
-            helperText="Uses model/provider default if not specified"
-          >
-            <Input
-              type="number"
-              placeholder="auto"
-              disabled={isSubmitting}
-              {...register(maxOutPath, {
-                setValueAs: (v) =>
-                  v === "" || v === null || Number.isNaN(v) ? undefined : Number(v),
-              })}
-            />
-          </Field>
-        </Stack>
+          <Stack direction="row" gap={3} wrap="wrap">
+            <group.AppField name="modelProfileId">
+              {(field) => (
+                <field.Field
+                  label="Model Profile"
+                  flex={1}
+                  required
+                  helperText="Model and inference provider used for this step"
+                >
+                  <ModelProfileSingleSelect
+                    value={field.state.value ? String(field.state.value) : null}
+                    onChange={(id) => field.handleChange(id ?? "")}
+                  />
+                </field.Field>
+              )}
+            </group.AppField>
+            <group.AppField name="promptTemplateId">
+              {(field) => (
+                <field.Field
+                  label="Prompt Template"
+                  flex={1}
+                  required
+                  helperText="Prompt template used for the model call"
+                >
+                  <TemplateSingleSelect
+                    task={task}
+                    value={field.state.value ? String(field.state.value) : null}
+                    onChange={(id) => field.handleChange(id ?? "")}
+                  />
+                </field.Field>
+              )}
+            </group.AppField>
+          </Stack>
 
-        <Separator />
-
-        <TransformsEditor stepIndex={index} disabled={isSubmitting} />
-
-        <Separator />
-
-        <OutputsEditor stepIndex={index} disabled={isSubmitting} />
-
-        <Separator />
-
-        <Field
-          label="Extra Generation Params (JSON)"
-          invalid={!!stepErr?.genParams}
-          errorText={stepErr?.genParams?.message}
-        >
-          <Controller
-            control={control}
-            name={genParamsPath}
-            render={({ field }) => (
-              <GenParamsTextarea
-                name={genParamsPath}
-                value={field.value}
-                onChangeObject={(obj) => setValue(genParamsPath, obj, { shouldDirty: true })}
-                disabled={isSubmitting}
-              />
+          <group.AppField name="stop">
+            {(field) => (
+              <field.Field
+                label="Stop Sequences (JSON array)"
+                helperText='Example: ["###", "<END>"]'
+              >
+                <StopSequencesTextarea />
+              </field.Field>
             )}
-          />
-        </Field>
-      </Stack>
-    </Card.Root>
-  );
-}
+          </group.AppField>
+
+          <Stack direction="row" gap={3} wrap="wrap">
+            <group.AppField name="maxContextTokens">
+              {(field) => (
+                <field.NumberInput
+                  label="Max Context Size (tokens)"
+                  helperText="Has precedence over prompt template settings"
+                  placeholder="auto"
+                  allowEmpty
+                  fieldProps={{ flex: "1" }}
+                />
+              )}
+            </group.AppField>
+            <group.AppField name="maxOutputTokens">
+              {(field) => (
+                <field.NumberInput
+                  label="Max Response Tokens"
+                  helperText="Uses model/provider default if not specified"
+                  placeholder="auto"
+                  allowEmpty
+                  fieldProps={{ flex: "1" }}
+                />
+              )}
+            </group.AppField>
+          </Stack>
+
+          <Separator />
+
+          <TransformsEditor form={group} fields={{ items: "transforms" }} />
+
+          <Separator />
+
+          <OutputsEditor form={group} fields={{ items: "outputs" }} />
+
+          <Separator />
+
+          <group.AppField name="genParams">
+            {(field) => (
+              <field.Field label="Extra Generation Params (JSON)">
+                <GenParamsTextarea />
+              </field.Field>
+            )}
+          </group.AppField>
+        </Stack>
+      </Card.Root>
+    );
+  },
+});

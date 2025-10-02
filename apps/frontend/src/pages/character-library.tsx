@@ -11,11 +11,11 @@ import {
   PageHeader,
   SplitButton,
 } from "@/components/ui";
-import { CharacterImportDialog } from "@/features/characters/character-import-dialog";
 import {
   CharacterCard,
   CharacterCardSkeleton,
 } from "@/features/characters/components/character-card";
+import { CharacterImportDialog } from "@/features/characters/components/character-import-dialog";
 import { CharacterPile } from "@/features/characters/components/character-pile";
 import {
   CompactCharacterCard,

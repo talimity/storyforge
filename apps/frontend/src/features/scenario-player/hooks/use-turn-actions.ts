@@ -23,8 +23,7 @@ export function useTurnActions() {
   const setEditingTurnId = useScenarioPlayerStore((state) => state.setEditingTurnId);
   const startRun = useIntentRunsStore((s) => s.startRun);
   const isGenerating = useIntentRunsStore(selectIsGenerating);
-  const { createIntent, insertTurnAfter, isCreatingIntent, isInsertingTurnAfter } =
-    useScenarioIntentActions();
+  const { createIntent, insertTurnAfter } = useScenarioIntentActions();
   const { mutate: deleteTurn, isPending: isDeleting } = useMutation(
     trpc.timeline.deleteTurn.mutationOptions({
       onSuccess: () => {
@@ -157,11 +156,9 @@ export function useTurnActions() {
 
     // Retry state
     retryTurn,
-    isRetrying: isCreatingIntent,
 
     // Manual insert state
     manualTurnTarget,
-    isInsertingManualTurn: isInsertingTurnAfter,
 
     // Edit state
     editingTurnId,

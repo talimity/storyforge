@@ -29,8 +29,8 @@ export function CharacterCreatePage() {
     })
   );
 
-  const handleSubmit = (formData: CharacterFormData) => {
-    createCharacterMutation.mutate({
+  const handleSubmit = (formData: CharacterFormData) =>
+    createCharacterMutation.mutateAsync({
       name: formData.name,
       description: formData.description,
       cardType: formData.cardType,
@@ -38,7 +38,6 @@ export function CharacterCreatePage() {
       styleInstructions: formData.styleInstructions ?? undefined,
       imageDataUri: formData.imageDataUri ?? undefined,
     });
-  };
 
   const handleCancel = () => {
     navigate("/characters");
@@ -50,7 +49,6 @@ export function CharacterCreatePage() {
       <CharacterForm
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        isSubmitting={createCharacterMutation.isPending}
         submitLabel="Create Character"
       />
     </Container>

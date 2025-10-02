@@ -29,39 +29,24 @@ export function ScenarioCreatePage() {
     })
   );
 
-  const handleSubmit = async (formData: {
-    name: string;
-    description: string;
-    participants: Array<{
-      characterId: string;
-      role?: string;
-      isUserProxy?: boolean;
-    }>;
-  }) => {
-    const characterIds = formData.participants.map((p) => p.characterId);
-    const userProxyCharacterId = formData.participants.find((p) => p.isUserProxy)?.characterId;
-
-    const result = await createScenarioMutation.mutateAsync({
-      name: formData.name,
-      description: formData.description,
-      characterIds,
-      userProxyCharacterId,
-    });
-
-    navigate(`/play/${result.id}`);
-  };
-
-  const handleCancel = () => {
-    navigate("/scenarios");
-  };
-
   return (
     <Container>
       <SimplePageHeader title="New Scenario" />
       <ScenarioForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isSubmitting={createScenarioMutation.isPending}
+        onSubmit={async (vals) => {
+          const characterIds = vals.participants.map((p) => p.characterId);
+          const userProxyCharacterId = vals.participants.find((p) => p.isUserProxy)?.characterId;
+
+          const result = await createScenarioMutation.mutateAsync({
+            name: vals.name,
+            description: vals.description,
+            characterIds,
+            userProxyCharacterId,
+          });
+
+          navigate(`/play/${result.id}`);
+        }}
+        onCancel={() => navigate("/scenarios")}
         submitLabel="Create Scenario"
         initialCharacterIds={selectedCharacterIds}
       />

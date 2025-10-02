@@ -1,77 +1,67 @@
-import { Heading, HStack, Input, Stack, Text, VStack } from "@chakra-ui/react";
-import { useFormContext } from "react-hook-form";
+import { Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import { LuFileText } from "react-icons/lu";
-import { Field } from "@/components/ui";
 import { TaskKindSelect } from "@/components/ui/task-kind-select";
-import type { WorkflowFormValues } from "./schemas";
+import { workflowFormDefaultValues } from "@/features/workflows/components/builder/form-schemas";
+import { withForm } from "@/lib/app-form";
 
-export function WorkflowDetailsTab({
-  isEditMode,
-  isSubmitting,
-}: {
-  isEditMode?: boolean;
-  isSubmitting?: boolean;
-}) {
-  const { register, getValues, setValue, formState } = useFormContext<WorkflowFormValues>();
+export const WorkflowDetailsTab = withForm({
+  defaultValues: workflowFormDefaultValues,
+  props: { isEditMode: false },
+  render: function Render({ form, isEditMode }) {
+    return (
+      <Stack gap={6}>
+        <HStack gap={3}>
+          <LuFileText size={20} />
+          <VStack align="start" gap={0}>
+            <Heading size="md">Workflow Metadata</Heading>
+            <Text color="content.muted" fontSize="sm">
+              Set basic configuration
+            </Text>
+          </VStack>
+        </HStack>
 
-  return (
-    <Stack gap={6}>
-      <HStack gap={3}>
-        <LuFileText size={20} />
-        <VStack align="start" gap={0}>
-          <Heading size="md">Workflow Metadata</Heading>
-          <Text color="content.muted" fontSize="sm">
-            Set basic configuration
-          </Text>
-        </VStack>
-      </HStack>
+        <form.AppField
+          name="task"
+          listeners={{
+            onChange: () => {
+              const steps = form.getFieldValue("steps");
+              if (!Array.isArray(steps) || steps.length === 0) {
+                return;
+              }
 
-      <Field
-        label="Task"
-        required
-        invalid={!!formState.errors.task}
-        errorText={formState.errors.task?.message}
-      >
-        <TaskKindSelect
-          value={getValues("task")}
-          onChange={(val) => {
-            setValue("task", val as WorkflowFormValues["task"], { shouldDirty: true });
-            const steps = getValues("steps");
-            if (steps?.length) {
-              setValue(
+              form.setFieldValue(
                 "steps",
-                steps.map((s) => ({ ...s, promptTemplateId: "" })),
-                { shouldDirty: true }
+                steps.map((step) => ({ ...step, promptTemplateId: "" }))
               );
-            }
+            },
           }}
-          disabled={isEditMode}
-          placeholder="Select task kind"
-        />
-      </Field>
+        >
+          {(field) => {
+            const selectedTask = field.state.value;
+            return (
+              <field.Field label="Task" required>
+                <TaskKindSelect
+                  value={selectedTask ?? ""}
+                  onChange={(next) => {
+                    if (!next) return;
+                    field.handleChange(() => next);
+                  }}
+                  disabled={isEditMode}
+                  placeholder="Select task kind"
+                />
+              </field.Field>
+            );
+          }}
+        </form.AppField>
 
-      <Field
-        label="Name"
-        required
-        invalid={!!formState.errors.name}
-        errorText={formState.errors.name?.message}
-      >
-        <Input
-          {...register("name")}
-          autoComplete="off"
-          placeholder="Workflow name"
-          disabled={isSubmitting}
-        />
-      </Field>
+        <form.AppField name="name">
+          {(field) => <field.TextInput label="Name" required placeholder="Workflow name" />}
+        </form.AppField>
 
-      <Field label="Description">
-        <Input
-          {...register("description")}
-          autoComplete="off"
-          placeholder="Optional description"
-          disabled={isSubmitting}
-        />
-      </Field>
-    </Stack>
-  );
-}
+        <form.AppField name="description">
+          {(field) => <field.TextInput label="Description" placeholder="Optional description" />}
+        </form.AppField>
+      </Stack>
+    );
+  },
+});

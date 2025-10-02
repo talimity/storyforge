@@ -26,9 +26,7 @@ export function CreateModelProfileDialog({ isOpen, onOpenChange }: CreateModelPr
     })
   );
 
-  const handleSubmit = (data: ModelProfileFormData) => {
-    createModelProfileMutation.mutate(data);
-  };
+  const handleSubmit = (data: ModelProfileFormData) => createModelProfileMutation.mutateAsync(data);
 
   const handleCancel = () => {
     onOpenChange(false);
@@ -51,7 +49,6 @@ export function CreateModelProfileDialog({ isOpen, onOpenChange }: CreateModelPr
           <ModelProfileForm
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-            isSubmitting={createModelProfileMutation.isPending}
             submitLabel="Create Model Profile"
           />
         </Dialog.Body>

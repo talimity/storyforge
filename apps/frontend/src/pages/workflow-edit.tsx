@@ -56,11 +56,10 @@ export function WorkflowEditPage() {
           description: data.description,
           steps: data.steps,
         }}
-        isSubmitting={update.isPending}
         submitLabel="Save"
         isEditMode
         onCancel={() => navigate("/workflows")}
-        onSubmit={(vals) => update.mutate({ id: String(id), data: vals })}
+        onSubmit={(vals) => update.mutateAsync({ id: String(id), data: vals })}
       />
     </Container>
   );

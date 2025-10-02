@@ -1,4 +1,5 @@
 import { Container, Spinner, Stack, Text } from "@chakra-ui/react";
+import { assertDefined } from "@storyforge/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -55,39 +56,6 @@ export function ScenarioEditPage() {
     })
   );
 
-  const handleSubmit = (formData: {
-    name: string;
-    description: string;
-    participants: Array<{
-      characterId: string;
-      role?: string;
-      isUserProxy?: boolean;
-    }>;
-  }) => {
-    if (!id) return;
-
-    updateScenarioMutation.mutate({
-      id,
-      name: formData.name,
-      description: formData.description,
-      participants: formData.participants,
-    });
-  };
-
-  const handleCancel = () => {
-    navigate("/scenarios");
-  };
-
-  const handleDelete = () => {
-    setShowDeleteDialog(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!id) return;
-    deleteScenarioMutation.mutate({ id });
-    setShowDeleteDialog(false);
-  };
-
   if (isLoadingScenario) {
     return (
       <Container>
@@ -136,7 +104,7 @@ export function ScenarioEditPage() {
             <Button
               colorPalette="red"
               variant="outline"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteDialog(true)}
               disabled={deleteScenarioMutation.isPending || updateScenarioMutation.isPending}
             >
               Delete Scenario
@@ -146,9 +114,11 @@ export function ScenarioEditPage() {
         <ScenarioForm
           initialData={initialFormData}
           scenarioId={id}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isSubmitting={updateScenarioMutation.isPending}
+          onSubmit={(vals) => {
+            assertDefined(id);
+            return updateScenarioMutation.mutateAsync({ id, ...vals });
+          }}
+          onCancel={() => navigate("/scenarios")}
           submitLabel="Update Scenario"
         />
       </Container>
@@ -157,7 +127,11 @@ export function ScenarioEditPage() {
         isOpen={showDeleteDialog}
         onOpenChange={(details) => setShowDeleteDialog(details.open)}
         scenarioName={scenario.name}
-        onConfirmDelete={handleConfirmDelete}
+        onConfirmDelete={() => {
+          if (!id) return;
+          deleteScenarioMutation.mutate({ id });
+          setShowDeleteDialog(false);
+        }}
         isDeleting={deleteScenarioMutation.isPending}
       />
     </>

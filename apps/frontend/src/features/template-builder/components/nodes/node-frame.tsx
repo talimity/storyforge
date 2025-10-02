@@ -8,14 +8,14 @@ interface NodeFrameProps {
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
   children: React.ReactNode;
-  ref: React.ForwardedRef<HTMLDivElement>;
+  containerRef?: React.Ref<HTMLDivElement>;
 }
 
 export const NodeFrame = (props: NodeFrameProps) => {
-  const { isDragging = false, dragHandleProps, style, children, ref } = props;
+  const { isDragging = false, dragHandleProps, style, children, containerRef } = props;
   return (
     <Card.Root
-      ref={ref}
+      ref={containerRef}
       style={style}
       layerStyle="surface"
       borderLeft="4px solid"

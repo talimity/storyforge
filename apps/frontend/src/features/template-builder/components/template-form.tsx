@@ -1,11 +1,10 @@
 import { Box, Tabs, VStack } from "@chakra-ui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useStore } from "@tanstack/react-form";
+import { useEffect, useRef, useState } from "react";
 import { LuEye, LuInfo, LuRows3 } from "react-icons/lu";
 import { useShallow } from "zustand/react/shallow";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
-import { Button, PageHeader } from "@/components/ui/index";
+import { Button, PageHeader } from "@/components/ui";
 import { LayoutBuilder } from "@/features/template-builder/components/layout-builder";
 import { TemplateMetadata } from "@/features/template-builder/components/template-metadata";
 import { TemplatePreview } from "@/features/template-builder/components/template-preview";
@@ -17,6 +16,7 @@ import {
 } from "@/features/template-builder/template-form-schema";
 import type { TemplateDraft } from "@/features/template-builder/types";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
+import { useAppForm } from "@/lib/app-form";
 
 interface TemplateFormProps {
   initialDraft: TemplateDraft;
@@ -24,141 +24,154 @@ interface TemplateFormProps {
     metadata: TemplateFormData;
     layoutDraft: TemplateDraft["layoutDraft"];
     slotsDraft: TemplateDraft["slotsDraft"];
-  }) => void;
+  }) => Promise<void> | void;
   onCancel: () => void;
-  isSubmitting?: boolean;
   submitLabel?: string;
   pageTitle: string;
   isEditMode?: boolean;
 }
 
+type MetadataFormValues = TemplateFormData & { description: string };
+
 export function TemplateForm({
   initialDraft,
   onSubmit,
   onCancel,
-  isSubmitting = false,
   submitLabel = "Save Template",
   pageTitle,
   isEditMode = false,
 }: TemplateFormProps) {
   const [activeTab, setActiveTab] = useState("metadata");
 
-  // Store state
   const { layoutDraft, slotsDraft, builderIsDirty, initialize, markClean } =
     useTemplateBuilderStore(
-      useShallow((s) => ({
-        layoutDraft: s.layoutDraft,
-        slotsDraft: s.slotsDraft,
-        builderIsDirty: s.isDirty,
-        initialize: s.initialize,
-        markClean: s.markClean,
+      useShallow((state) => ({
+        layoutDraft: state.layoutDraft,
+        slotsDraft: state.slotsDraft,
+        builderIsDirty: state.isDirty,
+        initialize: state.initialize,
+        markClean: state.markClean,
       }))
     );
 
-  // Form state for metadata
-  const {
-    handleSubmit,
-    formState: { isDirty: metadataIsDirty, errors },
-    watch,
-    register,
-    control,
-    reset,
-  } = useForm<TemplateFormData>({
-    resolver: zodResolver(templateFormSchema),
-    mode: "onBlur",
-    defaultValues: {
-      name: initialDraft.name,
-      task: initialDraft.task,
-      description: initialDraft.description || "",
-    },
-  });
+  const metadataDefaults: MetadataFormValues = {
+    name: initialDraft.name,
+    task: initialDraft.task,
+    description: initialDraft.description ?? "",
+  };
 
-  // Track if we just submitted to prevent flash on save
-  const justSubmittedRef = useRef(false);
-  const prevInitialDraftRef = useRef<TemplateDraft | null>(null);
-
-  // Initialize store state when component mounts or initialDraft changes
-  useEffect(() => {
-    // Check if this is the first mount or if the draft has actually changed
-    const prev = prevInitialDraftRef.current;
-    const isFirstMount = prev === null;
-    const draftChanged =
-      prev !== null &&
-      (prev.name !== initialDraft.name ||
-        prev.task !== initialDraft.task ||
-        JSON.stringify(prev.layoutDraft) !== JSON.stringify(initialDraft.layoutDraft) ||
-        JSON.stringify(prev.slotsDraft) !== JSON.stringify(initialDraft.slotsDraft));
-
-    // Initialize on mount or when draft changes
-    if ((isFirstMount || draftChanged) && !justSubmittedRef.current) {
-      if (isEditMode && initialDraft.name) {
-        reset({
-          name: initialDraft.name,
-          task: initialDraft.task,
-          description: initialDraft.description,
+  const form = useAppForm({
+    defaultValues: metadataDefaults,
+    validators: {
+      onBlur: ({ value }) => {
+        const result = templateFormSchema.safeParse({
+          name: value.name,
+          task: value.task,
+          description: value.description || undefined,
         });
-      }
-      initialize(initialDraft);
-    }
+        if (result.success) return undefined;
 
-    // Reset the flag after handling the update
-    if (justSubmittedRef.current) {
-      justSubmittedRef.current = false;
-      markClean();
-    }
+        const fieldErrors: Record<string, unknown> = {};
 
-    prevInitialDraftRef.current = initialDraft;
-  }, [initialDraft, isEditMode, reset, initialize, markClean]);
+        for (const issue of result.error.issues) {
+          const key = issue.path.join(".");
+          if (!key) continue;
+          if (fieldErrors[key]) continue;
+          fieldErrors[key] = issue.message;
+        }
 
-  const metadata = watch();
+        return { fields: fieldErrors };
+      },
+    },
+    onSubmit: async ({ value }) => {
+      const structureIssues = validateDraft({
+        task: value.task,
+        layoutDraft,
+        slotsDraft,
+      });
 
-  // Validation - memoize to prevent recreation on every render
-  const currentDraft: TemplateDraft = useMemo(
-    () => ({
-      id: initialDraft.id,
-      name: metadata.name,
-      description: metadata.description || "",
-      task: metadata.task,
-      layoutDraft,
-      slotsDraft,
-    }),
-    [initialDraft.id, metadata.name, metadata.description, metadata.task, layoutDraft, slotsDraft]
-  );
-
-  const structureErrors = useMemo(
-    () => validateDraft({ task: metadata.task, layoutDraft, slotsDraft }),
-    [layoutDraft, slotsDraft, metadata.task]
-  );
-  const hasStructureErrors = structureErrors.length > 0;
-  const metadataErrorCount = Object.keys(errors).length;
-  const structureErrorCount = structureErrors.length;
-
-  const hasUnsavedChanges = (metadataIsDirty || builderIsDirty) && !isSubmitting;
-
-  const { showDialog, handleConfirmNavigation, handleCancelNavigation } =
-    useUnsavedChangesProtection({
-      hasUnsavedChanges,
-      message: "You have unsaved changes to this template. Are you sure you want to leave?",
-    });
-
-  const onFormSubmit = useCallback(
-    (formData: TemplateFormData) => {
-      if (hasStructureErrors) {
+      if (structureIssues.length > 0) {
         setActiveTab("structure");
         return;
       }
 
-      // Mark that we're submitting to prevent flash on save
       justSubmittedRef.current = true;
+      const metadata: TemplateFormData = {
+        name: value.name,
+        task: value.task,
+        description: value.description || undefined,
+      };
 
-      onSubmit({ metadata: formData, layoutDraft, slotsDraft });
+      await onSubmit({ metadata, layoutDraft, slotsDraft });
+
+      form.reset({
+        name: metadata.name,
+        task: metadata.task,
+        description: metadata.description ?? "",
+      });
+
+      markClean();
+      justSubmittedRef.current = false;
     },
-    [hasStructureErrors, layoutDraft, slotsDraft, onSubmit]
-  );
+  });
 
-  const handleFormSubmit = useCallback(() => {
-    handleSubmit(onFormSubmit)();
-  }, [handleSubmit, onFormSubmit]);
+  const justSubmittedRef = useRef(false);
+  const prevInitialDraftRef = useRef<TemplateDraft | null>(null);
+
+  useEffect(() => {
+    const prev = prevInitialDraftRef.current;
+    const isFirstMount = prev === null;
+    const templateSwitched = prev?.id !== initialDraft.id;
+
+    if ((isFirstMount || templateSwitched) && !justSubmittedRef.current) {
+      form.reset({
+        name: initialDraft.name,
+        task: initialDraft.task,
+        description: initialDraft.description ?? "",
+      });
+      initialize(initialDraft);
+    }
+
+    prevInitialDraftRef.current = initialDraft;
+  }, [form, initialDraft, initialize]);
+
+  const metadataValues = useStore(form.store, (state) => state.values);
+  const formIsDirty = useStore(form.store, (state) => state.isDirty);
+  const formIsSubmitting = useStore(form.store, (state) => state.isSubmitting);
+
+  const currentDraft: TemplateDraft = {
+    id: initialDraft.id,
+    name: metadataValues.name,
+    description: metadataValues.description || "",
+    task: metadataValues.task,
+    layoutDraft,
+    slotsDraft,
+  };
+
+  const structureErrors = validateDraft({
+    task: metadataValues.task,
+    layoutDraft,
+    slotsDraft,
+  });
+  const hasStructureErrors = structureErrors.length > 0;
+  const structureErrorCount = structureErrors.length;
+
+  const metadataValidation = templateFormSchema.safeParse({
+    name: metadataValues.name,
+    task: metadataValues.task,
+    description: metadataValues.description || undefined,
+  });
+  const metadataErrorCount = metadataValidation.success
+    ? 0
+    : metadataValidation.error.issues.length;
+
+  const hasUnsavedChanges = (formIsDirty || builderIsDirty) && !formIsSubmitting;
+
+  const { showDialog, handleConfirmNavigation, handleCancelNavigation, confirmNavigation } =
+    useUnsavedChangesProtection({
+      hasUnsavedChanges,
+      message: "You have unsaved changes to this template. Are you sure you want to leave?",
+    });
 
   const tabs = [
     {
@@ -189,33 +202,41 @@ export function TemplateForm({
 
         <PageHeader.Tabs tabs={tabs} defaultValue={activeTab} onChange={setActiveTab}>
           <PageHeader.Controls>
-            <Button variant="ghost" onClick={onCancel} disabled={isSubmitting}>
+            <Button
+              variant="ghost"
+              onClick={() => confirmNavigation(onCancel)}
+              disabled={formIsSubmitting}
+            >
               Cancel
             </Button>
-            <Button
-              colorPalette="primary"
-              onClick={handleFormSubmit}
-              disabled={isSubmitting || (hasStructureErrors && activeTab === "structure")}
-              loading={isSubmitting}
-              loadingText={isEditMode ? "Saving..." : "Creating..."}
+            <form.Subscribe
+              selector={(state) => ({
+                canSubmit: state.canSubmit,
+                isSubmitting: state.isSubmitting,
+              })}
             >
-              {submitLabel}
-            </Button>
+              {({ canSubmit, isSubmitting }) => (
+                <Button
+                  colorPalette="primary"
+                  onClick={() => form.handleSubmit()}
+                  disabled={
+                    !canSubmit || isSubmitting || (hasStructureErrors && activeTab === "structure")
+                  }
+                  loading={isSubmitting}
+                  loadingText={isEditMode ? "Saving..." : "Creating..."}
+                >
+                  {submitLabel}
+                </Button>
+              )}
+            </form.Subscribe>
           </PageHeader.Controls>
 
           <Tabs.Content value="metadata">
-            <TemplateMetadata
-              register={register}
-              control={control}
-              errors={errors}
-              watchedValues={metadata}
-              isEditMode={isEditMode}
-            />
+            <TemplateMetadata form={form} isEditMode={isEditMode} />
           </Tabs.Content>
 
           <Tabs.Content value="structure">
             <VStack align="stretch" gap={4}>
-              {/* Validation Errors */}
               {hasStructureErrors && (
                 <Box bg="red.50" border="1px solid" borderColor="red.200" p={3} borderRadius="md">
                   <VStack align="start" gap={1}>
@@ -228,7 +249,7 @@ export function TemplateForm({
                 </Box>
               )}
 
-              <LayoutBuilder task={metadata.task} />
+              <LayoutBuilder task={metadataValues.task} />
             </VStack>
           </Tabs.Content>
 
@@ -238,7 +259,6 @@ export function TemplateForm({
         </PageHeader.Tabs>
       </PageHeader.Root>
 
-      {/* Unsaved Changes Dialog */}
       <UnsavedChangesDialog
         isOpen={showDialog}
         onConfirm={handleConfirmNavigation}

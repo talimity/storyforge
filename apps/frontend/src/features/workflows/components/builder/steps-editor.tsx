@@ -1,78 +1,93 @@
 import { Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
-import type { GenStep } from "@storyforge/gentasks";
 import { createId } from "@storyforge/utils";
-import { useFieldArray, useFormContext } from "react-hook-form";
 import { LuListOrdered, LuListPlus } from "react-icons/lu";
 import { Button, EmptyState } from "@/components/ui";
-import type { WorkflowFormValues } from "./schemas";
+import { withForm } from "@/lib/app-form";
+import { workflowFormDefaultValues } from "./form-schemas";
 import { StepCard } from "./step-card";
 
-export function StepsEditor({ isSubmitting }: { isSubmitting: boolean }) {
-  const { control } = useFormContext<WorkflowFormValues>();
-  const { fields, append, remove, move, insert } = useFieldArray({ control, name: "steps" });
+export const StepsEditor = withForm({
+  defaultValues: workflowFormDefaultValues,
+  render: function Render({ form }) {
+    return (
+      <form.Field name="steps" mode="array">
+        {(stepsField) => {
+          const handleAdd = () => {
+            const newStep = {
+              id: createId(),
+              name: undefined,
+              modelProfileId: "",
+              promptTemplateId: "",
+              genParams: undefined,
+              stop: [],
+              maxOutputTokens: undefined,
+              maxContextTokens: undefined,
+              transforms: [],
+              outputs: [{ key: "content", capture: "assistantText" } as const],
+            };
+            stepsField.pushValue(newStep);
+          };
 
-  const handleAdd = () => {
-    const newStep: GenStep = {
-      id: createId(),
-      name: undefined,
-      modelProfileId: "",
-      promptTemplateId: "",
-      genParams: undefined,
-      stop: [],
-      maxOutputTokens: undefined,
-      maxContextTokens: undefined,
-      transforms: [],
-      outputs: [{ key: "content", capture: "assistantText" }],
-    };
-    append(newStep);
-  };
+          const handleDuplicate = (index: number) => {
+            const source = stepsField.state.value[index];
+            if (!source) return;
+            const clone = { ...source, id: createId() };
+            stepsField.replaceValue(index, clone);
+          };
 
-  const handleDuplicate = (index: number) => {
-    const step = control._formValues.steps?.[index];
-    if (!step) return;
-    const copy: GenStep = { ...step, id: createId() };
-    insert(index + 1, copy);
-  };
+          return (
+            <Stack gap={6}>
+              <HStack direction="row" justify="space-between">
+                <HStack gap={3}>
+                  <LuListOrdered size={20} />
+                  <VStack align="start" gap={0}>
+                    <Heading size="md">Workflow Steps</Heading>
+                    <Text color="content.muted" fontSize="sm">
+                      Configure content generation steps
+                    </Text>
+                  </VStack>
+                </HStack>
+                <Button variant="outline" onClick={handleAdd}>
+                  <LuListPlus />
+                  Add Step
+                </Button>
+              </HStack>
 
-  return (
-    <Stack gap={6}>
-      <HStack direction="row" justify="space-between">
-        <HStack gap={3}>
-          <LuListOrdered size={20} />
-          <VStack align="start" gap={0}>
-            <Heading size="md">Workflow Steps</Heading>
-            <Text color="content.muted" fontSize="sm">
-              Configure content generation steps
-            </Text>
-          </VStack>
-        </HStack>
-        <Button variant="outline" onClick={handleAdd} disabled={isSubmitting}>
-          <LuListPlus />
-          Add Step
-        </Button>
-      </HStack>
-
-      {fields.length === 0 && (
-        <EmptyState
-          icon={<LuListOrdered />}
-          title="No workflow steps yet"
-          description="Define the steps in your workflow to generate content."
-        />
-      )}
-
-      <VStack align="stretch" gap={3}>
-        {fields.map((field, idx) => (
-          <StepCard
-            key={field.id}
-            index={idx}
-            onRemove={() => remove(idx)}
-            onMoveUp={() => idx > 0 && move(idx, idx - 1)}
-            onMoveDown={() => idx < fields.length - 1 && move(idx, idx + 1)}
-            onDuplicate={() => handleDuplicate(idx)}
-            isSubmitting={isSubmitting}
-          />
-        ))}
-      </VStack>
-    </Stack>
-  );
-}
+              {stepsField.state.value.length === 0 ? (
+                <EmptyState
+                  icon={<LuListOrdered />}
+                  title="No workflow steps yet"
+                  description="Define the steps in your workflow to generate content."
+                />
+              ) : (
+                <VStack align="stretch" gap={3}>
+                  {stepsField.state.value.map((_step, idx) => (
+                    <StepCard
+                      task={form.state.values.task}
+                      // for array fields, key MUST be the index. any other key will cause crashes
+                      // when removing items from the array, as there will be one render tick where
+                      // group.store.values becomes undefined before the component is unmounted.
+                      // see https://github.com/TanStack/form/issues/1561
+                      // biome-ignore lint/suspicious/noArrayIndexKey: TODO remove after https://github.com/TanStack/form/pull/1729
+                      key={/*step.id ??*/ idx}
+                      form={form}
+                      fields={`steps[${idx}]`}
+                      index={idx}
+                      onRemove={() => stepsField.removeValue(idx)}
+                      onMoveUp={() => idx > 0 && stepsField.moveValue(idx, idx - 1)}
+                      onMoveDown={() =>
+                        idx < stepsField.state.value.length - 1 &&
+                        stepsField.moveValue(idx, idx + 1)
+                      }
+                      onDuplicate={() => handleDuplicate(idx)}
+                    />
+                  ))}
+                </VStack>
+              )}
+            </Stack>
+          );
+        }}
+      </form.Field>
+    );
+  },
+});

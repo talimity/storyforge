@@ -20,7 +20,8 @@ import {
 } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { Avatar } from "@/components/ui/index";
-import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
+import { cardTypeLabels } from "@/features/characters/character-enums";
+import { CharacterDeleteDialog } from "@/features/characters/components/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
 import { getApiUrl } from "@/lib/get-api-url";
 
@@ -34,13 +35,6 @@ interface CompactCharacterCardProps {
   isSelected?: boolean;
   onSelectionToggle?: () => void;
 }
-
-const cardTypeLabels: Record<CardType, string> = {
-  character: "Character",
-  group: "Group",
-  persona: "Persona",
-  scenario: "Scenario",
-};
 
 export function CompactCharacterCard({
   character,
@@ -103,7 +97,7 @@ export function CompactCharacterCard({
               {character.name}
             </Text>
           </HStack>
-          <Text color="fg.muted" textStyle="sm">
+          <Text color="content.muted" textStyle="sm">
             {cardTypeLabels[character.cardType]}
           </Text>
         </Stack>

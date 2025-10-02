@@ -22,10 +22,9 @@ export function WorkflowCreatePage() {
     <Container>
       <SimplePageHeader title="Create Workflow" />
       <WorkflowForm
-        isSubmitting={create.isPending}
         submitLabel="Create Workflow"
         onCancel={() => navigate("/workflows")}
-        onSubmit={(data) => create.mutate(data)}
+        onSubmit={(data) => create.mutateAsync(data)}
       />
     </Container>
   );

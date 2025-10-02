@@ -12,11 +12,20 @@ interface SlotReferenceViewProps {
   onDelete?: (nodeId: string) => void;
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
-  ref: React.ForwardedRef<HTMLDivElement>;
+  containerRef?: React.Ref<HTMLDivElement>;
 }
 
 export const SlotReferenceView = (props: SlotReferenceViewProps) => {
-  const { node, slot, isDragging = false, onEdit, onDelete, dragHandleProps, style, ref } = props;
+  const {
+    node,
+    slot,
+    isDragging = false,
+    onEdit,
+    onDelete,
+    dragHandleProps,
+    style,
+    containerRef,
+  } = props;
   const NodeIcon = getNodeIcon(node);
   if (!slot) {
     return <Text color="red.500">Cannot resolve slot reference from node ID: {node.id}</Text>;
@@ -24,7 +33,7 @@ export const SlotReferenceView = (props: SlotReferenceViewProps) => {
 
   return (
     <NodeFrame
-      ref={ref}
+      containerRef={containerRef}
       node={node}
       isDragging={isDragging}
       dragHandleProps={dragHandleProps}

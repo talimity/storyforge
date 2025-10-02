@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import type React from "react";
-import { Fragment, useEffect, useMemo, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { Avatar } from "@/components/ui/index";
 import { useCharacterSearch } from "@/features/characters/hooks/use-character-search";
 import { getApiUrl } from "@/lib/get-api-url";
@@ -36,17 +36,11 @@ function useCharacterCollection(
   });
   const trpc = useTRPC();
 
-  const normalizedRequiredIds = useMemo(() => {
-    if (!requiredIds) return [];
-    return requiredIds.filter((id) => id.length > 0);
-  }, [requiredIds]);
+  const normalizedRequiredIds = (requiredIds ?? []).filter((id) => id.length > 0);
 
-  const missingRequiredIds = useMemo(() => {
-    if (!normalizedRequiredIds.length) return [];
-    const presentIds = new Set(characters.map((character) => character.id));
-    return normalizedRequiredIds.filter((id) => !presentIds.has(id));
-  }, [characters, normalizedRequiredIds]);
-
+  // Fetch any missing required characters
+  const presentIds = new Set(characters.map((character) => character.id));
+  const missingRequiredIds = normalizedRequiredIds.filter((id) => !presentIds.has(id));
   const requiredCharactersQuery = useQuery(
     trpc.characters.getByIds.queryOptions(
       { ids: missingRequiredIds },
@@ -54,24 +48,15 @@ function useCharacterCollection(
     )
   );
 
-  const requiredCharacters = useMemo(() => {
-    const fetchedCharacters = requiredCharactersQuery.data?.characters ?? [];
-    return fetchedCharacters.map((character) => ({
-      id: character.id,
-      name: character.name,
-      cardType: character.cardType,
-      imagePath: character.imagePath,
-      avatarPath: character.avatarPath,
-    }));
-  }, [requiredCharactersQuery.data?.characters]);
+  const requiredCharacters = (requiredCharactersQuery.data?.characters ?? []).map((character) => ({
+    id: character.id,
+    name: character.name,
+    cardType: character.cardType,
+    imagePath: character.imagePath,
+    avatarPath: character.avatarPath,
+  }));
 
-  const combinedCharacters = useMemo(() => {
-    if (requiredCharacters.length === 0) return characters;
-    const existingIds = new Set(characters.map((character) => character.id));
-    const extras = requiredCharacters.filter((character) => !existingIds.has(character.id));
-    if (extras.length === 0) return characters;
-    return [...characters, ...extras];
-  }, [characters, requiredCharacters]);
+  const combinedCharacters = getCombinedCharacters(characters, requiredCharacters);
 
   const { collection, set } = useListCollection<CharacterSearchCharacter>({
     initialItems: [],
@@ -90,6 +75,17 @@ function useCharacterCollection(
     updateSearch,
     searchQuery,
   };
+}
+
+function getCombinedCharacters(
+  characters: CharacterSearchCharacter[],
+  requiredCharacters: CharacterSearchCharacter[]
+) {
+  if (requiredCharacters.length === 0) return characters;
+  const existingIds = new Set(characters.map((character) => character.id));
+  const extras = requiredCharacters.filter((character) => !existingIds.has(character.id));
+  if (extras.length === 0) return characters;
+  return [...characters, ...extras];
 }
 
 /**
@@ -130,10 +126,6 @@ export function CharacterMultiSelect({
     value
   );
 
-  const handleValueChange = (details: Combobox.ValueChangeDetails) => {
-    onChange(details.value);
-  };
-
   const PortalComponent = inDialog ? Fragment : Portal;
 
   return (
@@ -142,7 +134,7 @@ export function CharacterMultiSelect({
       closeOnSelect
       value={value}
       collection={collection}
-      onValueChange={handleValueChange}
+      onValueChange={(details) => onChange(details.value)}
       onInputValueChange={(e) => updateSearch(e.inputValue)}
       width="full"
       size={size}
@@ -218,7 +210,7 @@ export function CharacterSingleSelect({
     value ? [value] : []
   );
 
-  const internalValue = useMemo(() => (value ? [value] : []), [value]);
+  const internalValue = value ? [value] : [];
 
   const combobox = useCombobox({
     collection,
@@ -238,10 +230,7 @@ export function CharacterSingleSelect({
     hydratedRef.current = true;
   }
 
-  const selectedCharacter = useMemo(() => {
-    if (!value) return null;
-    return collection.items.find((c) => c.id === value) ?? null;
-  }, [value, collection.items]);
+  const selectedCharacter = collection.items.find((c) => c.id === value) ?? null;
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === "Backspace" || e.key === "Delete") && combobox.value.length) {

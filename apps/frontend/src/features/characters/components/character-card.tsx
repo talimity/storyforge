@@ -18,7 +18,7 @@ import {
   LuTrash,
 } from "react-icons/lu";
 import { Link } from "react-router-dom";
-import { CharacterDeleteDialog } from "@/features/characters/character-delete-dialog";
+import { CharacterDeleteDialog } from "@/features/characters/components/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
 import { getApiUrl } from "@/lib/get-api-url";
 

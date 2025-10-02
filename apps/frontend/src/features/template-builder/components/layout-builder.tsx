@@ -190,7 +190,7 @@ function SortableLayoutNode({ node, onDelete }: SortableLayoutNodeProps) {
 
   return (
     <LayoutNodeCard
-      ref={setNodeRef}
+      containerRef={setNodeRef}
       style={style}
       node={node}
       isDragging={isDragging}

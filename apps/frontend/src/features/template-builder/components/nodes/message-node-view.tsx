@@ -11,17 +11,25 @@ interface MessageNodeViewProps {
   onDelete?: (nodeId: string) => void;
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
-  ref: React.ForwardedRef<HTMLDivElement>;
+  containerRef?: React.Ref<HTMLDivElement>;
 }
 
 export const MessageNodeView = (props: MessageNodeViewProps) => {
-  const { node, isDragging = false, onEdit, onDelete, dragHandleProps, style, ref } = props;
+  const {
+    node,
+    isDragging = false,
+    onEdit,
+    onDelete,
+    dragHandleProps,
+    style,
+    containerRef,
+  } = props;
   const NodeIcon = getNodeIcon(node);
   const hasContent = node.content || node.from;
 
   return (
     <NodeFrame
-      ref={ref}
+      containerRef={containerRef}
       node={node}
       isDragging={isDragging}
       dragHandleProps={dragHandleProps}
