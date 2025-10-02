@@ -51,6 +51,7 @@ export async function getCharacterPortrait(db: SqliteDatabase, id: string) {
     .select({
       portrait: tCharacters.portrait,
       focalPoint: tCharacters.portraitFocalPoint,
+      updatedAt: tCharacters.updatedAt,
     })
     .from(tCharacters)
     .where(eq(tCharacters.id, id))
@@ -81,6 +82,7 @@ export async function searchCharacters(
       name: tCharacters.name,
       cardType: tCharacters.cardType,
       hasPortrait: sql<number>`${tCharacters.portrait} IS NOT NULL`,
+      updatedAt: tCharacters.updatedAt,
     })
     .from(tCharacters)
     .$dynamic();

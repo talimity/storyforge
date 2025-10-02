@@ -195,8 +195,11 @@ describe("characters router integration", () => {
       const withoutImage = result.characters.find((c: any) => c.id === charWithoutImage.id);
 
       expect(withImage).toBeDefined();
-      expect(withImage!.imagePath).toBe(`/assets/characters/${charWithImage.id}/card`);
-      expect(withImage!.avatarPath).toBe(`/assets/characters/${charWithImage.id}/avatar`);
+      const expectedCardPrefix = `/assets/characters/${charWithImage.id}/card?cb=`;
+      const expectedAvatarPrefix = `/assets/characters/${charWithImage.id}/avatar?cb=`;
+
+      expect(withImage!.imagePath?.startsWith(expectedCardPrefix)).toBe(true);
+      expect(withImage!.avatarPath?.startsWith(expectedAvatarPrefix)).toBe(true);
 
       expect(withoutImage).toBeDefined();
       expect(withoutImage!.imagePath).toBeNull();
@@ -401,7 +404,7 @@ describe("characters router integration", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.headers["content-type"]).toBe("image/png");
+      expect(response.headers["content-type"]).toBe("image/jpeg");
       expect(response.rawPayload).toBeInstanceOf(Buffer);
       expect(response.rawPayload.length).toBeGreaterThan(0);
 
@@ -471,8 +474,11 @@ describe("characters router integration", () => {
       });
 
       // Sanity check the image paths exist initially
-      expect(created.imagePath).toBe(`/assets/characters/${created.id}/card`);
-      expect(created.avatarPath).toBe(`/assets/characters/${created.id}/avatar`);
+      const expectedCardPrefix = `/assets/characters/${created.id}/card?cb=`;
+      const expectedAvatarPrefix = `/assets/characters/${created.id}/avatar?cb=`;
+
+      expect(created.imagePath?.startsWith(expectedCardPrefix)).toBe(true);
+      expect(created.avatarPath?.startsWith(expectedAvatarPrefix)).toBe(true);
 
       // Now clear the image
       const updated = await caller.characters.update({ id: created.id, imageDataUri: null });
@@ -515,20 +521,89 @@ describe("characters router integration", () => {
       expect(fixtures.length).toBeGreaterThan(0);
 
       const characters = await caller.characters.list();
-      const firstCharacter = characters.characters[0];
+      const characterWithImage = characters.characters.find(
+        (character: any) => character.imagePath
+      );
+
+      expect(characterWithImage).toBeDefined();
+      if (!characterWithImage || typeof characterWithImage.imagePath !== "string") {
+        throw new Error("Expected character with an image path");
+      }
+      const assetUrl = characterWithImage.imagePath;
 
       const fastify = await createTestFastifyServer(testDb);
       registerAssetsRoutes(fastify);
 
       const response = await fastify.inject({
         method: "GET",
-        url: `/assets/characters/${firstCharacter!.id}/card`,
+        url: assetUrl,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers["content-type"]).toBe("image/jpeg");
+      expect(response.rawPayload).toBeInstanceOf(Buffer);
+      expect(response.rawPayload.length).toBeGreaterThan(0);
+      expect(response.headers["cache-control"]).toBe("public, max-age=31536000, immutable");
+      expect(response.headers.etag).toBeDefined();
+
+      if (typeof response.headers.etag !== "string") {
+        throw new Error("Expected ETag header to be a string");
+      }
+      const etag = response.headers.etag;
+      const conditionalResponse = await fastify.inject({
+        method: "GET",
+        url: assetUrl,
+        headers: { "if-none-match": etag },
+      });
+
+      expect(conditionalResponse.statusCode).toBe(304);
+      expect(conditionalResponse.headers["cache-control"]).toBe(
+        "public, max-age=31536000, immutable"
+      );
+      expect(conditionalResponse.headers.etag).toBe(etag);
+
+      await fastify.close();
+    });
+
+    it("should return original image when q=original", async () => {
+      const fixtures = await seedCharacterFixtures(testDb);
+      expect(fixtures.length).toBeGreaterThan(0);
+
+      const characters = await caller.characters.list();
+      const characterWithImage = characters.characters.find(
+        (character: any) => character.imagePath
+      );
+
+      expect(characterWithImage).toBeDefined();
+      if (!characterWithImage || typeof characterWithImage.imagePath !== "string") {
+        throw new Error("Expected character with an image path");
+      }
+      const assetUrl = `${characterWithImage.imagePath}&q=original`;
+
+      const fastify = await createTestFastifyServer(testDb);
+      registerAssetsRoutes(fastify);
+
+      const response = await fastify.inject({
+        method: "GET",
+        url: assetUrl,
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.headers["content-type"]).toBe("image/png");
-      expect(response.rawPayload).toBeInstanceOf(Buffer);
-      expect(response.rawPayload.length).toBeGreaterThan(0);
+      expect(response.headers["cache-control"]).toBe("public, max-age=31536000, immutable");
+      expect(response.headers.etag).toBeDefined();
+
+      if (typeof response.headers.etag !== "string") {
+        throw new Error("Expected ETag header to be a string");
+      }
+
+      const conditionalResponse = await fastify.inject({
+        method: "GET",
+        url: assetUrl,
+        headers: { "if-none-match": response.headers.etag },
+      });
+
+      expect(conditionalResponse.statusCode).toBe(304);
 
       await fastify.close();
     });

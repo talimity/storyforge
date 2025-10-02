@@ -74,7 +74,7 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
           orderBy: (p) => [p.orderIndex],
           with: {
             character: {
-              columns: { id: true, name: true },
+              columns: { id: true, name: true, updatedAt: true },
               extras: { hasPortrait: sql<number>`portrait IS NOT NULL` },
             },
           },
