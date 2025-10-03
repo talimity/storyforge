@@ -3,22 +3,22 @@ packages:
   - packages/*
 
 catalog:
+  '@libsql/client': ^0.15.10
   '@trpc/client': 11.5.1
   '@trpc/react-query': 11.5.1
-  '@trpc/tanstack-react-query': 11.5.1
   '@trpc/server': 11.5.1
-  '@types/node': ^24.1.0
-  '@libsql/client': ^0.15.10
+  '@trpc/tanstack-react-query': 11.5.1
+  '@types/node': ^24.6.2
   drizzle-kit: beta
   drizzle-orm: 1.0.0-beta.1-578e9fd
   sharp: ^0.34.3
   superjson: ^2.2.2
   trpc-to-openapi: ^3.0.1
   tsx: ^4.20.3
-  typescript: ^5.9.2
+  typescript: ^5.9.3
   vitest: ^3.2.4
+  zod: ^4.1.11
   zod-openapi: ^5.4.0
-  zod: ^4.1.5
 
 catalogMode: manual
 
