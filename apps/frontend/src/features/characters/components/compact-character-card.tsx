@@ -33,14 +33,9 @@ interface CompactCharacterCardProps {
     avatarPath: string | null;
   };
   isSelected?: boolean;
-  onSelectionToggle?: () => void;
 }
 
-export function CompactCharacterCard({
-  character,
-  isSelected = false,
-  onSelectionToggle,
-}: CompactCharacterCardProps) {
+export function CompactCharacterCard({ character, isSelected = false }: CompactCharacterCardProps) {
   const {
     isDeleteDialogOpen,
     deleteCharacterMutation,
@@ -56,8 +51,8 @@ export function CompactCharacterCard({
         p={2}
         borderRadius="md"
         layerStyle="surface"
-        cursor={onSelectionToggle ? "pointer" : "default"}
-        onClick={onSelectionToggle}
+        cursor="pointer"
+        data-character-id={character.id}
         _hover={{ bg: "bg.muted" }}
         className="group"
         position="relative"

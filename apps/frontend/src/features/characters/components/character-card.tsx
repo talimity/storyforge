@@ -30,14 +30,12 @@ interface CharacterCardProps {
     avatarPath: string | null;
   };
   isSelected?: boolean;
-  onSelectionToggle?: () => void;
   readOnly?: boolean;
 }
 
 export function CharacterCard({
   character,
   isSelected = false,
-  onSelectionToggle,
   readOnly = false,
 }: CharacterCardProps) {
   const {
@@ -57,8 +55,8 @@ export function CharacterCard({
         layerStyle="surface"
         _hover={!readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined}
         className={readOnly ? undefined : "group"}
-        cursor={!readOnly && onSelectionToggle ? "pointer" : "default"}
-        onClick={readOnly ? undefined : onSelectionToggle}
+        cursor={!readOnly ? "pointer" : "default"}
+        data-character-id={character.id}
         overflow="hidden"
       >
         <Box position="relative" borderBottomWidth={1}>

@@ -1,6 +1,7 @@
 import { ActionBar, Center, Container, Flex, Grid, Text, VStack } from "@chakra-ui/react";
+import type { CharacterSummary } from "@storyforge/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { LuLayoutGrid, LuLayoutList, LuPlay, LuUsersRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import {
@@ -30,6 +31,7 @@ const viewModeOptions = [
 
 export function CharacterLibraryPage() {
   const trpc = useTRPC();
+  const qc = useQueryClient();
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
@@ -37,8 +39,8 @@ export function CharacterLibraryPage() {
     return saved !== null ? JSON.parse(saved) : "grid";
   });
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([]);
-  const charactersQuery = useQuery(trpc.characters.list.queryOptions());
-  const queryClient = useQueryClient();
+  const charaQuery = useQuery(trpc.characters.list.queryOptions());
+  const charaData = charaQuery.data?.characters || [];
 
   // Persist view mode to localStorage
   useEffect(() => {
@@ -55,19 +57,23 @@ export function CharacterLibraryPage() {
     });
   };
 
+  // Delegate clicks from the card grid/list to avoid per-card handler props
+  const handleLibraryClick: React.MouseEventHandler<HTMLElement> = (e) => {
+    const target = e.target as HTMLElement | null;
+    const cardEl = target?.closest<HTMLElement>("[data-character-id]");
+    if (!cardEl) return;
+    const id = cardEl.getAttribute("data-character-id");
+    if (!id) return;
+    toggleCharacterSelection(id);
+  };
+
   const handleStartScenario = () => {
     const params = new URLSearchParams();
     params.set("characterIds", selectedCharacterIds.join(","));
     navigate(`/scenarios/create?${params.toString()}`);
   };
 
-  const selectedCharacters = useMemo(() => {
-    if (!charactersQuery.data?.characters) return [];
-
-    return selectedCharacterIds
-      .map((id) => charactersQuery.data.characters.find((char) => char.id === id))
-      .filter((char): char is NonNullable<typeof char> => char !== undefined);
-  }, [charactersQuery.data?.characters, selectedCharacterIds]);
+  const selectedCharacters = getSelectedCharacters(charaData, selectedCharacterIds);
 
   return (
     <Container>
@@ -95,7 +101,7 @@ export function CharacterLibraryPage() {
           />
         </PageHeader.Controls>
       </PageHeader.Root>
-      {charactersQuery.isLoading &&
+      {charaQuery.isLoading &&
         (viewMode === "grid" ? (
           <Grid
             templateColumns={{
@@ -119,20 +125,20 @@ export function CharacterLibraryPage() {
             ))}
           </Grid>
         ))}
-      {charactersQuery.error && (
+      {charaQuery.error && (
         <Center p={8}>
           <VStack>
             <Text color="red.500" fontWeight="semibold">
               Failed to load characters
             </Text>
-            <Text color="gray.600">{charactersQuery.error.message}</Text>
-            <Button onClick={() => charactersQuery.refetch()} variant="outline" colorPalette="red">
+            <Text color="gray.600">{charaQuery.error.message}</Text>
+            <Button onClick={() => charaQuery.refetch()} variant="outline" colorPalette="red">
               Try Again
             </Button>
           </VStack>
         </Center>
       )}
-      {charactersQuery.data && charactersQuery.data.characters.length === 0 && (
+      {charaData.length === 0 && (
         <EmptyState
           icon={<LuUsersRound />}
           title="No characters yet"
@@ -141,8 +147,7 @@ export function CharacterLibraryPage() {
           onActionClick={() => setIsImportModalOpen(true)}
         />
       )}
-      {charactersQuery.data &&
-        charactersQuery.data.characters.length > 0 &&
+      {charaData.length > 0 &&
         (viewMode === "grid" ? (
           <Grid
             templateColumns={{
@@ -154,24 +159,27 @@ export function CharacterLibraryPage() {
             }}
             justifyContent="center"
             gap={4}
+            onClick={handleLibraryClick}
           >
-            {charactersQuery.data.characters.map((character) => (
+            {charaData.map((character) => (
               <CharacterCard
                 key={character.id}
                 character={character}
                 isSelected={selectedCharacterIds.includes(character.id)}
-                onSelectionToggle={() => toggleCharacterSelection(character.id)}
               />
             ))}
           </Grid>
         ) : (
-          <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3}>
-            {charactersQuery.data.characters.map((character) => (
+          <Grid
+            templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
+            gap={3}
+            onClick={handleLibraryClick}
+          >
+            {charaData.map((character) => (
               <CompactCharacterCard
                 key={character.id}
                 character={character}
                 isSelected={selectedCharacterIds.includes(character.id)}
-                onSelectionToggle={() => toggleCharacterSelection(character.id)}
               />
             ))}
           </Grid>
@@ -179,7 +187,7 @@ export function CharacterLibraryPage() {
       <CharacterImportDialog
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        onImportSuccess={() => queryClient.invalidateQueries(trpc.characters.list.pathFilter())}
+        onImportSuccess={() => qc.invalidateQueries(trpc.characters.list.pathFilter())}
       />
       <ActionBar.Root open={selectedCharacterIds.length > 1} closeOnEscape={true}>
         <ActionBarContent layerStyle="contrast" colorPalette="contrast">
@@ -210,4 +218,11 @@ export function CharacterLibraryPage() {
       </ActionBar.Root>
     </Container>
   );
+}
+
+function getSelectedCharacters(characters: CharacterSummary[], selectedCharacterIds: string[]) {
+  if (!characters) return [];
+  return selectedCharacterIds
+    .map((id) => characters.find((char) => char.id === id))
+    .filter((char): char is NonNullable<typeof char> => char !== undefined);
 }
