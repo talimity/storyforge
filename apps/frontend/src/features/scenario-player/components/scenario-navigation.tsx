@@ -77,7 +77,7 @@ export function ScenarioNavigation() {
     <>
       <Popover.Root positioning={{ placement: "bottom", gutter: 4 }} lazyMount unmountOnExit>
         <Popover.Trigger asChild>
-          <Button variant="ghost">
+          <Button position="relative" variant="ghost">
             <Text fontWeight="medium" fontSize="sm" lineClamp={1}>
               {headerLabel}
             </Text>

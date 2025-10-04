@@ -11,12 +11,12 @@ type ScenarioParticipant = PlayEnvironmentOutput["participants"][number];
 
 export const INTENT_KIND_CONFIG: Record<
   IntentKind,
-  { requiresTarget: boolean; requiresText: boolean }
+  { requiresTarget: boolean; allowsTarget: boolean; requiresText: boolean }
 > = {
-  manual_control: { requiresTarget: true, requiresText: true },
-  guided_control: { requiresTarget: true, requiresText: true },
-  narrative_constraint: { requiresTarget: false, requiresText: true },
-  continue_story: { requiresTarget: false, requiresText: false },
+  manual_control: { requiresTarget: true, allowsTarget: true, requiresText: true },
+  guided_control: { requiresTarget: true, allowsTarget: true, requiresText: true },
+  narrative_constraint: { requiresTarget: false, allowsTarget: true, requiresText: true },
+  continue_story: { requiresTarget: false, allowsTarget: true, requiresText: false },
 };
 
 const TEXT_LIMIT = 50_000;
@@ -105,11 +105,32 @@ export function createIntentInputPayload(
       };
     }
     case "narrative_constraint":
+      if (values.characterId) {
+        const participant = participants.find((p) => p.characterId === values.characterId);
+        if (!participant) {
+          throw new Error("Character selection could not be resolved to a participant");
+        }
+        return {
+          kind: "narrative_constraint",
+          text: values.text.trim(),
+          targetParticipantId: participant.id,
+        };
+      }
       return {
         kind: "narrative_constraint",
         text: values.text.trim(),
       };
     case "continue_story":
+      if (values.characterId) {
+        const participant = participants.find((p) => p.characterId === values.characterId);
+        if (!participant) {
+          throw new Error("Character selection could not be resolved to a participant");
+        }
+        return {
+          kind: "continue_story",
+          targetParticipantId: participant.id,
+        };
+      }
       return { kind: "continue_story" };
     default: {
       assertNever(values);

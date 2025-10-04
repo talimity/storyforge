@@ -57,11 +57,15 @@ export function makeCommands(deps: IntentExecDeps) {
     chooseActor: async function* (args: {
       afterTurnId?: string;
       includeNarrator?: boolean;
+      preferredActorId?: string;
     }): IntentCommandGenerator<string> {
-      const participantId = await chooseNextActorFair(db, scenarioId, {
-        leafTurnId: args.afterTurnId ?? null,
-        includeNarrator: !!args.includeNarrator,
-      });
+      const preferredId = args.preferredActorId;
+      const participantId = preferredId
+        ? preferredId
+        : await chooseNextActorFair(db, scenarioId, {
+            leafTurnId: args.afterTurnId ?? null,
+            includeNarrator: !!args.includeNarrator,
+          });
 
       yield { type: "actor_selected", intentId, participantId: participantId, ts: now() };
 

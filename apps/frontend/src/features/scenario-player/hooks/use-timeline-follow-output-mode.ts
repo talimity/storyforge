@@ -6,8 +6,8 @@ import {
 } from "@/features/scenario-player/stores/intent-run-store";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 
-const AT_BOTTOM_TOLERANCE_PX = 30;
-const QUIET_MS = 500;
+const AT_BOTTOM_TOLERANCE_PX = 5;
+const QUIET_MS = 400;
 
 type Args<TScrollEl extends Element | Window, TItemEl extends Element> = {
   virtualizer: Virtualizer<TScrollEl, TItemEl>;
@@ -70,13 +70,19 @@ export function useTimelineFollowOutputMode<
       const now = Date.now();
       const isAtBottom = atBottom();
 
+      console.log("useTimelineFollowOutputMode -> onUserScrollStart", {
+        state: stateRef.current,
+        isAtBottom,
+        now,
+      });
+
       if (stateRef.current === "suspended" && isAtBottom && now >= suspendUntilRef.current) {
         console.log("useTimelineFollowOutputMode -> onScroll -> resume following");
         stateRef.current = "following";
         suspendUntilRef.current = 0;
       }
 
-      if (stateRef.current === "following" && !isAtBottom) {
+      if (stateRef.current === "following") {
         console.log("useTimelineFollowOutputMode -> onScroll -> suspend following");
         stateRef.current = "suspended";
         suspendUntilRef.current = Date.now() + QUIET_MS;
@@ -88,11 +94,11 @@ export function useTimelineFollowOutputMode<
     };
 
     el.addEventListener("wheel", onUserScrollStart, { passive: true });
-    el.addEventListener("touchstart", onUserScrollStart, { passive: true });
+    el.addEventListener("touchend", onUserScrollStart, { passive: true });
     window.addEventListener("keydown", onUserKeyboardScroll, { passive: true });
     return () => {
       el.removeEventListener("wheel", onUserScrollStart);
-      el.removeEventListener("touchstart", onUserScrollStart);
+      el.removeEventListener("touchend", onUserScrollStart);
       window.removeEventListener("keydown", onUserKeyboardScroll);
     };
   }, [isGenerating, atBottom, scrollerRef]);
@@ -105,6 +111,7 @@ export function useTimelineFollowOutputMode<
       const now = Date.now();
       const isAtBottom = atBottom();
       if (now >= suspendUntilRef.current && isAtBottom) {
+        console.log("useTimelineFollowOutputMode -> shouldAutoFollow -> resume following");
         stateRef.current = "following";
         suspendUntilRef.current = 0;
         return true;

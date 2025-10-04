@@ -9,8 +9,8 @@ export type CreateIntentArgs = {
 } & (
   | { kind: "manual_control"; targetParticipantId: string; text: string }
   | { kind: "guided_control"; targetParticipantId: string; text: string }
-  | { kind: "narrative_constraint"; text: string }
-  | { kind: "continue_story" }
+  | { kind: "narrative_constraint"; text: string; targetParticipantId?: string }
+  | { kind: "continue_story"; targetParticipantId?: string }
 );
 
 export type IntentGenerator = AsyncGenerator<IntentEvent, void, void>;

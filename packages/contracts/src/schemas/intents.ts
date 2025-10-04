@@ -23,9 +23,11 @@ export const intentInputSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("narrative_constraint"),
     text: z.string().min(1).max(50000),
+    targetParticipantId: z.string().optional(),
   }),
   z.object({
     kind: z.literal("continue_story"),
+    targetParticipantId: z.string().optional(),
   }),
 ]);
 

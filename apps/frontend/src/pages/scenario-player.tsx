@@ -1,3 +1,4 @@
+import type { IntentInput } from "@storyforge/contracts";
 import { useEffect } from "react";
 import {
   type InputMode,
@@ -67,11 +68,24 @@ export function PlayerPage() {
         break;
       }
       case "constraints": {
-        await startIntent({ kind: "narrative_constraint", text });
+        const payload: IntentInput = selectedParticipant
+          ? {
+              kind: "narrative_constraint",
+              text,
+              targetParticipantId: selectedParticipant.id,
+            }
+          : { kind: "narrative_constraint", text };
+        await startIntent(payload);
         break;
       }
       case "quick": {
-        await startIntent({ kind: "continue_story" });
+        const payload: IntentInput = selectedParticipant
+          ? {
+              kind: "continue_story",
+              targetParticipantId: selectedParticipant.id,
+            }
+          : { kind: "continue_story" };
+        await startIntent(payload);
         break;
       }
     }
@@ -110,7 +124,13 @@ export function PlayerPage() {
       onSubmitIntent={handleSubmitIntent}
       onCancelIntent={handleCancelIntent}
       onQuickContinue={() => {
-        void startIntent({ kind: "continue_story" });
+        const payload: IntentInput = selectedParticipant
+          ? {
+              kind: "continue_story",
+              targetParticipantId: selectedParticipant.id,
+            }
+          : { kind: "continue_story" };
+        void startIntent(payload);
       }}
     />
   );

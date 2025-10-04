@@ -73,6 +73,7 @@ export function IntentPanel(props: IntentPanelProps) {
       {["direct", "guided"].includes(inputMode) && (
         <PromptInput
           withCharacterSelect
+          characterSelectionRequired
           inputText={inputText}
           onInputChange={setInputText}
           onGenerate={handleGenerate}
@@ -83,7 +84,9 @@ export function IntentPanel(props: IntentPanelProps) {
 
       {inputMode === "constraints" && (
         <PromptInput
-          withCharacterSelect={false}
+          withCharacterSelect
+          characterSelectionRequired={false}
+          placeholder="Describe the constraint or direction for the next turn..."
           inputText={inputText}
           onInputChange={setInputText}
           onGenerate={handleGenerate}

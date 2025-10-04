@@ -49,9 +49,9 @@ export function makeExecutors(deps: IntentExecDeps) {
    * player's input, then choose a next actor to continue with, then generate
    * a turn for that actor.
    */
-  function narrativeConstraint(args: { text: string }): IntentGenerator {
+  function narrativeConstraint(args: { text: string; followupActorId?: string }): IntentGenerator {
     return (async function* () {
-      const { text } = args;
+      const { text, followupActorId } = args;
 
       const narrator = await getNarratorParticipantId(deps.db, deps.scenarioId);
       const narratorGen = yield* generateTurn({
@@ -65,7 +65,10 @@ export function makeExecutors(deps: IntentExecDeps) {
         text: narratorGen.presentation,
         branchFromTurnId,
       });
-      const nextActor = yield* chooseActor({ afterTurnId: narratorTurn.turnId });
+      const nextActor = yield* chooseActor({
+        afterTurnId: narratorTurn.turnId,
+        preferredActorId: followupActorId,
+      });
       // Next actor continues the story with no constraint.
       // TODO: maybe this works better if we pass the same constraint to both
       // the narrator and the chosen follow-up actor?
@@ -78,9 +81,12 @@ export function makeExecutors(deps: IntentExecDeps) {
    * continue_story: player provides no input, system picks a character to
    * continue the story and generates a turn without any constraint.
    */
-  function continueStory(): IntentGenerator {
+  function continueStory(args: { actorId?: string } = {}): IntentGenerator {
     return (async function* () {
-      const nextActor = yield* chooseActor({ afterTurnId: branchFromTurnId });
+      const nextActor = yield* chooseActor({
+        afterTurnId: branchFromTurnId,
+        preferredActorId: args.actorId,
+      });
       const gen = yield* generateTurn({
         intentKind: "continue_story",
         actorId: nextActor,

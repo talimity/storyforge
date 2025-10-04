@@ -71,7 +71,7 @@ export function RetryIntentDialog(props: RetryIntentDialogProps) {
   const handleKindChange = (nextKind: IntentKind) => {
     form.setFieldValue("kind", nextKind);
     const nextConfig = INTENT_KIND_CONFIG[nextKind];
-    if (!nextConfig.requiresTarget) {
+    if (!nextConfig.allowsTarget) {
       form.setFieldValue("characterId", null);
     }
     if (!nextConfig.requiresText) {
@@ -133,13 +133,13 @@ export function RetryIntentDialog(props: RetryIntentDialogProps) {
                 </VStack>
               </Box>
 
-              {config.requiresTarget && (
+              {config.allowsTarget && (
                 <form.AppField name="characterId">
                   {(field) => {
                     const currentId = field.state.value ?? null;
                     const selectedName = currentId ? (charactersById[currentId]?.name ?? "") : "";
                     return (
-                      <field.Field label="Target Character" required>
+                      <field.Field label="Target Character" required={config.requiresTarget}>
                         <Stack gap={2}>
                           <HStack gap={2}>
                             <CharacterMiniSelect

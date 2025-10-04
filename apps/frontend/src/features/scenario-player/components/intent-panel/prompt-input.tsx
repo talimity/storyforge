@@ -7,6 +7,8 @@ import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenar
 
 type PromptInputProps = {
   withCharacterSelect?: boolean;
+  characterSelectionRequired?: boolean;
+  placeholder?: string;
   inputText: string;
   onInputChange: (text: string) => void;
   isGenerating?: boolean;
@@ -15,31 +17,41 @@ type PromptInputProps = {
 };
 
 export function PromptInput(props: PromptInputProps) {
-  const { isGenerating, onGenerate, onCancel, withCharacterSelect, onInputChange, inputText } =
-    props;
+  const {
+    isGenerating,
+    onGenerate,
+    onCancel,
+    withCharacterSelect,
+    characterSelectionRequired,
+    onInputChange,
+    inputText,
+    placeholder,
+  } = props;
 
   const { characters, charactersById } = useScenarioContext();
   const { selectedCharacterId, setSelectedCharacter } = useScenarioPlayerStore();
 
   const selectedCharacter = selectedCharacterId ? charactersById[selectedCharacterId] : null;
   const selectedCharacterName = selectedCharacter?.name ?? "";
-
-  const isDisabled = !inputText.trim() || isGenerating;
+  const selectionRequired = characterSelectionRequired ?? Boolean(withCharacterSelect);
+  const hasSelectedCharacter = selectedCharacterName.length > 0;
+  const textareaDisabled = selectionRequired && !hasSelectedCharacter;
+  const hasGuidance = inputText.trim().length > 0;
+  const disableGenerateButton = !isGenerating && (!hasGuidance || textareaDisabled);
+  const textareaPlaceholder = selectedCharacterName
+    ? (placeholder ?? `Enter ${selectedCharacterName}'s action or dialogue...`)
+    : (placeholder ?? (selectionRequired ? "Select a character..." : "Share your guidance..."));
 
   return (
     <Box position="relative" isolation="isolate">
       <AutosizeTextarea
-        placeholder={
-          selectedCharacterName
-            ? `Enter ${selectedCharacterName}'s action or dialogue...`
-            : "Select a character..."
-        }
+        placeholder={textareaPlaceholder}
         variant="onContrast"
         bg="bg"
         pb={12}
         value={inputText}
         onChange={(e) => onInputChange(e.target.value)}
-        disabled={!selectedCharacterName}
+        disabled={textareaDisabled}
       />
       <HStack
         gap="1"
@@ -64,7 +76,7 @@ export function PromptInput(props: PromptInputProps) {
           onGenerate={onGenerate}
           onCancel={onCancel}
           isGenerating={!!isGenerating}
-          disabled={!isGenerating && isDisabled}
+          disabled={disableGenerateButton}
         />
       </HStack>
     </Box>

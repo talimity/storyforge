@@ -86,7 +86,7 @@ function PlayerShellInner() {
 
         {/* Right Section - Meta Toolbar */}
         <HStack gap={2}>
-          <IconButton variant="ghost" size="sm">
+          <IconButton position="fixed" variant="ghost" size="sm">
             <LuSettings />
           </IconButton>
         </HStack>

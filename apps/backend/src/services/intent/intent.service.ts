@@ -61,9 +61,12 @@ export class IntentService {
             constraint: args.text,
           });
         case "narrative_constraint":
-          return executors.narrativeConstraint({ text: args.text });
+          return executors.narrativeConstraint({
+            text: args.text,
+            followupActorId: args.targetParticipantId,
+          });
         case "continue_story":
-          return executors.continueStory();
+          return executors.continueStory({ actorId: args.targetParticipantId });
         default:
           assertNever(args);
       }
