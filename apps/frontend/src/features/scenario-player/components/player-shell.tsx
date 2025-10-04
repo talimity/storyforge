@@ -1,20 +1,17 @@
 import {
   Box,
-  Drawer,
   Flex,
   HStack,
   IconButton,
-  Portal,
   Show,
   Skeleton,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { Suspense, useEffect, useState } from "react";
-import { LuArrowLeft, LuMenu, LuSettings } from "react-icons/lu";
-import { Navigate, Outlet, useNavigate, useParams } from "react-router-dom";
+import { Suspense, useEffect } from "react";
+import { LuArrowLeft, LuSettings } from "react-icons/lu";
+import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/index";
-import { PlayerWidgetSidebar } from "@/features/scenario-player/components/player-widget-sidebar";
 import { ScenarioNavigation } from "@/features/scenario-player/components/scenario-navigation";
 
 import {
@@ -38,12 +35,9 @@ export function PlayerShell() {
 }
 
 function PlayerShellInner() {
-  const navigate = useNavigate();
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const isMobile = useBreakpointValue({ base: true, lg: false });
 
-  const { scenario, characters } = useScenarioContext();
+  const { scenario } = useScenarioContext();
 
   useEffect(() => {
     if (scenario.title) {
@@ -52,12 +46,6 @@ function PlayerShellInner() {
       document.title = `Play Scenario - StoryForge`;
     }
   }, [scenario.title]);
-
-  const handleBack = () => {
-    navigate("/scenarios");
-  };
-
-  const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
 
   return (
     <Flex direction="column" h="100dvh" colorPalette="neutral" data-testid="player-shell">
@@ -75,22 +63,18 @@ function PlayerShellInner() {
         {/* Left Section */}
         <HStack gap={3}>
           {/* Mobile menu button */}
-          <Show
-            when={!isMobile}
-            fallback={
-              <IconButton variant="ghost" size="sm" onClick={() => setMobileDrawerOpen(true)}>
-                <LuMenu />
-              </IconButton>
-            }
-          >
+          <Show when={!isMobile}>
             <Button
+              position="fixed"
               variant="ghost"
               size="sm"
-              onClick={handleBack}
+              asChild
               data-testid="scenario-back-button"
             >
-              <LuArrowLeft />
-              Back to Library
+              <Link to="/scenarios">
+                <LuArrowLeft />
+                Library
+              </Link>
             </Button>
           </Show>
         </HStack>
@@ -110,38 +94,9 @@ function PlayerShellInner() {
 
       {/* Main Layout */}
       <Flex flex="1" overflow="hidden" data-testid="player-shell-content">
-        {/* Desktop Widget Sidebar */}
-        <Show when={!isMobile}>
-          <PlayerWidgetSidebar
-            expanded={sidebarExpanded}
-            onToggle={toggleSidebar}
-            characters={characters}
-          />
-        </Show>
+        {/*Eventual toggleable side panel*/}
 
-        {/* Mobile Widget Drawer */}
-        <Show when={isMobile}>
-          <Drawer.Root open={mobileDrawerOpen} onOpenChange={(e) => setMobileDrawerOpen(e.open)}>
-            <Portal>
-              <Drawer.Backdrop />
-              <Drawer.Positioner>
-                <Drawer.Content>
-                  <Drawer.Header>
-                    <Drawer.Title>Scenario Controls</Drawer.Title>
-                    <Drawer.CloseTrigger />
-                  </Drawer.Header>
-                  <Drawer.Body p="0">
-                    <Box onClick={() => setMobileDrawerOpen(false)}>
-                      <PlayerWidgetSidebar expanded={true} characters={characters} />
-                    </Box>
-                  </Drawer.Body>
-                </Drawer.Content>
-              </Drawer.Positioner>
-            </Portal>
-          </Drawer.Root>
-        </Show>
-
-        {/* Main Content Area */}
+        {/* Content Area Layout */}
         <Box
           as="main"
           flex="1"
@@ -176,13 +131,10 @@ function PlayerChromeSkeleton() {
         </HStack>
       </Flex>
       <Flex flex="1" overflow="hidden">
-        <Box w="64" p={3} display={{ base: "none", lg: "block" }}>
+        <Box w="50%" p={3} display={{ base: "none", lg: "block" }}>
           <Skeleton height="5" mb={3} />
           <Skeleton height="16" mb={2} />
           <Skeleton height="16" mb={2} />
-        </Box>
-        <Box as="main" flex="1" p={4}>
-          <Skeleton height="200px" />
         </Box>
       </Flex>
     </Flex>
