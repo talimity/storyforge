@@ -170,7 +170,7 @@ function PageHeaderSort({
 }: PageHeaderSortProps) {
   return (
     <HStack hideBelow="md">
-      <Text fontWeight="medium" textStyle="sm">
+      <Text fontWeight="medium" fontSize="sm">
         {label}
       </Text>
       <NativeSelect.Root width="100px" defaultValue={defaultValue}>

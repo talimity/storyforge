@@ -76,79 +76,58 @@ export function CharacterLibraryPage() {
   const selectedCharacters = getSelectedCharacters(charaData, selectedCharacterIds);
 
   return (
-    <Container>
-      <PageHeader.Root>
-        <PageHeader.Title>Character Library</PageHeader.Title>
-        <PageHeader.Controls>
-          <PageHeader.ViewModes
-            options={viewModeOptions}
-            defaultValue={viewMode}
-            onChange={(value) => setViewMode(value as "grid" | "list")}
+    <>
+      <Container>
+        <PageHeader.Root>
+          <PageHeader.Title>Character Library</PageHeader.Title>
+          <PageHeader.Controls>
+            <PageHeader.ViewModes
+              options={viewModeOptions}
+              defaultValue={viewMode}
+              onChange={(value) => setViewMode(value as "grid" | "list")}
+            />
+            <SplitButton
+              buttonLabel="Create Character"
+              menuItems={[
+                { label: "New Character", value: "create", path: "/characters/create" },
+                { label: "Import Character", value: "import" },
+              ]}
+              onSelect={({ value }) => {
+                if (value === "import") {
+                  setIsImportModalOpen(true);
+                }
+              }}
+              colorPalette="primary"
+              variant="solid"
+            />
+          </PageHeader.Controls>
+        </PageHeader.Root>
+
+        {/* Empty/Error States */}
+        {!charaQuery.isLoading && charaData.length === 0 && (
+          <EmptyState
+            icon={<LuUsersRound />}
+            title="No characters yet"
+            description="Import a character card to get started with StoryForge"
+            actionLabel="Import Character"
+            onActionClick={() => setIsImportModalOpen(true)}
           />
-          <SplitButton
-            buttonLabel="Create Character"
-            menuItems={[
-              { label: "New Character", value: "create", path: "/characters/create" },
-              { label: "Import Character", value: "import" },
-            ]}
-            onSelect={({ value }) => {
-              if (value === "import") {
-                setIsImportModalOpen(true);
-              }
-            }}
-            colorPalette="primary"
-            variant="solid"
-          />
-        </PageHeader.Controls>
-      </PageHeader.Root>
-      {charaQuery.isLoading &&
-        (viewMode === "grid" ? (
-          <Grid
-            templateColumns={{
-              base: "repeat(auto-fit, minmax(130px, 1fr))",
-              sm: "repeat(auto-fit, minmax(165px, 1fr))",
-              md: "repeat(auto-fit, minmax(180px, 1fr))",
-              lg: "repeat(auto-fit, minmax(220px, 1fr))",
-              "2xl": "repeat(auto-fill, 250px)",
-            }}
-            gap={4}
-            justifyContent="start"
-          >
-            {Array.from({ length: 12 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
-              <CharacterCardSkeleton key={skeletonId} />
-            ))}
-          </Grid>
-        ) : (
-          <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)" }} gap={3}>
-            {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
-              <CompactCharacterCardSkeleton key={skeletonId} />
-            ))}
-          </Grid>
-        ))}
-      {charaQuery.error && (
-        <Center p={8}>
-          <VStack>
-            <Text color="red.500" fontWeight="semibold">
-              Failed to load characters
-            </Text>
-            <Text color="gray.600">{charaQuery.error.message}</Text>
-            <Button onClick={() => charaQuery.refetch()} variant="outline" colorPalette="red">
-              Try Again
-            </Button>
-          </VStack>
-        </Center>
-      )}
-      {charaData.length === 0 && (
-        <EmptyState
-          icon={<LuUsersRound />}
-          title="No characters yet"
-          description="Import a character card to get started with StoryForge"
-          actionLabel="Import Character"
-          onActionClick={() => setIsImportModalOpen(true)}
-        />
-      )}
-      {charaData.length > 0 &&
-        (viewMode === "grid" ? (
+        )}
+        {charaQuery.error && (
+          <Center p={8}>
+            <VStack>
+              <Text color="red.500" fontWeight="semibold">
+                Failed to load characters
+              </Text>
+              <Text color="gray.600">{charaQuery.error.message}</Text>
+              <Button onClick={() => charaQuery.refetch()} variant="outline" colorPalette="red">
+                Try Again
+              </Button>
+            </VStack>
+          </Center>
+        )}
+
+        {viewMode === "grid" ? (
           <Grid
             templateColumns={{
               base: "repeat(auto-fit, minmax(130px, 1fr))",
@@ -161,13 +140,17 @@ export function CharacterLibraryPage() {
             gap={4}
             onClick={handleLibraryClick}
           >
-            {charaData.map((character) => (
-              <CharacterCard
-                key={character.id}
-                character={character}
-                isSelected={selectedCharacterIds.includes(character.id)}
-              />
-            ))}
+            {charaQuery.isLoading
+              ? Array.from({ length: 20 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
+                  <CharacterCardSkeleton key={skeletonId} />
+                ))
+              : charaData.map((character) => (
+                  <CharacterCard
+                    key={character.id}
+                    character={character}
+                    isSelected={selectedCharacterIds.includes(character.id)}
+                  />
+                ))}
           </Grid>
         ) : (
           <Grid
@@ -175,15 +158,20 @@ export function CharacterLibraryPage() {
             gap={3}
             onClick={handleLibraryClick}
           >
-            {charaData.map((character) => (
-              <CompactCharacterCard
-                key={character.id}
-                character={character}
-                isSelected={selectedCharacterIds.includes(character.id)}
-              />
-            ))}
+            {charaQuery.isLoading
+              ? Array.from({ length: 20 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
+                  <CompactCharacterCardSkeleton key={skeletonId} />
+                ))
+              : charaData.map((character) => (
+                  <CompactCharacterCard
+                    key={character.id}
+                    character={character}
+                    isSelected={selectedCharacterIds.includes(character.id)}
+                  />
+                ))}
           </Grid>
-        ))}
+        )}
+      </Container>
       <CharacterImportDialog
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
@@ -216,7 +204,7 @@ export function CharacterLibraryPage() {
           </ActionBar.CloseTrigger>
         </ActionBarContent>
       </ActionBar.Root>
-    </Container>
+    </>
   );
 }
 

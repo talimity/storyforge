@@ -1,6 +1,7 @@
 import {
   Bleed,
   Box,
+  Heading,
   HStack,
   IconButton,
   Menu,
@@ -88,11 +89,11 @@ export function CompactCharacterCard({ character, isSelected = false }: CompactC
                 <VisuallyHidden>Selected</VisuallyHidden>
               </Box>
             )}
-            <Text fontWeight="medium" truncate flex={1} minWidth={0}>
+            <Heading as="h3" size="md" fontWeight="bold" truncate flex={1} minWidth={0}>
               {character.name}
-            </Text>
+            </Heading>
           </HStack>
-          <Text color="content.muted" textStyle="sm">
+          <Text fontSize="sm" color="content.muted">
             {cardTypeLabels[character.cardType]}
           </Text>
         </Stack>

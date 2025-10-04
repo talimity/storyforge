@@ -182,9 +182,9 @@ export function TurnItem(props: TurnItemProps) {
                 <Avatar
                   shape="rounded"
                   layerStyle="surface"
+                  size="md"
                   name={authorName}
                   src={avatarSrc}
-                  size="md"
                 />
               )}
               <Stack gap={0}>

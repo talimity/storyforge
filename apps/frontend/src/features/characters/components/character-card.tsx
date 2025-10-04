@@ -1,13 +1,13 @@
 import {
   Box,
   Card,
+  Heading,
   HStack,
   IconButton,
   Image,
   Menu,
   Portal,
   Skeleton,
-  Text,
   VisuallyHidden,
 } from "@chakra-ui/react";
 import {
@@ -139,9 +139,9 @@ export function CharacterCard({
                 <VisuallyHidden>Selected</VisuallyHidden>
               </Box>
             )}
-            <Text fontWeight="medium" fontSize="sm" truncate>
+            <Heading as="h3" size="sm" fontWeight="bold" truncate>
               {character.name}
-            </Text>
+            </Heading>
           </HStack>
         </Card.Body>
       </Card.Root>

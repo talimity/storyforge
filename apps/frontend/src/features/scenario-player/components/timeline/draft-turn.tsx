@@ -1,4 +1,4 @@
-import { Box, HStack, Stack, Text } from "@chakra-ui/react";
+import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
 import { memo } from "react";
 import Markdown from "react-markdown";
 import { useShallow } from "zustand/react/shallow";
@@ -13,7 +13,7 @@ const MemoAvatar = memo(Avatar, (prev, next) => prev.src === next.src);
 
 export function DraftTurn() {
   const { getCharacterByParticipantId } = useScenarioContext();
-  const { isActive, authorId, previewText } = useDraftPreview();
+  const { runId, isActive, authorId, previewText } = useDraftPreview();
 
   if (!isActive) return null;
 
@@ -22,19 +22,35 @@ export function DraftTurn() {
   const avatarSrc = getApiUrl(author?.avatarPath ?? undefined);
 
   return (
-    <Box layerStyle="surface" p={4} borderRadius="md" opacity={0.9} borderStyle="dashed">
+    <Box
+      layerStyle="surface"
+      p={4}
+      borderRadius="md"
+      data-turn-id={runId}
+      data-testid="draft-turn-item"
+      opacity={0.9}
+      borderStyle="dashed"
+    >
       <Stack gap={2}>
-        <HStack justify="space-between" mb={1}>
+        <HStack justify="space-between" pb={1}>
           <HStack alignItems="center">
             {avatarSrc && (
-              <MemoAvatar shape="rounded" name={authorName} src={avatarSrc} size="xs" />
+              <MemoAvatar
+                shape="rounded"
+                layerStyle="surface"
+                size="md"
+                name={authorName}
+                src={avatarSrc}
+              />
             )}
-            <Text fontSize="md" fontWeight="bold" color="content.emphasized">
-              {authorName}
-            </Text>
-            <Text fontSize="xs" color="content.muted">
-              (generating)
-            </Text>
+            <Stack gap={0}>
+              <Heading size="md" fontWeight="bold">
+                {authorName}
+              </Heading>
+              {/*<HStack gap={2}>*/}
+              {/*  <StepSummary />*/}
+              {/*</HStack>*/}
+            </Stack>
           </HStack>
         </HStack>
         {previewText ? (
@@ -46,28 +62,10 @@ export function DraftTurn() {
             Thinking…
           </Text>
         )}
-        <StepSummary />
+
         <AutoFollowOnDraft />
       </Stack>
     </Box>
-  );
-}
-
-function StepSummary() {
-  const run = useIntentRunsStore((s) => (s.currentRunId ? s.runsById[s.currentRunId] : null));
-  if (!run) return null;
-
-  const steps = Object.values(run.steps);
-  if (!steps.length) return null;
-
-  const running = steps.filter((s) => s.status === "running").length;
-  const finished = steps.filter((s) => s.status === "finished").length;
-  const errored = steps.filter((s) => s.status === "error").length;
-
-  return (
-    <Text fontSize="xs" color="content.muted">
-      Steps: {running} running, {finished} finished{errored ? `, ${errored} error` : ""}
-    </Text>
   );
 }
 
@@ -83,6 +81,7 @@ function useDraftPreview() {
       const last = run.provisional[run.provisional.length - 1];
 
       return {
+        runId: id,
         isActive: run.status === "pending" || run.status === "running",
         isStreaming: last?.status === "streaming" || run.livePreview.length > 0,
         authorId: run.currentActorParticipantId ?? null,
