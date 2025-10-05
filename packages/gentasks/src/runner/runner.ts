@@ -29,6 +29,8 @@ import type {
   WorkflowRunner,
 } from "./types.js";
 
+const INFERENCE_REQUEST_TIMEOUT_MS = 1000 * 60 * 5;
+
 // Remove finished runs periodically to keep memory usage bounded
 const REAPER_INTERVAL_MS = 60_000; // 1 minute
 const REAPER_TTL_MS = 3 * 60_000; // 3 minutes
@@ -256,7 +258,7 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
       stop: step.stop,
       genParams: { ...profile.defaultGenParams, ...step.genParams },
       hints,
-      signal,
+      signal: AbortSignal.any([signal, AbortSignal.timeout(INFERENCE_REQUEST_TIMEOUT_MS)]),
       textTemplate: profile.textTemplate ?? undefined,
     };
 

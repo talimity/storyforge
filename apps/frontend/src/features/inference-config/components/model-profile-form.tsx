@@ -1,7 +1,9 @@
 import { createListCollection, HStack, Input, Spinner, Text, VStack } from "@chakra-ui/react";
+import type { ProviderConfig, SearchModelsOutput } from "@storyforge/contracts";
 import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
   Field,
@@ -35,32 +37,18 @@ export function ModelProfileForm({
   submitLabel = "Save Model Profile",
 }: ModelProfileFormProps) {
   const trpc = useTRPC();
+
   const providersQuery = useQuery(trpc.providers.list.queryOptions());
   const providers = providersQuery.data?.providers ?? [];
 
-  const initialValues = useMemo<ModelProfileFormValues>(
-    () => ({
-      ...modelProfileFormDefaultValues,
-      providerId: initialData?.providerId ?? "",
-      displayName: initialData?.displayName ?? "",
-      modelId: initialData?.modelId ?? "",
-      textTemplate: initialData?.textTemplate ?? null,
-      capabilityOverrides: initialData?.capabilityOverrides ?? {},
-    }),
-    [initialData]
-  );
-
+  const initialValues = getInitialValues(initialData);
   const form = useAppForm({
     defaultValues: initialValues,
     validators: { onSubmit: modelProfileFormSchema },
-    onSubmit: async ({ value }) => {
-      await onSubmit(value);
-    },
+    onSubmit: ({ value }) => onSubmit(value),
   });
 
-  useEffect(() => {
-    form.reset(initialValues);
-  }, [form, initialValues]);
+  useEffect(() => form.reset(initialValues), [form, initialValues]);
 
   const providerId = useStore(form.store, (state) => state.values.providerId ?? "");
   const capabilityOverrides = useStore(
@@ -68,47 +56,39 @@ export function ModelProfileForm({
     (state) => state.values.capabilityOverrides ?? {}
   );
   const textTemplateValue = useStore(form.store, (state) => state.values.textTemplate ?? null);
-
   const [selectedProviderId, setSelectedProviderId] = useState(providerId);
   const [modelSearchInput, setModelSearchInput] = useState("");
   const [debouncedModelSearchQuery, setDebouncedModelSearchQuery] = useState("");
   const [isTemplateDialogOpen, setTemplateDialogOpen] = useState(false);
 
-  useEffect(() => {
-    const providerChanged = providerId !== selectedProviderId;
-    if (providerChanged) {
-      setSelectedProviderId(providerId);
-      setModelSearchInput("");
-      setDebouncedModelSearchQuery("");
-      if (!initialData?.providerId || initialData.providerId !== providerId) {
-        form.setFieldValue("modelId", "");
+  useEffect(
+    function providerChangedEffect() {
+      const providerChanged = providerId !== selectedProviderId;
+      if (providerChanged) {
+        setSelectedProviderId(providerId);
+        setModelSearchInput("");
+        setDebouncedModelSearchQuery("");
+        if (!initialData?.providerId || initialData.providerId !== providerId) {
+          form.setFieldValue("modelId", "");
+        }
       }
-    }
-  }, [form, providerId, selectedProviderId, initialData?.providerId]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setDebouncedModelSearchQuery(modelSearchInput.trim());
-    }, 300);
-    return () => window.clearTimeout(timeoutId);
-  }, [modelSearchInput]);
-
-  const providerOptions = useMemo(
-    () =>
-      createListCollection({
-        items: providers.map((provider) => ({
-          label: provider.name,
-          value: provider.id,
-        })),
-      }),
-    [providers]
+    },
+    [form, providerId, selectedProviderId, initialData?.providerId]
   );
 
-  const providerCapabilities = useMemo(
-    () => providers.find((p) => p.id === providerId)?.capabilities ?? undefined,
-    [providers, providerId]
+  useEffect(
+    function modelSearchInputChangedEffect() {
+      const timeoutId = window.setTimeout(() => {
+        setDebouncedModelSearchQuery(modelSearchInput.trim());
+      }, 300);
+      return () => window.clearTimeout(timeoutId);
+    },
+    [modelSearchInput]
   );
 
+  const providerOptions = createProviderCollection(providers);
+  const providerCapabilities =
+    providers.find((p) => p.id === providerId)?.capabilities ?? undefined;
   const effectiveTextCompletions =
     (capabilityOverrides?.textCompletions ?? providerCapabilities?.textCompletions) === true;
 
@@ -119,17 +99,7 @@ export function ModelProfileForm({
     )
   );
 
-  const modelOptions = useMemo(
-    () =>
-      createListCollection({
-        items: (searchModelsQuery.data?.models ?? []).map((model) => ({
-          label: model.name || model.id,
-          value: model.id,
-          description: model.description,
-        })),
-      }),
-    [searchModelsQuery.data?.models]
-  );
+  const handleModelSelection = (id: string) => form.setFieldValue("modelId", id);
 
   return (
     <>
@@ -166,62 +136,31 @@ export function ModelProfileForm({
 
           {selectedProviderId && (
             <>
-              <Field
-                label="Model Search"
-                helperText="Search available models or enter manually below"
-              >
-                <HStack gap={2} align="center">
-                  <Input
-                    value={modelSearchInput}
-                    onChange={(event) => setModelSearchInput(event.target.value)}
-                    placeholder="Search models..."
-                  />
-                  {searchModelsQuery.isLoading && <Spinner size="sm" />}
-                </HStack>
-              </Field>
+              <HStack align="start">
+                <Field label="Model Search" helperText="Search available models" flex={1}>
+                  <HStack gap={2} align="center">
+                    <Input
+                      value={modelSearchInput}
+                      onChange={(event) => setModelSearchInput(event.target.value)}
+                      placeholder="Search models..."
+                    />
+                    {searchModelsQuery.isLoading && <Spinner size="sm" />}
+                  </HStack>
+                </Field>
+                <ModelSelector
+                  models={searchModelsQuery.data?.models}
+                  onSelect={handleModelSelection}
+                />
+              </HStack>
 
               <form.AppField name="modelId">
                 {(field) => (
-                  <>
-                    {modelOptions.items.length > 0 && (
-                      <field.Field label="Available Models">
-                        <SelectRoot
-                          collection={modelOptions}
-                          value={field.state.value ? [field.state.value] : []}
-                          onValueChange={(details) => {
-                            const next = details.value[0];
-                            if (!next) return;
-                            field.handleChange(next);
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValueText placeholder="Select a model" />
-                          </SelectTrigger>
-                          <SelectContent portalled={false}>
-                            {modelOptions.items.map((item) => (
-                              <SelectItem key={item.value} item={item}>
-                                <VStack align="start" gap={1}>
-                                  <Text>{item.label}</Text>
-                                  {item.description && (
-                                    <Text fontSize="xs" color="content.muted" lineClamp={2}>
-                                      {item.description}
-                                    </Text>
-                                  )}
-                                </VStack>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </SelectRoot>
-                      </field.Field>
-                    )}
-
-                    <field.TextInput
-                      label="Model ID"
-                      required
-                      helperText="Enter model ID manually if not found in search above"
-                      placeholder="e.g., gpt-4o-mini, deepseek-chat"
-                    />
-                  </>
+                  <field.TextInput
+                    label="Model ID"
+                    required
+                    helperText="Enter model ID manually if not found in search above"
+                    placeholder="e.g., gpt-4o-mini, deepseek-chat"
+                  />
                 )}
               </form.AppField>
             </>
@@ -306,6 +245,118 @@ export function ModelProfileForm({
       />
     </>
   );
+}
+
+function ModelSelector({
+  models,
+  onSelect,
+}: {
+  models?: SearchModelsOutput["models"];
+  onSelect: (id: string) => void;
+}) {
+  "use no memo"; // virtualizer+chakra list seems to cause react compiler optimization issues
+  const collection = createModelsCollection(models);
+  const [availableModelSelection, setAvailableModelSelection] = useState("");
+  const contentRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: collection.size,
+    getScrollElement: () => contentRef.current,
+    estimateSize: () => 76,
+    overscan: 10,
+    scrollPaddingEnd: 32,
+  });
+  const items = virtualizer.getVirtualItems();
+
+  if (!models?.length) {
+    return null;
+  }
+
+  return (
+    <Field label="Available Models" flex={2}>
+      <SelectRoot
+        positioning={{ sameWidth: false }}
+        collection={collection}
+        value={availableModelSelection ? [availableModelSelection] : []}
+        onValueChange={(details) => {
+          const next = details.value[0];
+          if (!next) return;
+          setAvailableModelSelection(next);
+          onSelect(next);
+        }}
+      >
+        <SelectTrigger>
+          <SelectValueText placeholder="Select a model" />
+        </SelectTrigger>
+        <SelectContent portalled={false} ref={contentRef} w="xl">
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              position: "relative",
+            }}
+          >
+            {items.map((virtualItem) => {
+              const item = collection.items[virtualItem.index];
+              return (
+                <SelectItem
+                  key={item.value}
+                  item={item}
+                  data-index={virtualItem.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                >
+                  <VStack align="start" gap={1}>
+                    <Text truncate>{item.label}</Text>
+                    {item.description && (
+                      <Text fontSize="xs" color="content.muted" lineClamp={2}>
+                        {item.description}
+                      </Text>
+                    )}
+                  </VStack>
+                </SelectItem>
+              );
+            })}
+          </div>
+        </SelectContent>
+      </SelectRoot>
+    </Field>
+  );
+}
+
+function createProviderCollection(providers: ProviderConfig[]) {
+  return createListCollection({
+    items: providers.map((provider) => ({
+      label: provider.name,
+      value: provider.id,
+    })),
+  });
+}
+
+function createModelsCollection(models?: SearchModelsOutput["models"]) {
+  console.log("createModelsCollection", models?.length);
+  return createListCollection({
+    items: (models ?? []).map((model) => ({
+      label: model.name || model.id,
+      value: model.id,
+      description: model.description,
+    })),
+  });
+}
+
+function getInitialValues(initial?: Partial<ModelProfileFormValues>): ModelProfileFormValues {
+  return {
+    ...modelProfileFormDefaultValues,
+    providerId: initial?.providerId ?? "",
+    displayName: initial?.displayName ?? "",
+    modelId: initial?.modelId ?? "",
+    textTemplate: initial?.textTemplate ?? null,
+    capabilityOverrides: initial?.capabilityOverrides ?? {},
+  };
 }
 
 export type ModelProfileFormData = ModelProfileFormValues;

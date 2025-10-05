@@ -396,6 +396,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
       const response = await fetch(`${this.apiUrl}/models`, {
         method: "GET",
         headers: this.getHeaders(),
+        signal: AbortSignal.timeout(5000),
       });
 
       if (!response.ok) {

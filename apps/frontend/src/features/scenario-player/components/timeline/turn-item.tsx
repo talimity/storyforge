@@ -137,21 +137,16 @@ export function TurnItem(props: TurnItemProps) {
     [isGenerating, previewSibling, turn.swipes]
   );
 
-  const handleRetry = useCallback(() => {
-    onRetry?.(turn);
-  }, [onRetry, turn]);
+  const handleRetry = useCallback(() => onRetry?.(turn), [onRetry, turn]);
 
-  const handleInsertManual = useCallback(() => {
-    onInsertManual?.(turn);
-  }, [onInsertManual, turn]);
+  const handleInsertManual = useCallback(() => onInsertManual?.(turn), [onInsertManual, turn]);
 
-  const handleGenerationInfo = useCallback(() => {
-    setShowGenerationInfo(true);
-  }, []);
+  const handleGenerationInfo = useCallback(() => setShowGenerationInfo(true), []);
 
-  const handleGenerationInfoOpenChange = useCallback((details: { open: boolean }) => {
-    setShowGenerationInfo(details.open);
-  }, []);
+  const handleGenerationInfoOpenChange = useCallback(
+    (details: { open: boolean }) => setShowGenerationInfo(details.open),
+    []
+  );
 
   const handleInsertChapterBreak = useCallback(async () => {
     if (isGenerating) return;
@@ -395,6 +390,7 @@ export function TurnItem(props: TurnItemProps) {
             <AutosizeTextarea
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
+              size="lg"
               minRows={2}
               maxRows={50}
               autoFocus

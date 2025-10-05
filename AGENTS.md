@@ -24,7 +24,7 @@ The vision is something akin a turn-based/text-based version of The Sims, which 
 
 # Rebuild type declarations with after changing shared packages (slow; uses `tsc`)
 pnpm build
-# Run typechecker and linter (fast; uses beta Typescript-Go native compiler)
+# Run typechecker and Biome linter (fast; uses beta Typescript-Go native compiler)
 pnpm lint
 # Run tests 
 pnpm test
