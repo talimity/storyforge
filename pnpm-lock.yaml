@@ -6,12 +6,57 @@ settings:
 
 catalogs:
   default:
+    '@libsql/client':
+      specifier: ^0.15.10
+      version: 0.15.15
+    '@trpc/client':
+      specifier: 11.5.1
+      version: 11.5.1
+    '@trpc/react-query':
+      specifier: 11.5.1
+      version: 11.5.1
+    '@trpc/server':
+      specifier: 11.5.1
+      version: 11.5.1
+    '@trpc/tanstack-react-query':
+      specifier: 11.5.1
+      version: 11.5.1
+    '@types/node':
+      specifier: ^24.6.2
+      version: 24.6.2
+    '@typescript/native-preview':
+      specifier: ^7.0.0-dev.20251004.1
+      version: 7.0.0-dev.20251004.1
+    drizzle-kit:
+      specifier: beta
+      version: 1.0.0-beta.1-860c2f2
+    drizzle-orm:
+      specifier: 1.0.0-beta.1-578e9fd
+      version: 1.0.0-beta.1-578e9fd
+    sharp:
+      specifier: ^0.34.3
+      version: 0.34.4
+    superjson:
+      specifier: ^2.2.2
+      version: 2.2.2
+    trpc-to-openapi:
+      specifier: ^3.0.1
+      version: 3.0.1
     tsx:
       specifier: ^4.20.3
       version: 4.20.6
     typescript:
       specifier: ^5.9.3
       version: 5.9.3
+    vitest:
+      specifier: ^3.2.4
+      version: 3.2.4
+    zod:
+      specifier: ^4.1.11
+      version: 4.1.11
+    zod-openapi:
+      specifier: ^5.4.0
+      version: 5.4.2
 
 importers:
 
@@ -20,6 +65,9 @@ importers:
       '@biomejs/biome':
         specifier: ^2.2.5
         version: 2.2.5
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
@@ -138,6 +186,9 @@ importers:
       '@types/png-chunks-extract':
         specifier: ^1.0.2
         version: 1.0.2
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       drizzle-orm:
         specifier: 'catalog:'
         version: 1.0.0-beta.1-578e9fd(@libsql/client@0.15.15)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.2.0)
@@ -283,6 +334,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.0
         version: 19.2.0(@types/react@19.2.0)
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       '@vitejs/plugin-react':
         specifier: ^5.0.4
         version: 5.0.4(vite@7.1.9(@types/node@24.6.2)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.1))
@@ -314,6 +368,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.6.2
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -345,6 +402,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.6.2
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -367,9 +427,12 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.6.2
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       drizzle-kit:
         specifier: 'catalog:'
-        version: 1.0.0-beta.1-fd8bfcc
+        version: 1.0.0-beta.1-860c2f2
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -389,6 +452,9 @@ importers:
         specifier: 'catalog:'
         version: 4.1.11
     devDependencies:
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -408,6 +474,9 @@ importers:
         specifier: 'catalog:'
         version: 4.1.11
     devDependencies:
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -421,6 +490,9 @@ importers:
         specifier: 'catalog:'
         version: 4.1.11
     devDependencies:
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -437,6 +509,9 @@ importers:
         specifier: 'catalog:'
         version: 4.1.11
     devDependencies:
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -450,6 +525,9 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
     devDependencies:
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -466,6 +544,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.6.2
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20251004.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -1898,6 +1979,45 @@ packages:
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
+  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20251004.1':
+    resolution: {integrity: sha512-OosmY3QpIkBFQdglTWav/rqCkWF5EDJ694LUK3Wt2o1zLekev3DiLxysgAPjnxbDi0w8wBuZD/IVqBztfQjHZA==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@typescript/native-preview-darwin-x64@7.0.0-dev.20251004.1':
+    resolution: {integrity: sha512-58+j/G/bS2M6ZZ9TLZat39OsahkSpUVm3IIKolLsS/6/2Q3UiscDxoAL2XkjKuaEeCoyT0HewLiDR5pGEHhQjw==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@typescript/native-preview-linux-arm64@7.0.0-dev.20251004.1':
+    resolution: {integrity: sha512-38ga8OcWpL1QDj22944hQbw9WkgXfh1dekwfqY9YTm4R6iQc8pZ6AbsLRCVlokpUjkhs60G4gpiMbcnXNAqfBA==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@typescript/native-preview-linux-arm@7.0.0-dev.20251004.1':
+    resolution: {integrity: sha512-dRy+Yp6dYJBRJf85i5YZiwA+aDAkt0+10pb158RndeBrmnNbcEhT9LC6YCIHNzHq+zXfNiOB9KCTJ9YHEUqPLg==}
+    cpu: [arm]
+    os: [linux]
+
+  '@typescript/native-preview-linux-x64@7.0.0-dev.20251004.1':
+    resolution: {integrity: sha512-76dHMb5n74JlVFRxgrwnF6Vd3q6qZAkEDjMRGseHqo8bQrHYl+HpzPGk63el0JmBOd1V5i6b0PGsbsiuFqmviA==}
+    cpu: [x64]
+    os: [linux]
+
+  '@typescript/native-preview-win32-arm64@7.0.0-dev.20251004.1':
+    resolution: {integrity: sha512-PqRthf79nhVvOfzIo3Lhh5c6SlejMaoL5r7e9NOGkIE1uIpRk24Ovxllj3Ze3O0vRoTVZByvAxF7UskCB4R9JA==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@typescript/native-preview-win32-x64@7.0.0-dev.20251004.1':
+    resolution: {integrity: sha512-Nvknqj59PzWUU8AjduNY9Xu9IlL8wYav4hlDLOOAZXPMcChLbow0TyQabhm930zD1pjU/6O1sa5mpQJyvhOs8Q==}
+    cpu: [x64]
+    os: [win32]
+
+  '@typescript/native-preview@7.0.0-dev.20251004.1':
+    resolution: {integrity: sha512-uCAShID+ZRYVkDXdabo+JNl57mhFoHGKqI8XmLup/cCIr1zmQXXBln/3qwZeUOR7zHHuTH2vyxwvuH+fj75d/Q==}
+    hasBin: true
+
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
 
@@ -2617,8 +2737,8 @@ packages:
     resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
     engines: {node: '>=12'}
 
-  drizzle-kit@1.0.0-beta.1-fd8bfcc:
-    resolution: {integrity: sha512-Yl+Ij9yfbbIFnONcUEGB2cQCdTS1jDn24AqrMdFirhVMOqAe1QpKUEAq+XPCLTjNw0Kb9nAthUt9YrnBldvp5Q==}
+  drizzle-kit@1.0.0-beta.1-860c2f2:
+    resolution: {integrity: sha512-0+nj7O6wYI5bbaAMJnIW6qyvHCYSFsi+0hmHPSFOgJeNrNrgrAzJoGOhwzdR95I0skx8iIbA3+XnHhmriChcGg==}
     hasBin: true
 
   drizzle-orm@1.0.0-beta.1-578e9fd:
@@ -2868,14 +2988,6 @@ packages:
 
   fastq@1.19.1:
     resolution: {integrity: sha512-GwLTyxkCXjXbxqIhTsMI2Nui8huMPtnxg7krajPJAjnEG/iiOS7i+zCtWGZR9G0NBKbXKh6X9m9UIsYX/N6vvQ==}
-
-  fdir@6.4.6:
-    resolution: {integrity: sha512-hiFoqpyZcfNm1yc4u8oWCf9A2c4D3QjCrks3zmoVKVxpQRzmPNar1hUJcBG2RQHvEVGDN+Jm81ZheVLAQMK6+w==}
-    peerDependencies:
-      picomatch: ^3 || ^4
-    peerDependenciesMeta:
-      picomatch:
-        optional: true
 
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
@@ -4402,10 +4514,6 @@ packages:
 
   tinyexec@0.3.2:
     resolution: {integrity: sha512-KQQR9yN7R5+OSwaK0XQoj22pwHoTlgYqmUscPYoknOoWCWfj/5/ABTMRi69FrKU5ffPVh5QcFikpWJI/P1ocHA==}
-
-  tinyglobby@0.2.14:
-    resolution: {integrity: sha512-tX5e7OM1HnYr2+a2C/4V0htOcSQcoSTH9KgJnVvNm5zm/cyEWKJ7j7YutsH9CxMdtOkkLFy2AHrMci9IM8IPZQ==}
-    engines: {node: '>=12.0.0'}
 
   tinyglobby@0.2.15:
     resolution: {integrity: sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==}
@@ -6185,6 +6293,37 @@ snapshots:
     dependencies:
       '@types/node': 24.6.2
 
+  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20251004.1':
+    optional: true
+
+  '@typescript/native-preview-darwin-x64@7.0.0-dev.20251004.1':
+    optional: true
+
+  '@typescript/native-preview-linux-arm64@7.0.0-dev.20251004.1':
+    optional: true
+
+  '@typescript/native-preview-linux-arm@7.0.0-dev.20251004.1':
+    optional: true
+
+  '@typescript/native-preview-linux-x64@7.0.0-dev.20251004.1':
+    optional: true
+
+  '@typescript/native-preview-win32-arm64@7.0.0-dev.20251004.1':
+    optional: true
+
+  '@typescript/native-preview-win32-x64@7.0.0-dev.20251004.1':
+    optional: true
+
+  '@typescript/native-preview@7.0.0-dev.20251004.1':
+    optionalDependencies:
+      '@typescript/native-preview-darwin-arm64': 7.0.0-dev.20251004.1
+      '@typescript/native-preview-darwin-x64': 7.0.0-dev.20251004.1
+      '@typescript/native-preview-linux-arm': 7.0.0-dev.20251004.1
+      '@typescript/native-preview-linux-arm64': 7.0.0-dev.20251004.1
+      '@typescript/native-preview-linux-x64': 7.0.0-dev.20251004.1
+      '@typescript/native-preview-win32-arm64': 7.0.0-dev.20251004.1
+      '@typescript/native-preview-win32-x64': 7.0.0-dev.20251004.1
+
   '@ungap/structured-clone@1.3.0': {}
 
   '@visulima/boxen@2.0.2': {}
@@ -7194,7 +7333,7 @@ snapshots:
 
   dotenv@17.2.3: {}
 
-  drizzle-kit@1.0.0-beta.1-fd8bfcc:
+  drizzle-kit@1.0.0-beta.1-860c2f2:
     dependencies:
       '@drizzle-team/brocli': 0.10.2
       '@esbuild-kit/esm-loader': 2.6.5
@@ -7504,10 +7643,6 @@ snapshots:
   fastq@1.19.1:
     dependencies:
       reusify: 1.1.0
-
-  fdir@6.4.6(picomatch@4.0.3):
-    optionalDependencies:
-      picomatch: 4.0.3
 
   fdir@6.5.0(picomatch@4.0.3):
     optionalDependencies:
@@ -9307,11 +9442,6 @@ snapshots:
 
   tinyexec@0.3.2: {}
 
-  tinyglobby@0.2.14:
-    dependencies:
-      fdir: 6.4.6(picomatch@4.0.3)
-      picomatch: 4.0.3
-
   tinyglobby@0.2.15:
     dependencies:
       fdir: 6.5.0(picomatch@4.0.3)
@@ -9531,7 +9661,7 @@ snapshots:
   vite-node@3.2.4(@types/node@24.6.2)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.1):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.1
+      debug: 4.4.3
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 7.1.9(@types/node@24.6.2)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.1)
@@ -9576,7 +9706,7 @@ snapshots:
       '@vitest/spy': 3.2.4
       '@vitest/utils': 3.2.4
       chai: 5.2.1
-      debug: 4.4.1
+      debug: 4.4.3
       expect-type: 1.2.2
       magic-string: 0.30.17
       pathe: 2.0.3
@@ -9584,7 +9714,7 @@ snapshots:
       std-env: 3.9.0
       tinybench: 2.9.0
       tinyexec: 0.3.2
-      tinyglobby: 0.2.14
+      tinyglobby: 0.2.15
       tinypool: 1.1.1
       tinyrainbow: 2.0.0
       vite: 7.1.9(@types/node@24.6.2)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.1)

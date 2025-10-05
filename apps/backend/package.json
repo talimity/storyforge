@@ -5,7 +5,7 @@
   "main": "./dist/main.js",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-    "check": "run-p --continue-on-error lint typecheck",
+    "build:native": "tsgo -b tsconfig.build.json",
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "dev": "pnpm tsx watch src/main.ts",
     "fmt": "biome format --write .",
@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "test:completion": "pnpm tsx scripts/test-completion.ts",
     "test:import": "pnpm tsx scripts/test-card-import.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsgo -p tsconfig.json --noEmit",
+    "typecheck:legacy": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
@@ -58,6 +59,7 @@
     "form-data": "^4.0.4",
     "tsx": "catalog:",
     "typescript": "catalog:",
+    "@typescript/native-preview": "catalog:",
     "vitest": "catalog:"
   }
 }

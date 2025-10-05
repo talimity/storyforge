@@ -4,12 +4,13 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite --host",
-    "check": "run-p --continue-on-error lint typecheck",
+
     "lint": "biome check --diagnostic-level error --write . --unsafe",
     "fmt": "biome format --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsgo -p tsconfig.json --noEmit",
+    "typecheck:legacy": "tsc -p tsconfig.json --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -61,6 +62,7 @@
     "babel-plugin-react-compiler": "19.1.0-rc.3",
     "jsdom": "^26.1.0",
     "typescript": "catalog:",
+    "@typescript/native-preview": "catalog:",
     "vite": "^7.1.9",
     "vitest": "catalog:"
   }

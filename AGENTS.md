@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 ## About
 
-StoryForge uses language models to let users play with and direct semi-autonomous characters in a pseudo-tabletop RPG context. It's similar to popular applications like Character.AI and SillyTavern, but moves away from the *chat* paradigm, which gives models too much freedom to make mistakes. Instead, StoryForge tries to provide a more structured and controlled environment for the model to interact with the story.
+StoryForge uses language models to let users direct semi-autonomous characters in a pseudo-tabletop RPG context. It's similar to popular applications like Character.AI and SillyTavern, but moves away from the *chat* paradigm, which gives models too much freedom to make mistakes. Instead, StoryForge tries to provide a more structured and controlled environment for the model to interact with the story.
 
 The vision is something akin a turn-based/text-based version of The Sims, which places AI-driven characters in a scenario together and tries to draw forth entertaining emergent interactions between them. Players can influence the story directly or indirectly by providing narrative constraints, overriding character actions, or injecting chaos. Character agents have access to tool calls to roll dice, modify attributes and inventory, and track long-term goals.
 
@@ -20,9 +20,11 @@ The vision is something akin a turn-based/text-based version of The Sims, which 
 
 ```bash
 # ⚠️ IMPORTANT: DO NOT pass `-w` after any of these commands. They should be run as-is from the workspace root.
-# Rebuild type declarations after changing shared packages
+# To scope a command to a specific package, use `pnpm --filter=package [script]` instead.
+
+# Rebuild type declarations with after changing shared packages (slow; uses `tsc`)
 pnpm build
-# Lint, fix imports, and check for type errors
+# Run typechecker and linter (fast; uses beta Typescript-Go native compiler)
 pnpm lint
 # Run tests 
 pnpm test
@@ -31,15 +33,9 @@ pnpm test
 ### Sqlite Migrations
 ```bash
 # Remember to generate migrations when changing database schema in packages/db
-pnpm db:generate --name=descriptive-name # Drizzle migration generation
-pnpm db:migrate # Run migrations against the database
+pnpm --filter=db db:generate --name=descriptive-name # Drizzle migration generation
+pnpm --filter=db db:migrate # Run migrations against the database
 ```
-
-**⚠️ IMPORTANT - Regarding pnpm flags**
-- DO NOT set `-w` flag for any of these commands. It will run the command in watch mode and block the Codex harness indefinitely.
-  - If you're trying to run a command against specific packages, try `pnpm --filter=backend --filter=db build`.
-  - If you're trying to run a command against the entire workspace, try `pnpm build` without any flags.
-- If you set `-s` and receive `sandbox exec error`, the error is misleading. Remove `-s` and try again to see the real error.
 
 ### Technical Choices
 
@@ -50,9 +46,9 @@ pnpm db:migrate # Run migrations against the database
 
 ## Stack
 
-- **Backend**: Fastify, tRPC
+- **Backend**: Fastify/tRPC
 - **Frontend**: React 19/Vite
-- **Database**: Drizzle ORM
+- **Database**: SQLite/Drizzle ORM
 - **Schemas**: Zod v4
 
 ## Monorepo Structure
@@ -70,8 +66,9 @@ storyforge
     │── gentasks               # Generative task and workflow runner implementations
     ├── inference              # Adapters for inference APIs
     ├── prompt-rendering       # Prompt template rendering engine
+    ├── timeline-events        # Reducers and event schemas for timeline state
     ├── utils                  # Isomorphic utility functions
-    └── yolo-onnx              # YOLOv8 ONNX wrapper for face detection
+    └── yolo-onnx              # Wrapper for yolo-v8n face detection via ONNX runtime
 ```
 
 ## Code Style Guidelines
@@ -89,18 +86,14 @@ storyforge
   - Prefer modules and functions over classes
     - Polymorphism: use TS interfaces
     - Use classes only when you need to share state/behavior
-- **Imports**:
-  - Never deep import from other packages
 - **Naming conventions**:
   - Files: kebab-case
   - Identifiers: camelCase for functions/variables, PascalCase for classes/components
 - **Comments**:
-  - Do not leave comments that merely restate the code's behavior
-  - Only comment to note edge cases or to explain why a non-obvious implementation strategy was chosen 
-  - Use JSDoc for public APIs
+  - Only leave inline comments to note edge cases or to explain why a non-obvious implementation strategy was chosen 
+  - Do leave JSDoc comments for a module's public API
 - **General**:
   - Minimize nested structures
-    - Use intermediate variables to make expressions clearer
     - Return early to avoid deep nesting in functions
   - Look for patterns in existing code and follow them 
 
@@ -123,9 +116,3 @@ storyforge
   - That includes watch mode! DO NOT add `-w` flags to any of the build or code quality commands.
   - If you think you want `-w` to filter the pnpm workspace, you actually want `pnpm --filter=package [script]` instead
 - You MUST NEVER stage, unstage, reset, commit, push, stash, or make any changes whatsoever to the git worktree under any circumstances. 
-
----
-
-**IMPORTANT: The OpenAI Codex CLI harness tends to erroneously report ANY non-zero process exit code as 'sandbox exec error'.**
-
-This is a misleading message. It appears whenever a command exits with any non-0 status, which could simply be because your build or type checking or unit tests failed. The problem is almost never the sandbox unless you are trying to make a network request, so you can disregard this message.

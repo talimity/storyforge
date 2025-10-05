@@ -13,10 +13,12 @@
 │  │  │  │  ├── routers
 │  │  │  │  │  ├── characters.ts
 │  │  │  │  │  ├── chat-import.ts
-│  │  │  │  │  ├── play.ts
+│  │  │  │  │  ├── intents.ts
 │  │  │  │  │  ├── providers.ts
 │  │  │  │  │  ├── scenarios.ts
 │  │  │  │  │  ├── templates.ts
+│  │  │  │  │  ├── timeline-events.ts
+│  │  │  │  │  ├── timeline.ts
 │  │  │  │  │  └── workflows.ts
 │  │  │  │  ├── service-error-to-trpc.ts
 │  │  │  │  └── trpc-context.ts
@@ -74,6 +76,12 @@
 │  │  │  │  │  └── utils
 │  │  │  │  │      ├── leaf.ts
 │  │  │  │  │      └── mutation-planner.ts
+│  │  │  │  ├── timeline-events
+│  │  │  │  │  ├── loader.ts
+│  │  │  │  │  ├── timeline-events.service.ts
+│  │  │  │  │  ├── timeline-state.service.ts
+│  │  │  │  │  └── utils
+│  │  │  │  │      └── event-dtos.ts
 │  │  │  │  ├── turn
 │  │  │  │  │  └── turn-content.service.ts
 │  │  │  │  └── workflows
@@ -128,18 +136,20 @@
 │      │  │      └── tooltip.tsx
 │      │  ├── features
 │      │  │  ├── characters
-│      │  │  │  ├── character-delete-dialog.tsx
-│      │  │  │  ├── character-import-dialog.tsx
+│      │  │  │  ├── character-enums.ts
 │      │  │  │  ├── components
 │      │  │  │  │  ├── avatar-crop-dialog.tsx
 │      │  │  │  │  ├── character-card.tsx
+│      │  │  │  │  ├── character-delete-dialog.tsx
 │      │  │  │  │  ├── character-form.tsx
 │      │  │  │  │  ├── character-image-field.tsx
+│      │  │  │  │  ├── character-import-dialog.tsx
 │      │  │  │  │  ├── character-list-item.tsx
 │      │  │  │  │  ├── character-pile.tsx
 │      │  │  │  │  ├── character-selector.tsx
 │      │  │  │  │  ├── character-starters-editor.tsx
-│      │  │  │  │  └── compact-character-card.tsx
+│      │  │  │  │  ├── compact-character-card.tsx
+│      │  │  │  │  └── form-schemas.ts
 │      │  │  │  └── hooks
 │      │  │  │      ├── use-character-actions.ts
 │      │  │  │      └── use-character-search.ts
@@ -154,6 +164,7 @@
 │      │  │  │  │  ├── edit-provider-dialog.tsx
 │      │  │  │  │  ├── jinja-template-dialog.tsx
 │      │  │  │  │  ├── model-profile-card.tsx
+│      │  │  │  │  ├── model-profile-form-schemas.ts
 │      │  │  │  │  ├── model-profile-form.tsx
 │      │  │  │  │  ├── model-profile-selector.tsx
 │      │  │  │  │  ├── provider-card.tsx
@@ -181,11 +192,14 @@
 │      │  │  │  │  ├── player-layout.tsx
 │      │  │  │  │  ├── player-shell.tsx
 │      │  │  │  │  ├── player-widget-sidebar.tsx
+│      │  │  │  │  ├── scenario-navigation.tsx
 │      │  │  │  │  ├── timeline
 │      │  │  │  │  │  ├── auto-follow-draft.tsx
+│      │  │  │  │  │  ├── chapter-separator.tsx
 │      │  │  │  │  │  ├── character-starter-selector.tsx
 │      │  │  │  │  │  ├── draft-turn.tsx
 │      │  │  │  │  │  ├── generation-info-dialog.tsx
+│      │  │  │  │  │  ├── insert-turn-dialog.tsx
 │      │  │  │  │  │  ├── intent-provenance-indicator.tsx
 │      │  │  │  │  │  ├── intent-provenance-utils.tsx
 │      │  │  │  │  │  ├── retry-intent-dialog.tsx
@@ -203,9 +217,11 @@
 │      │  │  │  │      └── widget-panels.tsx
 │      │  │  │  ├── hooks
 │      │  │  │  │  ├── use-branch-preview.ts
+│      │  │  │  │  ├── use-chapter-actions.ts
 │      │  │  │  │  ├── use-intent-engine.ts
 │      │  │  │  │  ├── use-scenario-environment.ts
 │      │  │  │  │  ├── use-scenario-intent-actions.ts
+│      │  │  │  │  ├── use-scenario-timeline-state.ts
 │      │  │  │  │  ├── use-scenario-timeline.ts
 │      │  │  │  │  ├── use-timeline-auto-load-more.ts
 │      │  │  │  │  ├── use-timeline-follow-output-mode.ts
@@ -222,11 +238,13 @@
 │      │  │  │      └── intent-form.ts
 │      │  │  ├── scenarios
 │      │  │  │  ├── components
+│      │  │  │  │  ├── form-schemas.ts
 │      │  │  │  │  ├── participant-manager.tsx
 │      │  │  │  │  ├── scenario-card.tsx
 │      │  │  │  │  ├── scenario-delete-dialog.tsx
 │      │  │  │  │  ├── scenario-form.tsx
 │      │  │  │  │  └── scenario-selector.tsx
+│      │  │  │  ├── forms
 │      │  │  │  └── hooks
 │      │  │  │      ├── use-scenario-actions.ts
 │      │  │  │      └── use-scenario-search.ts
@@ -277,11 +295,12 @@
 │      │  │  └── workflows
 │      │  │      ├── components
 │      │  │      │  ├── assignment-dialog.tsx
+│      │  │      │  ├── assignment-form-schemas.ts
 │      │  │      │  ├── assignment-list.tsx
 │      │  │      │  ├── builder
+│      │  │      │  │  ├── form-schemas.ts
 │      │  │      │  │  ├── json-editors.tsx
 │      │  │      │  │  ├── outputs-editor.tsx
-│      │  │      │  │  ├── schemas.ts
 │      │  │      │  │  ├── step-card.tsx
 │      │  │      │  │  ├── step-header-labels.tsx
 │      │  │      │  │  ├── steps-editor.tsx
@@ -302,9 +321,11 @@
 │      │  │  ├── use-image-field.ts
 │      │  │  └── use-unsaved-changes-protection.ts
 │      │  ├── lib
+│      │  │  ├── app-form.tsx
 │      │  │  ├── empty-to-null.ts
 │      │  │  ├── error-handling.ts
 │      │  │  ├── formatting.ts
+│      │  │  ├── form-context.ts
 │      │  │  ├── get-api-url.ts
 │      │  │  ├── make-scenario-name.ts
 │      │  │  ├── non-bubbling-handler.ts
@@ -357,10 +378,12 @@
 │  │  │  ├── schemas
 │  │  │  │  ├── character.ts
 │  │  │  │  ├── chat-import.ts
-│  │  │  │  ├── play.ts
+│  │  │  │  ├── intents.ts
 │  │  │  │  ├── provider.ts
-│  │  │  │  ├── scenario.ts
+│  │  │  │  ├── scenarios.ts
 │  │  │  │  ├── templates.ts
+│  │  │  │  ├── timeline-events.ts
+│  │  │  │  ├── timeline.ts
 │  │  │  │  └── workflows.ts
 │  │  │  └── utils
 │  │  │      └── data-uri-validation.ts
@@ -375,8 +398,7 @@
 │  │  │  ├── index.ts
 │  │  │  ├── migrate.ts
 │  │  │  ├── migrations
-│  │  │  ├── relations.ts
-│  │  │  ├── schema
+│  │  │  ├── models
 │  │  │  │  ├── character-examples.ts
 │  │  │  │  ├── character-starters.ts
 │  │  │  │  ├── characters.ts
@@ -389,11 +411,15 @@
 │  │  │  │  ├── provider-config.ts
 │  │  │  │  ├── scenario-participants.ts
 │  │  │  │  ├── scenarios.ts
+│  │  │  │  ├── timeline-events.ts
 │  │  │  │  ├── turn-layers.ts
 │  │  │  │  ├── turns.ts
 │  │  │  │  ├── workflow-scopes.ts
 │  │  │  │  └── workflows.ts
-│  │  │  └── utils.ts
+│  │  │  ├── relations.ts
+│  │  │  ├── schema.ts
+│  │  │  ├── utils.ts
+│  │  │  └── views
 │  │  ├── tsconfig.build.json
 │  │  └── tsconfig.json
 │  ├── gentasks
@@ -468,6 +494,21 @@
 │  │  ├── tsconfig.build.json
 │  │  ├── tsconfig.json
 │  │  └── vitest.config.ts
+│  ├── timeline-events
+│  │  ├── package.json
+│  │  ├── src
+│  │  │  ├── concerns
+│  │  │  │  ├── chapters.ts
+│  │  │  │  ├── inventory.ts
+│  │  │  │  └── presence.ts
+│  │  │  ├── define.ts
+│  │  │  ├── derive.ts
+│  │  │  ├── index.ts
+│  │  │  ├── registry.ts
+│  │  │  └── types.ts
+│  │  ├── tsconfig.build.json
+│  │  ├── tsconfig.json
+│  │  └── vitest.config.ts
 │  ├── utils
 │  │  ├── package.json
 │  │  ├── src
@@ -498,4 +539,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
 
-100 directories, 399 files
+107 directories, 433 files

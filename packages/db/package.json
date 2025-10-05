@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-    "check": "run-p --continue-on-error lint typecheck",
+
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "db:generate": "pnpm drizzle-kit generate",
     "db:migrate": "pnpm drizzle-kit migrate",
@@ -16,7 +16,8 @@
     "drizzle-kit": "pnpm exec tsx node_modules/drizzle-kit/bin.cjs",
     "fmt": "biome format --write .",
     "lint": "biome check --diagnostic-level error --write --unsafe .",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsgo -p tsconfig.json --noEmit",
+    "typecheck:legacy": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@libsql/client": "catalog:",
@@ -27,6 +28,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "drizzle-kit": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@typescript/native-preview": "catalog:"
   }
 }

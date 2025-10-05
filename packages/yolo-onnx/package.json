@@ -6,12 +6,13 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-    "check": "run-p --continue-on-error lint typecheck",
+
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "detect": "tsx src/test-face-detection.ts",
     "fmt": "biome format --write .",
     "lint": "biome check --diagnostic-level error --write --unsafe .",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsgo -p tsconfig.json --noEmit",
+    "typecheck:legacy": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "onnxruntime-node": "1.22.0-rev",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@typescript/native-preview": "catalog:"
   }
 }
