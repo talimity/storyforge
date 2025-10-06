@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTRPC } from "@/lib/trpc";
 
 export function useModelProfileSearch(options: { enabled?: boolean } = {}) {
@@ -14,7 +14,7 @@ export function useModelProfileSearch(options: { enabled?: boolean } = {}) {
     )
   );
 
-  const updateSearch = useCallback((q: string) => setSearchQuery(q), []);
+  const updateSearch = (q: string) => setSearchQuery(q);
 
   // Ensure stable array identity so downstream effects don't re-run every render
   const modelProfiles = useMemo(() => data?.modelProfiles ?? [], [data?.modelProfiles]);

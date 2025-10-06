@@ -128,30 +128,36 @@ export function CharacterLibraryPage() {
         )}
 
         {viewMode === "grid" ? (
-          <Grid
-            templateColumns={{
-              base: "repeat(auto-fit, minmax(130px, 1fr))",
-              sm: "repeat(auto-fit, minmax(165px, 1fr))",
-              md: "repeat(auto-fit, minmax(180px, 1fr))",
-              lg: "repeat(auto-fit, minmax(220px, 1fr))",
-              "2xl": "repeat(auto-fill, 250px)",
-            }}
-            justifyContent="center"
-            gap={4}
-            onClick={handleLibraryClick}
-          >
-            {charaQuery.isLoading
-              ? Array.from({ length: 20 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
-                  <CharacterCardSkeleton key={skeletonId} />
-                ))
-              : charaData.map((character) => (
-                  <CharacterCard
-                    key={character.id}
-                    character={character}
-                    isSelected={selectedCharacterIds.includes(character.id)}
-                  />
-                ))}
-          </Grid>
+          // <Grid
+          //   templateColumns={{
+          //     base: "repeat(auto-fit, minmax(130px, 1fr))",
+          //     sm: "repeat(auto-fit, minmax(165px, 1fr))",
+          //     md: "repeat(auto-fit, minmax(180px, 1fr))",
+          //     lg: "repeat(auto-fit, minmax(220px, 1fr))",
+          //     "2xl": "repeat(auto-fill, 250px)",
+          //   }}
+          //   justifyContent="center"
+          //   gap={4}
+          //   onClick={handleLibraryClick}
+          // >
+          //   {charaQuery.isLoading
+          //     ? Array.from({ length: 20 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
+          //         <CharacterCardSkeleton key={skeletonId} />
+          //       ))
+          //     : charaData.map((character) => (
+          //         <CharacterCard
+          //           key={character.id}
+          //           character={character}
+          //           isSelected={selectedCharacterIds.includes(character.id)}
+          //         />
+          //       ))}
+          // </Grid>
+          <CharaGridView
+            characters={charaData}
+            isLoading={charaQuery.isLoading}
+            onCardClick={toggleCharacterSelection}
+            selectedCharacterIds={selectedCharacterIds}
+          />
         ) : (
           <Grid
             templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
@@ -205,6 +211,49 @@ export function CharacterLibraryPage() {
         </ActionBarContent>
       </ActionBar.Root>
     </>
+  );
+}
+
+function CharaGridView(props: {
+  characters: CharacterSummary[];
+  selectedCharacterIds: string[];
+  isLoading: boolean;
+  onCardClick: (characterId: string) => void;
+}) {
+  const { characters, isLoading, onCardClick, selectedCharacterIds } = props;
+
+  return (
+    <Grid
+      templateColumns={{
+        base: "repeat(auto-fit, minmax(130px, 1fr))",
+        sm: "repeat(auto-fit, minmax(165px, 1fr))",
+        md: "repeat(auto-fit, minmax(180px, 1fr))",
+        lg: "repeat(auto-fit, minmax(220px, 1fr))",
+        "2xl": "repeat(auto-fill, 250px)",
+      }}
+      justifyContent="center"
+      gap={4}
+      onClick={(e) => {
+        const target = e.target as HTMLElement | null;
+        const cardEl = target?.closest<HTMLElement>("[data-character-id]");
+        if (!cardEl) return;
+        const id = cardEl.getAttribute("data-character-id");
+        if (!id) return;
+        onCardClick(id);
+      }}
+    >
+      {isLoading
+        ? Array.from({ length: 20 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
+            <CharacterCardSkeleton key={skeletonId} />
+          ))
+        : characters.map((character) => (
+            <CharacterCard
+              key={character.id}
+              character={character}
+              isSelected={selectedCharacterIds.includes(character.id)}
+            />
+          ))}
+    </Grid>
   );
 }
 

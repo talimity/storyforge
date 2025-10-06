@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTRPC } from "@/lib/trpc";
 
 interface UseCharacterSearchOptions {
@@ -22,9 +22,7 @@ export function useCharacterSearch(options: UseCharacterSearchOptions = {}) {
 
   const characters = useMemo(() => data?.characters ?? [], [data?.characters]);
 
-  const updateSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-  }, []);
+  const updateSearch = (query: string) => setSearchQuery(query);
 
   return {
     characters,

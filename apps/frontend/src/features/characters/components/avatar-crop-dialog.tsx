@@ -1,5 +1,5 @@
 import { Box } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ReactCrop, { type PercentCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import type { FocalPoint } from "@storyforge/contracts";
@@ -61,7 +61,6 @@ export function AvatarCropDialog({
   initialFocal,
   onSave,
 }: AvatarCropDialogProps) {
-  const [imgDims, setImgDims] = useState<{ w: number; h: number } | null>(null);
   const [percentCrop, setPercentCrop] = useState<PercentCrop>({
     unit: "%",
     x: 0,
@@ -70,26 +69,10 @@ export function AvatarCropDialog({
     height: 50,
   });
 
-  // When image dimensions or initial focal change (or dialog opens), recompute the percent crop
-  useEffect(() => {
-    if (isOpen && imgDims) {
-      setPercentCrop(focalToPercentCropFromDims(initialFocal, imgDims.w, imgDims.h));
-    }
-  }, [
-    isOpen,
-    imgDims,
-    initialFocal.x,
-    initialFocal.y,
-    initialFocal.w,
-    initialFocal.h,
-    initialFocal,
-  ]);
-
   const handleImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const el = e.currentTarget;
     const w = el.naturalWidth;
     const h = el.naturalHeight;
-    setImgDims({ w, h });
     setPercentCrop(focalToPercentCropFromDims(initialFocal, w, h));
   };
 

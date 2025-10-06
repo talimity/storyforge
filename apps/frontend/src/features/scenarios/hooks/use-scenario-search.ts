@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTRPC } from "@/lib/trpc";
 
 export function useScenarioSearch(
@@ -18,7 +18,7 @@ export function useScenarioSearch(
 
   const scenarios = useMemo(() => data?.scenarios ?? [], [data?.scenarios]);
 
-  const updateSearch = useCallback((q: string) => setSearchQuery(q), []);
+  const updateSearch = (q: string) => setSearchQuery(q);
 
   return { scenarios, isLoading, error, searchQuery, updateSearch };
 }

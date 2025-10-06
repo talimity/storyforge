@@ -4,7 +4,6 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite --host",
-
     "lint": "biome check --diagnostic-level error --write . --unsafe",
     "fmt": "biome format --write .",
     "test": "vitest run",
@@ -58,11 +57,14 @@
     "@types/node": "catalog:",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "@typescript/native-preview": "catalog:",
     "@vitejs/plugin-react": "^5.0.4",
     "babel-plugin-react-compiler": "19.1.0-rc.3",
+    "eslint": "^9.37.0",
+    "eslint-plugin-react-hooks": "^6.1.1",
     "jsdom": "^26.1.0",
     "typescript": "catalog:",
-    "@typescript/native-preview": "catalog:",
     "vite": "^7.1.9",
     "vitest": "catalog:"
   }

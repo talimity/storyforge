@@ -131,7 +131,7 @@ const ParticipantCard = withFieldGroup({
     onRemove: () => {},
     onSelectAsProxy: () => {},
   } satisfies ParticipantCardProps as ParticipantCardProps,
-  render: ({ group, onRemove, characterId, onSelectAsProxy }) => {
+  render: function Render({ group, onRemove, characterId, onSelectAsProxy }) {
     const trpc = useTRPC();
 
     const characterQuery = useQuery(

@@ -4,6 +4,7 @@ import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import {
   Button,
   Field,
@@ -254,26 +255,33 @@ function ModelSelector({
   models?: SearchModelsOutput["models"];
   onSelect: (id: string) => void;
 }) {
-  "use no memo"; // virtualizer+chakra list seems to cause react compiler optimization issues
+  "use no memo"; // React Compiler interferes with virtualizer and/or chakra
   const collection = createModelsCollection(models);
   const [availableModelSelection, setAvailableModelSelection] = useState("");
   const contentRef = useRef<HTMLDivElement>(null);
-  const virtualizer = useVirtualizer({
+  const v = useVirtualizer({
     count: collection.size,
     getScrollElement: () => contentRef.current,
-    estimateSize: () => 76,
+    getItemKey: (index) => collection.items[index].value,
+    estimateSize: () => 50,
     overscan: 10,
     scrollPaddingEnd: 32,
   });
-  const items = virtualizer.getVirtualItems();
+  const items = v.getVirtualItems();
 
   if (!models?.length) {
     return null;
   }
 
+  // Required when virtualizing Chakra selects/comboboxes for proper programmatic scrolling
+  const handleScrollToIndexFn = (details: { index: number }) => {
+    flushSync(() => v.scrollToIndex(details.index, { align: "center", behavior: "auto" }));
+  };
+
   return (
     <Field label="Available Models" flex={2}>
       <SelectRoot
+        scrollToIndexFn={handleScrollToIndexFn}
         positioning={{ sameWidth: false }}
         collection={collection}
         value={availableModelSelection ? [availableModelSelection] : []}
@@ -287,34 +295,34 @@ function ModelSelector({
         <SelectTrigger>
           <SelectValueText placeholder="Select a model" />
         </SelectTrigger>
-        <SelectContent portalled={false} ref={contentRef} w="xl">
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              position: "relative",
-            }}
-          >
-            {items.map((virtualItem) => {
-              const item = collection.items[virtualItem.index];
+        <SelectContent
+          portalled={false}
+          ref={contentRef}
+          w="xl"
+          style={{ display: "block" }} // Default chakra flex style causes incorrect scrollbar size calculation
+        >
+          <div style={{ height: `${v.getTotalSize()}px`, position: "relative" }}>
+            {items.map((row) => {
+              const modelItem = collection.items[row.index];
               return (
                 <SelectItem
-                  key={item.value}
-                  item={item}
-                  data-index={virtualItem.index}
-                  ref={virtualizer.measureElement}
+                  key={modelItem.value}
+                  item={modelItem}
+                  data-index={row.index}
+                  ref={v.measureElement}
                   style={{
                     position: "absolute",
                     top: 0,
                     left: 0,
                     width: "100%",
-                    transform: `translateY(${virtualItem.start}px)`,
+                    transform: `translateY(${row.start}px)`,
                   }}
                 >
                   <VStack align="start" gap={1}>
-                    <Text truncate>{item.label}</Text>
-                    {item.description && (
+                    <Text truncate>{modelItem.label}</Text>
+                    {modelItem.description && (
                       <Text fontSize="xs" color="content.muted" lineClamp={2}>
-                        {item.description}
+                        {modelItem.description}
                       </Text>
                     )}
                   </VStack>

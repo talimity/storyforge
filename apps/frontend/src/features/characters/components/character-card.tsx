@@ -10,6 +10,7 @@ import {
   Skeleton,
   VisuallyHidden,
 } from "@chakra-ui/react";
+import { memo } from "react";
 import {
   LuCheck,
   LuEllipsisVertical,
@@ -33,7 +34,7 @@ interface CharacterCardProps {
   readOnly?: boolean;
 }
 
-export function CharacterCard({
+export const CharacterCard = memo(function CharacterCard({
   character,
   isSelected = false,
   readOnly = false,
@@ -156,7 +157,7 @@ export function CharacterCard({
       )}
     </>
   );
-}
+});
 
 export function CharacterCardSkeleton() {
   return (
