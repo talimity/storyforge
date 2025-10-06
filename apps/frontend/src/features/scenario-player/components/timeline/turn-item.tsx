@@ -27,6 +27,7 @@ import {
   LuTrash,
   LuX,
 } from "react-icons/lu";
+import { useInView } from "react-intersection-observer";
 import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialog";
 import { AutosizeTextarea, Avatar, Button, Prose, Tooltip } from "@/components/ui/index";
@@ -84,6 +85,7 @@ export function TurnItem(props: TurnItemProps) {
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const { isPreviewing, previewSibling } = useBranchPreview();
   const { insertChapterAtTurn, isInsertingChapter } = useChapterActions();
+  const { ref, inView } = useInView({ triggerOnce: true });
 
   const provenanceDisplay = useMemo(
     () => getIntentProvenanceDisplay(turn, prevTurn, nextTurn),
@@ -169,6 +171,7 @@ export function TurnItem(props: TurnItemProps) {
         data-turn-id={turn.id}
         data-testid="turn-item"
         opacity={turn.isGhost ? 0.5 : 1}
+        ref={ref}
       >
         <Stack gap={2}>
           <HStack justify="space-between" pb={1}>
@@ -234,7 +237,8 @@ export function TurnItem(props: TurnItemProps) {
                   </Button>
                 </HStack>
               ) : (
-                !isPreviewing && (
+                !isPreviewing &&
+                inView && (
                   <Menu.Root
                     onFocusOutside={(details) => {
                       // janky workaround for  chakra issue with nested menus
@@ -429,16 +433,20 @@ export function TurnItem(props: TurnItemProps) {
         </Stack>
       </Box>
 
-      <DiscardChangesDialog
-        isOpen={showDiscardDialog}
-        onOpenChange={(details) => setShowDiscardDialog(details.open)}
-        onConfirm={handleConfirmDiscard}
-      />
-      <GenerationInfoDialog
-        turnId={turn.id}
-        isOpen={showGenerationInfo}
-        onOpenChange={handleGenerationInfoOpenChange}
-      />
+      {inView && (
+        <>
+          <DiscardChangesDialog
+            isOpen={showDiscardDialog}
+            onOpenChange={(details) => setShowDiscardDialog(details.open)}
+            onConfirm={handleConfirmDiscard}
+          />
+          <GenerationInfoDialog
+            turnId={turn.id}
+            isOpen={showGenerationInfo}
+            onOpenChange={handleGenerationInfoOpenChange}
+          />
+        </>
+      )}
     </>
   );
 }

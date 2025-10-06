@@ -18,6 +18,7 @@ import {
   LuSquareUserRound,
   LuTrash,
 } from "react-icons/lu";
+import { useInView } from "react-intersection-observer";
 import { Link } from "react-router-dom";
 import { CharacterDeleteDialog } from "@/features/characters/components/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
@@ -34,6 +35,7 @@ interface CharacterCardProps {
   readOnly?: boolean;
 }
 
+// TODO: try to figure out why React Compiler auto-memo is not working here
 export const CharacterCard = memo(function CharacterCard({
   character,
   isSelected = false,
@@ -46,6 +48,8 @@ export const CharacterCard = memo(function CharacterCard({
     openDeleteDialog,
     closeDeleteDialog,
   } = useCharacterActions(character.id);
+  // defer mounting heavy chakra menu/dialog components until in view
+  const { ref, inView } = useInView({ triggerOnce: true });
 
   const imageUrl = getApiUrl(character.imagePath);
 
@@ -59,6 +63,7 @@ export const CharacterCard = memo(function CharacterCard({
         cursor={!readOnly ? "pointer" : "default"}
         data-character-id={character.id}
         overflow="hidden"
+        ref={ref}
       >
         <Box position="relative" borderBottomWidth={1}>
           {imageUrl ? (
@@ -68,6 +73,7 @@ export const CharacterCard = memo(function CharacterCard({
               aspectRatio={2 / 3}
               fit="cover"
               width="100%"
+              loading="lazy"
             />
           ) : (
             <Box
@@ -81,7 +87,7 @@ export const CharacterCard = memo(function CharacterCard({
               <LuSquareUserRound size={64} />
             </Box>
           )}
-          {!readOnly && (
+          {!readOnly && inView && (
             <Menu.Root positioning={{ placement: "bottom-end" }}>
               <Menu.Trigger asChild>
                 <IconButton
@@ -146,7 +152,7 @@ export const CharacterCard = memo(function CharacterCard({
           </HStack>
         </Card.Body>
       </Card.Root>
-      {!readOnly && (
+      {!readOnly && inView && (
         <CharacterDeleteDialog
           isOpen={isDeleteDialogOpen}
           onOpenChange={() => closeDeleteDialog()}

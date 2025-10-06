@@ -17,7 +17,7 @@ const CharacterBookEntrySchema = z.object({
   secondary_keys: z.array(z.string()).optional(),
   constant: z.boolean().optional(),
   // position: z.enum(["before_char", "after_char"]).optional(), // some cards seem to have other values so the spec is fucked
-  // position: z.string().optional(), // some cards seem to have a number in this field too, so I have no idea
+  // position: z.string().optional(), // some cards seem to have a number in this field so this doesn't work either
   position: z
     .union([z.literal("before_char"), z.literal("after_char"), z.number(), z.string()])
     .optional(),
