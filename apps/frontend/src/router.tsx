@@ -4,6 +4,9 @@ import { AppShell } from "./components/app-shell";
 import { CharacterCreatePage } from "./pages/character-create";
 import { CharacterEditPage } from "./pages/character-edit";
 import { CharacterLibraryPage } from "./pages/character-library";
+import { LorebookCreatePage } from "./pages/lorebook-create";
+import { LorebookEditPage } from "./pages/lorebook-edit";
+import { LorebooksPage } from "./pages/lorebook-library";
 import { ModelsPage } from "./pages/models-library";
 import { ScenarioCreatePage } from "./pages/scenario-create";
 import { ScenarioEditPage } from "./pages/scenario-edit";
@@ -54,6 +57,18 @@ export const router = createBrowserRouter([
       {
         path: "models",
         element: <ModelsPage />,
+      },
+      {
+        path: "lorebooks",
+        element: <LorebooksPage />,
+      },
+      {
+        path: "lorebooks/create",
+        element: <LorebookCreatePage />,
+      },
+      {
+        path: "lorebooks/:id/edit",
+        element: <LorebookEditPage />,
       },
       {
         path: "workflows",

@@ -2,7 +2,7 @@ import { decode } from "png-chunk-text";
 import pngExtract from "png-chunks-extract";
 import { z } from "zod";
 
-const CharacterBookEntrySchema = z.object({
+export const CharacterBookEntrySchema = z.object({
   keys: z.array(z.string()),
   content: z.string(),
   extensions: z.record(z.string(), z.any()),
@@ -23,7 +23,7 @@ const CharacterBookEntrySchema = z.object({
     .optional(),
 });
 
-const CharacterBookSchema = z.object({
+export const CharacterBookSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   scan_depth: z.number().optional(),

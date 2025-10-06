@@ -9,6 +9,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.characters.id.through(r.scenarioParticipants.characterId),
       to: r.scenarios.id.through(r.scenarioParticipants.scenarioId),
     }),
+    lorebooks: r.many.lorebooks({
+      from: r.characters.id.through(r.characterLorebooks.characterId),
+      to: r.lorebooks.id.through(r.characterLorebooks.lorebookId),
+    }),
   },
   characterExamples: {
     character: r.one.characters({
@@ -26,6 +30,10 @@ export const relations = defineRelations(schema, (r) => ({
     characters: r.many.characters(),
     turns: r.many.turns(),
     participants: r.many.scenarioParticipants(),
+    lorebooks: r.many.lorebooks({
+      from: r.scenarios.id.through(r.scenarioLorebooks.scenarioId),
+      to: r.lorebooks.id.through(r.scenarioLorebooks.lorebookId),
+    }),
   },
   turns: {
     authorParticipant: r.one.scenarioParticipants({
@@ -47,6 +55,38 @@ export const relations = defineRelations(schema, (r) => ({
     character: r.one.characters({
       from: r.scenarioParticipants.characterId,
       to: r.characters.id,
+    }),
+  },
+  lorebooks: {
+    scenarios: r.many.scenarios({
+      from: r.lorebooks.id.through(r.scenarioLorebooks.lorebookId),
+      to: r.scenarios.id.through(r.scenarioLorebooks.scenarioId),
+    }),
+    characters: r.many.characters({
+      from: r.lorebooks.id.through(r.characterLorebooks.lorebookId),
+      to: r.characters.id.through(r.characterLorebooks.characterId),
+    }),
+    scenarioLinks: r.many.scenarioLorebooks(),
+    characterLinks: r.many.characterLorebooks(),
+  },
+  scenarioLorebooks: {
+    scenario: r.one.scenarios({
+      from: r.scenarioLorebooks.scenarioId,
+      to: r.scenarios.id,
+    }),
+    lorebook: r.one.lorebooks({
+      from: r.scenarioLorebooks.lorebookId,
+      to: r.lorebooks.id,
+    }),
+  },
+  characterLorebooks: {
+    character: r.one.characters({
+      from: r.characterLorebooks.characterId,
+      to: r.characters.id,
+    }),
+    lorebook: r.one.lorebooks({
+      from: r.characterLorebooks.lorebookId,
+      to: r.lorebooks.id,
     }),
   },
   turnLayers: {

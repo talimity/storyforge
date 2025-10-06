@@ -4,6 +4,7 @@ import {
   LuBookOpen,
   LuChevronLeft,
   LuChevronRight,
+  LuLibrary,
   LuPaintBucket,
   LuPlay,
   LuScrollText,
@@ -109,6 +110,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           label="Workflows"
           collapsed={collapsed}
         />
+
+        <SidebarLink to="/lorebooks" icon={<LuLibrary />} label="Lorebooks" collapsed={collapsed} />
 
         <SidebarLink
           to="/templates"

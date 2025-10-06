@@ -2,6 +2,7 @@ export * from "./events.js";
 export * from "./schemas/character.js";
 export * from "./schemas/chat-import.js";
 export * from "./schemas/intents.js";
+export * from "./schemas/lorebook.js";
 export * from "./schemas/provider.js";
 export * from "./schemas/scenarios.js";
 export * from "./schemas/templates.js";
