@@ -11,6 +11,8 @@ import { TRPCReactProvider } from "@/lib/trpc-react-provider";
 import { router } from "@/router";
 import { system } from "@/theme";
 
+const ENABLE_DEVTOOLS = false;
+
 // biome-ignore lint/style/noNonNullAssertion: We are sure the root element exists.
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -19,16 +21,22 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <ThemeProvider attribute="class">
           <RouterProvider router={router} />
           <Toaster />
-          <TanStackDevtools
-            config={{ position: "bottom-left", hideUntilHover: true }}
-            plugins={[
-              FormDevtoolsPlugin(),
-              {
-                name: "TanStack Query",
-                render: () => <ReactQueryDevtoolsPanel />,
-              },
-            ]}
-          />
+          {ENABLE_DEVTOOLS && (
+            <TanStackDevtools
+              config={{
+                position: "bottom-left",
+                // defaultOpen: true,
+                hideUntilHover: true,
+              }}
+              plugins={[
+                FormDevtoolsPlugin(),
+                {
+                  name: "TanStack Query",
+                  render: () => <ReactQueryDevtoolsPanel />,
+                },
+              ]}
+            />
+          )}
         </ThemeProvider>
       </ChakraProvider>
     </TRPCReactProvider>

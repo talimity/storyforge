@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
   const devServerTarget = `${env.FASTIFY_PROTOCOL ?? "http"}://${env.FASTIFY_HOST ?? "localhost"}:${env.FASTIFY_PORT ?? "3001"}`;
   return {
     server: {
+      allowedHosts: true,
       port: 3000,
       proxy: {
         // everything under /api goes to Fastify

@@ -104,14 +104,14 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           collapsed={collapsed}
         />
 
+        <SidebarLink to="/lorebooks" icon={<LuLibrary />} label="Lorebooks" collapsed={collapsed} />
+
         <SidebarLink
           to="/workflows"
           icon={<LuWorkflow />}
           label="Workflows"
           collapsed={collapsed}
         />
-
-        <SidebarLink to="/lorebooks" icon={<LuLibrary />} label="Lorebooks" collapsed={collapsed} />
 
         <SidebarLink
           to="/templates"

@@ -5,14 +5,6 @@ interface NormalizeOptions {
   filename?: string;
 }
 
-const POSITION_MAP: Record<number, "before_char" | "after_char"> = {
-  0: "before_char",
-  1: "after_char",
-  2: "after_char",
-  3: "after_char",
-  4: "after_char",
-};
-
 export function normalizeSillyTavernLorebook(
   raw: unknown,
   options: NormalizeOptions = {}
@@ -212,10 +204,8 @@ function resolvePosition(value: unknown): "before_char" | "after_char" | undefin
   if (value === "before_char" || value === "after_char") {
     return value;
   }
-  if (typeof value === "number" && value in POSITION_MAP) {
-    return POSITION_MAP[value];
-  }
-  return undefined;
+  // TODO: maybe support other positions
+  return "after_char";
 }
 
 function deriveNameFromFilename(filename?: string) {
