@@ -159,7 +159,6 @@ describe("LorebookService", () => {
     expect(entries[0]?.keys).toEqual(["Alpha", "Beta"]);
     expect(entries[0]?.secondary_keys).toEqual(["Gamma"]);
     const extensions = entries[0]?.extensions as Record<string, unknown> | undefined;
-    const silly = extensions?.silly as Record<string, unknown> | undefined;
-    expect(silly?.weight).toBe(5);
+    expect(extensions?.weight).toBe(5);
   });
 });

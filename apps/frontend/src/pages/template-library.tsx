@@ -4,15 +4,13 @@ import {
   HStack,
   Input,
   InputGroup,
-  SegmentGroup,
   SimpleGrid,
   Skeleton,
   Stack,
-  VStack,
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { LuFileText, LuGrid3X3, LuList, LuPlus, LuSearch, LuUpload } from "react-icons/lu";
+import { LuFileText, LuPlus, LuSearch, LuUpload } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
@@ -27,10 +25,7 @@ import {
 } from "@/components/ui";
 import { TemplateCard } from "@/features/templates/components/template-card";
 import { TemplateImportDialog } from "@/features/templates/components/template-import-dialog";
-import { TemplateListItem } from "@/features/templates/components/template-list-item";
 import { useTRPC } from "@/lib/trpc";
-
-type ViewMode = "grid" | "list";
 
 const taskTypeOptions = [
   { value: "", label: "All Prompt Types" },
@@ -40,28 +35,9 @@ const taskTypeOptions = [
 ] as const;
 type TaskFilter = (typeof taskTypeOptions)[number]["value"];
 
-const viewModeOptions = [
-  { value: "grid", label: <LuGrid3X3 /> },
-  { value: "list", label: <LuList /> },
-];
-
-function toViewMode(mode: string | null): ViewMode {
-  switch (mode) {
-    case "grid":
-      return "grid";
-    case "list":
-      return "list";
-    default:
-      return "grid";
-  }
-}
-
 export function TemplatesPage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    return toViewMode(localStorage.getItem("template-view-mode"));
-  });
   const [searchQuery, setSearchQuery] = useState("");
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("");
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -78,11 +54,6 @@ export function TemplatesPage() {
   );
 
   const templates = templatesData?.templates || [];
-
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode);
-    localStorage.setItem("template-view-mode", mode);
-  };
 
   const handleCreateTemplate = () => {
     navigate("/templates/select-task");
@@ -150,18 +121,8 @@ export function TemplatesPage() {
             </Field>
           </HStack>
 
-          {/* View Controls and Actions */}
+          {/* Actions */}
           <HStack gap={2} flexShrink={0}>
-            {/* View Mode Toggle */}
-            <SegmentGroup.Root
-              hideBelow="md"
-              defaultValue={viewMode}
-              onValueChange={(details) => handleViewModeChange(toViewMode(details.value))}
-            >
-              <SegmentGroup.Indicator />
-              <SegmentGroup.Items items={viewModeOptions} />
-            </SegmentGroup.Root>
-
             {/* Import Button */}
             <Button variant="outline" onClick={handleImportTemplate}>
               <LuUpload />
@@ -203,7 +164,7 @@ export function TemplatesPage() {
           actionLabel={!searchQuery && !taskFilter ? "Create Template" : undefined}
           onActionClick={!searchQuery && !taskFilter ? handleCreateTemplate : undefined}
         />
-      ) : viewMode === "grid" ? (
+      ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
           {filteredTemplates.map((template) => (
             <TemplateCard
@@ -219,22 +180,6 @@ export function TemplatesPage() {
             />
           ))}
         </SimpleGrid>
-      ) : (
-        <VStack align="stretch" gap={3}>
-          {filteredTemplates.map((template) => (
-            <TemplateListItem
-              key={template.id}
-              template={{
-                id: template.id,
-                name: template.name,
-                task: template.kind,
-                version: template.version,
-                layoutNodeCount: template.layoutNodeCount,
-                updatedAt: new Date(template.updatedAt),
-              }}
-            />
-          ))}
-        </VStack>
       )}
 
       {/* Import Dialog */}

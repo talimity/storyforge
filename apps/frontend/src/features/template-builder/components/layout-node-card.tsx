@@ -72,7 +72,7 @@ export function LayoutNodeCard(props: LayoutNodeCardProps) {
             dragHandleProps={dragHandleProps}
             style={style}
           >
-            <Text fontSize="sm" color="red.500">
+            <Text fontSize="sm" color="fg.error">
               Slot "{node.name}" not found.
             </Text>
           </NodeFrame>

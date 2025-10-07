@@ -1,6 +1,7 @@
 import {
   Badge,
   Card,
+  Heading,
   HStack,
   IconButton,
   Menu,
@@ -39,75 +40,70 @@ export function ProviderCard({ provider }: ProviderCardProps) {
   return (
     <>
       <Card.Root layerStyle="surface">
-        <Card.Body p={4}>
-          <VStack align="stretch" gap={3}>
-            <HStack justify="space-between">
-              <HStack gap={2}>
-                <Text fontWeight="medium" truncate>
-                  {provider.name}
+        <Card.Header>
+          <HStack justify="space-between" align="center">
+            <Heading size="md" truncate>
+              {provider.name}
+            </Heading>
+            <Menu.Root positioning={{ placement: "bottom-end" }}>
+              <Menu.Trigger asChild>
+                <IconButton variant="ghost" size="xs">
+                  <LuEllipsisVertical />
+                </IconButton>
+              </Menu.Trigger>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="edit" onClick={() => setIsEditDialogOpen(true)}>
+                      <LuPencilLine />
+                      Edit
+                    </Menu.Item>
+                    <Menu.Item
+                      value="delete"
+                      color="fg.error"
+                      _hover={{ bg: "bg.error", color: "fg.error" }}
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                    >
+                      <LuTrash />
+                      Delete
+                    </Menu.Item>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
+          </HStack>
+        </Card.Header>
+
+        <Card.Body>
+          <VStack align="stretch" gap={2}>
+            <Badge colorPalette={getProviderBadgeColor(provider.kind)} size="sm" alignSelf="start">
+              {provider.kind}
+            </Badge>
+
+            {provider.baseUrl && (
+              <Text fontSize="xs" color="content.muted" truncate>
+                {provider.baseUrl}
+              </Text>
+            )}
+
+            <HStack justify="space-between" align="center">
+              <HStack gap={1} align="center">
+                <LuKey size={12} />
+                <Text fontSize="xs" color="content.muted">
+                  {provider.auth.hasApiKey ? "API key configured" : "No API key"}
                 </Text>
               </HStack>
-              <Menu.Root positioning={{ placement: "bottom-end" }}>
-                <Menu.Trigger asChild>
-                  <IconButton variant="ghost" size="sm">
-                    <LuEllipsisVertical />
-                  </IconButton>
-                </Menu.Trigger>
-                <Portal>
-                  <Menu.Positioner>
-                    <Menu.Content>
-                      <Menu.Item value="edit" onClick={() => setIsEditDialogOpen(true)}>
-                        <LuPencilLine />
-                        Edit
-                      </Menu.Item>
-                      <Menu.Item
-                        value="delete"
-                        onClick={() => setIsDeleteDialogOpen(true)}
-                        color="red.500"
-                      >
-                        <LuTrash />
-                        Delete
-                      </Menu.Item>
-                    </Menu.Content>
-                  </Menu.Positioner>
-                </Portal>
-              </Menu.Root>
             </HStack>
-
-            <VStack align="stretch" gap={2}>
-              <Badge
-                colorPalette={getProviderBadgeColor(provider.kind)}
-                size="sm"
-                alignSelf="start"
-              >
-                {provider.kind}
-              </Badge>
-
-              {provider.baseUrl && (
-                <Text fontSize="xs" color="content.muted" truncate>
-                  {provider.baseUrl}
-                </Text>
-              )}
-
-              <HStack justify="space-between" align="center">
-                <HStack gap={1} align="center">
-                  <LuKey size={12} />
-                  <Text fontSize="xs" color="content.muted">
-                    {provider.auth.hasApiKey ? "API key configured" : "No API key"}
-                  </Text>
-                </HStack>
-              </HStack>
-            </VStack>
           </VStack>
         </Card.Body>
       </Card.Root>
 
+      {/* Dialogs */}
       <EditProviderDialog
         provider={provider}
         isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
       />
-
       <DeleteProviderDialog
         provider={provider}
         isOpen={isDeleteDialogOpen}

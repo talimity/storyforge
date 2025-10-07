@@ -28,7 +28,7 @@ export const SlotReferenceView = (props: SlotReferenceViewProps) => {
   } = props;
   const NodeIcon = getNodeIcon(node);
   if (!slot) {
-    return <Text color="red.500">Cannot resolve slot reference from node ID: {node.id}</Text>;
+    return <Text color="fg.error">Cannot resolve slot reference from node ID: {node.id}</Text>;
   }
 
   return (

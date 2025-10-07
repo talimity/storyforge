@@ -50,7 +50,7 @@ export function LorebookEditPage() {
     return (
       <Container>
         <SimplePageHeader title="Edit Lorebook" />
-        <Text color="red.500">Failed to load lorebook.</Text>
+        <Text color="fg.error">Failed to load lorebook.</Text>
       </Container>
     );
   }

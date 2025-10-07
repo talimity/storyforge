@@ -39,7 +39,7 @@ export function ScenarioDeleteDialog({
               Are you sure you want to delete "{scenarioName}"? This action cannot be undone.
             </Text>
             {hasTurns && (
-              <Text color="red.500">
+              <Text color="fg.error">
                 You will lose all turns and progress associated with this scenario!
               </Text>
             )}

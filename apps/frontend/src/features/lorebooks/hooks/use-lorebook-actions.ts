@@ -1,12 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
 export function useLorebookActions(lorebookId: string) {
   const trpc = useTRPC();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -21,7 +19,6 @@ export function useLorebookActions(lorebookId: string) {
   );
 
   const handleDelete = () => deleteLorebookMutation.mutate({ id: lorebookId });
-  const handleEdit = () => navigate(`/lorebooks/${lorebookId}/edit`);
   const openDeleteDialog = () => setIsDeleteDialogOpen(true);
   const closeDeleteDialog = () => setIsDeleteDialogOpen(false);
 
@@ -29,7 +26,6 @@ export function useLorebookActions(lorebookId: string) {
     isDeleteDialogOpen,
     deleteLorebookMutation,
     handleDelete,
-    handleEdit,
     openDeleteDialog,
     closeDeleteDialog,
   };

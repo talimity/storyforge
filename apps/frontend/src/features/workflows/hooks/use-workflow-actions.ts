@@ -1,12 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { showErrorToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
 export function useWorkflowActions(workflowId: string) {
   const trpc = useTRPC();
-  const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -25,7 +23,6 @@ export function useWorkflowActions(workflowId: string) {
   );
 
   const handleDelete = () => deleteWorkflowMutation.mutate({ id: workflowId });
-  const handleEdit = () => navigate(`/workflows/${workflowId}/edit`);
   const openDeleteDialog = () => setIsDeleteDialogOpen(true);
   const closeDeleteDialog = () => setIsDeleteDialogOpen(false);
 
@@ -74,7 +71,6 @@ export function useWorkflowActions(workflowId: string) {
     duplicateWorkflowMutation,
     exportWorkflowQuery,
     handleDelete,
-    handleEdit,
     handleDuplicate,
     handleExport,
     openDeleteDialog,

@@ -88,7 +88,7 @@ export function ModelsPage() {
                   ))}
                 </Grid>
               ) : modelProfilesQuery.error ? (
-                <Text color="red.500">
+                <Text color="fg.error">
                   Failed to load model profiles: {modelProfilesQuery.error.message}
                 </Text>
               ) : modelProfileList.length === 0 ? (
@@ -118,7 +118,7 @@ export function ModelsPage() {
                   ))}
                 </Grid>
               ) : providersQuery.error ? (
-                <Text color="red.500">
+                <Text color="fg.error">
                   Failed to load providers: {providersQuery.error.message}
                 </Text>
               ) : providerList.length === 0 ? (

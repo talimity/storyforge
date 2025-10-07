@@ -106,7 +106,7 @@ export const ParticipantManager = withFieldGroup({
 
               {showErrors &&
                 errorMessages.map((message) => (
-                  <Text key={message} color="red.500" fontSize="sm">
+                  <Text key={message} color="fg.error" fontSize="sm">
                     {message}
                   </Text>
                 ))}

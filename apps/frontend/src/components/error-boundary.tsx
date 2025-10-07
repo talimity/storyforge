@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <Box p={8} maxW="800px" mx="auto" colorPalette="neutral">
           <VStack gap={4} align="start">
-            <Heading size="lg" color="red.500">
+            <Heading size="lg" color="fg.error">
               {this.props.fallbackTitle || "Something went wrong"}
             </Heading>
 

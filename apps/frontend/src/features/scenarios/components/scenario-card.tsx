@@ -1,4 +1,14 @@
-import { Box, Card, HStack, IconButton, Menu, Portal, Text, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Card,
+  Heading,
+  HStack,
+  IconButton,
+  Menu,
+  Portal,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 import type { ScenarioWithCharacters } from "@storyforge/contracts";
 import {
   LuCalendar,
@@ -17,10 +27,9 @@ import { formatDate } from "@/lib/formatting";
 
 interface ScenarioCardProps {
   scenario: ScenarioWithCharacters;
-  readOnly?: boolean;
 }
 
-export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
+export function ScenarioCard({ scenario }: ScenarioCardProps) {
   const {
     isDeleteDialogOpen,
     deleteScenarioMutation,
@@ -30,20 +39,14 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
   } = useScenarioActions(scenario.id);
 
   return (
-    <Card.Root
-      layerStyle="surface"
-      transition="all 0.2s"
-      className={!readOnly ? "group" : undefined}
-    >
-      <Card.Body p={4}>
+    <Card.Root layerStyle="surface">
+      <Card.Header>
+        <Heading size="lg" truncate>
+          <Link to={`/scenarios/${scenario.id}/edit`}>{scenario.name}</Link>
+        </Heading>
+      </Card.Header>
+      <Card.Body>
         <VStack align="start" gap={4}>
-          {/* Header */}
-          <VStack align="start" gap={2} width="100%">
-            <Text fontSize="lg" fontWeight="semibold" color="content.emphasized">
-              {scenario.name}
-            </Text>
-          </VStack>
-
           {/* Characters */}
           <VStack align="start" gap={2} width="100%">
             <CharacterPile
@@ -80,54 +83,53 @@ export function ScenarioCard({ scenario, readOnly }: ScenarioCardProps) {
                 Play
               </Link>
             </Button>
-            {!readOnly && (
-              <Menu.Root positioning={{ placement: "bottom-end" }}>
-                <Menu.Trigger asChild>
-                  <IconButton
-                    aria-label="Scenario options"
-                    variant="outline"
-                    size="sm"
-                    colorPalette="neutral"
-                  >
-                    <LuEllipsisVertical />
-                  </IconButton>
-                </Menu.Trigger>
-                <Portal>
-                  <Menu.Positioner>
-                    <Menu.Content>
-                      <Menu.Item value="edit" asChild>
-                        <Link to={`/scenarios/${scenario.id}/edit`}>
-                          <LuPencilLine />
-                          <Box flex="1">Edit</Box>
-                        </Link>
-                      </Menu.Item>
-                      <Menu.Item
-                        value="delete"
-                        color="fg.error"
-                        _hover={{ bg: "bg.error", color: "fg.error" }}
-                        onClick={openDeleteDialog}
-                        disabled={deleteScenarioMutation.isPending}
-                      >
-                        <LuTrash />
-                        <Box flex="1">Delete</Box>
-                      </Menu.Item>
-                    </Menu.Content>
-                  </Menu.Positioner>
-                </Portal>
-              </Menu.Root>
-            )}
+
+            <Menu.Root positioning={{ placement: "bottom-end" }}>
+              <Menu.Trigger asChild>
+                <IconButton
+                  aria-label="Scenario options"
+                  variant="outline"
+                  size="sm"
+                  colorPalette="neutral"
+                >
+                  <LuEllipsisVertical />
+                </IconButton>
+              </Menu.Trigger>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="edit" asChild>
+                      <Link to={`/scenarios/${scenario.id}/edit`}>
+                        <LuPencilLine />
+                        <Box flex="1">Edit</Box>
+                      </Link>
+                    </Menu.Item>
+                    <Menu.Item
+                      value="delete"
+                      color="fg.error"
+                      _hover={{ bg: "bg.error", color: "fg.error" }}
+                      onSelect={openDeleteDialog}
+                      disabled={deleteScenarioMutation.isPending}
+                    >
+                      <LuTrash />
+                      <Box flex="1">Delete</Box>
+                    </Menu.Item>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
           </HStack>
         </VStack>
       </Card.Body>
-      {!readOnly && (
-        <ScenarioDeleteDialog
-          isOpen={isDeleteDialogOpen}
-          onOpenChange={() => closeDeleteDialog()}
-          scenarioName={scenario.name}
-          onConfirmDelete={handleDelete}
-          isDeleting={deleteScenarioMutation.isPending}
-        />
-      )}
+
+      {/* Dialogs*/}
+      <ScenarioDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={() => closeDeleteDialog()}
+        scenarioName={scenario.name}
+        onConfirmDelete={handleDelete}
+        isDeleting={deleteScenarioMutation.isPending}
+      />
     </Card.Root>
   );
 }

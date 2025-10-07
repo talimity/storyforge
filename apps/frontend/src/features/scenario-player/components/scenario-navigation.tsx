@@ -44,7 +44,6 @@ export function ScenarioNavigation() {
     deleteChapter,
     isInsertingChapter,
     isRenamingChapter,
-    isDeletingChapter,
   } = useChapterActions();
 
   const {
@@ -63,14 +62,11 @@ export function ScenarioNavigation() {
   const handleRenameSubmit = async () => {
     if (!renameTarget) return;
     const nextTitle = renameValue.trim();
-    try {
-      await renameChapter({ eventId: renameTarget.eventId, title: nextTitle });
-      showSuccessToast({ title: "Chapter renamed" });
-      closeRenameDialog();
-      setRenameTarget(null);
-    } catch (_error) {
-      // error toast handled in hook
-    }
+
+    await renameChapter({ eventId: renameTarget.eventId, title: nextTitle });
+    showSuccessToast({ title: "Chapter renamed" });
+    closeRenameDialog();
+    setRenameTarget(null);
   };
 
   return (
@@ -95,14 +91,13 @@ export function ScenarioNavigation() {
                   insertChapterAtTurn={insertChapterAtTurn}
                   deleteChapter={deleteChapter}
                   isInsertingChapter={isInsertingChapter}
-                  isRenamingChapter={isRenamingChapter}
-                  isDeletingChapter={isDeletingChapter}
                 />
               </Popover.Body>
             </Popover.Content>
           </Popover.Positioner>
         </Portal>
       </Popover.Root>
+
       <RenameChapterDialog
         isOpen={isRenameDialogOpen}
         onClose={() => {
@@ -123,15 +118,11 @@ function ChapterList({
   insertChapterAtTurn,
   deleteChapter,
   isInsertingChapter,
-  isRenamingChapter,
-  isDeletingChapter,
 }: {
   handleRename: (chapter: ChapterItem) => void;
   insertChapterAtTurn: ReturnType<typeof useChapterActions>["insertChapterAtTurn"];
   deleteChapter: ReturnType<typeof useChapterActions>["deleteChapter"];
   isInsertingChapter: ReturnType<typeof useChapterActions>["isInsertingChapter"];
-  isRenamingChapter: ReturnType<typeof useChapterActions>["isRenamingChapter"];
-  isDeletingChapter: ReturnType<typeof useChapterActions>["isDeletingChapter"];
 }) {
   const { scenario, chapters, deriveChapterLabel } = useScenarioContext();
   const setScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
@@ -141,31 +132,25 @@ function ChapterList({
   const handleSelect = (chapter: ChapterItem) => {
     const targetTurnId = chapter.turnId ?? scenario.rootTurnId;
     if (!targetTurnId) return;
+
     setScrollTarget({ kind: "turn", turnId: targetTurnId, edge: "center" });
   };
 
   const handleInsert = async () => {
     if (!scenario.anchorTurnId) return;
-    try {
-      await insertChapterAtTurn({ turnId: scenario.anchorTurnId });
-      showSuccessToast({ title: "Chapter break inserted" });
-      setScrollTarget({ kind: "turn", turnId: scenario.anchorTurnId, edge: "end" });
-    } catch (_error) {
-      // error toast handled in hook
-    }
+
+    await insertChapterAtTurn({ turnId: scenario.anchorTurnId });
+    showSuccessToast({ title: "Chapter break inserted" });
+    setScrollTarget({ kind: "turn", turnId: scenario.anchorTurnId, edge: "end" });
   };
 
   const disableInsert = !scenario.anchorTurnId;
 
   const handleDelete = async (chapter: ChapterItem) => {
-    try {
-      await deleteChapter({ eventId: chapter.eventId });
-      showSuccessToast({ title: "Chapter deleted" });
-      if (chapter.turnId) {
-        setScrollTarget({ kind: "turn", turnId: chapter.turnId, edge: "start" });
-      }
-    } catch (_error) {
-      // error toast handled in hook
+    await deleteChapter({ eventId: chapter.eventId });
+    showSuccessToast({ title: "Chapter deleted" });
+    if (chapter.turnId) {
+      setScrollTarget({ kind: "turn", turnId: chapter.turnId, edge: "start" });
     }
   };
 
@@ -188,8 +173,6 @@ function ChapterList({
             onRename={handleRename}
             onDelete={handleDelete}
             label={deriveChapterLabel(chapter)}
-            isRenaming={isRenamingChapter}
-            isDeleting={isDeletingChapter}
           />
         ))}
       </Stack>
@@ -217,16 +200,12 @@ function ChapterRow({
   onRename,
   onDelete,
   label,
-  isRenaming,
-  isDeleting,
 }: {
   chapter: ChapterItem;
   onSelect: (chapter: ChapterItem) => void;
   onRename: (chapter: ChapterItem) => void;
   onDelete: (chapter: ChapterItem) => void;
   label: string;
-  isRenaming: boolean;
-  isDeleting: boolean;
 }) {
   return (
     <Button
@@ -259,14 +238,7 @@ function ChapterRow({
             {/* additional z-index hack needed because of apparent chakra bug with popover/menu nesting */}
             <Menu.Positioner zIndex="popover !important">
               <Menu.Content>
-                <Menu.Item
-                  value="rename"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onRename(chapter);
-                  }}
-                  disabled={isRenaming}
-                >
+                <Menu.Item value="rename" onSelect={() => onRename(chapter)}>
                   <LuPencilLine />
                   <Box flex="1">Rename</Box>
                 </Menu.Item>
@@ -274,11 +246,7 @@ function ChapterRow({
                   value="delete"
                   color="fg.error"
                   _hover={{ bg: "bg.error", color: "fg.error" }}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onDelete(chapter);
-                  }}
-                  disabled={isDeleting}
+                  onSelect={() => onDelete(chapter)}
                 >
                   <LuTrash />
                   <Box flex="1">Delete</Box>

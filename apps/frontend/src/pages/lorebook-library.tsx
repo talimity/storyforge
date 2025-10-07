@@ -45,9 +45,7 @@ export function LorebooksPage() {
           ))}
         </Grid>
       ) : error ? (
-        <Text color="red.500" py={6}>
-          Failed to load lorebooks: {error.message}
-        </Text>
+        <Text color="fg.error">Failed to load lorebooks: {error.message}</Text>
       ) : lorebooks.length === 0 ? (
         <EmptyState
           icon={<LuImport />}

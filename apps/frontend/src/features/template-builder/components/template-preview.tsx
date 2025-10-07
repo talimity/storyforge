@@ -29,14 +29,14 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
       <VStack align="stretch" gap={4}>
         <Box bg="red.50" border="1px solid" borderColor="red.200" p={4} borderRadius="md">
           <HStack gap={2} mb={2}>
-            <Icon as={LuInfo} color="red.500" />
+            <Icon as={LuInfo} color="fg.error" />
             <Heading size="sm" color="red.700">
               Template Validation Errors
             </Heading>
           </HStack>
           <VStack align="start" gap={1}>
             {compilationErrors.map((error) => (
-              <Text key={error} fontSize="sm" color="red.600">
+              <Text key={error} fontSize="sm" color="fg.error">
                 • {error}
               </Text>
             ))}

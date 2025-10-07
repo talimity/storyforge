@@ -51,7 +51,12 @@ function AssignmentItem({ item }: { item: AssignmentItemView }) {
                       <LuPencil />
                       Edit
                     </Menu.Item>
-                    <Menu.Item value="delete" onClick={() => setOpen(true)} color="red.500">
+                    <Menu.Item
+                      color="fg.error"
+                      _hover={{ bg: "bg.error", color: "fg.error" }}
+                      value="delete"
+                      onClick={() => setOpen(true)}
+                    >
                       <LuTrash />
                       Delete
                     </Menu.Item>

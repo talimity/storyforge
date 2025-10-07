@@ -73,7 +73,7 @@ function MaterialExample() {
       </Card.Root>
 
       {/* Elevated primary surface */}
-      <Card.Root layerStyle="surface" _hover={{ layerStyle: "interactive" }}>
+      <Card.Root layerStyle="surface" variant="elevated">
         <Card.Body>
           <Heading size="lg" mb={4}>
             Primary Surface, with Interactive

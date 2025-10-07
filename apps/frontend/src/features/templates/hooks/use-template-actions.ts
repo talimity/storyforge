@@ -1,12 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { showErrorToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
 export function useTemplateActions(templateId: string) {
   const trpc = useTRPC();
-  const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -40,10 +38,6 @@ export function useTemplateActions(templateId: string) {
 
   const handleDelete = () => {
     deleteTemplateMutation.mutate({ id: templateId });
-  };
-
-  const handleEdit = () => {
-    navigate(`/templates/${templateId}/edit`);
   };
 
   const handleDuplicate = (newName: string) => {
@@ -98,7 +92,6 @@ export function useTemplateActions(templateId: string) {
     duplicateTemplateMutation,
     exportTemplateQuery,
     handleDelete,
-    handleEdit,
     handleDuplicate,
     handleExport,
     openDeleteDialog,

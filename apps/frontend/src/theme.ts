@@ -515,35 +515,6 @@ const layerStyles = defineLayerStyles({
       boxShadow: "medium",
     },
   },
-  // Interactive elements
-  interactive: {
-    value: {
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      _hover: {
-        transform: "translateY(-1px)",
-        boxShadow: "subtle",
-      },
-      _active: {
-        transform: "translateY(0)",
-        boxShadow: "none",
-      },
-    },
-  },
-  interactiveStrong: {
-    value: {
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      _hover: {
-        transform: "translateY(-1px)",
-        boxShadow: "strong",
-      },
-      _active: {
-        transform: "translateY(0)",
-        boxShadow: "subtle",
-      },
-    },
-  },
 });
 
 // Override input styles to support the two-material system

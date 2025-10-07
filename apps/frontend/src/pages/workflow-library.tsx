@@ -101,7 +101,7 @@ export function WorkflowsPage() {
               {workflowsQuery.isLoading ? (
                 <Text>Loading...</Text>
               ) : workflowsQuery.error ? (
-                <Text color="red.500">
+                <Text color="fg.error">
                   Failed to load workflows: {workflowsQuery.error.message}
                 </Text>
               ) : workflowCount === 0 ? (
@@ -140,7 +140,7 @@ export function WorkflowsPage() {
                   ))}
                 </Grid>
               ) : assignmentsQuery.error ? (
-                <Text color="red.500">
+                <Text color="fg.error">
                   Failed to load assignments: {assignmentsQuery.error.message}
                 </Text>
               ) : assignmentCount === 0 ? (

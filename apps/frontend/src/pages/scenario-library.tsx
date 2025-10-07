@@ -45,7 +45,7 @@ export function ScenarioLibraryPage() {
       {scenariosQuery.error && (
         <Center p={8}>
           <VStack>
-            <Text color="red.500" fontWeight="semibold">
+            <Text color="fg.error" fontWeight="semibold">
               Failed to load scenarios
             </Text>
             <Text color="gray.600">{scenariosQuery.error.message}</Text>

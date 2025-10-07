@@ -2,8 +2,10 @@ import {
   Badge,
   Box,
   Card,
+  Heading,
   HStack,
   IconButton,
+  LinkOverlay,
   Menu,
   Portal,
   Stack,
@@ -11,18 +13,11 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
-import {
-  LuCopy,
-  LuEllipsisVertical,
-  LuFileText,
-  LuPencilLine,
-  LuShare,
-  LuTrash,
-} from "react-icons/lu";
+import { LuCopy, LuEllipsisVertical, LuPencilLine, LuShare, LuTrash } from "react-icons/lu";
+import { Link } from "react-router-dom";
 import { TemplateDeleteDialog } from "@/features/templates/components/template-delete-dialog";
 import { TemplateDuplicateDialog } from "@/features/templates/components/template-duplicate-dialog";
 import { useTemplateActions } from "@/features/templates/hooks/use-template-actions";
-import { nonBubblingHandler } from "@/lib/non-bubbling-handler";
 
 interface TemplateCardProps {
   template: {
@@ -33,7 +28,6 @@ interface TemplateCardProps {
     layoutNodeCount: number;
     updatedAt: Date;
   };
-  readOnly?: boolean;
 }
 
 const taskTypeConfig = {
@@ -48,7 +42,7 @@ const taskTypeConfig = {
   },
 };
 
-export function TemplateCard({ template, readOnly = false }: TemplateCardProps) {
+export function TemplateCard({ template }: TemplateCardProps) {
   const taskConfig = taskTypeConfig[template.task];
   const {
     isDeleteDialogOpen,
@@ -56,7 +50,6 @@ export function TemplateCard({ template, readOnly = false }: TemplateCardProps) 
     deleteTemplateMutation,
     duplicateTemplateMutation,
     handleDelete,
-    handleEdit,
     handleDuplicate,
     handleExport,
     openDeleteDialog,
@@ -77,44 +70,23 @@ export function TemplateCard({ template, readOnly = false }: TemplateCardProps) 
 
   return (
     <>
-      <Card.Root
-        width={{ base: "100%", sm: "280px" }}
-        maxW="280px"
-        layerStyle="surface"
-        _hover={!readOnly ? { layerStyle: "interactive", shadow: "md" } : undefined}
-        className={readOnly ? undefined : "group"}
-        cursor={!readOnly ? "pointer" : "default"}
-        onClick={readOnly ? undefined : () => handleEdit()}
-        overflow="hidden"
-      >
-        <Box position="relative">
-          {/* Template Icon Header */}
-          <Box
-            bg="surface.muted"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            height="120px"
-            color="content.muted"
-          >
-            <LuFileText size={48} />
-          </Box>
+      <Card.Root size="sm" layerStyle="surface" variant="elevated">
+        <Card.Header>
+          <HStack justify="space-between" align="center">
+            <Heading size="md" truncate>
+              {/* Template Name */}
+              <LinkOverlay asChild>
+                <Link to={`/templates/${template.id}/edit`}>{template.name}</Link>
+              </LinkOverlay>
+            </Heading>
 
-          {/* Options Menu */}
-          {!readOnly && (
+            {/* Overflow Menu */}
             <Menu.Root positioning={{ placement: "bottom-end" }}>
               <Menu.Trigger asChild>
                 <IconButton
-                  aria-label="Template options"
-                  variant="subtle"
-                  size="sm"
-                  position="absolute"
-                  top={2}
-                  right={2}
-                  colorPalette="neutral"
-                  opacity={0}
-                  _groupHover={{ opacity: 1 }}
-                  _focus={{ opacity: 1 }}
+                  aria-label="Template actions"
+                  variant="ghost"
+                  size="xs"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <LuEllipsisVertical />
@@ -123,15 +95,17 @@ export function TemplateCard({ template, readOnly = false }: TemplateCardProps) 
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
-                    <Menu.Item value="edit" onClick={nonBubblingHandler(handleEdit)}>
-                      <LuPencilLine />
-                      <Box flex="1">Edit</Box>
+                    <Menu.Item value="edit" asChild>
+                      <Link to={`/templates/${template.id}/edit`}>
+                        <LuPencilLine />
+                        <Box flex="1">Edit</Box>
+                      </Link>
                     </Menu.Item>
-                    <Menu.Item value="duplicate" onClick={nonBubblingHandler(openDuplicateDialog)}>
+                    <Menu.Item value="duplicate" onSelect={openDuplicateDialog}>
                       <LuCopy />
                       <Box flex="1">Duplicate</Box>
                     </Menu.Item>
-                    <Menu.Item value="export" onClick={nonBubblingHandler(handleExport)}>
+                    <Menu.Item value="export" onSelect={handleExport}>
                       <LuShare />
                       <Box flex="1">Export</Box>
                     </Menu.Item>
@@ -139,7 +113,7 @@ export function TemplateCard({ template, readOnly = false }: TemplateCardProps) 
                       value="delete"
                       color="fg.error"
                       _hover={{ bg: "bg.error", color: "fg.error" }}
-                      onClick={nonBubblingHandler(openDeleteDialog)}
+                      onSelect={openDeleteDialog}
                     >
                       <LuTrash />
                       <Box flex="1">Delete</Box>
@@ -148,16 +122,11 @@ export function TemplateCard({ template, readOnly = false }: TemplateCardProps) 
                 </Menu.Positioner>
               </Portal>
             </Menu.Root>
-          )}
-        </Box>
+          </HStack>
+        </Card.Header>
 
-        <Card.Body p={4}>
+        <Card.Body>
           <VStack align="stretch" gap={3}>
-            {/* Template Name */}
-            <Text fontWeight="semibold" fontSize="md" lineClamp={2}>
-              {template.name}
-            </Text>
-
             {/* Task Type Badge */}
             <HStack justify="space-between">
               <Badge variant="subtle" size="sm">
@@ -181,33 +150,30 @@ export function TemplateCard({ template, readOnly = false }: TemplateCardProps) 
           </VStack>
         </Card.Body>
       </Card.Root>
+
       {/* Dialogs */}
-      {!readOnly && (
-        <>
-          <TemplateDeleteDialog
-            isOpen={isDeleteDialogOpen}
-            onOpenChange={({ open }) => {
-              if (!open) {
-                closeDeleteDialog();
-              }
-            }}
-            templateName={template.name}
-            onConfirmDelete={handleDelete}
-            isDeleting={deleteTemplateMutation.isPending}
-          />
-          <TemplateDuplicateDialog
-            isOpen={isDuplicateDialogOpen}
-            onOpenChange={({ open }) => {
-              if (!open) {
-                closeDuplicateDialog();
-              }
-            }}
-            originalName={template.name}
-            onConfirmDuplicate={handleDuplicate}
-            isDuplicating={duplicateTemplateMutation.isPending}
-          />
-        </>
-      )}
+      <TemplateDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={({ open }) => {
+          if (!open) {
+            closeDeleteDialog();
+          }
+        }}
+        templateName={template.name}
+        onConfirmDelete={handleDelete}
+        isDeleting={deleteTemplateMutation.isPending}
+      />
+      <TemplateDuplicateDialog
+        isOpen={isDuplicateDialogOpen}
+        onOpenChange={({ open }) => {
+          if (!open) {
+            closeDuplicateDialog();
+          }
+        }}
+        originalName={template.name}
+        onConfirmDuplicate={handleDuplicate}
+        isDuplicating={duplicateTemplateMutation.isPending}
+      />
     </>
   );
 }

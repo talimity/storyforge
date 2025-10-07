@@ -94,7 +94,7 @@ export function TemplateStringEditor({
             autoresize
             borderColor={isInvalid ? "red.300" : "surface.border"}
             _focus={{
-              borderColor: isInvalid ? "red.500" : "accent.500",
+              borderColor: isInvalid ? "fg.error" : "accent.500",
               boxShadow: isInvalid ? "0 0 0 1px red.500" : "0 0 0 1px accent.500",
             }}
           />

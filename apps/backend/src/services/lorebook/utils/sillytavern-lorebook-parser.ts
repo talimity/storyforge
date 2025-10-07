@@ -99,10 +99,7 @@ function fromWorldInfo(raw: Record<string, unknown>, filename?: string): Loreboo
     Object.assign(topLevelExtensions, extensions);
   }
   if (Object.keys(rest).length > 0) {
-    topLevelExtensions.silly = {
-      ...(isRecord(topLevelExtensions.silly) ? topLevelExtensions.silly : {}),
-      ...rest,
-    };
+    Object.assign(topLevelExtensions, rest);
   }
 
   return {
@@ -150,10 +147,7 @@ function normalizeWorldInfoEntry(entry: unknown, index: number) {
     Object.assign(normalizedExtensions, extensions);
   }
   if (Object.keys(rest).length > 0) {
-    normalizedExtensions.silly = {
-      ...(isRecord(normalizedExtensions.silly) ? normalizedExtensions.silly : {}),
-      ...rest,
-    };
+    Object.assign(normalizedExtensions, rest);
   }
 
   const resolvedKeys = mergeStringArrays(keys, key);
