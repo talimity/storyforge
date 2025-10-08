@@ -8,7 +8,7 @@ import {
   LinkOverlay,
   Menu,
   Portal,
-  Stack,
+  Skeleton,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -127,24 +127,19 @@ export function WorkflowCard(props: { workflow: WorkflowSummaryView }) {
   );
 }
 
-// TODO: fix to use actual skeleton components
 export function WorkflowCardSkeleton() {
   return (
-    <Card.Root layerStyle="surface">
-      <Card.Body p={4}>
-        <VStack align="stretch" gap={3}>
-          <HStack justify="space-between">
-            <Stack gap={2}>
-              <Text>&nbsp;</Text>
-            </Stack>
-            <IconButton variant="ghost" size="xs" disabled>
-              <LuEllipsisVertical />
-            </IconButton>
-          </HStack>
-          <Stack gap={1}>
-            <Text>&nbsp;</Text>
-            <Text>&nbsp;</Text>
-          </Stack>
+    <Card.Root size="sm" variant="outline">
+      <Card.Header>
+        <Heading size="lg">
+          <Skeleton w="60%" h="8" rounded="md" />
+        </Heading>
+      </Card.Header>
+      <Card.Body>
+        <VStack align="start" gap={4}>
+          <Skeleton w="40%" h="4" rounded="md" />
+          <Skeleton w="30%" h="4" rounded="md" />
+          <Skeleton w="50%" h="3" rounded="md" />
         </VStack>
       </Card.Body>
     </Card.Root>

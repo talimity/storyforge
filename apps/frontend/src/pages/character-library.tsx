@@ -1,5 +1,6 @@
-import { ActionBar, Center, Container, Flex, Grid, Text, VStack } from "@chakra-ui/react";
+import { ActionBar, Container, Flex, Grid } from "@chakra-ui/react";
 import type { CharacterSummary } from "@storyforge/contracts";
+import { createId } from "@storyforge/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LuLayoutGrid, LuLayoutList, LuPlay, LuUsersRound } from "react-icons/lu";
@@ -9,6 +10,7 @@ import {
   Button,
   CloseButton,
   EmptyState,
+  ErrorEmptyState,
   PageHeader,
   SplitButton,
 } from "@/components/ui";
@@ -40,7 +42,7 @@ export function CharacterLibraryPage() {
   });
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([]);
   const charaQuery = useQuery(trpc.characters.list.queryOptions());
-  const charaData = charaQuery.data?.characters || [];
+  const charas = charaQuery.data?.characters || [];
 
   // Persist view mode to localStorage
   useEffect(() => {
@@ -73,7 +75,7 @@ export function CharacterLibraryPage() {
     navigate(`/scenarios/create?${params.toString()}`);
   };
 
-  const selectedCharacters = getSelectedCharacters(charaData, selectedCharacterIds);
+  const selectedCharacters = getSelectedCharacters(charas, selectedCharacterIds);
 
   return (
     <>
@@ -103,8 +105,13 @@ export function CharacterLibraryPage() {
           </PageHeader.Controls>
         </PageHeader.Root>
 
-        {/* Empty/Error States */}
-        {!charaQuery.isLoading && charaData.length === 0 && (
+        {charaQuery.error ? (
+          <ErrorEmptyState
+            title="Failed to load characters"
+            description={charaQuery.error.message}
+            onActionClick={charaQuery.refetch}
+          />
+        ) : charas.length === 0 && !charaQuery.isLoading ? (
           <EmptyState
             icon={<LuUsersRound />}
             title="No characters yet"
@@ -112,24 +119,9 @@ export function CharacterLibraryPage() {
             actionLabel="Import Character"
             onActionClick={() => setIsImportModalOpen(true)}
           />
-        )}
-        {charaQuery.error && (
-          <Center p={8}>
-            <VStack>
-              <Text color="fg.error" fontWeight="semibold">
-                Failed to load characters
-              </Text>
-              <Text color="gray.600">{charaQuery.error.message}</Text>
-              <Button onClick={() => charaQuery.refetch()} variant="outline" colorPalette="red">
-                Try Again
-              </Button>
-            </VStack>
-          </Center>
-        )}
-
-        {viewMode === "grid" ? (
+        ) : viewMode === "grid" ? (
           <CharaGridView
-            characters={charaData}
+            characters={charas}
             isLoading={charaQuery.isLoading}
             onCardClick={toggleCharacterSelection}
             selectedCharacterIds={selectedCharacterIds}
@@ -141,19 +133,18 @@ export function CharacterLibraryPage() {
             onClick={handleLibraryClick}
           >
             {charaQuery.isLoading
-              ? Array.from({ length: 20 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
-                  <CompactCharacterCardSkeleton key={skeletonId} />
-                ))
-              : charaData.map((character) => (
+              ? [...Array(20)].map(() => <CompactCharacterCardSkeleton key={createId()} />)
+              : charas.map((c) => (
                   <CompactCharacterCard
-                    key={character.id}
-                    character={character}
-                    isSelected={selectedCharacterIds.includes(character.id)}
+                    key={c.id}
+                    character={c}
+                    isSelected={selectedCharacterIds.includes(c.id)}
                   />
                 ))}
           </Grid>
         )}
       </Container>
+
       <CharacterImportDialog
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}

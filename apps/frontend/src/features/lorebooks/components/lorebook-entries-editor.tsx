@@ -12,6 +12,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { createId } from "@storyforge/utils";
+import { useStore } from "@tanstack/react-form";
 import { useEffect, useRef, useState } from "react";
 import { LuChevronLeft, LuChevronRight, LuLibrary, LuPlus, LuSearch } from "react-icons/lu";
 import { Button, CloseButton, EmptyState } from "@/components/ui";
@@ -54,7 +55,7 @@ export const LorebookEntriesEditor = withForm({
                   <VStack align="start" gap={0}>
                     <Heading size="md">Lore Entries</Heading>
                     <Text color="content.muted" fontSize="sm">
-                      Entries are matched against chat history to inject additional context.
+                      Entries are matched against recent turns to inject relevant lore content.
                     </Text>
                   </VStack>
                 </HStack>
@@ -140,9 +141,11 @@ const LorebookEntriesFilter = withForm({
     const [filterValue, setFilterValue] = useState("");
     const [page, setPage] = useState(1);
     const inputRef = useRef<HTMLInputElement>(null);
+    const size = useStore(form.store, (s) => s.values.entries?.length ?? 0);
 
-    const filteredSizeRef = useRef(0);
+    const filteredSizeRef = useRef(size);
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: react to new or deleted entries without subscribing to the whole array
     useEffect(() => {
       const matchingIds = new Set<string>();
       const filter = filterValue.trim().toLowerCase();
@@ -159,20 +162,23 @@ const LorebookEntriesFilter = withForm({
         }
       });
 
-      const start = (page - 1) * PAGE_SIZE;
+      const maxPage = Math.ceil(matchingIds.size / PAGE_SIZE);
+      const clampedPage = Math.min(page, Math.max(1, maxPage));
+      const start = (clampedPage - 1) * PAGE_SIZE;
       const end = start + PAGE_SIZE;
       const sliced = new Set<string>(Array.from(matchingIds).slice(start, end));
 
       filteredSizeRef.current = matchingIds.size;
 
       onFilterChange(sliced);
-    }, [filterValue, form, page, onFilterChange]);
+    }, [filterValue, form, page, size, onFilterChange]);
 
     const endElement = filterValue ? (
       <CloseButton
         size="xs"
         onClick={() => {
           setFilterValue("");
+          setPage(1);
           inputRef.current?.focus();
           if (inputRef.current) {
             inputRef.current.value = "";

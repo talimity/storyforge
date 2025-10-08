@@ -155,7 +155,7 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
             <Tabs.Content value="file">
               <Stack gap={4}>
                 <Text color="content.muted" fontSize="sm">
-                  Upload a SillyTavern lorebook JSON file.
+                  Upload a SillyTavern World Info JSON file.
                 </Text>
                 <Box
                   border="2px dashed"
@@ -268,7 +268,7 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
             <Tabs.Content value="character">
               <Stack gap={4}>
                 <Text color="content.muted" fontSize="sm">
-                  Select a character with an embedded lorebook to import it into your library.
+                  Select a character with an embedded character book to import it into your library.
                 </Text>
                 <CharacterSingleSelect
                   inDialog
@@ -276,12 +276,12 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
                   onChange={(id) => setSelectedCharacterId(id)}
                   placeholder="Search characters"
                 />
-                <HStack justify="space-between" align="center">
-                  <Text fontSize="sm">Link imported lorebook to this character</Text>
+                <HStack align="center">
                   <Switch
                     checked={linkToCharacter}
                     onCheckedChange={({ checked }) => setLinkToCharacter(Boolean(checked))}
                   />
+                  <Text fontSize="sm">Link imported lorebook to this character</Text>
                 </HStack>
                 <HStack justify="flex-end">
                   <Button

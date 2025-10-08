@@ -5,9 +5,9 @@ import {
   Input,
   InputGroup,
   SimpleGrid,
-  Skeleton,
   Stack,
 } from "@chakra-ui/react";
+import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuFileText, LuPlus, LuSearch, LuUpload } from "react-icons/lu";
@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Button,
   EmptyState,
+  ErrorEmptyState,
   Field,
   SelectContent,
   SelectItem,
@@ -23,7 +24,7 @@ import {
   SelectValueText,
   SimplePageHeader,
 } from "@/components/ui";
-import { TemplateCard } from "@/features/templates/components/template-card";
+import { TemplateCard, TemplateCardSkeleton } from "@/features/templates/components/template-card";
 import { TemplateImportDialog } from "@/features/templates/components/template-import-dialog";
 import { useTRPC } from "@/lib/trpc";
 
@@ -42,33 +43,16 @@ export function TemplatesPage() {
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("");
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
-  const {
-    data: templatesData,
-    isLoading,
-    error,
-  } = useQuery(
+  const templatesQuery = useQuery(
     trpc.templates.list.queryOptions({
       task: taskFilter || undefined,
       search: searchQuery || undefined,
     })
   );
 
-  const templates = templatesData?.templates || [];
-
-  const handleCreateTemplate = () => {
-    navigate("/templates/select-task");
-  };
-
-  const handleImportTemplate = () => {
-    setIsImportDialogOpen(true);
-  };
-
-  const filteredTemplates = templates.filter((template) => {
-    const matchesSearch =
-      !searchQuery || template.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTask = !taskFilter || template.kind === taskFilter;
-    return matchesSearch && matchesTask;
-  });
+  const templates = templatesQuery.data?.templates || [];
+  const handleCreateTemplate = () => navigate("/templates/select-task");
+  const handleImportTemplate = () => setIsImportDialogOpen(true);
 
   return (
     <Container>
@@ -140,19 +124,13 @@ export function TemplatesPage() {
       </Stack>
 
       {/* Content Area */}
-      {error ? (
-        <EmptyState
-          icon={<LuFileText />}
-          title="Error Loading Templates"
-          description="There was an error loading your templates. Please try again."
+      {templatesQuery.error ? (
+        <ErrorEmptyState
+          title="Failed to load templates"
+          description="An error occurred while fetching templates."
+          onActionClick={templatesQuery.refetch}
         />
-      ) : isLoading ? (
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Skeleton key={`skeleton-${String(index)}`} height="300px" borderRadius="md" />
-          ))}
-        </SimpleGrid>
-      ) : filteredTemplates.length === 0 ? (
+      ) : templates.length === 0 && !templatesQuery.isLoading ? (
         <EmptyState
           icon={<LuFileText />}
           title={searchQuery || taskFilter ? "No Templates Found" : "No Templates Yet"}
@@ -165,20 +143,22 @@ export function TemplatesPage() {
           onActionClick={!searchQuery && !taskFilter ? handleCreateTemplate : undefined}
         />
       ) : (
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
-          {filteredTemplates.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={{
-                id: template.id,
-                name: template.name,
-                task: template.kind,
-                version: template.version,
-                layoutNodeCount: template.layoutNodeCount,
-                updatedAt: new Date(template.updatedAt),
-              }}
-            />
-          ))}
+        <SimpleGrid minChildWidth="xs" gap={6}>
+          {templatesQuery.isLoading
+            ? Array.from({ length: 15 }).map(() => <TemplateCardSkeleton key={createId()} />)
+            : templates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={{
+                    id: template.id,
+                    name: template.name,
+                    task: template.kind,
+                    version: template.version,
+                    layoutNodeCount: template.layoutNodeCount,
+                    updatedAt: new Date(template.updatedAt),
+                  }}
+                />
+              ))}
         </SimpleGrid>
       )}
 

@@ -1,14 +1,14 @@
-import { Box, Container, Grid, HStack, Skeleton, Tabs, Text } from "@chakra-ui/react";
+import { Box, Container, HStack, SimpleGrid, Skeleton, Tabs } from "@chakra-ui/react";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuImport, LuListPlus, LuMapPin, LuPlus, LuWorkflow } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { Button, EmptyState, PageHeader } from "@/components/ui";
+import { Button, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
 import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { AssignmentDialog } from "@/features/workflows/components/assignment-dialog";
-import { AssignmentList } from "@/features/workflows/components/assignment-list";
+import { AssignmentItem } from "@/features/workflows/components/assignment-list";
 import { WorkflowCard, WorkflowCardSkeleton } from "@/features/workflows/components/workflow-card";
 import { WorkflowImportDialog } from "@/features/workflows/components/workflow-import-dialog";
 import { useTRPC } from "@/lib/trpc";
@@ -39,9 +39,6 @@ export function WorkflowsPage() {
   const workflows = workflowsQuery.data?.workflows ?? [];
   const scopes = assignmentsQuery.data?.scopes ?? [];
 
-  const workflowCount = workflows.length;
-  const assignmentCount = scopes.length;
-
   return (
     <Container>
       <PageHeader.Root>
@@ -55,13 +52,13 @@ export function WorkflowsPage() {
               value: "workflows",
               label: "Workflows",
               icon: <LuWorkflow />,
-              badge: workflowCount || undefined,
+              badge: workflows.length || undefined,
             },
             {
               value: "assignments",
               label: "Assignments",
               icon: <LuMapPin />,
-              badge: assignmentCount || undefined,
+              badge: scopes.length || undefined,
             },
           ]}
           defaultValue="workflows"
@@ -97,64 +94,56 @@ export function WorkflowsPage() {
           </PageHeader.Controls>
 
           <Tabs.Content value="workflows">
-            <Box pt={6}>
-              {workflowsQuery.isLoading ? (
-                <Text>Loading...</Text>
-              ) : workflowsQuery.error ? (
-                <Text color="fg.error">
-                  Failed to load workflows: {workflowsQuery.error.message}
-                </Text>
-              ) : workflowCount === 0 ? (
-                <EmptyState
-                  icon={<LuWorkflow />}
-                  title="No workflows yet"
-                  description="Create a workflow to enable task-specific generation."
-                  actionLabel="Create Workflow"
-                  onActionClick={() => navigate("/workflows/create")}
-                />
-              ) : workflowsQuery.isLoading ? (
-                <Grid templateColumns="repeat(auto-fit, 360px)" gap={4}>
-                  {[...Array(8)].map(() => (
-                    <WorkflowCardSkeleton key={createId()} />
-                  ))}
-                </Grid>
-              ) : (
-                <Grid templateColumns="repeat(auto-fit, 360px)" gap={4}>
-                  {workflows.map((wf) => (
-                    <WorkflowCard key={wf.id} workflow={wf} />
-                  ))}
-                </Grid>
-              )}
-            </Box>
+            {workflowsQuery.error ? (
+              <ErrorEmptyState
+                title="Failed to load workflows"
+                description={workflowsQuery.error.message}
+                onActionClick={workflowsQuery.refetch}
+              />
+            ) : workflows.length === 0 && !workflowsQuery.isLoading ? (
+              <EmptyState
+                icon={<LuWorkflow />}
+                title="No workflows yet"
+                description="Create a workflow to enable task-specific generation."
+                actionLabel="Create Workflow"
+                onActionClick={() => navigate("/workflows/create")}
+              />
+            ) : (
+              <SimpleGrid minChildWidth="sm" gap={6}>
+                {workflowsQuery.isLoading
+                  ? [...Array(15)].map(() => <WorkflowCardSkeleton key={createId()} />)
+                  : workflows.map((wf) => <WorkflowCard key={wf.id} workflow={wf} />)}
+              </SimpleGrid>
+            )}
           </Tabs.Content>
 
           <Tabs.Content value="assignments">
-            <Box pt={6}>
-              {assignmentsQuery.isLoading ? (
-                <Grid templateColumns="repeat(auto-fit, 360px)" gap={4}>
-                  {[...Array(6)].map(() => (
-                    <Box key={createId()} layerStyle="surface" borderRadius="md" p={4}>
-                      <Skeleton height="16px" mb={2} />
-                      <Skeleton height="12px" width="60%" />
-                    </Box>
-                  ))}
-                </Grid>
-              ) : assignmentsQuery.error ? (
-                <Text color="fg.error">
-                  Failed to load assignments: {assignmentsQuery.error.message}
-                </Text>
-              ) : assignmentCount === 0 ? (
-                <EmptyState
-                  icon={<LuMapPin />}
-                  title="No assignments yet"
-                  description="Assign workflows per task and scope (default, scenario, character, participant)."
-                  actionLabel="New Assignment"
-                  onActionClick={() => setAssignOpen(true)}
-                />
-              ) : (
-                <AssignmentList items={scopes} />
-              )}
-            </Box>
+            {assignmentsQuery.error ? (
+              <ErrorEmptyState
+                title="Failed to load assignments"
+                description={assignmentsQuery.error.message}
+                onActionClick={assignmentsQuery.refetch}
+              />
+            ) : scopes.length === 0 && !assignmentsQuery.isLoading ? (
+              <EmptyState
+                icon={<LuMapPin />}
+                title="No assignments yet"
+                description="Assign workflows per task and scope (default, scenario, character, participant)."
+                actionLabel="New Assignment"
+                onActionClick={() => setAssignOpen(true)}
+              />
+            ) : (
+              <SimpleGrid minChildWidth="md" gap={6}>
+                {assignmentsQuery.isLoading
+                  ? [...Array(15)].map(() => (
+                      <Box key={createId()} layerStyle="surface" borderRadius="md" p={4}>
+                        <Skeleton height="16px" mb={2} />
+                        <Skeleton height="12px" width="60%" />
+                      </Box>
+                    ))
+                  : scopes.map((scope) => <AssignmentItem key={scope.id} item={scope} />)}
+              </SimpleGrid>
+            )}
           </Tabs.Content>
         </PageHeader.Tabs>
       </PageHeader.Root>

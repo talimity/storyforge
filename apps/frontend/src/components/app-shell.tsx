@@ -32,7 +32,7 @@ export function AppShell() {
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
 
   return (
-    <Box minH="100dvh" data-testid="app-shell" colorPalette="neutral">
+    <Box minH="100dvh" data-testid="app-shell">
       {/* Mobile Header + Drawer: mounted always, visible only on mobile */}
       <Drawer.Root open={drawerOpen} onOpenChange={(e) => setDrawerOpen(e.open)}>
         <Flex

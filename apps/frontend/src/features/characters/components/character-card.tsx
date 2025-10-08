@@ -8,6 +8,7 @@ import {
   Menu,
   Portal,
   Skeleton,
+  SkeletonText,
   VisuallyHidden,
 } from "@chakra-ui/react";
 import { memo } from "react";
@@ -87,6 +88,8 @@ export const CharacterCard = memo(function CharacterCard({
               <LuSquareUserRound size={64} />
             </Box>
           )}
+
+          {/* Actions */}
           {!readOnly && inView && (
             <Menu.Root positioning={{ placement: "bottom-end" }}>
               <Menu.Trigger asChild>
@@ -151,6 +154,8 @@ export const CharacterCard = memo(function CharacterCard({
           </HStack>
         </Card.Body>
       </Card.Root>
+
+      {/* Dialogs */}
       {!readOnly && inView && (
         <CharacterDeleteDialog
           isOpen={isDeleteDialogOpen}
@@ -168,8 +173,8 @@ export function CharacterCardSkeleton() {
   return (
     <Card.Root maxW="300px" variant="outline" overflow="hidden">
       <Skeleton aspectRatio={2 / 3} />
-      <Card.Body p={4}>
-        <Skeleton height="5" width="70%" />
+      <Card.Body p={3}>
+        <SkeletonText h="5" noOfLines={1} width="70%" />
       </Card.Body>
     </Card.Root>
   );

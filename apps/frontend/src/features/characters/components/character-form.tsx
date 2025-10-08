@@ -259,9 +259,8 @@ export function CharacterForm({
                           <Text>
                             <strong>Persona:</strong> An actor primarily used as a stand-in for the
                             player, similar to SillyTavern personas. Persona character descriptions
-                            always appear after those of other actor types (you may also choose to
-                            omit them entirely). This actor is used when a prompt template calls for
-                            the <Code>{`{{user}}`}</Code> variable.
+                            always appear after those of other actor types. Personas are used when a
+                            prompt template calls for the <Code>{`{{user}}`}</Code> variable.
                           </Text>
                           <Text>
                             <strong>Narrator:</strong> An actor that does not participate in the

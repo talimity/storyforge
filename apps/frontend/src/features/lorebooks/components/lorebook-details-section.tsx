@@ -56,7 +56,7 @@ export const LorebookDetailsSection = withForm({
             {(field) => (
               <field.TextareaInput
                 label="Description"
-                helperText="Optional summary to help identify this lorebook"
+                helperText="For your reference only; not used in prompts"
                 minRows={3}
                 maxRows={6}
               />
@@ -69,7 +69,7 @@ export const LorebookDetailsSection = withForm({
             {(field) => (
               <field.NumberInput
                 label="Scan Depth"
-                helperText="How many recent messages to scan for lore triggers"
+                helperText="How many recent turns to scan for trigger phrases"
                 placeholder="automatic"
                 allowEmpty
                 fieldProps={{ flex: 1 }}
@@ -81,7 +81,7 @@ export const LorebookDetailsSection = withForm({
             {(field) => (
               <field.NumberInput
                 label="Token Budget"
-                helperText="Maximum tokens allocated to lore entries"
+                helperText="Maximum tokens reserved for activated lore entries"
                 placeholder="automatic"
                 allowEmpty
                 fieldProps={{ flex: 1 }}
@@ -92,8 +92,8 @@ export const LorebookDetailsSection = withForm({
 
         <form.AppField name="recursive_scanning">
           {(field) => (
-            <field.Switch helperText="Allow lore entries to trigger other entries">
-              Enable Recursive Scanning
+            <field.Switch helperText="Allow activated entries to trigger other entries">
+              Recursive Scanning
             </field.Switch>
           )}
         </form.AppField>

@@ -1,11 +1,12 @@
-import { Center, Container, Grid, HStack, Text, VStack } from "@chakra-ui/react";
+import { Container, Grid, HStack } from "@chakra-ui/react";
+import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuBookOpen, LuImport, LuPlus } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, EmptyState, PageHeader } from "@/components/ui";
+import { Button, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
 import { ChatImportDialog } from "@/features/scenario-import/components/chat-import-dialog";
-import { ScenarioCard } from "@/features/scenarios/components/scenario-card";
+import { ScenarioCard, ScenarioCardSkeleton } from "@/features/scenarios/components/scenario-card";
 import { useTRPC } from "@/lib/trpc";
 
 export function ScenarioLibraryPage() {
@@ -13,6 +14,7 @@ export function ScenarioLibraryPage() {
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const scenariosQuery = useQuery(trpc.scenarios.list.queryOptions({}));
+  const scenarios = scenariosQuery.data?.scenarios ?? [];
 
   return (
     <Container>
@@ -34,29 +36,13 @@ export function ScenarioLibraryPage() {
         </PageHeader.Controls>
       </PageHeader.Root>
 
-      {scenariosQuery.isLoading && (
-        <Grid templateColumns="repeat(auto-fit, 320px)" justifyContent="center" gap={4}>
-          {Array.from({ length: 6 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
-            <div key={skeletonId}>Loading...</div>
-          ))}
-        </Grid>
-      )}
-
-      {scenariosQuery.error && (
-        <Center p={8}>
-          <VStack>
-            <Text color="fg.error" fontWeight="semibold">
-              Failed to load scenarios
-            </Text>
-            <Text color="gray.600">{scenariosQuery.error.message}</Text>
-            <Button onClick={() => scenariosQuery.refetch()} variant="outline" colorPalette="red">
-              Try Again
-            </Button>
-          </VStack>
-        </Center>
-      )}
-
-      {scenariosQuery.data?.scenarios.length === 0 && (
+      {scenariosQuery.error ? (
+        <ErrorEmptyState
+          title="Failed to load scenarios"
+          description={scenariosQuery.error.message}
+          onActionClick={scenariosQuery.refetch}
+        />
+      ) : scenarios.length === 0 && !scenariosQuery.isLoading ? (
         <EmptyState
           icon={<LuBookOpen />}
           title="No scenarios yet"
@@ -64,13 +50,11 @@ export function ScenarioLibraryPage() {
           actionLabel="Browse Characters"
           onActionClick={() => navigate("/characters")}
         />
-      )}
-
-      {Number(scenariosQuery.data?.scenarios.length) > 0 && (
+      ) : (
         <Grid templateColumns="repeat(auto-fit, 320px)" justifyContent="center" gap={4}>
-          {scenariosQuery.data?.scenarios.map((scenario) => (
-            <ScenarioCard key={scenario.id} scenario={scenario} />
-          ))}
+          {scenariosQuery.isLoading
+            ? [...Array(15)].map(() => <ScenarioCardSkeleton key={createId()} />)
+            : scenarios.map((s) => <ScenarioCard key={s.id} scenario={s} />)}
         </Grid>
       )}
 

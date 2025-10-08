@@ -1,10 +1,10 @@
-import { Container, Grid, HStack, Text } from "@chakra-ui/react";
+import { Container, HStack, SimpleGrid } from "@chakra-ui/react";
 import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuImport, LuPlus } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { Button, EmptyState, PageHeader } from "@/components/ui";
+import { Button, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
 import { LorebookCard, LorebookCardSkeleton } from "@/features/lorebooks/components/lorebook-card";
 import { LorebookImportDialog } from "@/features/lorebooks/components/lorebook-import-dialog";
 import { useTRPC } from "@/lib/trpc";
@@ -16,8 +16,6 @@ export function LorebooksPage() {
 
   const lorebooksQuery = useQuery(trpc.lorebooks.list.queryOptions({}));
   const lorebooks = lorebooksQuery.data?.lorebooks ?? [];
-  const isLoading = lorebooksQuery.isLoading;
-  const error = lorebooksQuery.error;
 
   return (
     <Container>
@@ -38,15 +36,13 @@ export function LorebooksPage() {
         </PageHeader.Controls>
       </PageHeader.Root>
 
-      {isLoading ? (
-        <Grid templateColumns="repeat(auto-fit, minmax(320px, 1fr))" gap={4} py={6}>
-          {[...Array(6)].map(() => (
-            <LorebookCardSkeleton key={createId()} />
-          ))}
-        </Grid>
-      ) : error ? (
-        <Text color="fg.error">Failed to load lorebooks: {error.message}</Text>
-      ) : lorebooks.length === 0 ? (
+      {lorebooksQuery.error ? (
+        <ErrorEmptyState
+          title="Failed to load lorebooks"
+          description={lorebooksQuery.error.message}
+          onActionClick={lorebooksQuery.refetch}
+        />
+      ) : lorebooks.length === 0 && !lorebooksQuery.isLoading ? (
         <EmptyState
           icon={<LuImport />}
           title="No lorebooks yet"
@@ -55,11 +51,11 @@ export function LorebooksPage() {
           onActionClick={() => setImportOpen(true)}
         />
       ) : (
-        <Grid templateColumns="repeat(auto-fit, minmax(320px, 1fr))" gap={4} py={6}>
-          {lorebooks.map((lorebook) => (
-            <LorebookCard key={lorebook.id} lorebook={lorebook} />
-          ))}
-        </Grid>
+        <SimpleGrid minChildWidth="md" gap={6}>
+          {lorebooksQuery.isLoading
+            ? [...Array(15)].map(() => <LorebookCardSkeleton key={createId()} />)
+            : lorebooks.map((lorebook) => <LorebookCard key={lorebook.id} lorebook={lorebook} />)}
+        </SimpleGrid>
       )}
 
       <LorebookImportDialog isOpen={importOpen} onOpenChange={({ open }) => setImportOpen(open)} />

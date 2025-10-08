@@ -16,17 +16,7 @@ export interface AssignmentItemView {
   workflow?: { name: string };
 }
 
-export function AssignmentList({ items }: { items: AssignmentItemView[] }) {
-  return (
-    <Box>
-      {items.map((a) => (
-        <AssignmentItem key={a.id} item={a} />
-      ))}
-    </Box>
-  );
-}
-
-function AssignmentItem({ item }: { item: AssignmentItemView }) {
+export function AssignmentItem({ item }: { item: AssignmentItemView }) {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   return (

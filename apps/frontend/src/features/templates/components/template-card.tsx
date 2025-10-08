@@ -8,6 +8,7 @@ import {
   LinkOverlay,
   Menu,
   Portal,
+  Skeleton,
   Stack,
   Text,
   VStack,
@@ -175,5 +176,24 @@ export function TemplateCard({ template }: TemplateCardProps) {
         isDuplicating={duplicateTemplateMutation.isPending}
       />
     </>
+  );
+}
+
+export function TemplateCardSkeleton() {
+  return (
+    <Card.Root size="sm" variant="outline">
+      <Card.Header>
+        <Heading size="lg">
+          <Skeleton w="60%" h="8" rounded="md" />
+        </Heading>
+      </Card.Header>
+      <Card.Body>
+        <VStack align="start" gap={4}>
+          <Skeleton w="40%" h="4" rounded="md" />
+          <Skeleton w="30%" h="4" rounded="md" />
+          <Skeleton w="50%" h="3" rounded="md" />
+        </VStack>
+      </Card.Body>
+    </Card.Root>
   );
 }

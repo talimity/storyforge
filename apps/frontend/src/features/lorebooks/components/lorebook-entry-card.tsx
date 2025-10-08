@@ -95,7 +95,7 @@ export const LorebookEntryCard = withFieldGroup({
               </group.AppField>
               <group.AppField name="constant">
                 {(field) => (
-                  <field.Switch helperText="Ignore keywords and always inject this entry in prompts">
+                  <field.Switch helperText="Always inject this entry in prompts regardless of triggers">
                     Always Active
                   </field.Switch>
                 )}

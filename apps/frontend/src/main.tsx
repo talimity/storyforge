@@ -1,4 +1,4 @@
-import { ChakraProvider } from "@chakra-ui/react";
+import { Box, ChakraProvider } from "@chakra-ui/react";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { FormDevtoolsPlugin } from "@tanstack/react-form-devtools";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
@@ -20,26 +20,24 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <ReactRoot>
     <TRPCReactProvider>
       <ChakraProvider value={system}>
-        <ThemeProvider attribute="class">
-          <RouterProvider router={router} />
-          <Toaster />
-          {ENABLE_DEVTOOLS && (
-            <TanStackDevtools
-              config={{
-                position: "bottom-left",
-                // defaultOpen: true,
-                hideUntilHover: true,
-              }}
-              plugins={[
-                FormDevtoolsPlugin(),
-                {
-                  name: "TanStack Query",
-                  render: () => <ReactQueryDevtoolsPanel />,
-                },
-              ]}
-            />
-          )}
-        </ThemeProvider>
+        <Box colorPalette="neutral">
+          <ThemeProvider attribute="class">
+            <RouterProvider router={router} />
+            <Toaster />
+            {ENABLE_DEVTOOLS && (
+              <TanStackDevtools
+                config={{ position: "bottom-left", hideUntilHover: true }}
+                plugins={[
+                  FormDevtoolsPlugin(),
+                  {
+                    name: "TanStack Query",
+                    render: () => <ReactQueryDevtoolsPanel />,
+                  },
+                ]}
+              />
+            )}
+          </ThemeProvider>
+        </Box>
       </ChakraProvider>
     </TRPCReactProvider>
   </ReactRoot>

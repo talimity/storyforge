@@ -7,6 +7,8 @@ import {
   LinkOverlay,
   Menu,
   Portal,
+  Skeleton,
+  SkeletonText,
   Stack,
   Text,
   VStack,
@@ -90,22 +92,20 @@ export function LorebookCard({ lorebook }: LorebookCardProps) {
   );
 }
 
-// TODO: fix to use actual skeleton components
 export function LorebookCardSkeleton() {
   return (
-    <Card.Root layerStyle="surface">
+    <Card.Root size="sm" variant="outline">
+      <Card.Header>
+        <HStack justify="space-between" align="center">
+          <SkeletonText noOfLines={1} h="5" width="70%" />
+          <Skeleton w="8" h="8" rounded="md" />
+        </HStack>
+      </Card.Header>
       <Card.Body p={4}>
-        <VStack align="stretch" gap={3}>
-          <HStack justify="space-between">
-            <Stack gap={2}>
-              <Text>&nbsp;</Text>
-            </Stack>
-            <IconButton variant="ghost" size="xs" disabled />
-          </HStack>
-          <Stack gap={1}>
-            <Text>&nbsp;</Text>
-            <Text>&nbsp;</Text>
-          </Stack>
+        <VStack align="start">
+          <SkeletonText noOfLines={2} width="100%" />
+          <SkeletonText noOfLines={1} width="50%" />
+          <SkeletonText noOfLines={1} width="40%" />
         </VStack>
       </Card.Body>
     </Card.Root>
