@@ -241,7 +241,7 @@ export function TemplateForm({
                 <Box bg="red.50" border="1px solid" borderColor="red.200" p={3} borderRadius="md">
                   <VStack align="start" gap={1}>
                     {structureErrors.map((error) => (
-                      <Box key={error} fontSize="sm" color="red.600">
+                      <Box key={error} fontSize="sm" color="fg.error">
                         • {error}
                       </Box>
                     ))}

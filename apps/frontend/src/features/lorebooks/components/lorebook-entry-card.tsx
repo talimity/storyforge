@@ -1,29 +1,26 @@
-import { Badge, Card, HStack, IconButton, Stack, Text, VStack } from "@chakra-ui/react";
+import { Card, Flex, Icon, Stack, Text, VStack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
-import { LuChevronDown, LuChevronUp, LuCopy, LuTrash } from "react-icons/lu";
-import { AutosizeTextarea, Button } from "@/components/ui";
+import { LuCaseSensitive, LuRegex } from "react-icons/lu";
+import { AutosizeTextarea } from "@/components/ui";
+import { Tag } from "@/components/ui/tag";
+import { LorebookEntryCardHeader } from "@/features/lorebooks/components/lorebook-entry-card-header";
 import { withFieldGroup } from "@/lib/app-form";
 import { showErrorToast } from "@/lib/error-handling";
 import { createLorebookEntryDraft } from "./form-schemas";
 
-type LorebookEntryCardProps = {
+export type LorebookEntryCardProps = {
   index: number;
   total: number;
   onRemove: () => void;
   onDuplicate: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  onEdit: () => void;
+  onDismiss: () => void;
 } & Record<string, unknown>;
 
-function joinList(value: string[] | undefined) {
-  return (value ?? []).join("\n");
-}
-
-function toLineArray(value: string, { preserveEmpty }: { preserveEmpty: boolean }) {
-  const lines = value.split(/\r?\n/);
-  if (preserveEmpty) return lines;
-  return lines.map((line) => line.trim()).filter(Boolean);
-}
+const joinList = (value: string[] | undefined) => (value ?? []).join("\n");
+const toLineArray = (value: string) => value.split(/\r?\n/);
 
 function stringifyExtensions(value: Record<string, unknown> | undefined) {
   try {
@@ -52,6 +49,10 @@ function parseExtensions(value: string) {
   }
 }
 
+function estimateTokenLength(text: string) {
+  return Math.ceil(text.length / 4 / 10) * 10;
+}
+
 export const LorebookEntryCard = withFieldGroup({
   defaultValues: createLorebookEntryDraft(0),
   props: {
@@ -61,59 +62,23 @@ export const LorebookEntryCard = withFieldGroup({
     onDuplicate: () => {},
     onMoveUp: () => {},
     onMoveDown: () => {},
+    onEdit: () => {},
+    onDismiss: () => {},
   } satisfies LorebookEntryCardProps as LorebookEntryCardProps,
-  render: function Render({ group, index, total, onDuplicate, onRemove, onMoveDown, onMoveUp }) {
+  render: function Render(props) {
+    const { group } = props;
     const isEnabled = useStore(group.store, (state) => Boolean(state.values.enabled));
     const alwaysActive = useStore(group.store, (state) => Boolean(state.values.constant));
     const entryTitle = useStore(group.store, (state) => state.values.comment)?.trim();
 
     return (
-      <Card.Root layerStyle="surface">
-        <Card.Header>
-          <HStack justify="space-between" align="center" width="full">
-            <Text fontWeight="medium">
-              Entry #{index + 1}
-              {entryTitle ? ` · ${entryTitle}` : ""}
-            </Text>
-            <HStack gap={2}>
-              {!isEnabled && (
-                <Badge colorPalette="yellow" variant="subtle">
-                  Disabled
-                </Badge>
-              )}
-              <IconButton
-                aria-label="Move up"
-                size="xs"
-                variant="ghost"
-                onClick={onMoveUp}
-                disabled={index === 0}
-              >
-                <LuChevronUp />
-              </IconButton>
-              <IconButton
-                aria-label="Move down"
-                size="xs"
-                variant="ghost"
-                onClick={onMoveDown}
-                disabled={index === total - 1}
-              >
-                <LuChevronDown />
-              </IconButton>
-              <IconButton aria-label="Duplicate" size="xs" variant="ghost" onClick={onDuplicate}>
-                <LuCopy />
-              </IconButton>
-              <IconButton
-                aria-label="Delete"
-                size="xs"
-                variant="ghost"
-                colorPalette="red"
-                onClick={onRemove}
-              >
-                <LuTrash />
-              </IconButton>
-            </HStack>
-          </HStack>
-        </Card.Header>
+      <Card.Root layerStyle="surface" size="sm">
+        <LorebookEntryCardHeader
+          {...props}
+          isEditing
+          isEnabled={isEnabled}
+          entryTitle={entryTitle || ""}
+        />
 
         <Card.Body>
           <VStack align="stretch" gap={4}>
@@ -130,16 +95,12 @@ export const LorebookEntryCard = withFieldGroup({
               </group.AppField>
               <group.AppField name="constant">
                 {(field) => (
-                  <field.Switch helperText="Ignore keywords and always include this entry in prompts">
+                  <field.Switch helperText="Ignore keywords and always inject this entry in prompts">
                     Always Active
                   </field.Switch>
                 )}
               </group.AppField>
             </Stack>
-
-            {/*<group.AppField name="name">*/}
-            {/*  {(field) => <field.TextInput label="Entry Name" placeholder="Optional label" />}*/}
-            {/*</group.AppField>*/}
 
             <group.AppField name="comment">
               {(field) => (
@@ -154,21 +115,18 @@ export const LorebookEntryCard = withFieldGroup({
             <group.AppField name="keys">
               {(field) => (
                 <field.Field
-                  label="Trigger Keywords"
-                  helperText="One keyword or regex per line"
+                  label="Trigger Phrases"
+                  helperText="Phrases that will activate this entry (one per line)"
                   style={{ opacity: alwaysActive ? 0.75 : 1 }}
-                  invalid={field.state.meta.errors.length > 0}
-                  errorText={field.state.meta.errors[0]}
                 >
                   <AutosizeTextarea
                     disabled={alwaysActive}
                     value={joinList(field.state.value)}
-                    onChange={(event) =>
-                      field.handleChange(toLineArray(event.target.value, { preserveEmpty: true }))
-                    }
+                    onChange={(event) => field.handleChange(toLineArray(event.target.value))}
                     onBlur={(event) => {
-                      const cleaned = toLineArray(event.target.value, { preserveEmpty: false });
-                      field.handleChange(cleaned.length > 0 ? cleaned : [""]);
+                      const arr = toLineArray(event.target.value);
+                      const cleaned = arr.filter((line) => line.trim().length > 0);
+                      field.handleChange(cleaned.length > 0 ? cleaned : []);
                       field.handleBlur();
                     }}
                     minRows={1}
@@ -181,22 +139,20 @@ export const LorebookEntryCard = withFieldGroup({
             <group.AppField name="secondary_keys">
               {(field) => (
                 <field.Field
-                  label="Secondary Keywords"
-                  helperText="Optional. Provide additional keywords to require alongside primary triggers."
+                  label="Secondary Phrases"
+                  helperText="If provided, at least one primary and one secondary must be present to activate this entry"
                   style={{ opacity: alwaysActive ? 0.75 : 1 }}
                 >
                   <AutosizeTextarea
                     disabled={alwaysActive}
                     value={joinList(field.state.value)}
-                    onChange={(event) =>
-                      field.handleChange(toLineArray(event.target.value, { preserveEmpty: true }))
-                    }
+                    onChange={(event) => field.handleChange(toLineArray(event.target.value))}
                     onBlur={(event) => {
-                      const cleaned = toLineArray(event.target.value, { preserveEmpty: false });
-                      const next = cleaned.length > 0 ? cleaned : undefined;
-                      field.handleChange(next);
+                      const arr = toLineArray(event.target.value);
+                      const cleaned = arr.filter((line) => line.trim().length > 0);
+                      field.handleChange(cleaned.length > 0 ? cleaned : []);
                       field.handleBlur();
-                      group.setFieldValue("selective", Boolean(next?.length));
+                      group.setFieldValue("selective", Boolean(cleaned?.length));
                     }}
                     minRows={1}
                     maxRows={6}
@@ -213,21 +169,24 @@ export const LorebookEntryCard = withFieldGroup({
               </group.AppField>
               <group.AppField name="use_regex">
                 {(field) => (
-                  <field.Switch disabled={alwaysActive}>Interpret keys as regex</field.Switch>
+                  <field.Switch disabled={alwaysActive}>Interpret phrases as regexps</field.Switch>
                 )}
               </group.AppField>
             </Stack>
 
             <group.AppField name="content">
-              {(field) => (
-                <field.TextareaInput
-                  label="Content"
-                  helperText="Inserted into the prompt when the entry triggers"
-                  minRows={4}
-                  maxRows={12}
-                  required
-                />
-              )}
+              {(field) => {
+                const tokenCount = estimateTokenLength(field.state.value || "");
+                return (
+                  <field.TextareaInput
+                    label="Content"
+                    helperText={`Inserted into the prompt when the entry triggers - approx. ${tokenCount} tokens`}
+                    minRows={4}
+                    maxRows={12}
+                    required
+                  />
+                );
+              }}
             </group.AppField>
 
             <Stack direction={{ base: "column", md: "row" }} gap={3}>
@@ -253,7 +212,7 @@ export const LorebookEntryCard = withFieldGroup({
             </Stack>
 
             <Stack gap={2}>
-              <Text fontWeight="medium">Entry Extensions</Text>
+              <Text fontWeight="medium">Extensions</Text>
               <group.AppField name="extensions">
                 {(field) => {
                   const serialized = stringifyExtensions(field.state.value);
@@ -277,12 +236,80 @@ export const LorebookEntryCard = withFieldGroup({
             </Stack>
           </VStack>
         </Card.Body>
+      </Card.Root>
+    );
+  },
+});
 
-        <Card.Footer>
-          <Button variant="outline" colorPalette="red" onClick={onRemove}>
-            Delete Entry
-          </Button>
-        </Card.Footer>
+export const LorebookEntryCardViewMode = withFieldGroup({
+  defaultValues: createLorebookEntryDraft(0),
+  props: {
+    index: 0,
+    total: 0,
+    onRemove: () => {},
+    onDuplicate: () => {},
+    onMoveUp: () => {},
+    onMoveDown: () => {},
+    onEdit: () => {},
+    onDismiss: () => {},
+  } satisfies LorebookEntryCardProps as LorebookEntryCardProps,
+  render: function Render(props) {
+    const { group } = props;
+    const isEnabled = useStore(group.store, (state) => Boolean(state.values.enabled));
+    const entryTitle = useStore(group.store, (state) => state.values.comment)?.trim();
+    const alwaysActive = useStore(group.store, (state) => Boolean(state.values.constant));
+    const keys = useStore(group.store, (state) => state.values.keys);
+    const secondaryKeys = useStore(group.store, (state) => state.values.secondary_keys);
+    const content = useStore(group.store, (state) => state.values.content);
+    // const insertionOrder = useStore(group.store, (state) => state.values.insertion_order);
+    // const priority = useStore(group.store, (state) => state.values.priority);
+    const caseSensitive = useStore(group.store, (state) => Boolean(state.values.case_sensitive));
+    const useRegex = useStore(group.store, (state) => Boolean(state.values.use_regex));
+    // const extensions = useStore(group.store, (state) => state.values.extensions);
+
+    return (
+      <Card.Root layerStyle="surface" size="sm">
+        <LorebookEntryCardHeader
+          {...props}
+          isEditing={false}
+          isEnabled={isEnabled}
+          entryTitle={entryTitle || ""}
+        />
+        <Card.Body>
+          <Flex gap={2} flexWrap="wrap" mb={2}>
+            {alwaysActive ? (
+              <Tag size="sm" colorPalette="purple">
+                Always Active
+              </Tag>
+            ) : (
+              <>
+                {caseSensitive && (
+                  <Icon size="sm">
+                    <LuCaseSensitive />
+                  </Icon>
+                )}
+                {useRegex && (
+                  <Icon size="sm">
+                    <LuRegex />
+                  </Icon>
+                )}
+                {keys.map((key, idx) => (
+                  <Tag key={`key_${idx}_${key}`} size="sm" colorPalette="blue">
+                    {key}
+                  </Tag>
+                ))}
+                {(secondaryKeys || []).map((key, idx) => (
+                  <Tag key={`secondary_${idx}_${key}`} size="sm" colorPalette="cyan">
+                    {key}
+                  </Tag>
+                ))}
+              </>
+            )}
+          </Flex>
+          <Text fontSize="xs" color="content.muted" lineClamp={2} whiteSpace="pre-wrap">
+            {content || "[ No content ]"}
+          </Text>
+        </Card.Body>
       </Card.Root>
     );
   },

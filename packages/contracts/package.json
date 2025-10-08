@@ -18,6 +18,7 @@
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/gentasks": "workspace:*",
     "@storyforge/timeline-events": "workspace:*",
+    "@storyforge/utils": "workspace:*",
     "@trpc/server": "catalog:",
     "trpc-to-openapi": "catalog:",
     "zod": "catalog:"

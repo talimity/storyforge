@@ -238,7 +238,7 @@ export function ParameterInput({
           helperText={`Unsupported parameter type: ${param.type}`}
           invalid={true}
         >
-          <Text color="red.600" fontSize="sm">
+          <Text color="fg.error" fontSize="sm">
             Unknown parameter type: {param.type}
           </Text>
         </Field>

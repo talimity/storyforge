@@ -1,4 +1,5 @@
 import type { LorebookData } from "@storyforge/contracts";
+import { createId } from "@storyforge/utils";
 import { CharacterBookSchema } from "../../character/utils/parse-tavern-card.js";
 
 interface NormalizeOptions {
@@ -51,7 +52,7 @@ function fromCharacterBook(
       case_sensitive: entry.case_sensitive,
       name: entry.name,
       priority: entry.priority,
-      id: entry.id,
+      id: entry.id || createId(),
       comment: entry.comment,
       selective: entry.selective,
       secondary_keys: entry.secondary_keys ? [...entry.secondary_keys] : undefined,
@@ -172,7 +173,7 @@ function normalizeWorldInfoEntry(entry: unknown, index: number) {
     case_sensitive: typeof case_sensitive === "boolean" ? case_sensitive : undefined,
     name: typeof name === "string" && name.length > 0 ? name : undefined,
     priority: typeof priority === "number" ? priority : undefined,
-    id: typeof id === "number" || typeof id === "string" ? id : undefined,
+    id: typeof id === "number" || typeof id === "string" ? id : createId(),
     comment: typeof comment === "string" ? comment : undefined,
     selective: typeof selective === "boolean" ? selective : undefined,
     secondary_keys: resolvedSecondary.length > 0 ? resolvedSecondary : undefined,

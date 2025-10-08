@@ -77,7 +77,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
           <Text fontSize="sm" color="red.700" fontWeight="medium">
             Missing slots referenced in layout:
           </Text>
-          <Text fontSize="sm" color="red.600">
+          <Text fontSize="sm" color="fg.error">
             {missingSlots.join(", ")}
           </Text>
         </Box>

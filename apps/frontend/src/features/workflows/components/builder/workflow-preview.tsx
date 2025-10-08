@@ -145,7 +145,7 @@ export function WorkflowPreviewTab({ values }: Props) {
 
       {run.error && (
         <Box
-          color="red.600"
+          color="fg.error"
           bg="red.50"
           border="1px solid"
           borderColor="red.200"

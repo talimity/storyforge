@@ -40,7 +40,7 @@ export const LorebookDetailsSection = withForm({
         <HStack gap={3}>
           <LuBookOpen size={20} />
           <VStack align="start" gap={0}>
-            <Heading size="md">Lorebook Details</Heading>
+            <Heading size="md">Lorebook Metadata</Heading>
             <Text color="content.muted" fontSize="sm">
               Configure basic metadata and global settings.
             </Text>

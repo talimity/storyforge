@@ -117,7 +117,7 @@ const StarterItem = withFieldGroup({
 
                 return (
                   <>
-                    <Text flex="1" color={hasMessageError ? "red.600" : undefined}>
+                    <Text flex="1" color={hasMessageError ? "fg.error" : undefined}>
                       Starter #{idx + 1}
                     </Text>
                     {hasMessageError && (

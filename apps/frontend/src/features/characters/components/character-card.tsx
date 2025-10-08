@@ -92,12 +92,11 @@ export const CharacterCard = memo(function CharacterCard({
               <Menu.Trigger asChild>
                 <IconButton
                   aria-label="Character options"
-                  variant="subtle"
+                  variant="solid"
                   size="sm"
                   position="absolute"
                   top={2}
                   right={2}
-                  colorPalette="neutral"
                   opacity={0}
                   _groupHover={{ opacity: 1 }}
                   _focus={{ opacity: 1 }}

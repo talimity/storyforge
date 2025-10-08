@@ -401,6 +401,9 @@ importers:
       '@storyforge/timeline-events':
         specifier: workspace:*
         version: link:../timeline-events
+      '@storyforge/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.5.1(typescript@5.9.3)

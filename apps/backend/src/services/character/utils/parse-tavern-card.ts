@@ -11,7 +11,7 @@ export const CharacterBookEntrySchema = z.object({
   case_sensitive: z.boolean().optional(),
   name: z.string().optional(),
   priority: z.number().optional(),
-  id: z.number().optional(),
+  id: z.number().default(() => Math.floor(Math.random() * 1_000_000_000)),
   comment: z.string().optional(),
   selective: z.boolean().optional(),
   secondary_keys: z.array(z.string()).optional(),

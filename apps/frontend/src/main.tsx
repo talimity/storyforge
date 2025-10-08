@@ -12,10 +12,12 @@ import { router } from "@/router";
 import { system } from "@/theme";
 
 const ENABLE_DEVTOOLS = false;
+const ENABLE_STRICT_MODE = false;
+const ReactRoot = ENABLE_STRICT_MODE ? React.StrictMode : React.Fragment;
 
 // biome-ignore lint/style/noNonNullAssertion: We are sure the root element exists.
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  <ReactRoot>
     <TRPCReactProvider>
       <ChakraProvider value={system}>
         <ThemeProvider attribute="class">
@@ -40,5 +42,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </ThemeProvider>
       </ChakraProvider>
     </TRPCReactProvider>
-  </React.StrictMode>
+  </ReactRoot>
 );

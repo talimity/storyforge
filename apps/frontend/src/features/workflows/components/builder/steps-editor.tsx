@@ -32,7 +32,7 @@ export const StepsEditor = withForm({
             const source = stepsField.state.value[index];
             if (!source) return;
             const clone = { ...source, id: createId() };
-            stepsField.replaceValue(index, clone);
+            stepsField.pushValue(clone);
           };
 
           return (

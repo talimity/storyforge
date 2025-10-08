@@ -99,22 +99,12 @@ export function CompactCharacterCard({ character, isSelected = false }: CompactC
         </Stack>
 
         <Menu.Root positioning={{ placement: "bottom-end" }}>
-          <Box
-            display="flex"
-            alignItems="center"
-            // Hide the button visually and from layout unless hovered/focused
-            width={{ base: 0 }}
-            overflow="hidden"
-            _groupHover={{ width: "auto", overflow: "visible" }}
-            _focusWithin={{ width: "auto", overflow: "visible" }}
-            transition="width 0.2s"
-          >
+          <Box display="flex" alignItems="center">
             <Menu.Trigger asChild>
               <IconButton
                 aria-label="Character options"
-                variant="subtle"
-                size="sm"
-                colorPalette="neutral"
+                variant="plain"
+                size="xs"
                 opacity={0}
                 _groupHover={{ opacity: 1 }}
                 _focus={{ opacity: 1 }}

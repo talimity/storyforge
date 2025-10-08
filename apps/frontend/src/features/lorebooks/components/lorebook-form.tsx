@@ -1,4 +1,5 @@
 import { Card, HStack, Stack, Tabs } from "@chakra-ui/react";
+import { LuInfo, LuLibrary } from "react-icons/lu";
 import { useAppForm } from "@/lib/app-form";
 import {
   type LorebookFormValues,
@@ -23,7 +24,7 @@ export function LorebookForm({
 }: LorebookFormProps) {
   const form = useAppForm({
     defaultValues: { ...lorebookFormDefaultValues, ...initialData },
-    validators: { onChange: lorebookFormSchema },
+    validators: { onBlur: lorebookFormSchema },
     onSubmit: ({ value }) => onSubmit(value),
   });
 
@@ -37,13 +38,19 @@ export function LorebookForm({
             void form.handleSubmit();
           }}
         >
-          <Tabs.Root defaultValue="details" lazyMount>
+          <Tabs.Root defaultValue="metadata" lazyMount>
             <Tabs.List>
-              <Tabs.Trigger value="details">Details</Tabs.Trigger>
-              <Tabs.Trigger value="entries">Entries</Tabs.Trigger>
+              <Tabs.Trigger value="metadata">
+                <LuInfo />
+                Metadata
+              </Tabs.Trigger>
+              <Tabs.Trigger value="entries">
+                <LuLibrary />
+                Entries
+              </Tabs.Trigger>
             </Tabs.List>
 
-            <Tabs.Content value="details" p={6}>
+            <Tabs.Content value="metadata" p={6}>
               <LorebookDetailsSection form={form} />
             </Tabs.Content>
 

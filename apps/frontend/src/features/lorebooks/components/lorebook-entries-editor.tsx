@@ -1,67 +1,49 @@
-import { Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
-import { LuLibrary, LuPlus } from "react-icons/lu";
-import { Button, EmptyState } from "@/components/ui";
+import {
+  ButtonGroup,
+  Center,
+  Heading,
+  HStack,
+  IconButton,
+  Input,
+  InputGroup,
+  Pagination,
+  Stack,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { createId } from "@storyforge/utils";
+import { useEffect, useRef, useState } from "react";
+import { LuChevronLeft, LuChevronRight, LuLibrary, LuPlus, LuSearch } from "react-icons/lu";
+import { Button, CloseButton, EmptyState } from "@/components/ui";
 import { withForm } from "@/lib/app-form";
 import {
   createLorebookEntryDraft,
   type LorebookEntryFormValues,
   lorebookFormDefaultValues,
 } from "./form-schemas";
-import { LorebookEntryCard } from "./lorebook-entry-card";
+import { LorebookEntryCard, LorebookEntryCardViewMode } from "./lorebook-entry-card";
 
 export const LorebookEntriesEditor = withForm({
   defaultValues: lorebookFormDefaultValues,
   render: function Render({ form }) {
+    const [editingId, setEditingId] = useState<Set<string>>(new Set<string>());
+    const [matchedIds, setMatchedIds] = useState<Set<string> | null>(null);
     return (
       <form.Field name="entries" mode="array">
         {(entriesField) => {
           const entries = entriesField.state.value ?? [];
 
-          const setEntries = (next: LorebookEntryFormValues[]) => {
-            entriesField.handleChange(
-              next.map((entry, idx) => ({
-                ...entry,
-                insertion_order: idx,
-              }))
-            );
-          };
-
-          const handleAdd = () => {
-            const next = [
-              ...entries,
-              createLorebookEntryDraft(entries.length),
-            ] as LorebookEntryFormValues[];
-            setEntries(next);
-          };
+          const handleAdd = () => entriesField.pushValue(createLorebookEntryDraft(entries.length));
 
           const handleDuplicate = (index: number) => {
             const source = entries[index];
             if (!source) return;
             const clone: LorebookEntryFormValues = {
               ...source,
+              id: createId(),
               insertion_order: entries.length,
             };
-            const next = [...entries.slice(0, index + 1), clone, ...entries.slice(index + 1)];
-            setEntries(next);
-          };
-
-          const handleMove = (index: number, target: number) => {
-            if (target < 0 || target >= entries.length) return;
-            const next = [...entries];
-            const [item] = next.splice(index, 1);
-            if (!item) return;
-            next.splice(target, 0, item);
-            setEntries(next);
-          };
-
-          const handleRemove = (index: number) => {
-            const next = entries.filter((_, idx) => idx !== index);
-            if (next.length === 0) {
-              // ensure at least one blank entry remains per schema requirement
-              setEntries([createLorebookEntryDraft(0)]);
-            } else {
-              setEntries(next);
-            }
+            entriesField.pushValue(clone);
           };
 
           return (
@@ -80,6 +62,7 @@ export const LorebookEntriesEditor = withForm({
                   <LuPlus /> Add Entry
                 </Button>
               </HStack>
+              <LorebookEntriesFilter form={form} onFilterChange={setMatchedIds} />
 
               {entries.length === 0 ? (
                 <EmptyState
@@ -89,29 +72,171 @@ export const LorebookEntriesEditor = withForm({
                   actionLabel="Add Entry"
                   onActionClick={handleAdd}
                 />
+              ) : matchedIds && matchedIds.size === 0 ? (
+                <EmptyState
+                  icon={<LuSearch />}
+                  title="No matching entries"
+                  description="No entries match the current filter."
+                />
               ) : (
                 <VStack align="stretch" gap={4}>
-                  {entries.map((_entry, index) => (
-                    <LorebookEntryCard
-                      // tanstack form array key guideline: use index
-                      // biome-ignore lint/suspicious/noArrayIndexKey: required until library provides stable keys
-                      key={index}
-                      form={form}
-                      fields={`entries[${index}]`}
-                      index={index}
-                      total={entries.length}
-                      onDuplicate={() => handleDuplicate(index)}
-                      onRemove={() => handleRemove(index)}
-                      onMoveUp={() => handleMove(index, index - 1)}
-                      onMoveDown={() => handleMove(index, index + 1)}
-                    />
-                  ))}
+                  {entries.map((entry, idx) => {
+                    if (matchedIds && !matchedIds.has(String(entry.id))) {
+                      return null;
+                    }
+
+                    const LorebookEntryComponent = editingId.has(String(entry.id))
+                      ? LorebookEntryCard
+                      : LorebookEntryCardViewMode;
+                    return (
+                      <LorebookEntryComponent
+                        // https://github.com/TanStack/form/issues/1561
+                        // biome-ignore lint/suspicious/noArrayIndexKey: array fields break unless you specifically use index key
+                        key={idx}
+                        form={form}
+                        fields={`entries[${idx}]` as const}
+                        index={idx}
+                        total={entries.length}
+                        onDuplicate={() => handleDuplicate(idx)}
+                        onRemove={() => entriesField.removeValue(idx)}
+                        onMoveUp={() => idx > 0 && entriesField.moveValue(idx, idx - 1)}
+                        onMoveDown={() =>
+                          idx < entriesField.state.value.length - 1 &&
+                          entriesField.moveValue(idx, idx + 1)
+                        }
+                        onEdit={() => setEditingId((prev) => new Set(prev).add(String(entry.id)))}
+                        onDismiss={() =>
+                          setEditingId((prev) => {
+                            const next = new Set(prev);
+                            next.delete(String(entry.id));
+                            return next;
+                          })
+                        }
+                      />
+                    );
+                  })}
                 </VStack>
               )}
             </Stack>
           );
         }}
       </form.Field>
+    );
+  },
+});
+
+const PAGE_SIZE = 20;
+
+const LorebookEntriesFilter = withForm({
+  defaultValues: lorebookFormDefaultValues,
+  props: {
+    onFilterChange: (_matchingIds: Set<string>) => {},
+  },
+  render: function Render(props) {
+    "use no memo"; // doing bad ref hacking that will break React Compiler
+
+    const { form, onFilterChange } = props;
+    // leave uncontrolled to avoid expensive re-rendering and filtering
+    const [filterValue, setFilterValue] = useState("");
+    const [page, setPage] = useState(1);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const filteredSizeRef = useRef(0);
+
+    useEffect(() => {
+      const matchingIds = new Set<string>();
+      const filter = filterValue.trim().toLowerCase();
+      const entries = form.getFieldValue("entries") ?? [];
+
+      entries.forEach((entry) => {
+        const { id, comment, content } = entry;
+        if (
+          !filter ||
+          comment?.toLowerCase().includes(filter) ||
+          content.toLowerCase().includes(filter)
+        ) {
+          matchingIds.add(String(id));
+        }
+      });
+
+      const start = (page - 1) * PAGE_SIZE;
+      const end = start + PAGE_SIZE;
+      const sliced = new Set<string>(Array.from(matchingIds).slice(start, end));
+
+      filteredSizeRef.current = matchingIds.size;
+
+      onFilterChange(sliced);
+    }, [filterValue, form, page, onFilterChange]);
+
+    const endElement = filterValue ? (
+      <CloseButton
+        size="xs"
+        onClick={() => {
+          setFilterValue("");
+          inputRef.current?.focus();
+          if (inputRef.current) {
+            inputRef.current.value = "";
+          }
+        }}
+        me="-2"
+      />
+    ) : undefined;
+
+    return (
+      <Stack>
+        <InputGroup startElement={<LuSearch />} endElement={endElement}>
+          <Input
+            ref={inputRef}
+            autoComplete="off"
+            onBlur={(e) => setFilterValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                setFilterValue(e.currentTarget.value);
+              }
+            }}
+            placeholder="Filter entries..."
+            size="sm"
+          />
+        </InputGroup>
+        {filteredSizeRef.current > PAGE_SIZE && (
+          <Center>
+            <Pagination.Root
+              count={filteredSizeRef.current}
+              pageSize={PAGE_SIZE}
+              page={page}
+              onPageChange={(e) => setPage(e.page)}
+            >
+              <Stack direction="column" align="center">
+                <Text fontSize="xs" asChild>
+                  <Pagination.PageText format="long" />
+                </Text>
+                <ButtonGroup variant="ghost" size="xs">
+                  <Pagination.PrevTrigger asChild>
+                    <IconButton>
+                      <LuChevronLeft />
+                    </IconButton>
+                  </Pagination.PrevTrigger>
+
+                  <Pagination.Items
+                    render={(page) => (
+                      <IconButton variant={{ base: "ghost", _selected: "outline" }}>
+                        {page.value}
+                      </IconButton>
+                    )}
+                  />
+
+                  <Pagination.NextTrigger asChild>
+                    <IconButton>
+                      <LuChevronRight />
+                    </IconButton>
+                  </Pagination.NextTrigger>
+                </ButtonGroup>
+              </Stack>
+            </Pagination.Root>
+          </Center>
+        )}
+      </Stack>
     );
   },
 });

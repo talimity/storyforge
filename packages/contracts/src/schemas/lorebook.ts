@@ -1,20 +1,21 @@
+import { createId } from "@storyforge/utils";
 import { z } from "zod";
 import { fileDataUriSchema } from "../utils/data-uri-validation.js";
 
 export const lorebookEntrySchema = z.object({
-  keys: z.array(z.string()),
-  content: z.string(),
-  extensions: z.record(z.string(), z.unknown()).default({}),
+  id: z.union([z.number(), z.string()]).default(() => createId()),
   enabled: z.boolean(),
-  insertion_order: z.number(),
+  constant: z.boolean().optional(),
+  comment: z.string().optional(),
+  keys: z.array(z.string().min(1, "Keyword cannot be empty")),
+  selective: z.boolean().optional(),
+  secondary_keys: z.array(z.string().min(1)).optional(),
+  content: z.string().min(1, "Content is required"),
+  extensions: z.record(z.string(), z.unknown()).default({}),
+  insertion_order: z.number().int().min(0),
   case_sensitive: z.boolean().optional(),
   name: z.string().optional(),
   priority: z.number().optional(),
-  id: z.union([z.number(), z.string()]).optional(),
-  comment: z.string().optional(),
-  selective: z.boolean().optional(),
-  secondary_keys: z.array(z.string()).optional(),
-  constant: z.boolean().optional(),
   use_regex: z.boolean().optional(),
   position: z
     .union([z.literal("before_char"), z.literal("after_char"), z.string(), z.number()])

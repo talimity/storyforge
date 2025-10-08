@@ -29,11 +29,7 @@ export function LorebookEditPage() {
         await queryClient.invalidateQueries(trpc.lorebooks.pathFilter());
         navigate("/lorebooks");
       },
-      onError: (error) =>
-        showErrorToast({
-          title: "Failed to save lorebook",
-          error,
-        }),
+      onError: (error) => showErrorToast({ title: "Failed to save lorebook", error }),
     })
   );
 
