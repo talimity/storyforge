@@ -62,6 +62,9 @@ describe("scenarios router integration", () => {
       expect(activeResult.scenarios).toHaveLength(1);
       expect(activeResult.scenarios[0]?.name).toBe("Active Scenario");
       expect(activeResult.scenarios[0]?.status).toBe("active");
+      expect(activeResult.scenarios[0]).toHaveProperty("turnCount");
+      expect(activeResult.scenarios[0]).toHaveProperty("participantCount");
+      expect(activeResult.scenarios[0]).toHaveProperty("isStarred");
 
       // Test filtering by archived status
       const archivedResult = await caller.scenarios.list({
@@ -74,6 +77,25 @@ describe("scenarios router integration", () => {
       // Test getting all scenarios
       const allResult = await caller.scenarios.list({});
       expect(allResult.scenarios).toHaveLength(2);
+    });
+  });
+
+  describe("scenarios.setStarred", () => {
+    it("should toggle scenario starred state", async () => {
+      const result = await caller.scenarios.create({
+        name: "Toggle Scenario",
+        description: "Scenario used to test starring",
+        status: "active",
+        characterIds: testCharas.map((c) => c.id),
+      });
+
+      await caller.scenarios.setStarred({ id: result.id, isStarred: true });
+      const starredList = await caller.scenarios.list({ starred: true });
+      expect(starredList.scenarios.find((s) => s.id === result.id)?.isStarred).toBe(true);
+
+      await caller.scenarios.setStarred({ id: result.id, isStarred: false });
+      const clearedList = await caller.scenarios.list({ starred: true });
+      expect(clearedList.scenarios.find((s) => s.id === result.id)).toBeUndefined();
     });
   });
 

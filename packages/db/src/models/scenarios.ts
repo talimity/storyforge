@@ -10,6 +10,7 @@ export const scenarios = sqliteTable("scenarios", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   status: text("status").$type<"active" | "archived">().notNull().default("active"),
+  isStarred: integer("is_starred", { mode: "boolean" }).notNull().default(false),
   rootTurnId: text("root_turn_id").references(
     (): AnySQLiteColumn => turns.id, // First turn in the scenario
     { onDelete: "set null" }

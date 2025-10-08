@@ -11,13 +11,14 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import type { ScenarioWithCharacters } from "@storyforge/contracts";
+import type { ScenarioLibraryItem } from "@storyforge/contracts";
 import {
   LuCalendar,
   LuEllipsisVertical,
   LuHourglass,
   LuPencilLine,
   LuPlay,
+  LuStar,
   LuTrash,
 } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
@@ -26,10 +27,11 @@ import { Button } from "@/components/ui/index";
 import { CharacterPile } from "@/features/characters/components/character-pile";
 import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
 import { useScenarioActions } from "@/features/scenarios/hooks/use-scenario-actions";
+import { useScenarioStar } from "@/features/scenarios/hooks/use-scenario-star";
 import { formatDate } from "@/lib/formatting";
 
 interface ScenarioCardProps {
-  scenario: ScenarioWithCharacters;
+  scenario: ScenarioLibraryItem;
 }
 
 export function ScenarioCard({ scenario }: ScenarioCardProps) {
@@ -40,6 +42,7 @@ export function ScenarioCard({ scenario }: ScenarioCardProps) {
     openDeleteDialog,
     closeDeleteDialog,
   } = useScenarioActions(scenario.id);
+  const { toggleStar, isPendingFor } = useScenarioStar();
 
   // defer mounting heavy chakra components until in view
   const { ref, inView } = useInView({ triggerOnce: true, rootMargin: "200px" });
@@ -47,9 +50,11 @@ export function ScenarioCard({ scenario }: ScenarioCardProps) {
   return (
     <Card.Root layerStyle="surface" ref={ref}>
       <Card.Header>
-        <Heading size="lg" truncate>
-          <Link to={`/scenarios/${scenario.id}/edit`}>{scenario.name}</Link>
-        </Heading>
+        <HStack justify="space-between" align="start" gap={2}>
+          <Heading size="lg" truncate flex={1}>
+            <Link to={`/scenarios/${scenario.id}/edit`}>{scenario.name}</Link>
+          </Heading>
+        </HStack>
       </Card.Header>
       <Card.Body>
         <VStack align="start" gap={4}>
@@ -82,7 +87,7 @@ export function ScenarioCard({ scenario }: ScenarioCardProps) {
             <HStack gap={2}>
               <LuHourglass size={14} />
               <Text fontSize="xs" color="content.muted">
-                {`${0} turns`}
+                {`${scenario.turnCount} turn${scenario.turnCount === 1 ? "" : "s"}`}
               </Text>
             </HStack>
           </HStack>
@@ -95,6 +100,20 @@ export function ScenarioCard({ scenario }: ScenarioCardProps) {
                 Play
               </Link>
             </Button>
+
+            <IconButton
+              aria-label={scenario.isStarred ? "Unstar scenario" : "Star scenario"}
+              variant={scenario.isStarred ? "solid" : "outline"}
+              colorPalette={scenario.isStarred ? "accent" : "neutral"}
+              size="sm"
+              onClick={(event) => {
+                event.stopPropagation();
+                toggleStar(scenario.id, !scenario.isStarred);
+              }}
+              loading={isPendingFor(scenario.id)}
+            >
+              <LuStar fill={scenario.isStarred ? "currentColor" : "none"} stroke="currentColor" />
+            </IconButton>
 
             {inView ? (
               <Menu.Root positioning={{ placement: "bottom-end" }}>

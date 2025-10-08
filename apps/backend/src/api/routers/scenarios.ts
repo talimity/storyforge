@@ -6,8 +6,10 @@ import {
   scenarioSchema,
   scenarioSearchQuerySchema,
   scenarioSearchResponseSchema,
+  scenariosListQuerySchema,
   scenariosWithCharactersListResponseSchema,
   scenarioWithCharactersSchema,
+  setScenarioStarredSchema,
   updateScenarioSchema,
 } from "@storyforge/contracts";
 import { TRPCError } from "@trpc/server";
@@ -19,12 +21,10 @@ import {
   getScenarioEnvironment,
   listScenarios,
   searchScenarios,
+  setScenarioStarred,
 } from "../../services/scenario/scenario.queries.js";
 import { ScenarioService } from "../../services/scenario/scenario.service.js";
-import {
-  transformScenarioDetail,
-  transformScenarioOverview,
-} from "../../services/scenario/scenario.transforms.js";
+import { transformScenarioDetail } from "../../services/scenario/scenario.transforms.js";
 import { publicProcedure, router } from "../index.js";
 
 export const scenariosRouter = router({
@@ -53,13 +53,13 @@ export const scenariosRouter = router({
         summary: "List scenarios, with participants",
       },
     })
-    .input(z.object({ status: z.enum(["active", "archived"]).optional() }))
+    .input(scenariosListQuerySchema.optional())
     .output(scenariosWithCharactersListResponseSchema)
     .query(async ({ input, ctx }) => {
-      const scenarios = await listScenarios(ctx.db, { status: input.status });
+      const scenarios = await listScenarios(ctx.db, input);
 
       return {
-        scenarios: scenarios.map(transformScenarioOverview),
+        scenarios,
       };
     }),
 
@@ -128,6 +128,29 @@ export const scenariosRouter = router({
       }
 
       return scenario;
+    }),
+
+  setStarred: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/scenarios/{id}/starred",
+        tags: ["scenarios"],
+        summary: "Set scenario starred state",
+      },
+    })
+    .input(setScenarioStarredSchema)
+    .output(z.object({ id: z.string(), isStarred: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      const updated = await setScenarioStarred(ctx.db, input);
+      if (!updated) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scenario not found",
+        });
+      }
+
+      return { id: updated.id, isStarred: Boolean(updated.isStarred) };
     }),
 
   delete: publicProcedure

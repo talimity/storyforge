@@ -20,6 +20,7 @@ export const characters = sqliteTable("characters", {
   styleInstructions: text("style_instructions"),
   tags: text("tags", { mode: "json" }).$type<string[]>().default(sql`'[]'`),
   revision: text("revision"),
+  isStarred: integer("is_starred", { mode: "boolean" }).notNull().default(false),
   tavernCardData: text("tavern_card_data", { mode: "json" }),
   portrait: blob("portrait", { mode: "buffer" }),
   portraitFocalPoint: text("portrait_focal_point", { mode: "json" })

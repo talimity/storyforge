@@ -1,9 +1,18 @@
-import { ActionBar, Container, Flex, Grid } from "@chakra-ui/react";
-import type { CharacterSummary } from "@storyforge/contracts";
+import {
+  ActionBar,
+  Container,
+  Flex,
+  Grid,
+  HStack,
+  Input,
+  InputGroup,
+  Stack,
+} from "@chakra-ui/react";
+import type { CharacterLibraryItem } from "@storyforge/contracts";
 import { createId } from "@storyforge/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { LuLayoutGrid, LuLayoutList, LuPlay, LuUsersRound } from "react-icons/lu";
+import { type MouseEventHandler, useState } from "react";
+import { LuLayoutGrid, LuLayoutList, LuPlay, LuSearch, LuUsersRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import {
   ActionBarContent,
@@ -18,12 +27,14 @@ import {
   CharacterCard,
   CharacterCardSkeleton,
 } from "@/features/characters/components/character-card";
+import { CharacterFilterPopover } from "@/features/characters/components/character-filters";
 import { CharacterImportDialog } from "@/features/characters/components/character-import-dialog";
 import { CharacterPile } from "@/features/characters/components/character-pile";
 import {
   CompactCharacterCard,
   CompactCharacterCardSkeleton,
 } from "@/features/characters/components/compact-character-card";
+import { useCharacterLibraryState } from "@/features/characters/hooks/use-character-library-state";
 import { useTRPC } from "@/lib/trpc";
 
 const viewModeOptions = [
@@ -31,45 +42,69 @@ const viewModeOptions = [
   { value: "grid", label: <LuLayoutGrid /> },
 ];
 
+const characterSortOptions = [
+  { value: "default", label: "Default" },
+  { value: "createdAt", label: "Newest" },
+  { value: "lastTurnAt", label: "Recently Played" },
+  { value: "turnCount", label: "Turns Authored" },
+];
+
+const GRID_SKELETON_IDS = Array.from({ length: 20 }, () => createId());
+const LIST_SKELETON_IDS = Array.from({ length: 20 }, () => createId());
+
 export function CharacterLibraryPage() {
   const trpc = useTRPC();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
-    const saved = localStorage.getItem("character-library-view-mode");
-    return saved !== null ? JSON.parse(saved) : "grid";
-  });
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([]);
-  const charaQuery = useQuery(trpc.characters.list.queryOptions());
-  const charas = charaQuery.data?.characters || [];
 
-  // Persist view mode to localStorage
-  useEffect(() => {
-    localStorage.setItem("character-library-view-mode", JSON.stringify(viewMode));
-  }, [viewMode]);
+  const {
+    sort,
+    setSort,
+    viewMode,
+    setViewMode,
+    actorTypes,
+    setActorTypes,
+    starredOnly,
+    setStarredOnly,
+    isFilterActive,
+    clearFilters,
+    searchInput,
+    onSearchInputChange,
+    clearSearch,
+    queryInput,
+  } = useCharacterLibraryState();
+
+  const charaQuery = useQuery(trpc.characters.list.queryOptions(queryInput));
+  const charas = charaQuery.data?.characters ?? [];
 
   const toggleCharacterSelection = (characterId: string) => {
-    setSelectedCharacterIds((prev) => {
-      if (prev.includes(characterId)) {
-        return prev.filter((id) => id !== characterId);
-      } else {
-        return [...prev, characterId];
+    setSelectedCharacterIds((previous) => {
+      if (previous.includes(characterId)) {
+        return previous.filter((id) => id !== characterId);
       }
+      return [...previous, characterId];
     });
   };
 
-  // Delegate clicks from the card grid/list to avoid per-card handler props
-  const handleLibraryClick: React.MouseEventHandler<HTMLElement> = (e) => {
-    const target = e.target as HTMLElement | null;
+  const handleLibraryClick: MouseEventHandler<HTMLElement> = (event) => {
+    const target = event.target as HTMLElement | null;
     const cardEl = target?.closest<HTMLElement>("[data-character-id]");
-    if (!cardEl) return;
+    if (!cardEl) {
+      return;
+    }
     const id = cardEl.getAttribute("data-character-id");
-    if (!id) return;
+    if (!id) {
+      return;
+    }
     toggleCharacterSelection(id);
   };
 
   const handleStartScenario = () => {
+    if (selectedCharacterIds.length < 2) {
+      return;
+    }
     const params = new URLSearchParams();
     params.set("characterIds", selectedCharacterIds.join(","));
     navigate(`/scenarios/create?${params.toString()}`);
@@ -83,11 +118,22 @@ export function CharacterLibraryPage() {
         <PageHeader.Root>
           <PageHeader.Title>Character Library</PageHeader.Title>
           <PageHeader.Controls>
-            <PageHeader.ViewModes
-              options={viewModeOptions}
-              defaultValue={viewMode}
-              onChange={(value) => setViewMode(value as "grid" | "list")}
-            />
+            <HStack gap={2} align="center">
+              <PageHeader.Sort options={characterSortOptions} value={sort} onChange={setSort} />
+              <CharacterFilterPopover
+                actorTypes={actorTypes}
+                onActorTypesChange={setActorTypes}
+                starredOnly={starredOnly}
+                onStarredOnlyChange={setStarredOnly}
+                onClear={isFilterActive ? clearFilters : undefined}
+                isDirty={isFilterActive}
+              />
+              <PageHeader.ViewModes
+                options={viewModeOptions}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+            </HStack>
             <SplitButton
               buttonLabel="Create Character"
               menuItems={[
@@ -104,6 +150,25 @@ export function CharacterLibraryPage() {
             />
           </PageHeader.Controls>
         </PageHeader.Root>
+
+        <Stack
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          gap={3}
+          mb={4}
+        >
+          <InputGroup
+            startElement={<LuSearch />}
+            endElement={searchInput ? <CloseButton size="sm" onClick={clearSearch} /> : undefined}
+          >
+            <Input
+              placeholder="Search characters..."
+              value={searchInput}
+              onChange={(event) => onSearchInputChange(event.target.value)}
+            />
+          </InputGroup>
+        </Stack>
 
         {charaQuery.error ? (
           <ErrorEmptyState
@@ -133,12 +198,14 @@ export function CharacterLibraryPage() {
             onClick={handleLibraryClick}
           >
             {charaQuery.isLoading
-              ? [...Array(20)].map(() => <CompactCharacterCardSkeleton key={createId()} />)
-              : charas.map((c) => (
+              ? LIST_SKELETON_IDS.map((skeletonId) => (
+                  <CompactCharacterCardSkeleton key={skeletonId} />
+                ))
+              : charas.map((character) => (
                   <CompactCharacterCard
-                    key={c.id}
-                    character={c}
-                    isSelected={selectedCharacterIds.includes(c.id)}
+                    key={character.id}
+                    character={character}
+                    isSelected={selectedCharacterIds.includes(character.id)}
                   />
                 ))}
           </Grid>
@@ -150,7 +217,7 @@ export function CharacterLibraryPage() {
         onClose={() => setIsImportModalOpen(false)}
         onImportSuccess={() => qc.invalidateQueries(trpc.characters.list.pathFilter())}
       />
-      <ActionBar.Root open={selectedCharacterIds.length > 1} closeOnEscape={true}>
+      <ActionBar.Root open={selectedCharacterIds.length > 1} closeOnEscape>
         <ActionBarContent layerStyle="contrast" colorPalette="contrast">
           <Container>
             <Flex align="center">
@@ -182,7 +249,7 @@ export function CharacterLibraryPage() {
 }
 
 function CharaGridView(props: {
-  characters: CharacterSummary[];
+  characters: CharacterLibraryItem[];
   selectedCharacterIds: string[];
   isLoading: boolean;
   onCardClick: (characterId: string) => void;
@@ -200,8 +267,8 @@ function CharaGridView(props: {
       }}
       justifyContent="center"
       gap={4}
-      onClick={(e) => {
-        const target = e.target as HTMLElement | null;
+      onClick={(event) => {
+        const target = event.target as HTMLElement | null;
         const cardEl = target?.closest<HTMLElement>("[data-character-id]");
         if (!cardEl) return;
         const id = cardEl.getAttribute("data-character-id");
@@ -210,9 +277,7 @@ function CharaGridView(props: {
       }}
     >
       {isLoading
-        ? Array.from({ length: 20 }, (_, i) => `skeleton-${i}`).map((skeletonId) => (
-            <CharacterCardSkeleton key={skeletonId} />
-          ))
+        ? GRID_SKELETON_IDS.map((skeletonId) => <CharacterCardSkeleton key={skeletonId} />)
         : characters.map((character) => (
             <CharacterCard
               key={character.id}
@@ -224,7 +289,7 @@ function CharaGridView(props: {
   );
 }
 
-function getSelectedCharacters(characters: CharacterSummary[], selectedCharacterIds: string[]) {
+function getSelectedCharacters(characters: CharacterLibraryItem[], selectedCharacterIds: string[]) {
   if (!characters) return [];
   return selectedCharacterIds
     .map((id) => characters.find((char) => char.id === id))

@@ -7,10 +7,12 @@ import {
   characterImportSchema,
   characterSchema,
   characterSummarySchema,
+  charactersListQuerySchema,
   charactersListResponseSchema,
   characterWithRelationsSchema,
   createCharacterSchema,
   focalPointSchema,
+  setCharacterStarredSchema,
   updateCharacterSchema,
 } from "@storyforge/contracts";
 import { TRPCError } from "@trpc/server";
@@ -20,6 +22,7 @@ import {
   getCharacters,
   listCharacters,
   searchCharacters,
+  setCharacterStarred,
 } from "../../services/character/character.queries.js";
 import { transformCharacter } from "../../services/character/character.transforms.js";
 import { CharacterService } from "../../services/character/character-service.js";
@@ -38,11 +41,11 @@ export const charactersRouter = router({
         summary: "Returns all characters",
       },
     })
-    .input(z.void())
+    .input(charactersListQuerySchema.optional())
     .output(charactersListResponseSchema)
-    .query(async ({ ctx }) => {
-      const characters = await listCharacters(ctx.db);
-      return { characters: characters.map(transformCharacter) };
+    .query(async ({ ctx, input }) => {
+      const characters = await listCharacters(ctx.db, input);
+      return { characters };
     }),
 
   search: publicProcedure
@@ -199,6 +202,29 @@ export const charactersRouter = router({
       }
 
       return transformCharacter(updatedCharacter);
+    }),
+
+  setStarred: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/characters/{id}/starred",
+        tags: ["characters"],
+        summary: "Set character starred state",
+      },
+    })
+    .input(setCharacterStarredSchema)
+    .output(z.object({ id: z.string(), isStarred: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      const updated = await setCharacterStarred(ctx.db, input);
+      if (!updated) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+
+      return { id: updated.id, isStarred: Boolean(updated.isStarred) };
     }),
 
   resetPortraitCrop: publicProcedure

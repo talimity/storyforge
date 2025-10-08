@@ -1,5 +1,6 @@
-import { type SqliteDatabase, schema } from "@storyforge/db";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import type { CharactersListQueryInput } from "@storyforge/contracts";
+import { type SqliteDatabase, schema, sqliteTimestampToDate } from "@storyforge/db";
+import { and, asc, desc, eq, inArray, isNotNull, type SQL, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { getCharaAssetPaths } from "./utils/chara-asset-helpers.js";
 
@@ -8,10 +9,136 @@ const {
   characterStarters: tCharacterStarters,
   characterExamples: tCharacterExamples,
   scenarioParticipants: tScenarioParticipants,
+  turns: tTurns,
 } = schema;
 
-export async function listCharacters(db: SqliteDatabase) {
-  return db.select().from(tCharacters).orderBy(tCharacters.cardType, tCharacters.name).all();
+type ListCharactersParams = CharactersListQueryInput | undefined;
+
+export async function listCharacters(db: SqliteDatabase, params?: ListCharactersParams) {
+  const filters = params ?? {};
+  const turnStats = db.$with("character_turn_stats").as(
+    db
+      .select({
+        characterId: tScenarioParticipants.characterId,
+        turnCount: sql<number>`SUM(CASE WHEN ${tTurns.isGhost} = 0 THEN 1 ELSE 0 END)`.as(
+          "turnCount"
+        ),
+        lastTurnAt: sql<
+          number | null
+        >`MAX(CASE WHEN ${tTurns.isGhost} = 0 THEN ${tTurns.createdAt} ELSE NULL END)`.as(
+          "lastTurnAt"
+        ),
+      })
+      .from(tScenarioParticipants)
+      .leftJoin(tTurns, eq(tTurns.authorParticipantId, tScenarioParticipants.id))
+      .where(
+        and(
+          isNotNull(tScenarioParticipants.characterId),
+          eq(tScenarioParticipants.type, "character"),
+          eq(tScenarioParticipants.status, "active")
+        )
+      )
+      .groupBy(tScenarioParticipants.characterId)
+  );
+
+  const baseQuery = db
+    .with(turnStats)
+    .select({
+      id: tCharacters.id,
+      name: tCharacters.name,
+      cardType: tCharacters.cardType,
+      tags: tCharacters.tags,
+      creatorNotes: tCharacters.creatorNotes,
+      createdAt: tCharacters.createdAt,
+      updatedAt: tCharacters.updatedAt,
+      isStarred: tCharacters.isStarred,
+      turnCount: sql<number>`COALESCE(${turnStats.turnCount}, 0)`,
+      lastTurnAt: turnStats.lastTurnAt,
+      hasPortrait: sql<number>`CASE WHEN ${tCharacters.portrait} IS NULL THEN 0 ELSE 1 END`,
+    })
+    .from(tCharacters)
+    .leftJoin(turnStats, eq(turnStats.characterId, tCharacters.id))
+    .$dynamic();
+
+  const conditions: SQL[] = [];
+
+  if (filters.actorTypes && filters.actorTypes.length > 0) {
+    conditions.push(inArray(tCharacters.cardType, filters.actorTypes));
+  }
+
+  if (typeof filters.starred === "boolean") {
+    conditions.push(eq(tCharacters.isStarred, filters.starred));
+  }
+
+  if (filters.search && filters.search.trim().length > 0) {
+    const searchTerm = `%${filters.search.trim().replaceAll("%", "\\%").replaceAll("_", "\\_")}%`;
+    conditions.push(sql`lower(${tCharacters.name}) LIKE lower(${searchTerm})`);
+  }
+
+  if (conditions.length > 0) {
+    baseQuery.where(and(...conditions));
+  }
+
+  const sort = filters.sort ?? "default";
+  const orderings: SQL[] = [];
+  switch (sort) {
+    case "createdAt":
+      orderings.push(desc(tCharacters.createdAt));
+      break;
+    case "lastTurnAt":
+      orderings.push(desc(sql`COALESCE(${turnStats.lastTurnAt}, 0)`));
+      break;
+    case "turnCount":
+      orderings.push(desc(sql`COALESCE(${turnStats.turnCount}, 0)`));
+      break;
+    default:
+      orderings.push(asc(tCharacters.cardType));
+  }
+
+  if (sort === "turnCount" || sort === "lastTurnAt") {
+    orderings.push(desc(tCharacters.updatedAt));
+  }
+
+  orderings.push(asc(tCharacters.name));
+
+  const rows = await baseQuery.orderBy(...orderings).all();
+
+  return rows.map((row) => {
+    const { imagePath, avatarPath } = getCharaAssetPaths({
+      id: row.id,
+      hasPortrait: row.hasPortrait,
+      updatedAt: row.updatedAt,
+    });
+
+    return {
+      id: row.id,
+      name: row.name,
+      cardType: row.cardType,
+      tags: Array.isArray(row.tags) ? row.tags : [],
+      creatorNotes: row.creatorNotes,
+      createdAt: sqliteTimestampToDate(row.createdAt),
+      updatedAt: sqliteTimestampToDate(row.updatedAt),
+      isStarred: Boolean(row.isStarred),
+      lastTurnAt: row.lastTurnAt ? sqliteTimestampToDate(row.lastTurnAt) : null,
+      turnCount: Number(row.turnCount ?? 0),
+      imagePath,
+      avatarPath,
+    };
+  });
+}
+
+export async function setCharacterStarred(
+  db: SqliteDatabase,
+  args: { id: string; isStarred: boolean }
+) {
+  const updated = await db
+    .update(tCharacters)
+    .set({ isStarred: args.isStarred })
+    .where(eq(tCharacters.id, args.id))
+    .returning({ id: tCharacters.id, isStarred: tCharacters.isStarred })
+    .all();
+
+  return updated[0] ?? null;
 }
 
 export async function getCharacters(db: SqliteDatabase, ids: string[]) {

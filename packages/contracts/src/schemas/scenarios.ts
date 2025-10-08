@@ -72,6 +72,7 @@ export const scenarioSchema = z.object({
   name: z.string(),
   description: z.string(),
   status: z.enum(["active", "archived"]),
+  isStarred: z.boolean(),
   settings: z.record(z.string(), z.unknown()).default({}),
   metadata: z.record(z.string(), z.unknown()).default({}),
   createdAt: z.date(),
@@ -82,12 +83,40 @@ export const scenarioWithCharactersSchema = scenarioSchema.extend({
   characters: z.array(scenarioParticipantSchema),
 });
 
+export const scenarioLibrarySortSchema = z.enum([
+  "default",
+  "createdAt",
+  "lastTurnAt",
+  "turnCount",
+  "starred",
+  "participantCount",
+]);
+
+export const scenariosListQuerySchema = z.object({
+  search: z.string().trim().optional(),
+  status: z.enum(["active", "archived"]).optional(),
+  starred: z.boolean().optional(),
+  sort: scenarioLibrarySortSchema.optional(),
+});
+
+export const scenarioLibraryItemSchema = scenarioWithCharactersSchema.extend({
+  isStarred: z.boolean(),
+  lastTurnAt: z.date().nullable(),
+  turnCount: z.number().int().nonnegative(),
+  participantCount: z.number().int().nonnegative(),
+});
+
 export const scenariosListResponseSchema = z.object({
   scenarios: z.array(scenarioSchema),
 });
 
 export const scenariosWithCharactersListResponseSchema = z.object({
-  scenarios: z.array(scenarioWithCharactersSchema),
+  scenarios: z.array(scenarioLibraryItemSchema),
+});
+
+export const setScenarioStarredSchema = z.object({
+  id: z.string().min(1),
+  isStarred: z.boolean(),
 });
 
 // Search/autocomplete schemas (lightweight results)
@@ -158,6 +187,7 @@ export const playEnvironmentOutputSchema = z.object({
 // Export inferred types
 export type Scenario = z.infer<typeof scenarioSchema>;
 export type ScenarioWithCharacters = z.infer<typeof scenarioWithCharactersSchema>;
+export type ScenarioLibraryItem = z.infer<typeof scenarioLibraryItemSchema>;
 export type ScenarioParticipant = z.infer<typeof scenarioParticipantSchema>;
 export type CreateScenarioInput = z.infer<typeof createScenarioSchema>;
 export type UpdateScenarioInput = z.infer<typeof updateScenarioSchema>;
@@ -165,6 +195,7 @@ export type AssignCharacterInput = z.infer<typeof assignCharacterSchema>;
 export type UnassignCharacterInput = z.infer<typeof unassignCharacterSchema>;
 export type ReorderCharactersInput = z.infer<typeof reorderCharactersSchema>;
 export type ScenariosListResponse = z.infer<typeof scenariosListResponseSchema>;
+export type ScenariosListQueryInput = z.infer<typeof scenariosListQuerySchema>;
 export type CharacterWithStarters = z.infer<typeof characterWithStartersSchema>;
 export type ScenarioCharacterStartersResponse = z.infer<
   typeof scenarioCharacterStartersResponseSchema
@@ -173,3 +204,5 @@ export type ScenarioSearchQuery = z.infer<typeof scenarioSearchQuerySchema>;
 export type ScenarioSearchResult = z.infer<typeof scenarioSearchResultSchema>;
 export type ScenarioSearchResponse = z.infer<typeof scenarioSearchResponseSchema>;
 export type PlayEnvironmentOutput = z.infer<typeof playEnvironmentOutputSchema>;
+export type ScenarioLibrarySort = z.infer<typeof scenarioLibrarySortSchema>;
+export type SetScenarioStarredInput = z.infer<typeof setScenarioStarredSchema>;

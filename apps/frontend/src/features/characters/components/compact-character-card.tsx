@@ -17,6 +17,7 @@ import {
   LuEllipsisVertical,
   LuPencilLine,
   LuSquareUserRound,
+  LuStar,
   LuTrash,
 } from "react-icons/lu";
 import { Link } from "react-router-dom";
@@ -24,6 +25,7 @@ import { Avatar } from "@/components/ui/index";
 import { cardTypeLabels } from "@/features/characters/character-enums";
 import { CharacterDeleteDialog } from "@/features/characters/components/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
+import { useCharacterStar } from "@/features/characters/hooks/use-character-star";
 import { getApiUrl } from "@/lib/get-api-url";
 
 interface CompactCharacterCardProps {
@@ -32,6 +34,7 @@ interface CompactCharacterCardProps {
     name: string;
     cardType: CardType;
     avatarPath: string | null;
+    isStarred?: boolean;
   };
   isSelected?: boolean;
 }
@@ -44,6 +47,7 @@ export function CompactCharacterCard({ character, isSelected = false }: CompactC
     openDeleteDialog,
     closeDeleteDialog,
   } = useCharacterActions(character.id);
+  const { toggleStar, isPendingFor } = useCharacterStar();
 
   return (
     <>
@@ -97,6 +101,20 @@ export function CompactCharacterCard({ character, isSelected = false }: CompactC
             {cardTypeLabels[character.cardType]}
           </Text>
         </Stack>
+
+        <IconButton
+          aria-label={character.isStarred ? "Unstar character" : "Star character"}
+          size="xs"
+          variant={character.isStarred ? "solid" : "ghost"}
+          colorPalette={character.isStarred ? "accent" : "neutral"}
+          onClick={(event) => {
+            event.stopPropagation();
+            toggleStar(character.id, !character.isStarred);
+          }}
+          loading={isPendingFor(character.id)}
+        >
+          <LuStar fill={character.isStarred ? "currentColor" : "none"} stroke="currentColor" />
+        </IconButton>
 
         <Menu.Root positioning={{ placement: "bottom-end" }}>
           <Box display="flex" alignItems="center">

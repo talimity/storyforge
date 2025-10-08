@@ -3,6 +3,7 @@ import {
   Card,
   Heading,
   HStack,
+  Icon,
   IconButton,
   Image,
   Menu,
@@ -17,12 +18,14 @@ import {
   LuEllipsisVertical,
   LuPencilLine,
   LuSquareUserRound,
+  LuStar,
   LuTrash,
 } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
 import { Link } from "react-router-dom";
 import { CharacterDeleteDialog } from "@/features/characters/components/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";
+import { useCharacterStar } from "@/features/characters/hooks/use-character-star";
 import { getApiUrl } from "@/lib/get-api-url";
 
 interface CharacterCardProps {
@@ -31,6 +34,7 @@ interface CharacterCardProps {
     name: string;
     imagePath: string | null;
     avatarPath: string | null;
+    isStarred?: boolean;
   };
   isSelected?: boolean;
   readOnly?: boolean;
@@ -49,6 +53,7 @@ export const CharacterCard = memo(function CharacterCard({
     openDeleteDialog,
     closeDeleteDialog,
   } = useCharacterActions(character.id);
+  const { toggleStar, isPendingFor } = useCharacterStar();
   // defer mounting heavy chakra menu/dialog components until in view
   const { ref, inView } = useInView({ triggerOnce: true });
 
@@ -111,6 +116,17 @@ export const CharacterCard = memo(function CharacterCard({
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
+                    <Menu.Item
+                      value={character.isStarred ? "unstar" : "star"}
+                      onSelect={() => toggleStar(character.id, !character.isStarred)}
+                      disabled={isPendingFor(character.id)}
+                    >
+                      <LuStar
+                        fill={character.isStarred ? "currentColor" : "none"}
+                        stroke="currentColor"
+                      />
+                      <Box flex="1">{character.isStarred ? "Unstar" : "Star"}</Box>
+                    </Menu.Item>
                     <Menu.Item value="edit" asChild>
                       <Link to={`/characters/${character.id}/edit`}>
                         <LuPencilLine />
@@ -148,6 +164,7 @@ export const CharacterCard = memo(function CharacterCard({
                 <VisuallyHidden>Selected</VisuallyHidden>
               </Box>
             )}
+            {character.isStarred && <Icon as={LuStar} color="accent.500" boxSize={4} />}
             <Heading as="h3" size="sm" fontWeight="bold" truncate>
               {character.name}
             </Heading>

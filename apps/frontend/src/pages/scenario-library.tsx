@@ -1,19 +1,50 @@
-import { Container, Grid, HStack } from "@chakra-ui/react";
-import { createId } from "@storyforge/utils";
+import { Container, Grid, HStack, Input, InputGroup, Stack } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { LuBookOpen, LuImport, LuPlus } from "react-icons/lu";
+import { LuBookOpen, LuImport, LuPlus, LuSearch } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
+import { Button, CloseButton, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
 import { ChatImportDialog } from "@/features/scenario-import/components/chat-import-dialog";
 import { ScenarioCard, ScenarioCardSkeleton } from "@/features/scenarios/components/scenario-card";
+import { ScenarioFilterPopover } from "@/features/scenarios/components/scenario-filters";
+import { useScenarioLibraryState } from "@/features/scenarios/hooks/use-scenario-library-state";
 import { useTRPC } from "@/lib/trpc";
+
+const scenarioSortOptions = [
+  { value: "default", label: "Title" },
+  { value: "createdAt", label: "Newest" },
+  { value: "lastTurnAt", label: "Recently Played" },
+  { value: "turnCount", label: "# Turns" },
+  { value: "starred", label: "Starred" },
+  { value: "participantCount", label: "Participants" },
+];
+
+const SCENARIO_SKELETON_IDS = Array.from(
+  { length: 15 },
+  (_, index) => `scenario-skeleton-${index}`
+);
 
 export function ScenarioLibraryPage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const scenariosQuery = useQuery(trpc.scenarios.list.queryOptions({}));
+
+  const {
+    sort,
+    setSort,
+    statusFilter,
+    setStatusFilter,
+    starredOnly,
+    setStarredOnly,
+    isFilterActive,
+    clearFilters,
+    searchInput,
+    onSearchInputChange,
+    clearSearch,
+    queryInput,
+  } = useScenarioLibraryState();
+
+  const scenariosQuery = useQuery(trpc.scenarios.list.queryOptions(queryInput));
   const scenarios = scenariosQuery.data?.scenarios ?? [];
 
   return (
@@ -21,6 +52,17 @@ export function ScenarioLibraryPage() {
       <PageHeader.Root>
         <PageHeader.Title>Scenario Library</PageHeader.Title>
         <PageHeader.Controls>
+          <HStack gap={2} align="center">
+            <PageHeader.Sort options={scenarioSortOptions} value={sort} onChange={setSort} />
+            <ScenarioFilterPopover
+              status={statusFilter}
+              onStatusChange={setStatusFilter}
+              starredOnly={starredOnly}
+              onStarredOnlyChange={setStarredOnly}
+              onClear={isFilterActive ? clearFilters : undefined}
+              isDirty={isFilterActive}
+            />
+          </HStack>
           <HStack gap={2}>
             <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
               <LuImport />
@@ -35,6 +77,25 @@ export function ScenarioLibraryPage() {
           </HStack>
         </PageHeader.Controls>
       </PageHeader.Root>
+
+      <Stack
+        direction={{ base: "column", md: "row" }}
+        gap={3}
+        align={{ base: "stretch", md: "center" }}
+        justify="space-between"
+        mb={4}
+      >
+        <InputGroup
+          startElement={<LuSearch />}
+          endElement={searchInput ? <CloseButton size="sm" onClick={clearSearch} /> : undefined}
+        >
+          <Input
+            placeholder="Search scenarios..."
+            value={searchInput}
+            onChange={(event) => onSearchInputChange(event.target.value)}
+          />
+        </InputGroup>
+      </Stack>
 
       {scenariosQuery.error ? (
         <ErrorEmptyState
@@ -51,10 +112,17 @@ export function ScenarioLibraryPage() {
           onActionClick={() => navigate("/characters")}
         />
       ) : (
-        <Grid templateColumns="repeat(auto-fit, 320px)" justifyContent="center" gap={4}>
+        <Grid
+          templateColumns={{
+            base: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))",
+            md: "repeat(auto-fill, minmax(300px, 1fr))",
+          }}
+          justifyContent="center"
+          gap={4}
+        >
           {scenariosQuery.isLoading
-            ? [...Array(15)].map(() => <ScenarioCardSkeleton key={createId()} />)
-            : scenarios.map((s) => <ScenarioCard key={s.id} scenario={s} />)}
+            ? SCENARIO_SKELETON_IDS.map((id) => <ScenarioCardSkeleton key={id} />)
+            : scenarios.map((scenario) => <ScenarioCard key={scenario.id} scenario={scenario} />)}
         </Grid>
       )}
 

@@ -1,5 +1,5 @@
 import { createId } from "@storyforge/utils";
-import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { characters } from "./characters.js";
 import { scenarios } from "./scenarios.js";
 
@@ -34,6 +34,7 @@ export const scenarioParticipants = sqliteTable(
   (table) => [
     // Only one record per scenario-character pair (when characterId is not null)
     unique("idx_scenario_character_unique").on(table.scenarioId, table.characterId),
+    index("idx_scenario_participant_character").on(table.characterId),
   ]
 );
 

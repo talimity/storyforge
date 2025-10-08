@@ -213,6 +213,12 @@ function CharacterSelectorExample() {
 }
 
 function PageHeaderExamples() {
+  const [assetSort, setAssetSort] = useState("name");
+  const [assetView, setAssetView] = useState("grid");
+  const [librarySort, setLibrarySort] = useState("name");
+  const [dashboardSort, setDashboardSort] = useState("name");
+  const [dashboardView, setDashboardView] = useState("grid");
+
   return (
     <VStack gap={8} align="stretch">
       <Text mb={4}>Header with tabs only</Text>
@@ -257,16 +263,22 @@ function PageHeaderExamples() {
                 { value: "date", label: "Date" },
                 { value: "size", label: "Size" },
               ]}
-              defaultValue="name"
-              onChange={(value) => console.log("Sort changed:", value)}
+              value={assetSort}
+              onChange={(value) => {
+                setAssetSort(value);
+                console.log("Sort changed:", value);
+              }}
             />
             <PageHeader.ViewModes
               options={[
                 { value: "list", label: <LuLayoutList /> },
                 { value: "grid", label: <LuLayoutGrid /> },
               ]}
-              defaultValue="grid"
-              onChange={(value) => console.log("View mode changed:", value)}
+              value={assetView}
+              onChange={(value) => {
+                setAssetView(value);
+                console.log("View mode changed:", value);
+              }}
             />
             <Button size="sm">
               <LuPlus /> Upload Asset
@@ -299,8 +311,11 @@ function PageHeaderExamples() {
                   { value: "date", label: "Date" },
                   { value: "size", label: "Size" },
                 ]}
-                defaultValue="name"
-                onChange={(value) => console.log("Sort changed:", value)}
+                value={librarySort}
+                onChange={(value) => {
+                  setLibrarySort(value);
+                  console.log("Sort changed:", value);
+                }}
               />
             </PageHeader.Controls>
             <Tabs.Content value="images">
@@ -339,16 +354,22 @@ function PageHeaderExamples() {
                   { value: "date", label: "Date" },
                   { value: "size", label: "Size" },
                 ]}
-                defaultValue="name"
-                onChange={(value) => console.log("Sort changed:", value)}
+                value={dashboardSort}
+                onChange={(value) => {
+                  setDashboardSort(value);
+                  console.log("Sort changed:", value);
+                }}
               />
               <PageHeader.ViewModes
                 options={[
                   { value: "list", label: <LuLayoutList /> },
                   { value: "grid", label: <LuLayoutGrid /> },
                 ]}
-                defaultValue="grid"
-                onChange={(value) => console.log("View mode changed:", value)}
+                value={dashboardView}
+                onChange={(value) => {
+                  setDashboardView(value);
+                  console.log("View mode changed:", value);
+                }}
               />
               <Button variant="solid" colorPalette="primary">
                 <LuPlus /> New Campaign

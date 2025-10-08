@@ -125,6 +125,26 @@ export const characterSummarySchema = characterSchema.pick({
   updatedAt: true,
 });
 
+export const characterLibrarySortSchema = z.enum([
+  "default",
+  "createdAt",
+  "lastTurnAt",
+  "turnCount",
+]);
+
+export const charactersListQuerySchema = z.object({
+  search: z.string().trim().optional(),
+  actorTypes: z.array(cardTypeSchema).min(1).optional(),
+  starred: z.boolean().optional(),
+  sort: characterLibrarySortSchema.optional(),
+});
+
+export const characterLibraryItemSchema = characterSummarySchema.extend({
+  isStarred: z.boolean(),
+  lastTurnAt: z.date().nullable(),
+  turnCount: z.number().int().nonnegative(),
+});
+
 export const characterWithRelationsSchema = characterSchema.extend({
   starters: z.array(characterStarterSchema),
   examples: z.array(characterExampleSchema),
@@ -141,7 +161,12 @@ export const characterImportResponseSchema = z.object({
 });
 
 export const charactersListResponseSchema = z.object({
-  characters: z.array(characterSummarySchema),
+  characters: z.array(characterLibraryItemSchema),
+});
+
+export const setCharacterStarredSchema = z.object({
+  id: z.string().min(1),
+  isStarred: z.boolean(),
 });
 
 export const characterAutocompleteInputSchema = z.object({
@@ -166,6 +191,8 @@ export const characterAutocompleteResponseSchema = z.object({
 export type Character = z.infer<typeof characterSchema>;
 export type CharacterWithRelations = z.infer<typeof characterWithRelationsSchema>;
 export type CharacterSummary = z.infer<typeof characterSummarySchema>;
+export type CharacterLibraryItem = z.infer<typeof characterLibraryItemSchema>;
+export type CharacterLibrarySort = z.infer<typeof characterLibrarySortSchema>;
 export type CharacterStarter = z.infer<typeof characterStarterSchema>;
 export type CharacterExample = z.infer<typeof characterExampleSchema>;
 export type CharacterImportInput = z.infer<typeof characterImportSchema>;
@@ -173,8 +200,10 @@ export type CharacterImportResponse = z.infer<typeof characterImportResponseSche
 export type CreateCharacterInput = z.infer<typeof createCharacterSchema>;
 export type UpdateCharacterInput = z.infer<typeof updateCharacterSchema>;
 export type CharactersListResponse = z.infer<typeof charactersListResponseSchema>;
+export type CharactersListQueryInput = z.infer<typeof charactersListQuerySchema>;
 export type CharacterAutocompleteInput = z.infer<typeof characterAutocompleteInputSchema>;
 export type CharacterAutocompleteItem = z.infer<typeof characterAutocompleteItemSchema>;
 export type CharacterAutocompleteResponse = z.infer<typeof characterAutocompleteResponseSchema>;
 export type CharacterStarterInput = z.infer<typeof characterStarterInputSchema>;
 export type FocalPoint = z.infer<typeof focalPointSchema>;
+export type SetCharacterStarredInput = z.infer<typeof setCharacterStarredSchema>;

@@ -2,11 +2,11 @@ import {
   Badge,
   Box,
   type Container,
+  createListCollection,
   Flex,
   Heading,
   type HeadingProps,
   HStack,
-  NativeSelect,
   SegmentGroup,
   Spacer,
   type StackProps,
@@ -23,8 +23,16 @@ import {
   type ReactElement,
   type ReactNode,
   useEffect,
+  useMemo,
 } from "react";
 import { LuArrowUpDown } from "react-icons/lu";
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "@/components/ui/select";
 
 // Root component that manages layout
 interface PageHeaderRootProps extends PropsWithChildren {
@@ -157,32 +165,48 @@ interface SortOption {
 
 interface PageHeaderSortProps {
   options: SortOption[];
-  defaultValue?: string;
+  value?: string;
   onChange?: (value: string) => void;
   label?: ReactNode;
 }
 
 function PageHeaderSort({
   options,
-  defaultValue,
+  value,
   onChange,
   label = <LuArrowUpDown />,
 }: PageHeaderSortProps) {
+  const collection = useMemo(() => createListCollection({ items: options }), [options]);
+  const currentValue = value ?? options[0]?.value ?? "";
+  const isDisabled = options.length === 0;
+
   return (
-    <HStack hideBelow="md">
+    <HStack>
       <Text fontWeight="medium" fontSize="sm">
         {label}
       </Text>
-      <NativeSelect.Root width="100px" defaultValue={defaultValue}>
-        <NativeSelect.Field onChange={onChange ? (e) => onChange(e.target.value) : undefined}>
+      <SelectRoot
+        width="40"
+        collection={collection}
+        value={currentValue ? [currentValue] : []}
+        onValueChange={(details) => {
+          const nextValue = details.value[0];
+          if (!nextValue) return;
+          onChange?.(nextValue);
+        }}
+        disabled={isDisabled}
+      >
+        <SelectTrigger>
+          <SelectValueText placeholder="Select sort" />
+        </SelectTrigger>
+        <SelectContent portalled>
           {options.map((option) => (
-            <option key={option.value} value={option.value}>
+            <SelectItem key={option.value} item={option}>
               {option.label}
-            </option>
+            </SelectItem>
           ))}
-        </NativeSelect.Field>
-        <NativeSelect.Indicator />
-      </NativeSelect.Root>
+        </SelectContent>
+      </SelectRoot>
     </HStack>
   );
 }
@@ -195,16 +219,29 @@ interface ViewModeOption {
 
 interface PageHeaderViewModesProps {
   options: ViewModeOption[];
-  defaultValue?: string;
+  value?: string;
   onChange?: (value: string) => void;
 }
 
-function PageHeaderViewModes({ options, defaultValue, onChange }: PageHeaderViewModesProps) {
+function PageHeaderViewModes({ options, value, onChange }: PageHeaderViewModesProps) {
+  if (options.length === 0) {
+    return null;
+  }
+  const fallbackValue = value ?? options[0]?.value ?? "";
+
   return (
     <SegmentGroup.Root
-      hideBelow="md"
-      defaultValue={defaultValue || options[0]?.value}
-      onValueChange={onChange ? (details) => details.value && onChange(details.value) : undefined}
+      value={fallbackValue}
+      onValueChange={
+        onChange
+          ? (details) => {
+              const nextValue = details.value;
+              if (nextValue) {
+                onChange(nextValue);
+              }
+            }
+          : undefined
+      }
     >
       <SegmentGroup.Indicator />
       <SegmentGroup.Items items={options} />
@@ -285,7 +322,6 @@ function PageHeaderTabs({ tabs, defaultValue, onChange, children, ...rest }: Pag
   );
 }
 
-// Export compound component
 export const PageHeader = {
   Root: PageHeaderRoot,
   Title: PageHeaderTitle,
@@ -296,7 +332,6 @@ export const PageHeader = {
   Tabs: PageHeaderTabs,
 };
 
-// Preset for simple headers
 export const SimplePageHeader = ({
   title,
   tagline,

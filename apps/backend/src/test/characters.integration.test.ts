@@ -44,7 +44,28 @@ describe("characters router integration", () => {
       expect(result.characters).toHaveLength(fixtureCount);
       expect(result.characters[0]).toHaveProperty("id");
       expect(result.characters[0]).toHaveProperty("name");
+      expect(result.characters[0]).toHaveProperty("turnCount");
+      expect(result.characters[0]).toHaveProperty("isStarred");
+      expect(result.characters[0]).toHaveProperty("lastTurnAt");
       // Note: characters.list returns stub objects without description field
+    });
+  });
+
+  describe("characters.setStarred", () => {
+    it("should toggle starred state and filter", async () => {
+      const created = await caller.characters.create({
+        name: "Starred Hero",
+        description: "Testing star toggle",
+      });
+
+      await caller.characters.setStarred({ id: created.id, isStarred: true });
+
+      const starredList = await caller.characters.list({ starred: true });
+      expect(starredList.characters.find((c) => c.id === created.id)?.isStarred).toBe(true);
+
+      await caller.characters.setStarred({ id: created.id, isStarred: false });
+      const clearedList = await caller.characters.list({ starred: true });
+      expect(clearedList.characters.find((c) => c.id === created.id)).toBeUndefined();
     });
   });
 

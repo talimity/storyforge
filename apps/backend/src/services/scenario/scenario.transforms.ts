@@ -3,10 +3,10 @@ import type {
   ScenarioWithCharacters as ApiScenarioWithCharacters,
 } from "@storyforge/contracts";
 import { transformCharacterSummary } from "../character/character.transforms.js";
-import type { ScenarioDetail, ScenarioOverview } from "./scenario.queries.js";
+import type { ScenarioDetail } from "./scenario.queries.js";
 
 export function transformScenarioParticipant(
-  p: ScenarioOverview["participants"][number]
+  p: NonNullable<ScenarioDetail>["participants"][number]
 ): ApiScenarioParticipant {
   if (!p.character) {
     throw new Error(`Scenario participant ${p.id} has no character`);
@@ -18,18 +18,12 @@ export function transformScenarioParticipant(
   };
 }
 
-export function transformScenarioOverview(so: ScenarioOverview) {
-  return {
-    ...so,
-    characters: so.participants.map(transformScenarioParticipant),
-  };
-}
-
 export function transformScenarioDetail(
   sd: NonNullable<ScenarioDetail>
 ): ApiScenarioWithCharacters {
+  const { participants, ...rest } = sd;
   return {
-    ...sd,
-    characters: sd.participants.map(transformScenarioParticipant),
+    ...rest,
+    characters: participants.map(transformScenarioParticipant),
   };
 }
