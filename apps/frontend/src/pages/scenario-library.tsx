@@ -87,7 +87,9 @@ export function ScenarioLibraryPage() {
       >
         <InputGroup
           startElement={<LuSearch />}
-          endElement={searchInput ? <CloseButton size="sm" onClick={clearSearch} /> : undefined}
+          endElement={
+            searchInput ? <CloseButton size="sm" onClick={clearSearch} me="-2" /> : undefined
+          }
         >
           <Input
             placeholder="Search scenarios..."

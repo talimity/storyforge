@@ -93,8 +93,13 @@ async function seedScenario(db: SqliteDatabase) {
     name: "Intent Test Scenario",
     description: "",
     status: "active",
-    characterIds: [alice.id, bob.id],
-    userProxyCharacterId: alice.id,
+    settings: {},
+    metadata: {},
+    participants: [
+      { characterId: alice.id, isUserProxy: true },
+      { characterId: bob.id, isUserProxy: false },
+    ],
+    lorebooks: [],
   });
   return sc.id;
 }

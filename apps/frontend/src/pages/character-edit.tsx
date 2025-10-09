@@ -1,4 +1,4 @@
-import { Container, Spinner, Stack, Text } from "@chakra-ui/react";
+import { Container, Heading, Separator, Spinner, Stack, Text } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -9,6 +9,7 @@ import {
   CharacterForm,
   type CharacterFormData,
 } from "@/features/characters/components/character-form";
+import { CharacterLorebookManager } from "@/features/characters/components/character-lorebook-manager";
 import { showSuccessToast } from "@/lib/error-handling";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
@@ -132,6 +133,11 @@ export function CharacterEditPage() {
           }
           characterId={id}
         />
+        <Separator my={6} />
+        <Stack gap={4}>
+          <Heading size="md">Linked Lorebooks</Heading>
+          <CharacterLorebookManager characterId={id ?? ""} />
+        </Stack>
       </Container>
 
       <CharacterDeleteDialog

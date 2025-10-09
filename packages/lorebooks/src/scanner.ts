@@ -14,8 +14,11 @@ export type NormalizedLorebookPosition = "before_char" | "after_char";
 
 export type LorebookAssignment = {
   lorebookId: string;
-  orderIndex: number;
+  kind: "manual" | "character";
   enabled: boolean;
+  defaultEnabled: boolean;
+  characterId: string | null;
+  characterLorebookId: string | null;
   data: LorebookData;
 };
 
@@ -100,15 +103,13 @@ export function scanLorebooksDebug(args: ScanLorebooksArgs): ScanLorebooksDebugR
 }
 
 function executeScan(args: ScanLorebooksArgs): ScanResult {
-  const sortedAssignments = [...args.lorebooks].sort(
-    (left, right) => left.orderIndex - right.orderIndex
-  );
+  const assignments = [...args.lorebooks];
 
   const index: ActivatedLoreIndex = { before_char: [], after_char: [] };
   const trace: LorebookEvaluationTrace[] = [];
   const sharedActivationSegments: string[] = [];
 
-  for (const assignment of sortedAssignments) {
+  for (const assignment of assignments) {
     const evaluation = evaluateLorebook(
       assignment,
       args.turns,

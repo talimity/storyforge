@@ -1,7 +1,6 @@
+import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
-
-import path = require("node:path");
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

@@ -1,8 +1,8 @@
-import { sha256 } from "@noble/hashes/sha256";
-import { utf8ToBytes } from "@noble/hashes/utils";
 import type { LorebookData } from "./schema.js";
 
-export function computeLorebookFingerprint(data: LorebookData): string {
+export type LorebookHasher = (input: string) => string;
+
+export function computeLorebookFingerprint(data: LorebookData, hash: LorebookHasher): string {
   const canonicalEntries = data.entries
     .map<CanonicalEntry>((entry) => ({
       keys: [...entry.keys].sort(localeCompare),
@@ -28,8 +28,7 @@ export function computeLorebookFingerprint(data: LorebookData): string {
   };
 
   const json = JSON.stringify(canonical);
-  const hash = sha256(utf8ToBytes(json));
-  return bytesToHex(hash);
+  return hash(json);
 }
 
 type CanonicalEntry = {
@@ -74,12 +73,4 @@ function compareCanonicalEntries(left: CanonicalEntry, right: CanonicalEntry): n
 
 function localeCompare(a: string, b: string): number {
   return a.localeCompare(b);
-}
-
-function bytesToHex(bytes: Uint8Array): string {
-  let hex = "";
-  for (const byte of bytes) {
-    hex += byte.toString(16).padStart(2, "0");
-  }
-  return hex;
 }

@@ -1,5 +1,5 @@
 import { createId } from "@storyforge/utils";
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { lorebooks } from "./lorebooks.js";
 import { scenarios } from "./scenarios.js";
 
@@ -16,7 +16,6 @@ export const scenarioLorebooks = sqliteTable(
       .notNull()
       .references(() => lorebooks.id, { onDelete: "restrict" }),
     enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
-    orderIndex: integer("order_index").notNull().default(0),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),
@@ -29,7 +28,6 @@ export const scenarioLorebooks = sqliteTable(
       table.scenarioId,
       table.lorebookId
     ),
-    scenarioOrder: index("idx_scenario_lorebooks_order").on(table.scenarioId, table.orderIndex),
   })
 );
 

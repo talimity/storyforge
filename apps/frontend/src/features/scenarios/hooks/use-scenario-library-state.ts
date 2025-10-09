@@ -11,7 +11,6 @@ const scenarioLibraryPersistSchema = z.object({
   sort: scenarioLibrarySortSchema.optional(),
   status: z.enum(["all", "active", "archived"]).optional(),
   starred: z.boolean().optional(),
-  search: z.string().optional(),
 });
 
 type ScenarioLibraryPersistedState = z.infer<typeof scenarioLibraryPersistSchema>;
@@ -35,7 +34,6 @@ function hasScenarioQueryParams(params: URLSearchParams): boolean {
   if (params.has("sort")) return true;
   if (params.has("status")) return true;
   if (params.has("starred")) return true;
-  if (params.has("search")) return true;
   return false;
 }
 
@@ -58,12 +56,6 @@ function applyScenarioStoredState(params: URLSearchParams, stored: ScenarioLibra
     } else {
       params.delete("starred");
     }
-  }
-
-  if (stored.search && stored.search.length > 0) {
-    params.set("search", stored.search);
-  } else {
-    params.delete("search");
   }
 }
 
@@ -110,7 +102,7 @@ export function useScenarioLibraryState(): ScenarioLibraryState {
   const starredOnly = starredParam === "true" ? true : storedState?.starred === true;
 
   const searchParam = searchParams.get("search");
-  const searchTerm = searchParam !== null ? searchParam : (storedState?.search ?? "");
+  const searchTerm = searchParam !== null ? searchParam : "";
   const [searchInput, setSearchInput] = useState(searchTerm);
 
   useEffect(() => {
@@ -148,7 +140,6 @@ export function useScenarioLibraryState(): ScenarioLibraryState {
       sort,
       status: statusFilter,
       starred: starredOnly,
-      search: searchTerm,
     };
 
     try {
@@ -156,7 +147,7 @@ export function useScenarioLibraryState(): ScenarioLibraryState {
     } catch (error) {
       console.error(error);
     }
-  }, [isHydrated, sort, starredOnly, statusFilter, searchTerm]);
+  }, [isHydrated, sort, starredOnly, statusFilter]);
 
   const updateParams = (mutator: (params: URLSearchParams) => void) => {
     const next = new URLSearchParams(searchParams);

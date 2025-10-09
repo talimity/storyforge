@@ -15,7 +15,6 @@ const characterLibraryPersistSchema = z.object({
   view: z.enum(["grid", "list"]).optional(),
   actorTypes: z.array(cardTypeSchema).optional(),
   starred: z.boolean().optional(),
-  search: z.string().optional(),
 });
 
 type CharacterLibraryPersistedState = z.infer<typeof characterLibraryPersistSchema>;
@@ -49,7 +48,6 @@ function hasCharacterQueryParams(params: URLSearchParams): boolean {
   if (params.has("view")) return true;
   if (params.getAll("actorType").length > 0) return true;
   if (params.has("starred")) return true;
-  if (params.has("search")) return true;
   return false;
 }
 
@@ -78,12 +76,6 @@ function applyCharacterStoredState(
     } else {
       params.delete("starred");
     }
-  }
-
-  if (stored.search && stored.search.length > 0) {
-    params.set("search", stored.search);
-  } else {
-    params.delete("search");
   }
 }
 
@@ -137,7 +129,7 @@ export function useCharacterLibraryState(): CharacterLibraryState {
     actorTypesFromParams.length > 0 ? actorTypesFromParams : (storedState?.actorTypes ?? []);
 
   const searchParam = searchParams.get("search");
-  const searchTerm = searchParam !== null ? searchParam : (storedState?.search ?? "");
+  const searchTerm = searchParam !== null ? searchParam : "";
   const [searchInput, setSearchInput] = useState(searchTerm);
 
   useEffect(() => {
@@ -176,7 +168,6 @@ export function useCharacterLibraryState(): CharacterLibraryState {
       view: viewMode,
       actorTypes,
       starred: starredOnly,
-      search: searchTerm,
     };
 
     try {
@@ -184,7 +175,7 @@ export function useCharacterLibraryState(): CharacterLibraryState {
     } catch (error) {
       console.error(error);
     }
-  }, [actorTypes, isHydrated, sort, starredOnly, viewMode, searchTerm]);
+  }, [actorTypes, isHydrated, sort, starredOnly, viewMode]);
 
   const updateParams = (mutator: (params: URLSearchParams) => void) => {
     const next = new URLSearchParams(searchParams);

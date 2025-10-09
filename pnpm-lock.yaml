@@ -234,6 +234,9 @@ importers:
       '@storyforge/inference':
         specifier: workspace:*
         version: link:../../packages/inference
+      '@storyforge/lorebooks':
+        specifier: workspace:*
+        version: link:../../packages/lorebooks
       '@storyforge/prompt-rendering':
         specifier: workspace:*
         version: link:../../packages/prompt-rendering
@@ -510,9 +513,6 @@ importers:
 
   packages/lorebooks:
     dependencies:
-      '@noble/hashes':
-        specifier: ^2.0.1
-        version: 2.0.1
       '@storyforge/prompt-rendering':
         specifier: workspace:*
         version: link:../prompt-rendering
@@ -1528,10 +1528,6 @@ packages:
 
   '@neon-rs/load@0.0.4':
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
-
-  '@noble/hashes@2.0.1':
-    resolution: {integrity: sha512-XlOlEbQcE9fmuXxrVTXCTlG2nlRXa9Rj3rr5Ue/+tX+nmkgbX720YHh0VR3hBF9xDvwnb8D2shVGOwNx+ulArw==}
-    engines: {node: '>= 20.19.0'}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -6091,8 +6087,6 @@ snapshots:
       - supports-color
 
   '@neon-rs/load@0.0.4': {}
-
-  '@noble/hashes@2.0.1': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:

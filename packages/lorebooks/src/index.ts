@@ -1,3 +1,4 @@
+export type { LorebookHasher } from "./fingerprint.js";
 export { computeLorebookFingerprint } from "./fingerprint.js";
 export {
   normalizeLorebookData,
@@ -32,3 +33,4 @@ export {
   lorebookEntrySchema,
   lorebookEvaluationTraceSchema,
 } from "./schema.js";
+export { sortScenarioLorebooks } from "./utils.js";

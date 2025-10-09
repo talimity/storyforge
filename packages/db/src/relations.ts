@@ -34,6 +34,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.scenarios.id.through(r.scenarioLorebooks.scenarioId),
       to: r.lorebooks.id.through(r.scenarioLorebooks.lorebookId),
     }),
+    characterLorebookOverrides: r.many.scenarioCharacterLorebookOverrides(),
   },
   turns: {
     authorParticipant: r.one.scenarioParticipants({
@@ -87,6 +88,20 @@ export const relations = defineRelations(schema, (r) => ({
     lorebook: r.one.lorebooks({
       from: r.characterLorebooks.lorebookId,
       to: r.lorebooks.id,
+    }),
+    scenarioOverrides: r.many.scenarioCharacterLorebookOverrides({
+      from: r.characterLorebooks.id,
+      to: r.scenarioCharacterLorebookOverrides.characterLorebookId,
+    }),
+  },
+  scenarioCharacterLorebookOverrides: {
+    scenario: r.one.scenarios({
+      from: r.scenarioCharacterLorebookOverrides.scenarioId,
+      to: r.scenarios.id,
+    }),
+    characterLorebook: r.one.characterLorebooks({
+      from: r.scenarioCharacterLorebookOverrides.characterLorebookId,
+      to: r.characterLorebooks.id,
     }),
   },
   turnLayers: {

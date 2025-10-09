@@ -7,17 +7,18 @@ import {
   Skeleton,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { Suspense, useEffect } from "react";
-import { LuArrowLeft, LuSettings } from "react-icons/lu";
+import { Suspense, useEffect, useState } from "react";
+import { LuArrowLeft, LuBookOpen, LuSettings } from "react-icons/lu";
 import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/index";
+import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { ScenarioNavigation } from "@/features/scenario-player/components/scenario-navigation";
-
 import {
   ScenarioProvider,
   useScenarioContext,
 } from "@/features/scenario-player/providers/scenario-provider";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 
 export function PlayerShell() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,8 @@ function PlayerShellInner() {
   const isMobile = useBreakpointValue({ base: true, lg: false });
 
   const { scenario } = useScenarioContext();
+  const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (scenario.title) {
@@ -86,6 +89,12 @@ function PlayerShellInner() {
 
         {/* Right Section - Meta Toolbar */}
         <HStack gap={2}>
+          <Button variant="ghost" size="sm" onClick={() => setShowPreview(true)}>
+            <HStack gap={2}>
+              <LuBookOpen />
+              <span>Lore Preview</span>
+            </HStack>
+          </Button>
           <IconButton position="fixed" variant="ghost" size="sm">
             <LuSettings />
           </IconButton>
@@ -111,6 +120,14 @@ function PlayerShellInner() {
           <Outlet />
         </Box>
       </Flex>
+
+      <LoreActivationPreviewDialog
+        isOpen={showPreview}
+        onOpenChange={setShowPreview}
+        scenarioId={scenario.id}
+        leafTurnId={previewLeafTurnId ?? undefined}
+        title={`Lore Preview – ${scenario.title}`}
+      />
     </Flex>
   );
 }

@@ -31,6 +31,12 @@ describe("scenarios router integration", () => {
     ];
   });
 
+  const scenarioParticipants = (proxyIndex = 0) =>
+    testCharas.map((chara, index) => ({
+      characterId: chara.id,
+      isUserProxy: index === proxyIndex,
+    }));
+
   afterEach(() => {
     cleanupTestDatabase(testDb);
   });
@@ -47,14 +53,20 @@ describe("scenarios router integration", () => {
         name: "Active Scenario",
         description: "An active scenario",
         status: "active",
-        characterIds: testCharas.map((c) => c.id),
+        settings: {},
+        metadata: {},
+        participants: scenarioParticipants(0),
+        lorebooks: [],
       });
 
       await caller.scenarios.create({
         name: "Archived Scenario",
         description: "An archived scenario",
         status: "archived",
-        characterIds: testCharas.map((c) => c.id),
+        settings: {},
+        metadata: {},
+        participants: scenarioParticipants(0),
+        lorebooks: [],
       });
 
       // Test filtering by active status
@@ -86,7 +98,10 @@ describe("scenarios router integration", () => {
         name: "Toggle Scenario",
         description: "Scenario used to test starring",
         status: "active",
-        characterIds: testCharas.map((c) => c.id),
+        settings: {},
+        metadata: {},
+        participants: scenarioParticipants(0),
+        lorebooks: [],
       });
 
       await caller.scenarios.setStarred({ id: result.id, isStarred: true });
@@ -105,7 +120,10 @@ describe("scenarios router integration", () => {
         name: "Test Scenario",
         description: "A test scenario for integration testing",
         status: "active" as const,
-        characterIds: testCharas.map((c) => c.id),
+        settings: {},
+        metadata: {},
+        participants: scenarioParticipants(0),
+        lorebooks: [],
       };
 
       const result = await caller.scenarios.create(newScenario);
@@ -140,7 +158,10 @@ describe("scenarios router integration", () => {
         name: "Test Scenario",
         description: "A test scenario",
         status: "active",
-        characterIds: testCharas.map((c) => c.id),
+        settings: {},
+        metadata: {},
+        participants: scenarioParticipants(0),
+        lorebooks: [],
       });
 
       const result = await caller.scenarios.getById({ id: newScenario.id });
@@ -165,7 +186,10 @@ describe("scenarios router integration", () => {
         name: "Original Name",
         description: "Original description",
         status: "active",
-        characterIds: testCharas.map((c) => c.id),
+        settings: {},
+        metadata: {},
+        participants: scenarioParticipants(0),
+        lorebooks: [],
       });
 
       const updateData = {
@@ -173,6 +197,10 @@ describe("scenarios router integration", () => {
         name: "Updated Name",
         description: "Updated description",
         status: "archived" as const,
+        settings: {},
+        metadata: {},
+        participants: scenarioParticipants(1),
+        lorebooks: [],
       };
 
       const result = await caller.scenarios.update(updateData);
@@ -198,7 +226,10 @@ describe("scenarios router integration", () => {
         name: "To Be Deleted",
         description: "This scenario will be deleted",
         status: "active",
-        characterIds: testCharas.map((c) => c.id),
+        settings: {},
+        metadata: {},
+        participants: scenarioParticipants(0),
+        lorebooks: [],
       });
 
       await caller.scenarios.delete({ id: newScenario.id });

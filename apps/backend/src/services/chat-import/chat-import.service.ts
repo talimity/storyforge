@@ -89,12 +89,12 @@ export class ChatImportService {
         });
       }
 
-      const characterIds: string[] = [];
-      for (const mapping of args.mappings) {
-        if (mapping.targetType === "character") {
-          characterIds.push(mapping.characterId);
-        }
-      }
+      const participantPayload = args.mappings
+        .filter(
+          (mapping): mapping is typeof mapping & { targetType: "character" } =>
+            mapping.targetType === "character"
+        )
+        .map((mapping) => ({ characterId: mapping.characterId, isUserProxy: false }));
 
       const scenario = await this.scenarioService.createScenario(
         {
@@ -102,7 +102,11 @@ export class ChatImportService {
           description:
             args.scenarioDescription ||
             `Imported from SillyTavern on ${new Date().toLocaleDateString()}`,
-          characterIds,
+          status: "active",
+          settings: {},
+          metadata: {},
+          participants: participantPayload,
+          lorebooks: [],
         },
         tx
       );

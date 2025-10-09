@@ -1,10 +1,17 @@
 import { z } from "zod";
 import { characterStarterSchema, characterSummarySchema } from "./character.js";
 import { intentSchema } from "./intents.js";
+import { scenarioLorebookAssignmentInputSchema, scenarioLorebookItemSchema } from "./lorebook.js";
 
 // Input schemas
 export const scenarioIdSchema = z.object({
   id: z.string().min(1),
+});
+
+const scenarioParticipantInputSchema = z.object({
+  characterId: z.string().min(1),
+  role: z.string().optional(),
+  isUserProxy: z.boolean().default(false),
 });
 
 export const createScenarioSchema = z.object({
@@ -13,8 +20,11 @@ export const createScenarioSchema = z.object({
   status: z.enum(["active", "archived"]).default("active"),
   settings: z.record(z.string(), z.unknown()).default({}),
   metadata: z.record(z.string(), z.unknown()).default({}),
-  characterIds: z.array(z.string()).min(2, "A scenario requires at least 2 characters").default([]),
-  userProxyCharacterId: z.string().optional(),
+  participants: z
+    .array(scenarioParticipantInputSchema)
+    .min(2, "A scenario requires at least 2 characters")
+    .default([]),
+  lorebooks: z.array(scenarioLorebookAssignmentInputSchema).default([]),
 });
 
 export const updateScenarioSchema = z.object({
@@ -24,15 +34,8 @@ export const updateScenarioSchema = z.object({
   status: z.enum(["active", "archived"]).optional(),
   settings: z.record(z.string(), z.unknown()).default({}),
   metadata: z.record(z.string(), z.unknown()).default({}),
-  participants: z
-    .array(
-      z.object({
-        characterId: z.string(),
-        role: z.string().optional(),
-        isUserProxy: z.boolean().default(false),
-      })
-    )
-    .optional(),
+  participants: z.array(scenarioParticipantInputSchema).optional(),
+  lorebooks: z.array(scenarioLorebookAssignmentInputSchema).optional(),
 });
 
 // Character participant schemas
@@ -81,6 +84,7 @@ export const scenarioSchema = z.object({
 
 export const scenarioWithCharactersSchema = scenarioSchema.extend({
   characters: z.array(scenarioParticipantSchema),
+  lorebooks: z.array(scenarioLorebookItemSchema),
 });
 
 export const scenarioLibrarySortSchema = z.enum([
@@ -189,6 +193,7 @@ export type Scenario = z.infer<typeof scenarioSchema>;
 export type ScenarioWithCharacters = z.infer<typeof scenarioWithCharactersSchema>;
 export type ScenarioLibraryItem = z.infer<typeof scenarioLibraryItemSchema>;
 export type ScenarioParticipant = z.infer<typeof scenarioParticipantSchema>;
+export type ScenarioParticipantInput = z.infer<typeof scenarioParticipantInputSchema>;
 export type CreateScenarioInput = z.infer<typeof createScenarioSchema>;
 export type UpdateScenarioInput = z.infer<typeof updateScenarioSchema>;
 export type AssignCharacterInput = z.infer<typeof assignCharacterSchema>;

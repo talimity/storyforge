@@ -162,6 +162,20 @@
       "when": 1760726174781,
       "tag": "0022_library-starred-items",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1760748926637,
+      "tag": "0023_lorebook-scenario-assignments",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1760762760119,
+      "tag": "0024_lorebook-overrides",
+      "breakpoints": true
     }
   ]
 }

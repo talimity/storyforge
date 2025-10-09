@@ -1,5 +1,10 @@
+import type {
+  CreateScenarioInput,
+  ScenarioLorebookAssignmentInput,
+  ScenarioParticipantInput,
+  UpdateScenarioInput,
+} from "@storyforge/contracts";
 import {
-  type NewScenario,
   type Scenario,
   type ScenarioParticipant,
   type SqliteDatabase,
@@ -7,39 +12,21 @@ import {
   schema,
 } from "@storyforge/db";
 import { assertDefined } from "@storyforge/utils";
-import { eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
-
-interface CreateScenarioData extends NewScenario {
-  characterIds?: string[];
-  userProxyCharacterId?: string;
-}
-
-interface UpdateScenarioData extends Partial<NewScenario> {
-  participants?: Array<{
-    characterId: string;
-    role?: string;
-    isUserProxy?: boolean;
-  }>;
-}
+import { LorebookService } from "../lorebook/lorebook.service.js";
 
 export class ScenarioService {
-  constructor(private db: SqliteDatabase) {}
+  private readonly lorebookService: LorebookService;
 
-  async createScenario(data: CreateScenarioData, outerTx?: SqliteTransaction) {
-    const { characterIds = [], userProxyCharacterId, ...scenarioData } = data;
+  constructor(private db: SqliteDatabase) {
+    this.lorebookService = new LorebookService(db);
+  }
 
-    if (characterIds.length < 2) {
-      throw new ServiceError("InvalidInput", {
-        message: "A scenario must have at least 2 characters.",
-      });
-    }
+  async createScenario(input: CreateScenarioInput, outerTx?: SqliteTransaction) {
+    const { participants, lorebooks, ...scenarioData } = input;
 
-    if (userProxyCharacterId && !characterIds.includes(userProxyCharacterId)) {
-      throw new ServiceError("InvalidInput", {
-        message: "User proxy character must be one of the scenario participants.",
-      });
-    }
+    this.assertValidParticipants(participants);
 
     const operation = async (tx: SqliteTransaction) => {
       const [sc] = await tx.insert(schema.scenarios).values(scenarioData).returning().all();
@@ -55,17 +42,35 @@ export class ScenarioService {
         })
         .execute();
 
-      await tx
+      const participantRows = await tx
         .insert(schema.scenarioParticipants)
         .values(
-          characterIds.map((characterId, orderIndex) => ({
+          participants.map((participant, orderIndex) => ({
             scenarioId: sc.id,
-            characterId,
+            characterId: participant.characterId,
+            role: participant.role,
+            isUserProxy: participant.isUserProxy ?? false,
             orderIndex,
-            isUserProxy: characterId === userProxyCharacterId,
+            type: "character" as const,
           }))
         )
-        .execute();
+        .returning({
+          id: schema.scenarioParticipants.id,
+          characterId: schema.scenarioParticipants.characterId,
+        });
+
+      const participantSnapshots = participantRows.map((row) => {
+        assertDefined(row.characterId);
+        return { participantId: row.id, characterId: row.characterId };
+      });
+
+      const assignments = await this.composeScenarioLorebookAssignments(
+        tx,
+        participantSnapshots,
+        lorebooks ?? []
+      );
+
+      await this.lorebookService.replaceScenarioLorebookSettings(sc.id, assignments, tx);
 
       return sc;
     };
@@ -73,8 +78,12 @@ export class ScenarioService {
     return outerTx ? operation(outerTx) : this.db.transaction(operation);
   }
 
-  async updateScenario(id: string, data: UpdateScenarioData, outerTx?: SqliteTransaction) {
-    const { participants, ...scenarioData } = data;
+  async updateScenario(
+    id: string,
+    data: Partial<Omit<UpdateScenarioInput, "id">>,
+    outerTx?: SqliteTransaction
+  ) {
+    const { participants, lorebooks, ...scenarioData } = data;
 
     const operation = async (tx: SqliteTransaction) => {
       let updatedScenario: Scenario | undefined;
@@ -105,6 +114,17 @@ export class ScenarioService {
         await this.reconcileParticipants(tx, id, participants);
       }
 
+      if (participants || lorebooks) {
+        const participantSnapshots = await this.getParticipantSnapshots(tx, id);
+        const requestedAssignments = lorebooks ?? (await this.getExistingScenarioLorebooks(tx, id));
+        const assignments = await this.composeScenarioLorebookAssignments(
+          tx,
+          participantSnapshots,
+          requestedAssignments
+        );
+        await this.lorebookService.replaceScenarioLorebookSettings(id, assignments, tx);
+      }
+
       return updatedScenario;
     };
 
@@ -114,16 +134,11 @@ export class ScenarioService {
   private async reconcileParticipants(
     tx: SqliteTransaction,
     scenarioId: string,
-    inputParticipants: UpdateScenarioData["participants"]
+    inputParticipants: readonly ScenarioParticipantInput[]
   ) {
     if (!inputParticipants) return;
 
-    // Validate minimum participants
-    if (inputParticipants.length < 2) {
-      throw new ServiceError("InvalidInput", {
-        message: "A scenario must have at least 2 characters.",
-      });
-    }
+    this.assertValidParticipants(inputParticipants);
 
     // Ensure only one user proxy
     const userProxyCount = inputParticipants.filter((p) => p.isUserProxy).length;
@@ -244,6 +259,142 @@ export class ScenarioService {
     }
   }
 
+  private assertValidParticipants(participants: readonly ScenarioParticipantInput[]) {
+    if (!participants || participants.length < 2) {
+      throw new ServiceError("InvalidInput", {
+        message: "A scenario must have at least 2 characters.",
+      });
+    }
+
+    const proxyCount = participants.filter((p) => p.isUserProxy).length;
+    if (proxyCount > 1) {
+      throw new ServiceError("InvalidInput", {
+        message: "Only one participant may be marked as the user proxy.",
+      });
+    }
+  }
+
+  private async getParticipantSnapshots(
+    tx: SqliteTransaction,
+    scenarioId: string
+  ): Promise<Array<{ participantId: string; characterId: string }>> {
+    const rows = await tx
+      .select({
+        id: schema.scenarioParticipants.id,
+        characterId: schema.scenarioParticipants.characterId,
+      })
+      .from(schema.scenarioParticipants)
+      .where(
+        and(
+          eq(schema.scenarioParticipants.scenarioId, scenarioId),
+          eq(schema.scenarioParticipants.type, "character"),
+          eq(schema.scenarioParticipants.status, "active")
+        )
+      )
+      .all();
+
+    return rows
+      .filter((row) => row.characterId)
+      .map((row) => {
+        assertDefined(row.characterId);
+        return { participantId: row.id, characterId: row.characterId };
+      });
+  }
+
+  private async getExistingScenarioLorebooks(
+    tx: SqliteTransaction,
+    scenarioId: string
+  ): Promise<ScenarioLorebookAssignmentInput[]> {
+    const manualAssignments = await tx
+      .select({
+        lorebookId: schema.scenarioLorebooks.lorebookId,
+        enabled: schema.scenarioLorebooks.enabled,
+      })
+      .from(schema.scenarioLorebooks)
+      .where(eq(schema.scenarioLorebooks.scenarioId, scenarioId));
+
+    const characterOverrides = await tx
+      .select({
+        characterLorebookId: schema.scenarioCharacterLorebookOverrides.characterLorebookId,
+        enabled: schema.scenarioCharacterLorebookOverrides.enabled,
+      })
+      .from(schema.scenarioCharacterLorebookOverrides)
+      .where(eq(schema.scenarioCharacterLorebookOverrides.scenarioId, scenarioId));
+
+    const assignments: ScenarioLorebookAssignmentInput[] = [];
+
+    for (const manual of manualAssignments) {
+      assignments.push({
+        kind: "manual",
+        lorebookId: manual.lorebookId,
+        enabled: Boolean(manual.enabled),
+      });
+    }
+
+    for (const override of characterOverrides) {
+      assignments.push({
+        kind: "character",
+        characterLorebookId: override.characterLorebookId,
+        enabled: Boolean(override.enabled),
+      });
+    }
+
+    return assignments;
+  }
+
+  private async composeScenarioLorebookAssignments(
+    tx: SqliteTransaction,
+    participants: Array<{ participantId: string; characterId: string }>,
+    requestedAssignments: readonly ScenarioLorebookAssignmentInput[]
+  ): Promise<ScenarioLorebookAssignmentInput[]> {
+    const participantCharacterIds = new Set(participants.map((p) => p.characterId));
+
+    const manualAssignments = new Map<string, ScenarioLorebookAssignmentInput>();
+    const overrideAssignments = new Map<string, ScenarioLorebookAssignmentInput>();
+
+    for (const assignment of requestedAssignments) {
+      if (assignment.kind === "manual") {
+        manualAssignments.set(assignment.lorebookId, {
+          kind: "manual",
+          lorebookId: assignment.lorebookId,
+          enabled: assignment.enabled ?? true,
+        });
+        continue;
+      }
+
+      overrideAssignments.set(assignment.characterLorebookId, {
+        kind: "character",
+        characterLorebookId: assignment.characterLorebookId,
+        enabled: assignment.enabled ?? true,
+      });
+    }
+
+    if (overrideAssignments.size > 0) {
+      const characterLorebookIds = Array.from(overrideAssignments.keys());
+      const links = await tx
+        .select({
+          id: schema.characterLorebooks.id,
+          characterId: schema.characterLorebooks.characterId,
+        })
+        .from(schema.characterLorebooks)
+        .where(inArray(schema.characterLorebooks.id, characterLorebookIds));
+
+      const validIds = new Set(
+        links
+          .filter((link) => link.characterId && participantCharacterIds.has(link.characterId))
+          .map((link) => link.id)
+      );
+
+      for (const key of overrideAssignments.keys()) {
+        if (!validIds.has(key)) {
+          overrideAssignments.delete(key);
+        }
+      }
+    }
+
+    return [...manualAssignments.values(), ...overrideAssignments.values()];
+  }
+
   async deleteScenario(id: string) {
     const result = await this.db
       .delete(schema.scenarios)
@@ -300,6 +451,15 @@ export class ScenarioService {
           orderIndex: type === "narrator" ? 999 : maxOrderIndex + 1,
         })
         .returning();
+
+      const participantSnapshots = await this.getParticipantSnapshots(tx, scenarioId);
+      const requestedAssignments = await this.getExistingScenarioLorebooks(tx, scenarioId);
+      const assignments = await this.composeScenarioLorebookAssignments(
+        tx,
+        participantSnapshots,
+        requestedAssignments
+      );
+      await this.lorebookService.replaceScenarioLorebookSettings(scenarioId, assignments, tx);
 
       return result[0];
     };

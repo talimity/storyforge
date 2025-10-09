@@ -15,7 +15,6 @@
     "typecheck:legacy": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@noble/hashes": "^2.0.1",
     "@storyforge/utils": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
     "zod": "catalog:"

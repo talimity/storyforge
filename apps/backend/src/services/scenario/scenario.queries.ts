@@ -1,5 +1,6 @@
 import type {
   ScenarioParticipant as ApiScenarioParticipant,
+  ScenarioLorebookItem,
   ScenariosListQueryInput,
 } from "@storyforge/contracts";
 import { schema as dbschema, type SqliteDatabase, sqliteTimestampToDate } from "@storyforge/db";
@@ -205,6 +206,8 @@ export async function listScenarios(db: SqliteDatabase, filters?: ListScenariosP
     charactersByScenario.set(participant.scenarioId, list);
   }
 
+  const lorebooksByScenario = await loadScenarioLorebookSummaries(db, scenarioIds);
+
   return scenarioRows.map((row) => {
     return {
       id: row.id,
@@ -222,6 +225,7 @@ export async function listScenarios(db: SqliteDatabase, filters?: ListScenariosP
         row.participantCount ?? charactersByScenario.get(row.id)?.length ?? 0
       ),
       characters: charactersByScenario.get(row.id) ?? [],
+      lorebooks: lorebooksByScenario.get(row.id) ?? [],
     };
   });
 }
@@ -283,11 +287,14 @@ export async function getScenarioDetail(db: SqliteDatabase, scenarioId: string) 
     )
     .all();
 
+  const lorebooksByScenario = await loadScenarioLorebookSummaries(db, [scenarioId]);
+
   return {
     ...scenario,
     turnCount: Number(turnMeta?.turnCount ?? 0),
     lastTurnAt: turnMeta?.lastTurnAt ? sqliteTimestampToDate(turnMeta.lastTurnAt) : null,
     participantCount: Number(participantMeta?.participantCount ?? scenario.participants.length),
+    lorebooks: lorebooksByScenario.get(scenarioId) ?? [],
   };
 }
 
@@ -350,6 +357,163 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
       .filter(isDefined)
       .map((c) => ({ id: c.id, name: c.name, ...getCharaAssetPaths(c) })),
   };
+}
+
+async function loadScenarioLorebookSummaries(
+  db: SqliteDatabase,
+  scenarioIds: string[]
+): Promise<Map<string, ScenarioLorebookItem[]>> {
+  if (scenarioIds.length === 0) {
+    return new Map();
+  }
+
+  const manualRows = await db
+    .select({
+      scenarioId: dbschema.scenarioLorebooks.scenarioId,
+      assignmentId: dbschema.scenarioLorebooks.id,
+      lorebookId: dbschema.scenarioLorebooks.lorebookId,
+      enabled: dbschema.scenarioLorebooks.enabled,
+      name: dbschema.lorebooks.name,
+      entryCount: dbschema.lorebooks.entryCount,
+    })
+    .from(dbschema.scenarioLorebooks)
+    .innerJoin(dbschema.lorebooks, eq(dbschema.scenarioLorebooks.lorebookId, dbschema.lorebooks.id))
+    .where(inArray(dbschema.scenarioLorebooks.scenarioId, scenarioIds))
+    .all();
+
+  const participants = await db
+    .select({
+      scenarioId: dbschema.scenarioParticipants.scenarioId,
+      characterId: dbschema.scenarioParticipants.characterId,
+      status: dbschema.scenarioParticipants.status,
+    })
+    .from(dbschema.scenarioParticipants)
+    .where(
+      and(
+        inArray(dbschema.scenarioParticipants.scenarioId, scenarioIds),
+        eq(dbschema.scenarioParticipants.type, "character"),
+        isNotNull(dbschema.scenarioParticipants.characterId)
+      )
+    )
+    .all();
+
+  const overrides = await db
+    .select({
+      scenarioId: dbschema.scenarioCharacterLorebookOverrides.scenarioId,
+      characterLorebookId: dbschema.scenarioCharacterLorebookOverrides.characterLorebookId,
+      enabled: dbschema.scenarioCharacterLorebookOverrides.enabled,
+    })
+    .from(dbschema.scenarioCharacterLorebookOverrides)
+    .where(inArray(dbschema.scenarioCharacterLorebookOverrides.scenarioId, scenarioIds))
+    .all();
+
+  const overridesByScenario = new Map<string, Map<string, boolean>>();
+  for (const override of overrides) {
+    const scenarioMap = overridesByScenario.get(override.scenarioId) ?? new Map<string, boolean>();
+    scenarioMap.set(override.characterLorebookId, Boolean(override.enabled));
+    overridesByScenario.set(override.scenarioId, scenarioMap);
+  }
+
+  const characterIds = Array.from(
+    new Set(participants.map((p) => p.characterId).filter(isDefined))
+  );
+
+  const characterLorebooks = characterIds.length
+    ? await db
+        .select({
+          id: dbschema.characterLorebooks.id,
+          characterId: dbschema.characterLorebooks.characterId,
+          lorebookId: dbschema.characterLorebooks.lorebookId,
+          name: dbschema.lorebooks.name,
+          entryCount: dbschema.lorebooks.entryCount,
+        })
+        .from(dbschema.characterLorebooks)
+        .innerJoin(
+          dbschema.lorebooks,
+          eq(dbschema.characterLorebooks.lorebookId, dbschema.lorebooks.id)
+        )
+        .where(inArray(dbschema.characterLorebooks.characterId, characterIds))
+        .all()
+    : [];
+
+  const characterLorebooksByCharacter = new Map<string, typeof characterLorebooks>();
+  for (const row of characterLorebooks) {
+    const list = characterLorebooksByCharacter.get(row.characterId) ?? [];
+    list.push(row);
+    characterLorebooksByCharacter.set(row.characterId, list);
+  }
+
+  const participantsByScenario = new Map<string, typeof participants>();
+  for (const participant of participants) {
+    const list = participantsByScenario.get(participant.scenarioId) ?? [];
+    list.push(participant);
+    participantsByScenario.set(participant.scenarioId, list);
+  }
+
+  const manualByScenario = new Map<string, typeof manualRows>();
+  for (const manual of manualRows) {
+    const list = manualByScenario.get(manual.scenarioId) ?? [];
+    list.push(manual);
+    manualByScenario.set(manual.scenarioId, list);
+  }
+
+  const result = new Map<string, ScenarioLorebookItem[]>();
+
+  for (const scenarioId of scenarioIds) {
+    const items: ScenarioLorebookItem[] = [];
+
+    const manualList = manualByScenario.get(scenarioId) ?? [];
+    for (const manual of manualList) {
+      items.push({
+        kind: "manual",
+        manualAssignmentId: manual.assignmentId,
+        lorebookId: manual.lorebookId,
+        name: manual.name,
+        entryCount: manual.entryCount ?? 0,
+        enabled: Boolean(manual.enabled),
+        defaultEnabled: Boolean(manual.enabled),
+      });
+    }
+
+    const participantList = participantsByScenario.get(scenarioId) ?? [];
+    const overrideMap = overridesByScenario.get(scenarioId) ?? new Map<string, boolean>();
+
+    for (const participant of participantList) {
+      const characterId = participant.characterId;
+      if (!characterId) continue;
+      const characterLorebookList = characterLorebooksByCharacter.get(characterId) ?? [];
+      const defaultEnabled = participant.status === "active";
+
+      for (const link of characterLorebookList) {
+        const overrideValue = overrideMap.get(link.id);
+        const overrideEnabled = overrideValue === undefined ? null : overrideValue;
+        const enabled = defaultEnabled ? (overrideEnabled ?? true) : false;
+
+        items.push({
+          kind: "character",
+          lorebookId: link.lorebookId,
+          name: link.name,
+          entryCount: link.entryCount ?? 0,
+          characterId,
+          characterLorebookId: link.id,
+          enabled,
+          defaultEnabled,
+          overrideEnabled,
+        });
+      }
+    }
+
+    items.sort((a, b) => {
+      if (a.kind !== b.kind) {
+        return a.kind === "manual" ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    result.set(scenarioId, items);
+  }
+
+  return result;
 }
 
 export type ScenarioCharacterStarters = Awaited<ReturnType<typeof getScenarioCharacterStarters>>;

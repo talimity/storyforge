@@ -7,8 +7,11 @@ describe("scanLorebooks", () => {
     overrides?: Partial<LorebookAssignment>
   ): LorebookAssignment => ({
     lorebookId: overrides?.lorebookId ?? "book-1",
-    orderIndex: overrides?.orderIndex ?? 0,
+    kind: overrides?.kind ?? "manual",
     enabled: overrides?.enabled ?? true,
+    defaultEnabled: overrides?.defaultEnabled ?? true,
+    characterId: overrides?.characterId ?? null,
+    characterLorebookId: overrides?.characterLorebookId ?? null,
     data,
   });
 
@@ -39,7 +42,7 @@ describe("scanLorebooks", () => {
     expect(result.after_char).toHaveLength(0);
   });
 
-  it("respects insertion order and scenario order when merging", () => {
+  it("respects insertion order per lorebook and assignment order", () => {
     const assignmentA = makeAssignment(
       {
         entries: [
@@ -62,7 +65,7 @@ describe("scanLorebooks", () => {
         ],
         extensions: {},
       },
-      { lorebookId: "book-a", orderIndex: 1 }
+      { lorebookId: "book-a" }
     );
 
     const assignmentB = makeAssignment(
@@ -79,7 +82,7 @@ describe("scanLorebooks", () => {
         ],
         extensions: {},
       },
-      { lorebookId: "book-b", orderIndex: 0 }
+      { lorebookId: "book-b" }
     );
 
     const turns = [makeTurn("A bold knight met a dragon."), makeTurn("The wyrm retreated.")];
@@ -87,9 +90,9 @@ describe("scanLorebooks", () => {
     const result = scanLorebooks({ turns, lorebooks: [assignmentA, assignmentB] });
 
     expect(result.before_char.map((entry) => entry.content)).toEqual([
-      "Prelude",
       "First",
       "Second",
+      "Prelude",
     ]);
   });
 

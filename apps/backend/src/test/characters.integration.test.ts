@@ -245,7 +245,13 @@ describe("characters router integration", () => {
         name: "Test Scenario",
         description: "Test scenario for filtering",
         status: "active",
-        characterIds: [char1.id, char2.id],
+        settings: {},
+        metadata: {},
+        participants: [
+          { characterId: char1.id, isUserProxy: false },
+          { characterId: char2.id, isUserProxy: false },
+        ],
+        lorebooks: [],
       });
 
       const allResults = await caller.characters.search({
@@ -304,7 +310,13 @@ describe("characters router integration", () => {
         name: "Test Scenario",
         description: "Test scenario for notInScenario filter",
         status: "active",
-        characterIds: [char1.id, char2.id],
+        settings: {},
+        metadata: {},
+        participants: [
+          { characterId: char1.id, isUserProxy: false },
+          { characterId: char2.id, isUserProxy: false },
+        ],
+        lorebooks: [],
       });
 
       // Test filterMode='all' - should return all matching characters

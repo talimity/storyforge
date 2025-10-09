@@ -1,6 +1,7 @@
 import {
   activatedLoreIndexSchema,
-  assignLorebookSchema,
+  assignScenarioManualLorebookSchema,
+  type CharacterLinkedLorebook,
   characterIdSchema,
   characterLorebooksResponseSchema,
   createLorebookSchema,
@@ -16,14 +17,16 @@ import {
   lorebookImportResultSchema,
   lorebookSearchQuerySchema,
   lorebooksListResponseSchema,
-  reorderScenarioLorebooksSchema,
+  type ScenarioLorebookItem,
   scenarioIdSchema,
-  type scenarioLorebookItemSchema,
   scenarioLorebooksResponseSchema,
+  unassignScenarioManualLorebookSchema,
   unlinkCharacterLorebookSchema,
   updateLorebookSchema,
+  updateScenarioCharacterLorebookOverrideSchema,
+  updateScenarioManualLorebookStateSchema,
 } from "@storyforge/contracts";
-import { scanLorebooks, scanLorebooksDebug } from "@storyforge/lorebooks";
+import { scanLorebooks, scanLorebooksDebug, sortScenarioLorebooks } from "@storyforge/lorebooks";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { loadScenarioLorebookAssignments } from "../../services/lorebook/lorebook.loader.js";
@@ -262,7 +265,7 @@ export const scenarioLorebooksRouter = router({
     .query(async ({ input, ctx }) => {
       const rows = await getScenarioLorebooks(ctx.db, input.id);
       return {
-        lorebooks: rows.map(transformScenarioLorebookItem),
+        lorebooks: sortScenarioLorebooks(rows).map(transformScenarioLorebookItem),
       };
     }),
 
@@ -275,14 +278,14 @@ export const scenarioLorebooksRouter = router({
         summary: "Assign a lorebook to a scenario",
       },
     })
-    .input(assignLorebookSchema)
+    .input(assignScenarioManualLorebookSchema)
     .output(scenarioLorebooksResponseSchema)
     .mutation(async ({ input, ctx }) => {
       const svc = new LorebookService(ctx.db);
-      await svc.assignToScenario(input);
+      await svc.addManualLorebookToScenario(input);
       const rows = await getScenarioLorebooks(ctx.db, input.scenarioId);
       return {
-        lorebooks: rows.map(transformScenarioLorebookItem),
+        lorebooks: sortScenarioLorebooks(rows).map(transformScenarioLorebookItem),
       };
     }),
 
@@ -295,34 +298,54 @@ export const scenarioLorebooksRouter = router({
         summary: "Remove a lorebook from a scenario",
       },
     })
-    .input(assignLorebookSchema)
+    .input(unassignScenarioManualLorebookSchema)
     .output(scenarioLorebooksResponseSchema)
     .mutation(async ({ input, ctx }) => {
       const svc = new LorebookService(ctx.db);
-      await svc.unassignFromScenario(input);
+      await svc.removeManualLorebookFromScenario(input);
       const rows = await getScenarioLorebooks(ctx.db, input.scenarioId);
       return {
-        lorebooks: rows.map(transformScenarioLorebookItem),
+        lorebooks: sortScenarioLorebooks(rows).map(transformScenarioLorebookItem),
       };
     }),
 
-  reorder: publicProcedure
+  setState: publicProcedure
     .meta({
       openapi: {
         method: "POST",
-        path: "/api/scenarios/{scenarioId}/lorebooks/reorder",
+        path: "/api/scenarios/{scenarioId}/lorebooks/state",
         tags: ["scenarios"],
-        summary: "Reorder scenario lorebooks",
+        summary: "Enable or disable a lorebook assignment",
       },
     })
-    .input(reorderScenarioLorebooksSchema)
+    .input(updateScenarioManualLorebookStateSchema)
     .output(scenarioLorebooksResponseSchema)
     .mutation(async ({ input, ctx }) => {
       const svc = new LorebookService(ctx.db);
-      await svc.reorderScenarioLorebooks(input.scenarioId, input.orders);
+      await svc.setManualLorebookState(input);
       const rows = await getScenarioLorebooks(ctx.db, input.scenarioId);
       return {
-        lorebooks: rows.map(transformScenarioLorebookItem),
+        lorebooks: sortScenarioLorebooks(rows).map(transformScenarioLorebookItem),
+      };
+    }),
+
+  setCharacterOverride: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/api/scenarios/{scenarioId}/lorebooks/character",
+        tags: ["scenarios"],
+        summary: "Override a character-derived lorebook",
+      },
+    })
+    .input(updateScenarioCharacterLorebookOverrideSchema)
+    .output(scenarioLorebooksResponseSchema)
+    .mutation(async ({ input, ctx }) => {
+      const svc = new LorebookService(ctx.db);
+      await svc.setCharacterLorebookOverride(input);
+      const rows = await getScenarioLorebooks(ctx.db, input.scenarioId);
+      return {
+        lorebooks: sortScenarioLorebooks(rows).map(transformScenarioLorebookItem),
       };
     }),
 
@@ -468,18 +491,36 @@ function transformLorebookDetail(row: LorebookRecordLike): LorebookDetail {
   };
 }
 
-type ScenarioLorebookItem = z.infer<typeof scenarioLorebookItemSchema>;
-
 function transformScenarioLorebookItem(row: ScenarioLorebookRow): ScenarioLorebookItem {
+  if (row.kind === "manual") {
+    return {
+      kind: "manual",
+      manualAssignmentId: row.manualAssignmentId,
+      lorebookId: row.lorebookId,
+      name: row.name,
+      entryCount: row.entryCount,
+      enabled: row.enabled,
+      defaultEnabled: row.defaultEnabled,
+    } satisfies ScenarioLorebookItem;
+  }
+
   return {
-    id: row.id,
+    kind: "character",
+    lorebookId: row.lorebookId,
     name: row.name,
     entryCount: row.entryCount,
+    characterId: row.characterId,
+    characterLorebookId: row.characterLorebookId,
     enabled: row.enabled,
-    orderIndex: row.orderIndex,
-  };
+    defaultEnabled: row.defaultEnabled,
+    overrideEnabled: row.overrideEnabled,
+  } satisfies ScenarioLorebookItem;
 }
 
-function transformCharacterLorebookSummary(row: CharacterLorebookRow): LorebookSummary {
-  return transformLorebookSummary(row);
+function transformCharacterLorebookSummary(row: CharacterLorebookRow): CharacterLinkedLorebook {
+  const summary = transformLorebookSummary(row);
+  return {
+    ...summary,
+    characterLorebookId: row.characterLorebookId,
+  };
 }

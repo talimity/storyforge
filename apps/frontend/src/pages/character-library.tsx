@@ -160,7 +160,9 @@ export function CharacterLibraryPage() {
         >
           <InputGroup
             startElement={<LuSearch />}
-            endElement={searchInput ? <CloseButton size="sm" onClick={clearSearch} /> : undefined}
+            endElement={
+              searchInput ? <CloseButton size="xs" onClick={clearSearch} me="-2" /> : undefined
+            }
           >
             <Input
               placeholder="Search characters..."

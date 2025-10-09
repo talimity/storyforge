@@ -1,7 +1,9 @@
 import { Container, Skeleton, Text } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { SimplePageHeader } from "@/components/ui";
+import { Button, SimplePageHeader } from "@/components/ui";
+import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { LorebookForm } from "@/features/lorebooks/components/lorebook-form";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
@@ -11,6 +13,7 @@ export function LorebookEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [showPreview, setShowPreview] = useState(false);
 
   const lorebookQuery = useQuery(
     trpc.lorebooks.getById.queryOptions(
@@ -61,7 +64,14 @@ export function LorebookEditPage() {
 
   return (
     <Container>
-      <SimplePageHeader title="Edit Lorebook" />
+      <SimplePageHeader
+        title="Edit Lorebook"
+        actions={
+          <Button variant="outline" onClick={() => setShowPreview(true)}>
+            Preview in Scenario
+          </Button>
+        }
+      />
       <LorebookForm
         initialData={{
           name: lorebook.name,
@@ -75,6 +85,11 @@ export function LorebookEditPage() {
         submitLabel="Save"
         onCancel={() => navigate("/lorebooks")}
         onSubmit={(data) => updateMutation.mutateAsync({ id: String(id), data })}
+      />
+      <LoreActivationPreviewDialog
+        isOpen={showPreview}
+        onOpenChange={setShowPreview}
+        allowScenarioSelect
       />
     </Container>
   );

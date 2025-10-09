@@ -1,4 +1,11 @@
-import type { AssignLorebookInput, LinkCharacterLorebookInput } from "@storyforge/contracts";
+import { createHash } from "node:crypto";
+import type {
+  AssignScenarioManualLorebookInput,
+  LinkCharacterLorebookInput,
+  ScenarioLorebookAssignmentInput,
+  UpdateScenarioCharacterLorebookOverrideInput,
+  UpdateScenarioManualLorebookStateInput,
+} from "@storyforge/contracts";
 import {
   type Lorebook,
   type NewLorebook,
@@ -12,7 +19,7 @@ import {
   normalizeLorebookData,
   parseLorebookData,
 } from "@storyforge/lorebooks";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { CharacterBookSchema } from "../character/utils/parse-tavern-card.js";
 import { normalizeSillyTavernLorebook } from "./utils/sillytavern-lorebook-parser.js";
@@ -27,9 +34,14 @@ type UpdateLorebookArgs = {
   data: LorebookData;
 };
 
-type ReorderInstruction = {
+type ManualScenarioLorebookAssignment = {
   lorebookId: string;
-  orderIndex: number;
+  enabled: boolean;
+};
+
+type ScenarioCharacterOverride = {
+  characterLorebookId: string;
+  enabled: boolean;
 };
 
 type ImportLorebookResult = {
@@ -40,9 +52,15 @@ type ImportLorebookResult = {
 export class LorebookService {
   constructor(private readonly db: SqliteDatabase) {}
 
+  private hashLorebook(data: LorebookData): string {
+    return computeLorebookFingerprint(data, (input) =>
+      createHash("sha256").update(input, "utf8").digest("hex")
+    );
+  }
+
   async createLorebook(args: CreateLorebookArgs, outerTx?: SqliteTransaction) {
     const normalized = normalizeLorebookData(args.data);
-    const fingerprint = computeLorebookFingerprint(normalized);
+    const fingerprint = this.hashLorebook(normalized);
     const entryCount = normalized.entries.length;
     const name = normalized.name?.trim() || "Untitled Lorebook";
     const description = normalized.description?.trim() || null;
@@ -85,7 +103,7 @@ export class LorebookService {
 
   async updateLorebook(args: UpdateLorebookArgs, outerTx?: SqliteTransaction) {
     const normalized = normalizeLorebookData(args.data);
-    const fingerprint = computeLorebookFingerprint(normalized);
+    const fingerprint = this.hashLorebook(normalized);
     const entryCount = normalized.entries.length;
     const name = normalized.name?.trim() || "Untitled Lorebook";
     const description = normalized.description?.trim() || null;
@@ -165,10 +183,13 @@ export class LorebookService {
     return this.createLorebook({ data, source });
   }
 
-  async assignToScenario(args: AssignLorebookInput, outerTx?: SqliteTransaction) {
+  async addManualLorebookToScenario(
+    args: AssignScenarioManualLorebookInput,
+    outerTx?: SqliteTransaction
+  ) {
     const work = async (tx: SqliteTransaction) => {
-      const existing = await tx
-        .select()
+      const [existing] = await tx
+        .select({ id: schema.scenarioLorebooks.id, enabled: schema.scenarioLorebooks.enabled })
         .from(schema.scenarioLorebooks)
         .where(
           and(
@@ -178,19 +199,20 @@ export class LorebookService {
         )
         .limit(1);
 
-      if (existing[0]) {
-        return existing[0];
-      }
+      const enabled = args.enabled ?? existing?.enabled ?? true;
 
-      let orderIndex = args.orderIndex;
-      if (orderIndex === undefined) {
-        const [maxOrder] = await tx
-          .select({
-            nextOrder: sql<number>`COALESCE(MAX(${schema.scenarioLorebooks.orderIndex}), -1) + 1`,
-          })
-          .from(schema.scenarioLorebooks)
-          .where(eq(schema.scenarioLorebooks.scenarioId, args.scenarioId));
-        orderIndex = maxOrder?.nextOrder ?? 0;
+      if (existing) {
+        if (existing.enabled === enabled) {
+          return existing;
+        }
+
+        const [updated] = await tx
+          .update(schema.scenarioLorebooks)
+          .set({ enabled })
+          .where(eq(schema.scenarioLorebooks.id, existing.id))
+          .returning();
+
+        return updated;
       }
 
       const [inserted] = await tx
@@ -198,7 +220,7 @@ export class LorebookService {
         .values({
           scenarioId: args.scenarioId,
           lorebookId: args.lorebookId,
-          orderIndex,
+          enabled,
         })
         .returning();
 
@@ -208,7 +230,7 @@ export class LorebookService {
     return outerTx ? work(outerTx) : this.db.transaction(work);
   }
 
-  async unassignFromScenario(args: AssignLorebookInput) {
+  async removeManualLorebookFromScenario(args: AssignScenarioManualLorebookInput) {
     await this.db
       .delete(schema.scenarioLorebooks)
       .where(
@@ -219,26 +241,209 @@ export class LorebookService {
       );
   }
 
-  async reorderScenarioLorebooks(
-    scenarioId: string,
-    orders: ReorderInstruction[],
+  async setManualLorebookState(
+    args: UpdateScenarioManualLorebookStateInput,
     outerTx?: SqliteTransaction
   ) {
     const work = async (tx: SqliteTransaction) => {
-      for (const order of orders) {
-        await tx
-          .update(schema.scenarioLorebooks)
-          .set({ orderIndex: order.orderIndex })
-          .where(
-            and(
-              eq(schema.scenarioLorebooks.scenarioId, scenarioId),
-              eq(schema.scenarioLorebooks.lorebookId, order.lorebookId)
-            )
-          );
+      const [existing] = await tx
+        .select({ id: schema.scenarioLorebooks.id })
+        .from(schema.scenarioLorebooks)
+        .where(
+          and(
+            eq(schema.scenarioLorebooks.scenarioId, args.scenarioId),
+            eq(schema.scenarioLorebooks.lorebookId, args.lorebookId)
+          )
+        )
+        .limit(1);
+
+      if (!existing) {
+        throw new ServiceError("NotFound", {
+          message: "Lorebook assignment not found for scenario.",
+        });
       }
+
+      const [updated] = await tx
+        .update(schema.scenarioLorebooks)
+        .set({ enabled: args.enabled })
+        .where(eq(schema.scenarioLorebooks.id, existing.id))
+        .returning();
+
+      return updated;
+    };
+
+    return outerTx ? work(outerTx) : this.db.transaction(work);
+  }
+
+  async setCharacterLorebookOverride(
+    args: UpdateScenarioCharacterLorebookOverrideInput,
+    outerTx?: SqliteTransaction
+  ) {
+    const work = async (tx: SqliteTransaction) => {
+      const [existing] = await tx
+        .select({ id: schema.scenarioCharacterLorebookOverrides.id })
+        .from(schema.scenarioCharacterLorebookOverrides)
+        .where(
+          and(
+            eq(schema.scenarioCharacterLorebookOverrides.scenarioId, args.scenarioId),
+            eq(
+              schema.scenarioCharacterLorebookOverrides.characterLorebookId,
+              args.characterLorebookId
+            )
+          )
+        )
+        .limit(1);
+
+      if (existing) {
+        const [updated] = await tx
+          .update(schema.scenarioCharacterLorebookOverrides)
+          .set({ enabled: args.enabled })
+          .where(eq(schema.scenarioCharacterLorebookOverrides.id, existing.id))
+          .returning();
+
+        return updated;
+      }
+
+      const [inserted] = await tx
+        .insert(schema.scenarioCharacterLorebookOverrides)
+        .values({
+          scenarioId: args.scenarioId,
+          characterLorebookId: args.characterLorebookId,
+          enabled: args.enabled,
+        })
+        .returning();
+
+      return inserted;
+    };
+
+    return outerTx ? work(outerTx) : this.db.transaction(work);
+  }
+
+  async replaceScenarioLorebookSettings(
+    scenarioId: string,
+    assignments: readonly ScenarioLorebookAssignmentInput[],
+    outerTx?: SqliteTransaction
+  ) {
+    const manualAssignments: ManualScenarioLorebookAssignment[] = [];
+    const characterOverrides: ScenarioCharacterOverride[] = [];
+
+    for (const assignment of assignments) {
+      if (assignment.kind === "manual") {
+        manualAssignments.push({
+          lorebookId: assignment.lorebookId,
+          enabled: assignment.enabled ?? true,
+        });
+        continue;
+      }
+
+      characterOverrides.push({
+        characterLorebookId: assignment.characterLorebookId,
+        enabled: assignment.enabled ?? true,
+      });
+    }
+
+    const work = async (tx: SqliteTransaction) => {
+      await this.syncManualAssignments(tx, scenarioId, manualAssignments);
+      await this.syncCharacterOverrides(tx, scenarioId, characterOverrides);
     };
 
     await (outerTx ? work(outerTx) : this.db.transaction(work));
+  }
+
+  private async syncManualAssignments(
+    tx: SqliteTransaction,
+    scenarioId: string,
+    assignments: readonly ManualScenarioLorebookAssignment[]
+  ) {
+    const existing = await tx
+      .select({
+        id: schema.scenarioLorebooks.id,
+        lorebookId: schema.scenarioLorebooks.lorebookId,
+        enabled: schema.scenarioLorebooks.enabled,
+      })
+      .from(schema.scenarioLorebooks)
+      .where(eq(schema.scenarioLorebooks.scenarioId, scenarioId));
+
+    const existingByLorebookId = new Map(existing.map((row) => [row.lorebookId, row]));
+    const targetLorebookIds = new Set(assignments.map((assignment) => assignment.lorebookId));
+
+    for (const assignment of assignments) {
+      const current = existingByLorebookId.get(assignment.lorebookId);
+      if (current) {
+        if (current.enabled !== assignment.enabled) {
+          await tx
+            .update(schema.scenarioLorebooks)
+            .set({ enabled: assignment.enabled })
+            .where(eq(schema.scenarioLorebooks.id, current.id));
+        }
+        continue;
+      }
+
+      await tx.insert(schema.scenarioLorebooks).values({
+        scenarioId,
+        lorebookId: assignment.lorebookId,
+        enabled: assignment.enabled,
+      });
+    }
+
+    const idsToRemove = existing
+      .filter((row) => !targetLorebookIds.has(row.lorebookId))
+      .map((row) => row.id);
+
+    if (idsToRemove.length > 0) {
+      await tx
+        .delete(schema.scenarioLorebooks)
+        .where(inArray(schema.scenarioLorebooks.id, idsToRemove));
+    }
+  }
+
+  private async syncCharacterOverrides(
+    tx: SqliteTransaction,
+    scenarioId: string,
+    overrides: readonly ScenarioCharacterOverride[]
+  ) {
+    const existing = await tx
+      .select({
+        id: schema.scenarioCharacterLorebookOverrides.id,
+        characterLorebookId: schema.scenarioCharacterLorebookOverrides.characterLorebookId,
+        enabled: schema.scenarioCharacterLorebookOverrides.enabled,
+      })
+      .from(schema.scenarioCharacterLorebookOverrides)
+      .where(eq(schema.scenarioCharacterLorebookOverrides.scenarioId, scenarioId));
+
+    const existingByCharacterLorebookId = new Map(
+      existing.map((row) => [row.characterLorebookId, row])
+    );
+    const targetIds = new Set(overrides.map((override) => override.characterLorebookId));
+
+    for (const override of overrides) {
+      const current = existingByCharacterLorebookId.get(override.characterLorebookId);
+      if (current) {
+        if (current.enabled !== override.enabled) {
+          await tx
+            .update(schema.scenarioCharacterLorebookOverrides)
+            .set({ enabled: override.enabled })
+            .where(eq(schema.scenarioCharacterLorebookOverrides.id, current.id));
+        }
+        continue;
+      }
+
+      await tx.insert(schema.scenarioCharacterLorebookOverrides).values({
+        scenarioId,
+        characterLorebookId: override.characterLorebookId,
+        enabled: override.enabled,
+      });
+    }
+
+    const overridesToRemove = existing
+      .filter((row) => !targetIds.has(row.characterLorebookId))
+      .map((row) => row.id);
+
+    if (overridesToRemove.length > 0) {
+      await tx
+        .delete(schema.scenarioCharacterLorebookOverrides)
+        .where(inArray(schema.scenarioCharacterLorebookOverrides.id, overridesToRemove));
+    }
   }
 
   async linkLorebookToCharacter(args: LinkCharacterLorebookInput) {

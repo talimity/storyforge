@@ -5,8 +5,12 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
+import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
-import { ScenarioForm } from "@/features/scenarios/components/scenario-form";
+import {
+  ScenarioForm,
+  serializeLorebookAssignments,
+} from "@/features/scenarios/components/scenario-form";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
@@ -16,6 +20,7 @@ export function ScenarioEditPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const {
     data: scenario,
@@ -93,6 +98,7 @@ export function ScenarioEditPage() {
       role: participant.role || undefined,
       isUserProxy: participant.isUserProxy || false,
     })),
+    lorebooks: scenario.lorebooks,
   };
 
   return (
@@ -101,14 +107,23 @@ export function ScenarioEditPage() {
         <SimplePageHeader
           title={scenario.name}
           actions={
-            <Button
-              colorPalette="red"
-              variant="outline"
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={deleteScenarioMutation.isPending || updateScenarioMutation.isPending}
-            >
-              Delete Scenario
-            </Button>
+            <Stack direction="row" gap={2}>
+              <Button
+                variant="outline"
+                onClick={() => setShowPreview(true)}
+                disabled={updateScenarioMutation.isPending}
+              >
+                Preview Lore Activation
+              </Button>
+              <Button
+                colorPalette="red"
+                variant="outline"
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={deleteScenarioMutation.isPending || updateScenarioMutation.isPending}
+              >
+                Delete Scenario
+              </Button>
+            </Stack>
           }
         />
         <ScenarioForm
@@ -116,7 +131,17 @@ export function ScenarioEditPage() {
           scenarioId={id}
           onSubmit={(vals) => {
             assertDefined(id);
-            return updateScenarioMutation.mutateAsync({ id, ...vals });
+            return updateScenarioMutation.mutateAsync({
+              id,
+              name: vals.name,
+              description: vals.description,
+              participants: vals.participants.map((participant) => ({
+                characterId: participant.characterId,
+                role: participant.role,
+                isUserProxy: participant.isUserProxy ?? false,
+              })),
+              lorebooks: serializeLorebookAssignments(vals.lorebooks),
+            });
           }}
           onCancel={() => navigate("/scenarios")}
           submitLabel="Update Scenario"
@@ -133,6 +158,12 @@ export function ScenarioEditPage() {
           setShowDeleteDialog(false);
         }}
         isDeleting={deleteScenarioMutation.isPending}
+      />
+      <LoreActivationPreviewDialog
+        isOpen={showPreview}
+        onOpenChange={setShowPreview}
+        scenarioId={id}
+        title="Scenario Lore Activation"
       />
     </>
   );

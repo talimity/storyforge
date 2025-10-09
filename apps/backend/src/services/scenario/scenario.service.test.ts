@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -13,6 +14,35 @@ describe("ScenarioService", () => {
     service = new ScenarioService(db);
   });
 
+  const baseScenarioFields = {
+    status: "active" as const,
+    settings: {} as Record<string, unknown>,
+    metadata: {} as Record<string, unknown>,
+  };
+
+  const participantsOf = (...ids: Array<{ id: string; role?: string; isUserProxy?: boolean }>) =>
+    ids.map((entry) => ({
+      characterId: entry.id,
+      role: entry.role,
+      isUserProxy: entry.isUserProxy ?? false,
+    }));
+
+  const insertLorebook = async (name: string) => {
+    const fingerprint = createHash("sha256").update(name).digest("hex");
+    const [result] = await db
+      .insert(schema.lorebooks)
+      .values({
+        name,
+        description: null,
+        data: { entries: [] },
+        fingerprint,
+        entryCount: 0,
+        source: "manual",
+      })
+      .returning();
+    return result;
+  };
+
   describe("participant reconciliation", () => {
     it("should add new participants when updating scenario", async () => {
       // Create test characters
@@ -27,19 +57,20 @@ describe("ScenarioService", () => {
 
       // Create scenario with 2 participants
       const scenario = await service.createScenario({
+        ...baseScenarioFields,
         name: "Test Scenario",
         description: "Test scenario for participant reconciliation",
-        status: "active",
-        characterIds: [char1.id, char2.id],
+        participants: participantsOf({ id: char1.id }, { id: char2.id }),
+        lorebooks: [],
       });
 
       // Update scenario to add a third participant
       await service.updateScenario(scenario.id, {
-        participants: [
-          { characterId: char1.id, role: "Hero" },
-          { characterId: char2.id, role: "Sidekick" },
-          { characterId: char3.id, role: "Villain" },
-        ],
+        participants: participantsOf(
+          { id: char1.id, role: "Hero" },
+          { id: char2.id, role: "Sidekick" },
+          { id: char3.id, role: "Villain" }
+        ),
       });
 
       // Verify all three participants are active
@@ -72,18 +103,19 @@ describe("ScenarioService", () => {
 
       // Create scenario with 3 participants
       const scenario = await service.createScenario({
+        ...baseScenarioFields,
         name: "Test Scenario",
         description: "Test scenario for participant removal",
-        status: "active",
-        characterIds: [char1.id, char2.id, char3.id],
+        participants: participantsOf({ id: char1.id }, { id: char2.id }, { id: char3.id }),
+        lorebooks: [],
       });
 
       // Update scenario to remove one participant
       await service.updateScenario(scenario.id, {
-        participants: [
-          { characterId: char1.id, role: "Hero" },
-          { characterId: char2.id, role: "Sidekick" },
-        ],
+        participants: participantsOf(
+          { id: char1.id, role: "Hero" },
+          { id: char2.id, role: "Sidekick" }
+        ),
       });
 
       // Verify only two participants remain (hard delete)
@@ -105,6 +137,48 @@ describe("ScenarioService", () => {
       expect(removedParticipant).toBeUndefined();
     });
 
+    it("does not duplicate character lorebooks when creating a scenario", async () => {
+      const [char1, char2] = await db
+        .insert(schema.characters)
+        .values([
+          { name: "Character 1", description: "Test character 1" },
+          { name: "Character 2", description: "Test character 2" },
+        ])
+        .returning();
+
+      const bookA = await insertLorebook("Lorebook A");
+      const bookB = await insertLorebook("Lorebook B");
+
+      await db.insert(schema.characterLorebooks).values([
+        { characterId: char1.id, lorebookId: bookA.id },
+        { characterId: char2.id, lorebookId: bookB.id },
+      ]);
+
+      const scenario = await service.createScenario({
+        ...baseScenarioFields,
+        name: "Lorebook Scenario",
+        description: "Scenario inherits character lorebooks",
+        participants: participantsOf({ id: char1.id }, { id: char2.id }),
+        lorebooks: [],
+      });
+
+      const manualAssignments = await db
+        .select({ id: schema.scenarioLorebooks.id })
+        .from(schema.scenarioLorebooks)
+        .where(eq(schema.scenarioLorebooks.scenarioId, scenario.id))
+        .all();
+
+      expect(manualAssignments).toHaveLength(0);
+
+      const overrides = await db
+        .select({ id: schema.scenarioCharacterLorebookOverrides.id })
+        .from(schema.scenarioCharacterLorebookOverrides)
+        .where(eq(schema.scenarioCharacterLorebookOverrides.scenarioId, scenario.id))
+        .all();
+
+      expect(overrides).toHaveLength(0);
+    });
+
     it("should update participant roles and user proxy status", async () => {
       // Create test characters
       const [char1, char2] = await db
@@ -117,19 +191,19 @@ describe("ScenarioService", () => {
 
       // Create scenario with 2 participants
       const scenario = await service.createScenario({
+        ...baseScenarioFields,
         name: "Test Scenario",
         description: "Test scenario for role updates",
-        status: "active",
-        characterIds: [char1.id, char2.id],
-        userProxyCharacterId: char1.id,
+        participants: participantsOf({ id: char1.id, isUserProxy: true }, { id: char2.id }),
+        lorebooks: [],
       });
 
       // Update scenario to change roles and user proxy
       await service.updateScenario(scenario.id, {
-        participants: [
-          { characterId: char1.id, role: "Protagonist", isUserProxy: false },
-          { characterId: char2.id, role: "Antagonist", isUserProxy: true },
-        ],
+        participants: participantsOf(
+          { id: char1.id, role: "Protagonist", isUserProxy: false },
+          { id: char2.id, role: "Antagonist", isUserProxy: true }
+        ),
       });
 
       // Verify roles and user proxy were updated
@@ -161,10 +235,11 @@ describe("ScenarioService", () => {
 
       // Create scenario with 3 participants
       const scenario = await service.createScenario({
+        ...baseScenarioFields,
         name: "Test Scenario",
         description: "Test scenario for turn validation",
-        status: "active",
-        characterIds: [char1.id, char2.id, char3.id],
+        participants: participantsOf({ id: char1.id }, { id: char2.id }, { id: char3.id }),
+        lorebooks: [],
       });
 
       // Get participant IDs
@@ -189,7 +264,7 @@ describe("ScenarioService", () => {
       // Try to remove char1 (should fail)
       await expect(
         service.updateScenario(scenario.id, {
-          participants: [{ characterId: char2.id }, { characterId: char3.id }],
+          participants: participantsOf({ id: char2.id }, { id: char3.id }),
         })
       ).rejects.toThrow("Cannot remove participants with existing turns");
 

@@ -35,6 +35,7 @@
                   "RadioGroup",
                   "Select",
                   "Switch",
+                  "Tag",
                   "ToolTip"
                 ],
                 "message": "Use the equivalent closed component from @/components/ui instead of importing from @chakra-ui/react directly."

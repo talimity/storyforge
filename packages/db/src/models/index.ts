@@ -9,6 +9,7 @@ export * from "./lorebooks.js";
 export * from "./model-profiles.js";
 export * from "./prompt-templates.js";
 export * from "./provider-config.js";
+export * from "./scenario-character-lorebook-overrides.js";
 export * from "./scenario-lorebooks.js";
 export * from "./scenario-participants.js";
 export * from "./scenarios.js";

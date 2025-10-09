@@ -2,7 +2,10 @@ import { Container } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
-import { ScenarioForm } from "@/features/scenarios/components/scenario-form";
+import {
+  ScenarioForm,
+  serializeLorebookAssignments,
+} from "@/features/scenarios/components/scenario-form";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
@@ -34,14 +37,15 @@ export function ScenarioCreatePage() {
       <SimplePageHeader title="New Scenario" />
       <ScenarioForm
         onSubmit={async (vals) => {
-          const characterIds = vals.participants.map((p) => p.characterId);
-          const userProxyCharacterId = vals.participants.find((p) => p.isUserProxy)?.characterId;
-
           const result = await createScenarioMutation.mutateAsync({
             name: vals.name,
             description: vals.description,
-            characterIds,
-            userProxyCharacterId,
+            participants: vals.participants.map((participant) => ({
+              characterId: participant.characterId,
+              role: participant.role,
+              isUserProxy: participant.isUserProxy ?? false,
+            })),
+            lorebooks: serializeLorebookAssignments(vals.lorebooks),
           });
 
           navigate(`/play/${result.id}`);

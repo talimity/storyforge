@@ -65,39 +65,75 @@ export const lorebookSearchResponseSchema = z.object({
   lorebooks: z.array(lorebookSummarySchema),
 });
 
-export const scenarioLorebookItemSchema = z.object({
-  id: z.string(),
+const manualScenarioLorebookItemSchema = z.object({
+  kind: z.literal("manual"),
+  manualAssignmentId: z.string(),
+  lorebookId: z.string(),
   name: z.string(),
   entryCount: z.number(),
   enabled: z.boolean(),
-  orderIndex: z.number().int(),
+  defaultEnabled: z.boolean(),
 });
+
+const characterScenarioLorebookItemSchema = z.object({
+  kind: z.literal("character"),
+  lorebookId: z.string(),
+  name: z.string(),
+  entryCount: z.number(),
+  characterId: z.string(),
+  characterLorebookId: z.string(),
+  enabled: z.boolean(),
+  defaultEnabled: z.boolean(),
+  overrideEnabled: z.boolean().nullable(),
+});
+
+export const scenarioLorebookItemSchema = z.discriminatedUnion("kind", [
+  manualScenarioLorebookItemSchema,
+  characterScenarioLorebookItemSchema,
+]);
+
+const manualScenarioLorebookAssignmentInputSchema = z.object({
+  kind: z.literal("manual"),
+  lorebookId: z.string().min(1),
+  enabled: z.boolean().default(true),
+});
+
+const characterScenarioLorebookAssignmentInputSchema = z.object({
+  kind: z.literal("character"),
+  characterLorebookId: z.string().min(1),
+  enabled: z.boolean().default(true),
+});
+
+export const scenarioLorebookAssignmentInputSchema = z.discriminatedUnion("kind", [
+  manualScenarioLorebookAssignmentInputSchema,
+  characterScenarioLorebookAssignmentInputSchema,
+]);
 
 export const scenarioLorebooksResponseSchema = z.object({
   lorebooks: z.array(scenarioLorebookItemSchema),
 });
 
-export const assignLorebookSchema = z.object({
+export const assignScenarioManualLorebookSchema = z.object({
   scenarioId: z.string().min(1),
   lorebookId: z.string().min(1),
-  orderIndex: z.number().int().min(0).optional(),
+  enabled: z.boolean().optional(),
 });
 
-export const unassignLorebookSchema = z.object({
+export const unassignScenarioManualLorebookSchema = z.object({
   scenarioId: z.string().min(1),
   lorebookId: z.string().min(1),
 });
 
-export const reorderScenarioLorebooksSchema = z.object({
+export const updateScenarioManualLorebookStateSchema = z.object({
   scenarioId: z.string().min(1),
-  orders: z
-    .array(
-      z.object({
-        lorebookId: z.string().min(1),
-        orderIndex: z.number().int().min(0),
-      })
-    )
-    .min(1),
+  lorebookId: z.string().min(1),
+  enabled: z.boolean(),
+});
+
+export const updateScenarioCharacterLorebookOverrideSchema = z.object({
+  scenarioId: z.string().min(1),
+  characterLorebookId: z.string().min(1),
+  enabled: z.boolean(),
 });
 
 export const linkCharacterLorebookSchema = z.object({
@@ -107,15 +143,27 @@ export const linkCharacterLorebookSchema = z.object({
 
 export const unlinkCharacterLorebookSchema = linkCharacterLorebookSchema;
 
+export const characterLinkedLorebookSchema = lorebookSummarySchema.extend({
+  characterLorebookId: z.string(),
+});
+
 export const characterLorebooksResponseSchema = z.object({
-  lorebooks: z.array(lorebookSummarySchema),
+  lorebooks: z.array(characterLinkedLorebookSchema),
 });
 
 export type LorebookSummary = z.infer<typeof lorebookSummarySchema>;
 export type LorebookDetail = z.infer<typeof lorebookDetailSchema>;
 export type LorebookSearchQuery = z.infer<typeof lorebookSearchQuerySchema>;
-export type AssignLorebookInput = z.infer<typeof assignLorebookSchema>;
-export type ReorderScenarioLorebooksInput = z.infer<typeof reorderScenarioLorebooksSchema>;
+export type AssignScenarioManualLorebookInput = z.infer<typeof assignScenarioManualLorebookSchema>;
+export type ScenarioLorebookItem = z.infer<typeof scenarioLorebookItemSchema>;
+export type ScenarioLorebookAssignmentInput = z.infer<typeof scenarioLorebookAssignmentInputSchema>;
+export type UpdateScenarioManualLorebookStateInput = z.infer<
+  typeof updateScenarioManualLorebookStateSchema
+>;
+export type UpdateScenarioCharacterLorebookOverrideInput = z.infer<
+  typeof updateScenarioCharacterLorebookOverrideSchema
+>;
+export type CharacterLinkedLorebook = z.infer<typeof characterLinkedLorebookSchema>;
 export type LinkCharacterLorebookInput = z.infer<typeof linkCharacterLorebookSchema>;
 export type ImportLorebookFromCharacterInput = z.infer<typeof importLorebookFromCharacterSchema>;
 export type ImportLorebookInput = z.infer<typeof importLorebookSchema>;

@@ -159,6 +159,12 @@ function normalizeWorldInfoEntry(entry: unknown, index: number) {
     normalizedExtensions.position = position as unknown;
   }
 
+  let normalizedSelective: boolean | undefined;
+  if (typeof selective === "boolean") {
+    // If selective is true but there are no valid secondary keys, treat as false
+    normalizedSelective = selective && resolvedSecondary.length > 0;
+  }
+
   return {
     keys: resolvedKeys,
     content: typeof content === "string" ? content : "",
@@ -175,7 +181,7 @@ function normalizeWorldInfoEntry(entry: unknown, index: number) {
     priority: typeof priority === "number" ? priority : undefined,
     id: typeof id === "number" || typeof id === "string" ? id : createId(),
     comment: typeof comment === "string" ? comment : undefined,
-    selective: typeof selective === "boolean" ? selective : undefined,
+    selective: normalizedSelective,
     secondary_keys: resolvedSecondary.length > 0 ? resolvedSecondary : undefined,
     constant: typeof constant === "boolean" ? constant : undefined,
     position: normalizedPosition,
