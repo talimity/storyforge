@@ -118,6 +118,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -209,6 +210,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -269,6 +271,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -361,6 +364,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -443,6 +447,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -491,6 +496,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -563,6 +569,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -619,6 +626,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
     };
 
     const handle = await runner.startRun(workflow, context, {});

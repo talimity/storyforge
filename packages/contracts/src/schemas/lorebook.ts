@@ -1,42 +1,18 @@
-import { createId } from "@storyforge/utils";
+import {
+  activatedLoreEntrySchema,
+  activatedLoreIndexSchema,
+  lorebookActivationDebugResponseSchema,
+  lorebookDataSchema,
+  lorebookEntryEvaluationTraceSchema,
+  lorebookEntrySchema,
+  lorebookEvaluationTraceSchema,
+} from "@storyforge/lorebooks";
 import { z } from "zod";
 import { fileDataUriSchema } from "../utils/data-uri-validation.js";
-
-export const lorebookEntrySchema = z.object({
-  id: z.union([z.number(), z.string()]).default(() => createId()),
-  enabled: z.boolean(),
-  constant: z.boolean().optional(),
-  comment: z.string().optional(),
-  keys: z.array(z.string().min(1, "Keyword cannot be empty")),
-  selective: z.boolean().optional(),
-  secondary_keys: z.array(z.string().min(1)).optional(),
-  content: z.string().min(1, "Content is required"),
-  extensions: z.record(z.string(), z.unknown()).default({}),
-  insertion_order: z.number().int().min(0),
-  case_sensitive: z.boolean().optional(),
-  name: z.string().optional(),
-  priority: z.number().optional(),
-  use_regex: z.boolean().optional(),
-  position: z
-    .union([z.literal("before_char"), z.literal("after_char"), z.string(), z.number()])
-    .optional(),
-});
-
-const lorebookSchema = z.object({
-  name: z.string().optional(),
-  description: z.string().optional(),
-  scan_depth: z.number().optional(),
-  token_budget: z.number().optional(),
-  recursive_scanning: z.boolean().optional(),
-  extensions: z.record(z.string(), z.unknown()).default({}),
-  entries: z.array(lorebookEntrySchema),
-});
 
 export const lorebookIdSchema = z.object({
   id: z.string().min(1),
 });
-
-export const lorebookDataSchema = lorebookSchema;
 
 export const createLorebookSchema = z.object({
   data: lorebookDataSchema,
@@ -135,8 +111,6 @@ export const characterLorebooksResponseSchema = z.object({
   lorebooks: z.array(lorebookSummarySchema),
 });
 
-export type LorebookEntry = z.infer<typeof lorebookEntrySchema>;
-export type LorebookData = z.infer<typeof lorebookDataSchema>;
 export type LorebookSummary = z.infer<typeof lorebookSummarySchema>;
 export type LorebookDetail = z.infer<typeof lorebookDetailSchema>;
 export type LorebookSearchQuery = z.infer<typeof lorebookSearchQuerySchema>;
@@ -145,3 +119,23 @@ export type ReorderScenarioLorebooksInput = z.infer<typeof reorderScenarioLorebo
 export type LinkCharacterLorebookInput = z.infer<typeof linkCharacterLorebookSchema>;
 export type ImportLorebookFromCharacterInput = z.infer<typeof importLorebookFromCharacterSchema>;
 export type ImportLorebookInput = z.infer<typeof importLorebookSchema>;
+
+export {
+  lorebookEntrySchema,
+  lorebookDataSchema,
+  activatedLoreEntrySchema,
+  activatedLoreIndexSchema,
+  lorebookEntryEvaluationTraceSchema,
+  lorebookEvaluationTraceSchema,
+  lorebookActivationDebugResponseSchema,
+};
+
+export type {
+  ActivatedLoreEntryContract,
+  ActivatedLoreIndexContract,
+  LorebookActivationDebugResponse,
+  LorebookData,
+  LorebookEntry,
+  LorebookEntryEvaluationTraceContract,
+  LorebookEvaluationTraceContract,
+} from "@storyforge/lorebooks";

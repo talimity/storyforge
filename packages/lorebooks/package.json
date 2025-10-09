@@ -1,12 +1,11 @@
 {
-  "name": "@storyforge/gentasks",
-  "description": "Provides a workflow runner for generative AI tasks, and schemas for task kinds.",
+  "name": "@storyforge/lorebooks",
+  "description": "Lorebook schemas, normalization, and activation scanning utilities.",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "fmt": "biome format --write .",
     "lint": "biome check --diagnostic-level error --write --unsafe .",
@@ -16,15 +15,14 @@
     "typecheck:legacy": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@storyforge/lorebooks": "workspace:*",
-    "@storyforge/inference": "workspace:*",
-    "@storyforge/prompt-rendering": "workspace:*",
+    "@noble/hashes": "^2.0.1",
     "@storyforge/utils": "workspace:*",
+    "@storyforge/prompt-rendering": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:",
     "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   }
 }

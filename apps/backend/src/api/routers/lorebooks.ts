@@ -1,4 +1,5 @@
 import {
+  activatedLoreIndexSchema,
   assignLorebookSchema,
   characterIdSchema,
   characterLorebooksResponseSchema,
@@ -8,6 +9,7 @@ import {
   type LorebookDetail,
   type LorebookSummary,
   linkCharacterLorebookSchema,
+  lorebookActivationDebugResponseSchema,
   lorebookDataSchema,
   lorebookDetailSchema,
   lorebookIdSchema,
@@ -21,8 +23,10 @@ import {
   unlinkCharacterLorebookSchema,
   updateLorebookSchema,
 } from "@storyforge/contracts";
+import { scanLorebooks, scanLorebooksDebug } from "@storyforge/lorebooks";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { loadScenarioLorebookAssignments } from "../../services/lorebook/lorebook.loader.js";
 import {
   getCharacterLorebooks,
   getLorebookDetail,
@@ -30,6 +34,7 @@ import {
   listLorebooks,
 } from "../../services/lorebook/lorebook.queries.js";
 import { LorebookService } from "../../services/lorebook/lorebook.service.js";
+import { getFullTimelineTurnCtx } from "../../services/timeline/timeline.queries.js";
 import { publicProcedure, router } from "../index.js";
 
 type LorebookSummaryRow = Awaited<ReturnType<typeof listLorebooks>> extends Array<infer R>
@@ -41,6 +46,12 @@ type ScenarioLorebookRow = Awaited<ReturnType<typeof getScenarioLorebooks>> exte
 type CharacterLorebookRow = Awaited<ReturnType<typeof getCharacterLorebooks>> extends Array<infer R>
   ? R
   : never;
+
+const activationInputSchema = z.object({
+  scenarioId: z.string().min(1),
+  leafTurnId: z.string().min(1).optional(),
+  debug: z.boolean().optional().default(false),
+});
 
 export const lorebooksRouter = router({
   list: publicProcedure
@@ -313,6 +324,53 @@ export const scenarioLorebooksRouter = router({
       return {
         lorebooks: rows.map(transformScenarioLorebookItem),
       };
+    }),
+
+  activated: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/scenarios/{scenarioId}/lorebooks/activated",
+        tags: ["scenarios"],
+        summary: "Preview activated lorebook entries",
+      },
+    })
+    .input(activationInputSchema)
+    .output(lorebookActivationDebugResponseSchema)
+    .query(async ({ input, ctx }) => {
+      const lorebooks = await loadScenarioLorebookAssignments(ctx.db, input.scenarioId);
+      const turns = await getFullTimelineTurnCtx(ctx.db, {
+        scenarioId: input.scenarioId,
+        leafTurnId: input.leafTurnId ?? null,
+      });
+
+      if (input.debug) {
+        return scanLorebooksDebug({ turns, lorebooks });
+      }
+
+      const result = scanLorebooks({ turns, lorebooks });
+      return { result, trace: [] };
+    }),
+
+  activatedSummary: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/scenarios/{scenarioId}/lorebooks/activated/summary",
+        tags: ["scenarios"],
+        summary: "Activated lorebook entries (result only)",
+      },
+    })
+    .input(activationInputSchema.omit({ debug: true }))
+    .output(activatedLoreIndexSchema)
+    .query(async ({ input, ctx }) => {
+      const lorebooks = await loadScenarioLorebookAssignments(ctx.db, input.scenarioId);
+      const turns = await getFullTimelineTurnCtx(ctx.db, {
+        scenarioId: input.scenarioId,
+        leafTurnId: input.leafTurnId ?? null,
+      });
+
+      return scanLorebooks({ turns, lorebooks });
     }),
 });
 

@@ -138,5 +138,6 @@ The stream replays prior events to late subscribers and terminates when the run 
 - **Layered content** keeps prose and metadata loosely coupled so tooling can add internal planning or model diagnostics without bloating the main timeline payload.
 - **Path-based paging** sidesteps graph serialization complexity; consumers operate on linear slices and only pull sibling metadata when needed.
 - **Guardrails on branching** (leaf resolution, single running intent, narrator fairness) ensure the timeline stays coherent even under aggressive experimentation.
+- **Lorebook scanning** consumes the already-hydrated turn DTOs so it never re-queries the timeline graph; this makes it easy to extend activation rules (timeline events, cross-book recursion) without touching core timeline services.
 
 Future additions—timeline events beyond turns, richer branch metadata, collaborative scenarios—can reuse these same foundations: intents declare *what* the player wants, commands describe *how* to realize it, and the timeline service enforces the structural truths that keep the story tree healthy.

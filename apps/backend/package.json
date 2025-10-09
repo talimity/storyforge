@@ -29,6 +29,7 @@
     "@storyforge/contracts": "workspace:*",
     "@storyforge/db": "workspace:*",
     "@storyforge/gentasks": "workspace:*",
+    "@storyforge/lorebooks": "workspace:*",
     "@storyforge/inference": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/timeline-events": "workspace:*",

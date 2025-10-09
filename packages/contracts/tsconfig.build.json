@@ -12,6 +12,7 @@
     { "path": "../timeline-events/tsconfig.build.json" },
     { "path": "../inference/tsconfig.build.json" },
     { "path": "../prompt-rendering/tsconfig.build.json" },
+    { "path": "../lorebooks/tsconfig.build.json" },
     { "path": "../gentasks/tsconfig.build.json" }
   ]
 }

@@ -1,3 +1,8 @@
+import type {
+  ActivatedLoreEntry,
+  ActivatedLoreIndex,
+  NormalizedLorebookPosition,
+} from "@storyforge/lorebooks";
 import type { PromptTemplate, SourceHandlerMap } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
@@ -64,6 +69,8 @@ export type TurnGenCtx = {
    * scalar values.
    */
   globals: TurnGenGlobals;
+  /** Activated lore entries organized by position. */
+  loreEntriesByPosition: ActivatedLoreIndex;
 };
 
 /**
@@ -86,6 +93,10 @@ export type TurnGenSources = {
   };
   stepOutput: { args: { key: string }; out: unknown };
   globals: { args: never; out: TurnGenGlobals };
+  lore: {
+    args: { position?: NormalizedLorebookPosition; limit?: number } | undefined;
+    out: ActivatedLoreEntry[];
+  };
 };
 
 const makeTurnGenRegistry = (handlers: SourceHandlerMap<TurnGenCtx, TurnGenSources>) =>
@@ -126,6 +137,18 @@ export const turnGenRegistry = makeTurnGenRegistry({
   currentIntent: (_ref, ctx) => ctx.currentIntent,
   stepOutput: (ref, ctx) => ctx.stepInputs[ref.args.key],
   globals: (_ref, ctx) => ctx.globals,
+  lore: (ref, ctx) => {
+    const position: NormalizedLorebookPosition = ref.args?.position ?? "before_char";
+    const entries = ctx.loreEntriesByPosition[position] ?? [];
+    const limit = ref.args?.limit;
+    if (typeof limit === "number") {
+      if (limit <= 0) {
+        return [];
+      }
+      return entries.slice(0, Math.floor(limit));
+    }
+    return entries;
+  },
 });
 
 export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
@@ -133,7 +156,8 @@ export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
   "characters",
   "currentIntent",
   "stepOutput",
-  "globals"
+  "globals",
+  "lore"
 );
 
 export type TurnGenTemplate = PromptTemplate<"turn_generation", TurnGenSources>;

@@ -7,8 +7,10 @@ import {
   scenarios as tScenarios,
 } from "@storyforge/db";
 import type { CharacterCtxDTO, TurnGenCtx } from "@storyforge/gentasks";
+import { scanLorebooks } from "@storyforge/lorebooks";
 import { assertDefined } from "@storyforge/utils";
 import { and, asc, eq, sql } from "drizzle-orm";
+import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.loader.js";
 import { getFullTimelineTurnCtx } from "../timeline/timeline.queries.js";
 import { TimelineStateService } from "../timeline-events/timeline-state.service.js";
 import { eventDTOsByTurn } from "../timeline-events/utils/event-dtos.js";
@@ -37,12 +39,14 @@ export class IntentContextBuilder {
       leafTurnId,
       scenarioId: this.scenarioId,
     });
+    const lorebooksPromise = loadScenarioLorebookAssignments(this.db, this.scenarioId);
 
-    const [charaData, derivation, scenario, turns] = await Promise.all([
+    const [charaData, derivation, scenario, turns, lorebooks] = await Promise.all([
       charaDataPromise,
       derivationPromise,
       scenarioPromise,
       turnsPromise,
+      lorebooksPromise,
     ]);
 
     const { characters, userProxyName, currentActorName } = charaData;
@@ -54,6 +58,7 @@ export class IntentContextBuilder {
       events: eventsByTurn[t.turnId] ?? [],
     }));
     const nextTurnNumber = (turns.at(-1)?.turnNo ?? 0) + 1;
+    const loreEntries = scanLorebooks({ turns: enrichedTurns, lorebooks });
 
     return {
       turns: enrichedTurns,
@@ -82,6 +87,7 @@ export class IntentContextBuilder {
         scenario: scenario.description,
         isNarratorTurn: charaData.actorIsNarrator,
       },
+      loreEntriesByPosition: loreEntries,
     };
   }
 

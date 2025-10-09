@@ -6,7 +6,6 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "fmt": "biome format --write .",
     "lint": "biome check --diagnostic-level error --write --unsafe .",

@@ -1,10 +1,4 @@
-import { createHash } from "node:crypto";
-import {
-  type AssignLorebookInput,
-  type LinkCharacterLorebookInput,
-  type LorebookData,
-  lorebookDataSchema,
-} from "@storyforge/contracts";
+import type { AssignLorebookInput, LinkCharacterLorebookInput } from "@storyforge/contracts";
 import {
   type Lorebook,
   type NewLorebook,
@@ -12,6 +6,12 @@ import {
   type SqliteTransaction,
   schema,
 } from "@storyforge/db";
+import {
+  computeLorebookFingerprint,
+  type LorebookData,
+  normalizeLorebookData,
+  parseLorebookData,
+} from "@storyforge/lorebooks";
 import { and, eq, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { CharacterBookSchema } from "../character/utils/parse-tavern-card.js";
@@ -372,10 +372,10 @@ function parseJson(payload: string) {
 
 function coerceLorebookData(raw: unknown): LorebookData {
   if (isLorebookWrapper(raw)) {
-    return lorebookDataSchema.parse(raw.data);
+    return parseLorebookData(raw.data);
   }
 
-  return lorebookDataSchema.parse(raw);
+  return parseLorebookData(raw);
 }
 
 function coerceTavernCard(value: unknown) {
@@ -422,91 +422,6 @@ function isTavernCardV2(value: unknown): value is {
 
   return true;
 }
-
-function normalizeLorebookData(data: LorebookData): LorebookData {
-  return {
-    ...data,
-    extensions: data.extensions ?? {},
-    entries: data.entries.map((entry) => ({
-      ...entry,
-      extensions: entry.extensions ?? {},
-      keys: [...entry.keys],
-      secondary_keys: entry.secondary_keys ? [...entry.secondary_keys] : undefined,
-    })),
-  };
-}
-
-function computeLorebookFingerprint(data: LorebookData) {
-  const canonicalEntries = data.entries
-    .map<CanonicalEntry>((entry) => ({
-      keys: [...entry.keys].sort(localeCompare),
-      secondary_keys: entry.secondary_keys
-        ? [...entry.secondary_keys].sort(localeCompare)
-        : undefined,
-      content: entry.content,
-      enabled: entry.enabled,
-      insertion_order: entry.insertion_order,
-      case_sensitive: entry.case_sensitive,
-      selective: entry.selective,
-      constant: entry.constant,
-      position: entry.position,
-      use_regex: entry.use_regex,
-    }))
-    .sort(compareCanonicalEntries);
-
-  const canonical: CanonicalLorebook = {
-    scan_depth: data.scan_depth ?? null,
-    token_budget: data.token_budget ?? null,
-    recursive_scanning: data.recursive_scanning ?? null,
-    entries: canonicalEntries,
-  };
-
-  return createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
-}
-
-function compareCanonicalEntries(left: CanonicalEntry, right: CanonicalEntry) {
-  if (left.insertion_order !== right.insertion_order) {
-    return left.insertion_order - right.insertion_order;
-  }
-
-  if (left.content !== right.content) {
-    return left.content.localeCompare(right.content);
-  }
-
-  const leftKey = left.keys.join("::");
-  const rightKey = right.keys.join("::");
-  if (leftKey !== rightKey) {
-    return leftKey.localeCompare(rightKey);
-  }
-
-  const leftSecondary = (left.secondary_keys ?? []).join("::");
-  const rightSecondary = (right.secondary_keys ?? []).join("::");
-  return leftSecondary.localeCompare(rightSecondary);
-}
-
-function localeCompare(a: string, b: string) {
-  return a.localeCompare(b);
-}
-
-type CanonicalEntry = {
-  keys: string[];
-  secondary_keys?: string[];
-  content: string;
-  enabled: boolean;
-  insertion_order: number;
-  case_sensitive?: boolean;
-  selective?: boolean;
-  constant?: boolean;
-  position?: string | number;
-  use_regex?: boolean;
-};
-
-type CanonicalLorebook = {
-  scan_depth: number | null;
-  token_budget: number | null;
-  recursive_scanning: boolean | null;
-  entries: CanonicalEntry[];
-};
 
 function isLorebookWrapper(value: unknown): value is { spec: string; data: unknown } {
   if (typeof value !== "object" || value === null) {
