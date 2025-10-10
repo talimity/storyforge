@@ -1,7 +1,7 @@
 import { Box, HStack, SegmentGroup, Stack, Text, VStack } from "@chakra-ui/react";
 import type { IntentInput, IntentKind, TimelineTurn } from "@storyforge/contracts";
 import { useStore } from "@tanstack/react-form";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { AutosizeTextarea, Button, Dialog } from "@/components/ui/index";
 import { CharacterMiniSelect } from "@/features/scenario-player/components/intent-panel/character-mini-select";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
@@ -58,6 +58,8 @@ export function RetryIntentDialog(props: RetryIntentDialogProps) {
     },
   });
 
+  const formId = useId();
+
   useEffect(() => {
     if (!isOpen) return;
     const nextValues = getInitialIntentFormValues(turn, participants);
@@ -89,7 +91,7 @@ export function RetryIntentDialog(props: RetryIntentDialogProps) {
     >
       <Dialog.Content>
         <form
-          id="retry-intent-form"
+          id={formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();

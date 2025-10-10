@@ -2,7 +2,7 @@ import { Card, Code, Heading, HStack, Separator, Stack, Text } from "@chakra-ui/
 import { useStore } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import type { ChangeEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { InfoTip } from "@/components/ui";
 import { useImageField } from "@/hooks/use-image-field";
 import { useAppForm } from "@/lib/app-form";
@@ -75,6 +75,8 @@ export function CharacterForm({
     validators: { onChange: characterFormSchema },
     onSubmit: ({ value }) => onSubmit(value),
   });
+
+  const formId = useId();
 
   const trpc = useTRPC();
   const resetCropMutation = useMutation(
@@ -169,7 +171,7 @@ export function CharacterForm({
     <>
       <Card.Root layerStyle="surface" maxW="900px" mx="auto">
         <form
-          id="character-form"
+          id={formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -296,7 +298,7 @@ export function CharacterForm({
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
                   Cancel
                 </form.CancelButton>
-                <form.SubmitButton form="character-form" colorPalette="primary">
+                <form.SubmitButton form={formId} colorPalette="primary">
                   {submitLabel}
                 </form.SubmitButton>
                 <form.SubscribedUnsavedChangesDialog

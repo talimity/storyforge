@@ -1,5 +1,6 @@
 import { Card, HStack, Stack, Tabs } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
+import { useId } from "react";
 import { LuEye, LuInfo, LuListOrdered } from "react-icons/lu";
 import { useAppForm } from "@/lib/app-form";
 import {
@@ -26,6 +27,7 @@ export interface WorkflowFormProps {
 
 export function WorkflowForm(props: WorkflowFormProps) {
   const { initialData, submitLabel = "Save", onCancel, onSubmit, isEditMode = false } = props;
+  const formId = useId();
 
   const form = useAppForm({
     defaultValues: { ...workflowFormDefaultValues, ...initialData },
@@ -40,7 +42,7 @@ export function WorkflowForm(props: WorkflowFormProps) {
     <>
       <Card.Root layerStyle="surface" maxW="900px" mx="auto">
         <form
-          id="workflow-form"
+          id={formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -90,7 +92,7 @@ export function WorkflowForm(props: WorkflowFormProps) {
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
                   Cancel
                 </form.CancelButton>
-                <form.SubmitButton form="workflow-form" colorPalette="primary">
+                <form.SubmitButton form={formId} colorPalette="primary">
                   {submitLabel}
                 </form.SubmitButton>
               </form.AppForm>

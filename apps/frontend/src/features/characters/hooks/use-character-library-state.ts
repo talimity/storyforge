@@ -68,7 +68,9 @@ function applyCharacterStoredState(
   }
 
   params.delete("actorType");
-  stored.actorTypes?.forEach((type) => params.append("actorType", type));
+  stored.actorTypes?.forEach((type) => {
+    params.append("actorType", type);
+  });
 
   if (typeof stored.starred === "boolean") {
     if (stored.starred) {
@@ -215,7 +217,9 @@ export function useCharacterLibraryState(): CharacterLibraryState {
   const setActorTypes = (nextTypes: CardType[]) => {
     updateParams((params) => {
       params.delete("actorType");
-      nextTypes.forEach((type) => params.append("actorType", type));
+      nextTypes.forEach((type) => {
+        params.append("actorType", type);
+      });
     });
   };
 

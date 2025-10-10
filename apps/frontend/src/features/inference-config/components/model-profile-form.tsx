@@ -3,7 +3,7 @@ import type { ProviderConfig, SearchModelsOutput } from "@storyforge/contracts";
 import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import {
   Button,
@@ -48,6 +48,8 @@ export function ModelProfileForm({
     validators: { onSubmit: modelProfileFormSchema },
     onSubmit: ({ value }) => onSubmit(value),
   });
+
+  const formId = useId();
 
   useEffect(() => form.reset(initialValues), [form, initialValues]);
 
@@ -105,7 +107,7 @@ export function ModelProfileForm({
   return (
     <>
       <form
-        id="model-profile-form"
+        id={formId}
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -226,7 +228,7 @@ export function ModelProfileForm({
               <form.CancelButton variant="ghost" onCancel={onCancel}>
                 Cancel
               </form.CancelButton>
-              <form.SubmitButton form="model-profile-form" colorPalette="primary">
+              <form.SubmitButton form={formId} colorPalette="primary">
                 {submitLabel}
               </form.SubmitButton>
             </form.AppForm>

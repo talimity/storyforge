@@ -1,4 +1,5 @@
 import { Box, Heading, HStack, Icon, Image, Stack, Text, VStack } from "@chakra-ui/react";
+import { useId } from "react";
 import { LuUpload, LuX } from "react-icons/lu";
 import { Button } from "@/components/ui/index";
 import type { useImageField } from "@/hooks/use-image-field";
@@ -24,6 +25,8 @@ export function CharacterImageField({
   onResetCrop,
   isResettingCrop = false,
 }: CharacterImageFieldProps) {
+  const imageInputId = useId();
+
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
   };
@@ -49,7 +52,7 @@ export function CharacterImageField({
           onDrop={handleDrop}
           _hover={{ borderColor: "border.emphasized" }}
           cursor="pointer"
-          onClick={() => document.getElementById("image-input")?.click()}
+          onClick={() => document.getElementById(imageInputId)?.click()}
         >
           <VStack gap={3}>
             <Icon fontSize="3xl" color="fg.muted">
@@ -67,7 +70,7 @@ export function CharacterImageField({
           </VStack>
 
           <input
-            id="image-input"
+            id={imageInputId}
             type="file"
             accept="image/png,image/jpeg,image/jpg"
             style={{ display: "none" }}

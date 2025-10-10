@@ -1,5 +1,5 @@
 {
-  description = "Node 24 development environment with pnpm, TypeScript, and ESLint";
+  description = "Node 24 development environment with pnpm";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -26,14 +26,11 @@
           packages = with pkgs; [
             nodejs_24
             pkgsUnstable.nodePackages.pnpm
-            nodePackages.typescript-language-server
-            pkgsUnstable.biome
           ];
 
           # keep pnpm’s global cache inside the project
           shellHook = ''
             export PNPM_HOME="$PWD/.pnpm-bin"
-            export BIOME_BINARY=${pkgsUnstable.biome}/bin/biome
             export PATH="$PNPM_HOME:$PATH"
           '';
         };

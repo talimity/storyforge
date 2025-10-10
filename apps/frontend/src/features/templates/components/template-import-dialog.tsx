@@ -1,6 +1,6 @@
 import { Box, HStack, Icon, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog } from "@/components/ui/index";
 import { useTRPC } from "@/lib/trpc";
@@ -16,6 +16,7 @@ export function TemplateImportDialog({ isOpen, onOpenChange }: TemplateImportDia
   const [importError, setImportError] = useState<string | null>(null);
   const browseButtonRef = useRef<HTMLButtonElement>(null);
   const queryClient = useQueryClient();
+  const fileInputId = useId();
 
   const importTemplateMutation = useMutation(
     trpc.templates.import.mutationOptions({
@@ -132,7 +133,7 @@ export function TemplateImportDialog({ isOpen, onOpenChange }: TemplateImportDia
               onDrop={handleDrop}
               _hover={{ borderColor: "border.emphasized" }}
               cursor="pointer"
-              onClick={() => document.getElementById("template-file-input")?.click()}
+              onClick={() => document.getElementById(fileInputId)?.click()}
             >
               <VStack gap={3}>
                 <Icon fontSize="3xl" color="content.muted">
@@ -155,7 +156,7 @@ export function TemplateImportDialog({ isOpen, onOpenChange }: TemplateImportDia
               </VStack>
 
               <input
-                id="template-file-input"
+                id={fileInputId}
                 type="file"
                 accept=".json,application/json"
                 style={{ display: "none" }}

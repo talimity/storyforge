@@ -1,6 +1,6 @@
 import { Box, HStack, Icon, Stack, Tabs, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { LuBookCopy, LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, Switch } from "@/components/ui";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
@@ -22,6 +22,7 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
   const [importError, setImportError] = useState<string | null>(null);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [linkToCharacter, setLinkToCharacter] = useState(true);
+  const fileInputId = useId();
 
   const importFileMutation = useMutation(
     trpc.lorebooks.import.mutationOptions({
@@ -167,7 +168,7 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
                   onDrop={handleDrop}
                   _hover={{ borderColor: "border.emphasized" }}
                   cursor="pointer"
-                  onClick={() => document.getElementById("lorebook-file-input")?.click()}
+                  onClick={() => document.getElementById(fileInputId)?.click()}
                 >
                   <VStack gap={3}>
                     <Icon fontSize="3xl" color="content.muted">
@@ -189,7 +190,7 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
                     </Button>
                   </VStack>
                   <input
-                    id="lorebook-file-input"
+                    id={fileInputId}
                     type="file"
                     accept=".json,application/json"
                     style={{ display: "none" }}

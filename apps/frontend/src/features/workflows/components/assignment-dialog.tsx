@@ -2,7 +2,7 @@ import { HStack, Stack } from "@chakra-ui/react";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { Dialog } from "@/components/ui";
 import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
@@ -45,6 +45,7 @@ export function AssignmentDialog({
 }: AssignmentDialogProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const formId = useId();
 
   const upsert = useMutation(
     trpc.workflows.upsertScope.mutationOptions({
@@ -99,7 +100,7 @@ export function AssignmentDialog({
     >
       <Dialog.Content>
         <form
-          id="assignment-form"
+          id={formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -222,7 +223,7 @@ export function AssignmentDialog({
                   Cancel
                 </form.CancelButton>
               </Dialog.ActionTrigger>
-              <form.SubmitButton form="assignment-form" colorPalette="primary">
+              <form.SubmitButton form={formId} colorPalette="primary">
                 {isEditMode ? "Save Changes" : "Save Assignment"}
               </form.SubmitButton>
             </form.AppForm>

@@ -1,6 +1,6 @@
 import { Box, createListCollection, HStack, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { z } from "zod";
 import { Avatar, Button, Dialog } from "@/components/ui/index";
 import {
@@ -51,6 +51,8 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
     },
   });
 
+  const formId = useId();
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset
   useEffect(() => {
     if (!isOpen) return;
@@ -76,7 +78,7 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
     >
       <Dialog.Content>
         <form
-          id="insert-turn-form"
+          id={formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();

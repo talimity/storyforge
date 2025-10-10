@@ -1,6 +1,6 @@
 import { Box, HStack, Icon, Image, Progress, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, toaster } from "@/components/ui/index";
 import { showSuccessToast } from "@/lib/error-handling";
@@ -19,6 +19,7 @@ export function CharacterImportDialog({ isOpen, onClose, onImportSuccess }: Char
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>({});
+  const fileInputId = useId();
 
   const queryClient = useQueryClient();
   const importMutation = useMutation(trpc.characters.import.mutationOptions());
@@ -198,7 +199,7 @@ export function CharacterImportDialog({ isOpen, onClose, onImportSuccess }: Char
               onDrop={handleDrop}
               _hover={{ borderColor: "border.emphasized" }}
               cursor="pointer"
-              onClick={() => document.getElementById("file-input")?.click()}
+              onClick={() => document.getElementById(fileInputId)?.click()}
             >
               <VStack gap={3}>
                 <Icon fontSize="3xl" color="fg.muted">
@@ -216,7 +217,7 @@ export function CharacterImportDialog({ isOpen, onClose, onImportSuccess }: Char
               </VStack>
 
               <input
-                id="file-input"
+                id={fileInputId}
                 type="file"
                 accept="image/png"
                 multiple

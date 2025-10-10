@@ -1,5 +1,6 @@
 import { Card, Heading, HStack, Separator, Stack, Text } from "@chakra-ui/react";
 import type { ScenarioLorebookAssignmentInput } from "@storyforge/contracts";
+import { useId } from "react";
 import {
   type ScenarioFormValues,
   scenarioFormDefaultValues,
@@ -26,6 +27,7 @@ export function ScenarioForm({
   onCancel,
   submitLabel = "Save Scenario",
 }: ScenarioFormProps) {
+  const formId = useId();
   const initialParticipants = (initialData?.participants ?? []).map((participant) => ({
     characterId: participant.characterId,
     role: participant.role,
@@ -82,7 +84,7 @@ export function ScenarioForm({
     <>
       <Card.Root layerStyle="surface" maxW="900px" mx="auto">
         <form
-          id="scenario-form"
+          id={formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -146,7 +148,7 @@ export function ScenarioForm({
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
                   Cancel
                 </form.CancelButton>
-                <form.SubmitButton form="scenario-form" colorPalette="primary">
+                <form.SubmitButton form={formId} colorPalette="primary">
                   {submitLabel}
                 </form.SubmitButton>
               </form.AppForm>

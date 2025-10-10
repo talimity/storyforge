@@ -1,4 +1,5 @@
 import { Card, HStack, Stack, Tabs } from "@chakra-ui/react";
+import { useId } from "react";
 import { LuInfo, LuLibrary } from "react-icons/lu";
 import { useAppForm } from "@/lib/app-form";
 import {
@@ -28,11 +29,13 @@ export function LorebookForm({
     onSubmit: ({ value }) => onSubmit(value),
   });
 
+  const formId = useId();
+
   return (
     <>
       <Card.Root layerStyle="surface" maxW="900px" mx="auto">
         <form
-          id="lorebook-form"
+          id={formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -65,7 +68,7 @@ export function LorebookForm({
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
                   Cancel
                 </form.CancelButton>
-                <form.SubmitButton form="lorebook-form" colorPalette="primary">
+                <form.SubmitButton form={formId} colorPalette="primary">
                   {submitLabel}
                 </form.SubmitButton>
               </form.AppForm>

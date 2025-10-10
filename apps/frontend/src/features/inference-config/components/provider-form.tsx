@@ -1,6 +1,7 @@
 import { createListCollection, HStack, VStack } from "@chakra-ui/react";
 import { createProviderConfigSchema, providerAuthInputSchema } from "@storyforge/contracts";
 import { useStore } from "@tanstack/react-form";
+import { useId } from "react";
 import type { z } from "zod";
 
 import {
@@ -129,6 +130,8 @@ export function ProviderForm({
     },
   });
 
+  const formId = useId();
+
   const isOpenAICompatible = useStore(
     form.store,
     (state) => state.values.kind === "openai-compatible"
@@ -146,7 +149,7 @@ export function ProviderForm({
 
   return (
     <form
-      id="provider-form"
+      id={formId}
       onSubmit={(event) => {
         event.preventDefault();
         void form.handleSubmit();
@@ -239,7 +242,7 @@ export function ProviderForm({
           Cancel
         </Button>
         <form.AppForm>
-          <form.SubmitButton form="provider-form" colorPalette="primary">
+          <form.SubmitButton form={formId} colorPalette="primary">
             {submitLabel}
           </form.SubmitButton>
         </form.AppForm>
