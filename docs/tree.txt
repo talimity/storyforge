@@ -14,6 +14,7 @@
 │  │  │  │  │  ├── characters.ts
 │  │  │  │  │  ├── chat-import.ts
 │  │  │  │  │  ├── intents.ts
+│  │  │  │  │  ├── lorebooks.ts
 │  │  │  │  │  ├── providers.ts
 │  │  │  │  │  ├── scenarios.ts
 │  │  │  │  │  ├── templates.ts
@@ -55,6 +56,12 @@
 │  │  │  │  │  ├── types.ts
 │  │  │  │  │  └── utils
 │  │  │  │  │      └── intent-prompts.ts
+│  │  │  │  ├── lorebook
+│  │  │  │  │  ├── lorebook.loader.ts
+│  │  │  │  │  ├── lorebook.queries.ts
+│  │  │  │  │  ├── lorebook.service.ts
+│  │  │  │  │  └── utils
+│  │  │  │  │      └── sillytavern-lorebook-parser.ts
 │  │  │  │  ├── provider
 │  │  │  │  │  ├── provider.queries.ts
 │  │  │  │  │  └── provider.service.ts
@@ -97,6 +104,7 @@
 │  │  └── vitest.config.ts
 │  └── frontend
 │      ├── biome.json
+│      ├── eslint.config.mjs
 │      ├── index.html
 │      ├── package.json
 │      ├── public
@@ -115,6 +123,7 @@
 │      │  │  ├── sidebar.tsx
 │      │  │  └── ui
 │      │  │      ├── action-bar.tsx
+│      │  │      ├── alert.tsx
 │      │  │      ├── autosize-textarea.tsx
 │      │  │      ├── avatar.tsx
 │      │  │      ├── button.tsx
@@ -130,6 +139,7 @@
 │      │  │      ├── select.tsx
 │      │  │      ├── split-button.tsx
 │      │  │      ├── switch.tsx
+│      │  │      ├── tag.tsx
 │      │  │      ├── task-kind-select.tsx
 │      │  │      ├── toaster.tsx
 │      │  │      ├── toggle-tip.tsx
@@ -141,10 +151,12 @@
 │      │  │  │  │  ├── avatar-crop-dialog.tsx
 │      │  │  │  │  ├── character-card.tsx
 │      │  │  │  │  ├── character-delete-dialog.tsx
+│      │  │  │  │  ├── character-filters.tsx
 │      │  │  │  │  ├── character-form.tsx
 │      │  │  │  │  ├── character-image-field.tsx
 │      │  │  │  │  ├── character-import-dialog.tsx
 │      │  │  │  │  ├── character-list-item.tsx
+│      │  │  │  │  ├── character-lorebook-manager.tsx
 │      │  │  │  │  ├── character-pile.tsx
 │      │  │  │  │  ├── character-selector.tsx
 │      │  │  │  │  ├── character-starters-editor.tsx
@@ -152,7 +164,9 @@
 │      │  │  │  │  └── form-schemas.ts
 │      │  │  │  └── hooks
 │      │  │  │      ├── use-character-actions.ts
-│      │  │  │      └── use-character-search.ts
+│      │  │  │      ├── use-character-library-state.ts
+│      │  │  │      ├── use-character-search.ts
+│      │  │  │      └── use-character-star.ts
 │      │  │  ├── inference-config
 │      │  │  │  ├── components
 │      │  │  │  │  ├── capabilities-selector.tsx
@@ -172,6 +186,25 @@
 │      │  │  │  │  └── test-connection-button.tsx
 │      │  │  │  └── hooks
 │      │  │  │      └── use-model-profile-search.ts
+│      │  │  ├── library
+│      │  │  │  └── hooks
+│      │  │  │      └── use-hydrated-search-params.ts
+│      │  │  ├── lorebooks
+│      │  │  │  ├── components
+│      │  │  │  │  ├── delete-lorebook-dialog.tsx
+│      │  │  │  │  ├── form-schemas.ts
+│      │  │  │  │  ├── lore-activation-preview-dialog.tsx
+│      │  │  │  │  ├── lorebook-card.tsx
+│      │  │  │  │  ├── lorebook-details-section.tsx
+│      │  │  │  │  ├── lorebook-entries-editor.tsx
+│      │  │  │  │  ├── lorebook-entry-card-header.tsx
+│      │  │  │  │  ├── lorebook-entry-card.tsx
+│      │  │  │  │  ├── lorebook-form.tsx
+│      │  │  │  │  ├── lorebook-import-dialog.tsx
+│      │  │  │  │  └── lorebook-selector.tsx
+│      │  │  │  └── hooks
+│      │  │  │      ├── use-lorebook-actions.ts
+│      │  │  │      └── use-lorebook-search.ts
 │      │  │  ├── scenario-import
 │      │  │  │  ├── components
 │      │  │  │  │  ├── character-mapping-step.tsx
@@ -242,12 +275,16 @@
 │      │  │  │  │  ├── participant-manager.tsx
 │      │  │  │  │  ├── scenario-card.tsx
 │      │  │  │  │  ├── scenario-delete-dialog.tsx
+│      │  │  │  │  ├── scenario-filters.tsx
 │      │  │  │  │  ├── scenario-form.tsx
+│      │  │  │  │  ├── scenario-lorebook-manager.tsx
 │      │  │  │  │  └── scenario-selector.tsx
 │      │  │  │  ├── forms
 │      │  │  │  └── hooks
 │      │  │  │      ├── use-scenario-actions.ts
-│      │  │  │      └── use-scenario-search.ts
+│      │  │  │      ├── use-scenario-library-state.ts
+│      │  │  │      ├── use-scenario-search.ts
+│      │  │  │      └── use-scenario-star.ts
 │      │  │  ├── template-builder
 │      │  │  │  ├── components
 │      │  │  │  │  ├── layout-builder.tsx
@@ -258,7 +295,7 @@
 │      │  │  │  │  │  ├── node-frame.tsx
 │      │  │  │  │  │  ├── slot-reference-edit.tsx
 │      │  │  │  │  │  └── slot-reference-view.tsx
-│      │  │  │  │  ├── parameter-inputs.tsx
+│      │  │  │  │  ├── param-inputs.tsx
 │      │  │  │  │  ├── template-form.tsx
 │      │  │  │  │  ├── template-metadata.tsx
 │      │  │  │  │  ├── template-preview.tsx
@@ -274,6 +311,7 @@
 │      │  │  │  │  │  └── turngen
 │      │  │  │  │  │      ├── characters-recipe.ts
 │      │  │  │  │  │      ├── intent-recipes.ts
+│      │  │  │  │  │      ├── lore-recipe.ts
 │      │  │  │  │  │      └── timeline-recipe.ts
 │      │  │  │  │  ├── slot-validation.ts
 │      │  │  │  │  └── template-conversion.ts
@@ -287,7 +325,6 @@
 │      │  │  │  │  ├── template-delete-dialog.tsx
 │      │  │  │  │  ├── template-duplicate-dialog.tsx
 │      │  │  │  │  ├── template-import-dialog.tsx
-│      │  │  │  │  ├── template-list-item.tsx
 │      │  │  │  │  └── template-selector.tsx
 │      │  │  │  └── hooks
 │      │  │  │      ├── use-template-actions.ts
@@ -337,6 +374,9 @@
 │      │  │  ├── character-create.tsx
 │      │  │  ├── character-edit.tsx
 │      │  │  ├── character-library.tsx
+│      │  │  ├── lorebook-create.tsx
+│      │  │  ├── lorebook-edit.tsx
+│      │  │  ├── lorebook-library.tsx
 │      │  │  ├── models-library.tsx
 │      │  │  ├── scenario-create.tsx
 │      │  │  ├── scenario-edit.tsx
@@ -379,6 +419,7 @@
 │  │  │  │  ├── character.ts
 │  │  │  │  ├── chat-import.ts
 │  │  │  │  ├── intents.ts
+│  │  │  │  ├── lorebook.ts
 │  │  │  │  ├── provider.ts
 │  │  │  │  ├── scenarios.ts
 │  │  │  │  ├── templates.ts
@@ -400,15 +441,19 @@
 │  │  │  ├── migrations
 │  │  │  ├── models
 │  │  │  │  ├── character-examples.ts
+│  │  │  │  ├── character-lorebooks.ts
 │  │  │  │  ├── character-starters.ts
 │  │  │  │  ├── characters.ts
 │  │  │  │  ├── generation-runs.ts
 │  │  │  │  ├── index.ts
 │  │  │  │  ├── intent-effects.ts
 │  │  │  │  ├── intents.ts
+│  │  │  │  ├── lorebooks.ts
 │  │  │  │  ├── model-profiles.ts
 │  │  │  │  ├── prompt-templates.ts
 │  │  │  │  ├── provider-config.ts
+│  │  │  │  ├── scenario-character-lorebook-overrides.ts
+│  │  │  │  ├── scenario-lorebooks.ts
 │  │  │  │  ├── scenario-participants.ts
 │  │  │  │  ├── scenarios.ts
 │  │  │  │  ├── timeline-events.ts
@@ -462,6 +507,18 @@
 │  │  │  ├── types.ts
 │  │  │  └── utils
 │  │  │      └── sse.ts
+│  │  ├── tsconfig.build.json
+│  │  ├── tsconfig.json
+│  │  └── vitest.config.ts
+│  ├── lorebooks
+│  │  ├── package.json
+│  │  ├── src
+│  │  │  ├── fingerprint.ts
+│  │  │  ├── index.ts
+│  │  │  ├── normalization.ts
+│  │  │  ├── scanner.ts
+│  │  │  ├── schema.ts
+│  │  │  └── utils.ts
 │  │  ├── tsconfig.build.json
 │  │  ├── tsconfig.json
 │  │  └── vitest.config.ts
@@ -539,4 +596,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
 
-107 directories, 433 files
+116 directories, 481 files

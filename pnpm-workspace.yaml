@@ -2,32 +2,32 @@ packages:
   - apps/*
   - packages/*
 
-catalog:
-  '@libsql/client': ^0.15.10
-  '@trpc/client': 11.5.1
-  '@trpc/react-query': 11.5.1
-  '@trpc/server': 11.5.1
-  '@trpc/tanstack-react-query': 11.5.1
-  '@types/node': ^24.7.2
-  '@typescript/native-preview': 7.0.0-dev.20251013.1
-  drizzle-kit: beta
-  drizzle-orm: 1.0.0-beta.1-578e9fd
-  sharp: ^0.34.3
-  superjson: ^2.2.2
-  trpc-to-openapi: ^3.0.1
-  tsx: ^4.20.3
-  typescript: ^5.9.3
-  vitest: ^3.2.4
-  zod: ^4.1.12
-  zod-openapi: ^5.4.0
-
-catalogMode: manual
+disallowWorkspaceCycles: true
+minimumReleaseAge: 2880
 
 onlyBuiltDependencies:
-  - '@swc/core'
-  - '@tailwindcss/oxide'
   - better-sqlite3
   - esbuild
   - onnxruntime-node
   - sharp
-  - trpc-ui
+
+catalog:
+  '@libsql/client': ^0.15.10
+  '@trpc/client': ^11.6.0
+  '@trpc/react-query': ^11.6.0
+  '@trpc/server': ^11.6.0
+  '@trpc/tanstack-react-query': ^11.6.0
+  '@types/node': ^24.8.1
+  '@typescript/native-preview': ^7.0.0-dev.20251018.1
+  drizzle-kit: beta
+  drizzle-orm: 1.0.0-beta.1-ac4ce44
+  sharp: ^0.34.3
+  superjson: ^2.2.2
+  trpc-to-openapi: ^3.1.0
+  tsx: ^4.20.3
+  typescript: ^5.9.3
+  vitest: ^3.2.4
+  zod: ^4.1.12
+  zod-openapi: ^5.4.3
+
+catalogMode: strict

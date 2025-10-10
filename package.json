@@ -10,7 +10,7 @@
     "dev:frontend": "pnpm --filter frontend dev",
     "dev": "concurrently -c blue,green pnpm:dev:*",
     "fmt": "pnpm -r --parallel run fmt",
-    "lint": "pnpm -r --parallel run lint && pnpm --parallel run typecheck",
+    "lint": "pnpm -r --parallel lint && pnpm --parallel typecheck",
     "typecheck": "pnpm --parallel run typecheck",
     "typecheck:legacy": "pnpm --parallel run typecheck:legacy",
     "test": "pnpm -r run test"
@@ -20,7 +20,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.2.6",
     "@typescript/native-preview": "catalog:",
     "concurrently": "^9.2.1",
     "npm-run-all": "^4.1.5",

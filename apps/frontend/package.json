@@ -25,8 +25,8 @@
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/utils": "workspace:*",
     "@tanstack/react-form": "^1.23.7",
-    "@tanstack/react-query": "^5.90.3",
-    "@tanstack/react-virtual": "^3.13.12",
+    "@tanstack/react-query": "^5.90.5",
+    "@tanstack/react-virtual": "^3.13.1",
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
     "@trpc/tanstack-react-query": "catalog:",
@@ -47,7 +47,7 @@
   "devDependencies": {
     "@chakra-ui/cli": "^3.27.1",
     "@storyforge/backend": "workspace:*",
-    "@tanstack/react-devtools": "^0.7.6",
+    "@tanstack/react-devtools": "^0.7.7",
     "@tanstack/react-form-devtools": "^0.1.7",
     "@tanstack/react-query-devtools": "^5.90.2",
     "@testing-library/dom": "^10.4.1",
@@ -62,12 +62,12 @@
     "@typescript/native-preview": "catalog:",
     "@vitejs/plugin-react": "^5.0.4",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9.37.0",
+    "eslint": "^9.38.0",
     "eslint-plugin-react-hooks": "^7.0.0",
-    "jsdom": "^26.1.0",
+    "jsdom": "^27.0.1",
     "react-intersection-observer": "^9.16.0",
     "typescript": "catalog:",
-    "vite": "^7.1.9",
+    "vite": "^7.1.10",
     "vitest": "catalog:"
   }
 }

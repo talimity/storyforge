@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "find-up": "^7.0.0"
+    "find-up": "^8.0.0"
   },
   "devDependencies": {
     "@types/node": "catalog:",
