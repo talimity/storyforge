@@ -1,7 +1,7 @@
 import { Box, Heading, HStack, Icon, Image, Stack, Text, VStack } from "@chakra-ui/react";
 import { useId } from "react";
 import { LuUpload, LuX } from "react-icons/lu";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 import type { useImageField } from "@/hooks/use-image-field";
 
 interface CharacterImageFieldProps {

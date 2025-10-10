@@ -2,7 +2,7 @@ import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
 import { memo } from "react";
 import Markdown from "react-markdown";
 import { useShallow } from "zustand/react/shallow";
-import { Avatar, Prose } from "@/components/ui/index";
+import { Avatar, Prose } from "@/components/ui";
 import { AutoFollowOnDraft } from "@/features/scenario-player/components/timeline/auto-follow-draft";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";

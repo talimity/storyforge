@@ -34,6 +34,10 @@ Template recipes give authors a guided way to configure prompt slots in the UI w
    - Parameters: intent template, narrator extra prompt.
    - Emits user-facing guidance only when `currentIntent` exists and is not manual control. Appends narrator-specific instruction when the global flag indicates a narrator turn.
 
+5. **Activated Lore Entries**:
+   - Parameters: lore context (A/B), message role, per-entry template, max entries, token budget.
+   - Iterates the `lore` source for the selected position and outputs one message per activated entry using the provided template. The lore scanner already applies filtering and ordering, so the recipe simply formats what was activated.
+
 ## Parameter Handling & Validation
 - Number controls automatically clamp to `[min, max]` and default if left blank.
 - Toggle and select options coerce to boolean or enumerated values.

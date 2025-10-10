@@ -1,6 +1,6 @@
 import { defaultShouldDehydrateQuery, MutationCache, QueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
-import { toaster } from "@/components/ui/index";
+import { toaster } from "@/components/ui";
 
 export function makeQueryClient() {
   return new QueryClient({

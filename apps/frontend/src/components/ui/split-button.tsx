@@ -2,7 +2,7 @@ import { type ButtonProps, For, Group, IconButton, Menu, Portal } from "@chakra-
 import { useMemo, useRef } from "react";
 import { LuChevronDown } from "react-icons/lu";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 
 export interface SplitButtonProps {
   colorPalette?: ButtonProps["colorPalette"];

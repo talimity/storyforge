@@ -1,6 +1,6 @@
 import { Badge, Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import { LuBookOpen } from "react-icons/lu";
-import { AutosizeTextarea } from "@/components/ui/index";
+import { AutosizeTextarea } from "@/components/ui";
 import { withForm } from "@/lib/app-form";
 import { showErrorToast } from "@/lib/error-handling";
 import { lorebookFormDefaultValues } from "./form-schemas";

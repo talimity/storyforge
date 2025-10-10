@@ -2,7 +2,7 @@ import { Box, Code, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import { type ChatCompletionMessage, renderTextTemplate } from "@storyforge/inference";
 import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { AutosizeTextarea, Button, Dialog, Field, Switch } from "@/components/ui/index";
+import { AutosizeTextarea, Button, Dialog, Field, Switch } from "@/components/ui";
 
 const EXAMPLE_MESSAGES: ChatCompletionMessage[] = [
   { role: "system", content: "You are StoryForge, a narrative assistant." },

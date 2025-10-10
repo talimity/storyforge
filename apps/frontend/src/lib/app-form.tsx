@@ -2,6 +2,9 @@ import {
   createListCollection,
   Input,
   type InputProps,
+  NumberInput,
+  type NumberInputInputProps,
+  type NumberInputRootProps,
   Textarea,
   type TextareaProps,
 } from "@chakra-ui/react";
@@ -91,15 +94,15 @@ function FieldControl(props: FieldControlProps) {
 type FieldPresentationProps = Pick<
   UiFieldProps,
   "label" | "helperText" | "optionalText" | "required" | "errorText" | "invalid"
->;
+> & {
+  fieldProps?: UiFieldProps;
+};
 
 type TextInputFieldProps = FieldPresentationProps &
   Omit<InputProps, "value" | "defaultValue" | "onChange" | "onBlur"> & {
     transform?: (next: string) => string | null | undefined;
     onChange?: InputProps["onChange"];
     onBlur?: InputProps["onBlur"];
-  } & {
-    fieldProps?: UiFieldProps;
   };
 
 function TextInputField(props: TextInputFieldProps) {
@@ -114,6 +117,7 @@ function TextInputField(props: TextInputFieldProps) {
     autoComplete = "off", // disable autocomplete by default
     onChange,
     onBlur,
+    fieldProps,
     ...inputProps
   } = props;
 
@@ -128,6 +132,7 @@ function TextInputField(props: TextInputFieldProps) {
       required={required}
       errorText={errorText}
       invalid={invalid}
+      {...fieldProps}
     >
       <Input
         {...inputProps}
@@ -156,7 +161,6 @@ type TextareaFieldProps = FieldPresentationProps &
     onChange?: TextareaProps["onChange"];
     onBlur?: TextareaProps["onBlur"];
     autosize?: boolean;
-    fieldProps?: UiFieldProps;
   };
 
 function TextareaField(props: TextareaFieldProps) {
@@ -172,6 +176,7 @@ function TextareaField(props: TextareaFieldProps) {
     onChange,
     onBlur,
     autosize = true,
+    fieldProps,
     ...inputProps
   } = props;
 
@@ -187,6 +192,7 @@ function TextareaField(props: TextareaFieldProps) {
       required={required}
       errorText={errorText}
       invalid={invalid}
+      {...fieldProps}
     >
       <TextareaComponent
         {...inputProps}
@@ -210,12 +216,11 @@ function TextareaField(props: TextareaFieldProps) {
 }
 
 type NumberInputFieldProps = FieldPresentationProps &
-  Omit<InputProps, "value" | "defaultValue" | "onChange" | "onBlur" | "type"> & {
+  Omit<NumberInputRootProps, "value" | "defaultValue" | "onValueChange" | "onBlur" | "type"> & {
+    placeholder?: NumberInputInputProps["placeholder"];
     allowEmpty?: boolean;
-    onChange?: InputProps["onChange"];
-    onBlur?: InputProps["onBlur"];
-  } & {
-    fieldProps?: UiFieldProps;
+    onValueChange?: NumberInputRootProps["onValueChange"];
+    onBlur?: NumberInputRootProps["onBlur"];
   };
 
 function NumberInputField(props: NumberInputFieldProps) {
@@ -225,18 +230,19 @@ function NumberInputField(props: NumberInputFieldProps) {
     optionalText,
     required,
     errorText,
+    placeholder,
     invalid,
     allowEmpty = true,
-    onChange,
+    onValueChange,
     onBlur,
     flex,
     fieldProps,
     ...inputProps
   } = props;
 
-  const field = useFieldContext<number | undefined>();
+  const field = useFieldContext<number | null | undefined>();
   const value = field.state.value;
-  const displayValue = value === undefined ? "" : String(value);
+  const displayValue = value === undefined || value === null ? "" : String(value);
 
   return (
     <FieldControl
@@ -249,34 +255,42 @@ function NumberInputField(props: NumberInputFieldProps) {
       flex={flex}
       {...fieldProps}
     >
-      <Input
+      <NumberInput.Root
+        clampValueOnBlur={!allowEmpty}
         {...inputProps}
-        type="number"
+        // Weird zag.js behavior -- regardless of field/form state, it will set
+        // invalid styles on its own if `min` is provided and value is empty.
+        // This is not desirable and doesn't match the actual form invalid state
+        // if the input allows empty values, so we conditionally omit `min`.
+        min={allowEmpty && !value ? undefined : inputProps.min}
         id={field.name}
         name={field.name}
         value={displayValue}
-        onChange={(event) => {
-          const nextValue = event.target.value;
+        onValueChange={(event) => {
+          const nextValue = event.value;
           if (nextValue.length === 0 && allowEmpty) {
-            field.handleChange(undefined);
-            onChange?.(event);
+            field.handleChange(null);
+            onValueChange?.(event);
             return;
           }
 
           const parsed = Number(nextValue);
           if (Number.isNaN(parsed)) {
-            onChange?.(event);
+            onValueChange?.(event);
             return;
           }
 
           field.handleChange(parsed);
-          onChange?.(event);
+          onValueChange?.(event);
         }}
         onBlur={(event) => {
           field.handleBlur();
           onBlur?.(event);
         }}
-      />
+      >
+        <NumberInput.Control />
+        <NumberInput.Input placeholder={placeholder} />
+      </NumberInput.Root>
     </FieldControl>
   );
 }
@@ -312,6 +326,7 @@ function SelectField(props: SelectFieldProps) {
     disabled = false,
     portalled = false,
     onChange,
+    fieldProps,
   } = props;
 
   const field = useFieldContext<string | undefined>();
@@ -326,6 +341,7 @@ function SelectField(props: SelectFieldProps) {
       required={required}
       errorText={errorText}
       invalid={invalid}
+      {...fieldProps}
     >
       <SelectRoot
         collection={collection}
@@ -373,6 +389,7 @@ function CheckboxField(props: CheckboxFieldProps) {
     invalid,
     children,
     onCheckedChange,
+    fieldProps,
     ...checkboxProps
   } = props;
 
@@ -387,6 +404,7 @@ function CheckboxField(props: CheckboxFieldProps) {
       required={required}
       errorText={errorText}
       invalid={invalid}
+      {...fieldProps}
     >
       <Checkbox
         {...checkboxProps}
@@ -407,14 +425,13 @@ function CheckboxField(props: CheckboxFieldProps) {
   );
 }
 
-type SwitchFieldProps = FieldPresentationProps &
-  Omit<SwitchProps, "checked" | "defaultChecked" | "onCheckedChange"> & {
+type SwitchFieldProps = Omit<FieldPresentationProps, "label"> &
+  Omit<SwitchProps, "label" | "checked" | "defaultChecked" | "onCheckedChange"> & {
     onCheckedChange?: (checked: boolean) => void;
   };
 
 function SwitchField(props: SwitchFieldProps) {
   const {
-    label,
     helperText,
     optionalText,
     required,
@@ -422,6 +439,7 @@ function SwitchField(props: SwitchFieldProps) {
     invalid,
     children,
     onCheckedChange,
+    fieldProps,
     ...switchProps
   } = props;
 
@@ -430,12 +448,13 @@ function SwitchField(props: SwitchFieldProps) {
 
   return (
     <FieldControl
-      label={label}
+      // switch uses children as label
       helperText={helperText}
       optionalText={optionalText}
       required={required}
       errorText={errorText}
       invalid={invalid}
+      {...fieldProps}
     >
       <Switch
         {...switchProps}

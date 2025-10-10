@@ -11,7 +11,7 @@ import { Suspense, useEffect, useState } from "react";
 import { LuArrowLeft, LuBookOpen, LuSettings } from "react-icons/lu";
 import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { ScenarioNavigation } from "@/features/scenario-player/components/scenario-navigation";
 import {

@@ -2,7 +2,7 @@ import { Text } from "@chakra-ui/react";
 import type { ProviderConfig } from "@storyforge/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
-import { Button, Dialog } from "@/components/ui/index";
+import { Button, Dialog } from "@/components/ui";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 

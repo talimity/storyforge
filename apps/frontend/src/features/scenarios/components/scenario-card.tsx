@@ -23,7 +23,7 @@ import {
 } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 import { CharacterPile } from "@/features/characters/components/character-pile";
 import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
 import { useScenarioActions } from "@/features/scenarios/hooks/use-scenario-actions";

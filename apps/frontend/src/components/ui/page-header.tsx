@@ -32,7 +32,7 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValueText,
-} from "@/components/ui/select";
+} from "@/components/ui";
 
 // Root component that manages layout
 interface PageHeaderRootProps extends PropsWithChildren {
@@ -42,7 +42,6 @@ interface PageHeaderRootProps extends PropsWithChildren {
   };
 }
 
-// Updated PageHeaderRoot component with better wrapping behavior
 function PageHeaderRoot({ children, containerProps }: PageHeaderRootProps) {
   const childArray = Children.toArray(children).filter((child) => isValidElement(child));
 

@@ -1,6 +1,6 @@
 import { HStack, Text } from "@chakra-ui/react";
 import type { ComponentProps, ReactNode } from "react";
-import { Avatar } from "@/components/ui/index";
+import { Avatar } from "@/components/ui";
 
 import { getApiUrl } from "@/lib/get-api-url";
 

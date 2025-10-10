@@ -19,7 +19,7 @@ import {
   LuTableOfContents,
   LuTrash,
 } from "react-icons/lu";
-import { Button, Dialog, EmptyState, Field } from "@/components/ui/index";
+import { Button, Dialog, EmptyState, Field } from "@/components/ui";
 import { useChapterActions } from "@/features/scenario-player/hooks/use-chapter-actions";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import {

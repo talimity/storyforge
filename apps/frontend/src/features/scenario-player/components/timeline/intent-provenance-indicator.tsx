@@ -1,5 +1,5 @@
 import { Badge, Text } from "@chakra-ui/react";
-import { Tooltip } from "@/components/ui/index";
+import { Tooltip } from "@/components/ui";
 import type { IntentProvenanceDisplay } from "./intent-provenance-utils";
 
 export interface IntentProvenanceIndicatorProps {

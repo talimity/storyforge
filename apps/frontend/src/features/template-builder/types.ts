@@ -11,7 +11,8 @@ export type TurnGenRecipeId =
   | "timeline_basic"
   | "timeline_advanced"
   | "characters_basic"
-  | "intent_basic";
+  | "intent_basic"
+  | "lore_basic";
 export type ChapterSummRecipeId = never; // none yet
 export type WritingAssistantRecipeId = never; // none yet
 

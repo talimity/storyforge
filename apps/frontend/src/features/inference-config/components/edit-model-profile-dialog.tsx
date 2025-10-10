@@ -1,6 +1,6 @@
 import type { ModelProfile } from "@storyforge/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dialog } from "@/components/ui/index";
+import { Dialog } from "@/components/ui";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 import { ModelProfileForm, type ModelProfileFormData } from "./model-profile-form";

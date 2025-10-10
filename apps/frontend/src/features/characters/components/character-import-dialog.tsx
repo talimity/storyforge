@@ -2,7 +2,7 @@ import { Box, HStack, Icon, Image, Progress, Text, VStack } from "@chakra-ui/rea
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
-import { Button, Dialog, toaster } from "@/components/ui/index";
+import { Button, Dialog, toaster } from "@/components/ui";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 

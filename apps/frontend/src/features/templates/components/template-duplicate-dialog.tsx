@@ -1,6 +1,6 @@
 import { Input } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import { Button, Dialog, Field } from "@/components/ui/index";
+import { Button, Dialog, Field } from "@/components/ui";
 
 interface TemplateDuplicateDialogProps {
   isOpen: boolean;

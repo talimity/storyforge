@@ -8,7 +8,7 @@ import {
   LuSettings2,
   LuUsers,
 } from "react-icons/lu";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 import { WidgetPanels } from "./widgets/index";
 
 interface Character {

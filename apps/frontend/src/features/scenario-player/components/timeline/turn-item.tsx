@@ -30,7 +30,7 @@ import {
 import { useInView } from "react-intersection-observer";
 import Markdown from "react-markdown";
 import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialog";
-import { AutosizeTextarea, Avatar, Button, Prose, Tooltip } from "@/components/ui/index";
+import { AutosizeTextarea, Avatar, Button, Prose, Tooltip } from "@/components/ui";
 import { IntentProvenanceIndicator } from "@/features/scenario-player/components/timeline/intent-provenance-indicator";
 import { getIntentProvenanceDisplay } from "@/features/scenario-player/components/timeline/intent-provenance-utils";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";

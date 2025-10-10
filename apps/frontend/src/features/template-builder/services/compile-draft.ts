@@ -197,6 +197,10 @@ export function validateDraft({
 }: Pick<TemplateDraft, "layoutDraft" | "slotsDraft" | "task">): string[] {
   const errors: string[] = [];
 
+  if (layoutDraft.length === 0) {
+    errors.push("Layout must contain at least one node");
+  }
+
   // Track which slots are referenced in the layout
   const referencedSlots = new Set<string>();
 

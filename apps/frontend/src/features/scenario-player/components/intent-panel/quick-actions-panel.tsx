@@ -1,5 +1,5 @@
 import { HStack, Text } from "@chakra-ui/react";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 import { CharacterMiniSelect } from "@/features/scenario-player/components/intent-panel/character-mini-select";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";

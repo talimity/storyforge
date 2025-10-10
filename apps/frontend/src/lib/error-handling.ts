@@ -1,4 +1,4 @@
-import { toaster } from "@/components/ui/index";
+import { toaster } from "@/components/ui";
 
 interface ErrorToastOptions {
   title: string;

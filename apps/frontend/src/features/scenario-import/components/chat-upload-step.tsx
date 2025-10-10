@@ -1,7 +1,7 @@
 import { Box, HStack, Icon, Text, VStack } from "@chakra-ui/react";
 import type React from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 import { formatFileSize } from "@/features/scenario-import/services/file-validation";
 
 interface ChatUploadStepProps {

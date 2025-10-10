@@ -1,7 +1,7 @@
 import { Box, Heading, Text, VStack } from "@chakra-ui/react";
 import type React from "react";
 import { Component, type ReactNode } from "react";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 
 interface ErrorBoundaryProps {
   children: ReactNode;

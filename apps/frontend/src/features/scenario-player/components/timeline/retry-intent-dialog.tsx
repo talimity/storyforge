@@ -2,7 +2,7 @@ import { Box, HStack, SegmentGroup, Stack, Text, VStack } from "@chakra-ui/react
 import type { IntentInput, IntentKind, TimelineTurn } from "@storyforge/contracts";
 import { useStore } from "@tanstack/react-form";
 import { useEffect, useId } from "react";
-import { AutosizeTextarea, Button, Dialog } from "@/components/ui/index";
+import { AutosizeTextarea, Button, Dialog } from "@/components/ui";
 import { CharacterMiniSelect } from "@/features/scenario-player/components/intent-panel/character-mini-select";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import {

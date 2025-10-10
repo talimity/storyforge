@@ -2,7 +2,7 @@ import { IconButton } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { FaPlug, FaPlugCircleCheck, FaPlugCircleXmark } from "react-icons/fa6";
-import { Tooltip } from "@/components/ui/index";
+import { Tooltip } from "@/components/ui";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 

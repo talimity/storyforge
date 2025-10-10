@@ -146,12 +146,12 @@ export function validateTemplateString(
   };
 
   // Extract all variable names from the template
-  const variableMatches = template.match(/\{\{([^}]*)\}\}/g) || [];
+  const variableMatches = template.match(/\{\{([^}]*)}}/g) || [];
   const availableVarNames = new Set(availableVariables.map((v) => v.name));
 
   // Check bracket balance
   const openBrackets = (template.match(/\{\{/g) || []).length;
-  const closeBrackets = (template.match(/\}\}/g) || []).length;
+  const closeBrackets = (template.match(/}}/g) || []).length;
 
   if (openBrackets !== closeBrackets) {
     result.isValid = false;

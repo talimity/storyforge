@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import Markdown from "react-markdown";
-import { Button, Prose } from "@/components/ui/index";
+import { Button, Prose } from "@/components/ui";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
 

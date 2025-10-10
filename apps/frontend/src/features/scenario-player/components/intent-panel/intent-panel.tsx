@@ -1,6 +1,6 @@
 import { Box, HStack, SegmentGroup, Stack, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 import { PromptInput } from "@/features/scenario-player/components/intent-panel/prompt-input";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
 import { QuickActionsPanel } from "./quick-actions-panel";

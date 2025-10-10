@@ -21,7 +21,7 @@ import {
   LuTrash,
 } from "react-icons/lu";
 import { Link } from "react-router-dom";
-import { Avatar } from "@/components/ui/index";
+import { Avatar } from "@/components/ui";
 import { cardTypeLabels } from "@/features/characters/character-enums";
 import { CharacterDeleteDialog } from "@/features/characters/components/character-delete-dialog";
 import { useCharacterActions } from "@/features/characters/hooks/use-character-actions";

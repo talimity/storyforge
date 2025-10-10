@@ -7,7 +7,7 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValueText,
-} from "@/components/ui/index";
+} from "@/components/ui";
 
 export type TaskKindOption = {
   value: TaskKind;

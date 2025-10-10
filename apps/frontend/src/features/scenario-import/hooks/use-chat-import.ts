@@ -2,7 +2,7 @@ import type { CharacterMapping, ChatImportAnalyzeOutput } from "@storyforge/cont
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type React from "react";
 import { useRef, useState } from "react";
-import { toaster } from "@/components/ui/index";
+import { toaster } from "@/components/ui";
 import { validateFile } from "@/features/scenario-import/services/file-validation";
 import { showSuccessToast } from "@/lib/error-handling";
 import { makeScenarioName } from "@/lib/make-scenario-name";

@@ -2,7 +2,7 @@ import { Box, createListCollection, HStack, Stack, Text } from "@chakra-ui/react
 import type { TimelineTurn } from "@storyforge/contracts";
 import { useEffect, useId } from "react";
 import { z } from "zod";
-import { Avatar, Button, Dialog } from "@/components/ui/index";
+import { Avatar, Button, Dialog } from "@/components/ui";
 import {
   SelectContent,
   SelectItem,

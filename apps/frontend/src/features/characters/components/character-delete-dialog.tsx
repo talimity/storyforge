@@ -1,6 +1,6 @@
 import { Text } from "@chakra-ui/react";
 import { useRef } from "react";
-import { Button, Dialog } from "@/components/ui/index";
+import { Button, Dialog } from "@/components/ui";
 
 interface CharacterDeleteDialogProps {
   isOpen: boolean;

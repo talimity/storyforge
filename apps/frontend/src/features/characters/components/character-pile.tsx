@@ -1,5 +1,5 @@
 import { type AvatarRoot, Menu, Portal } from "@chakra-ui/react";
-import { Avatar, AvatarGroup } from "@/components/ui/index";
+import { Avatar, AvatarGroup } from "@/components/ui";
 import { CharacterListItem } from "@/features/characters/components/character-list-item";
 
 import { getApiUrl } from "@/lib/get-api-url";

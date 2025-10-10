@@ -15,7 +15,7 @@ import { TbCubeSpark } from "react-icons/tb";
 import { ColorModeToggle } from "@/components/color-mode-toggle";
 import { Logo } from "@/components/logo";
 import { SidebarLink } from "@/components/sidebar-link";
-import { Button } from "@/components/ui/index";
+import { Button } from "@/components/ui";
 import { useActiveScenarioWithData } from "@/hooks/use-active-scenario";
 
 interface SidebarProps {

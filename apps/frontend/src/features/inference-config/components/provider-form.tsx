@@ -11,7 +11,7 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValueText,
-} from "@/components/ui/index";
+} from "@/components/ui";
 import { useAppForm } from "@/lib/app-form";
 import { emptyToNull, emptyToUndefined } from "@/lib/empty-to-null";
 import { CapabilitiesSelector } from "./capabilities-selector";

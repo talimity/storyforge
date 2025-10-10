@@ -11,7 +11,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import type React from "react";
 import { Fragment, useEffect, useRef } from "react";
-import { Avatar } from "@/components/ui/index";
+import { Avatar } from "@/components/ui";
 import { useCharacterSearch } from "@/features/characters/hooks/use-character-search";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";

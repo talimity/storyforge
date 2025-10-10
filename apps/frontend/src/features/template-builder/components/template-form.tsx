@@ -1,10 +1,10 @@
-import { Box, Tabs, VStack } from "@chakra-ui/react";
+import { List, Tabs, VStack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
 import { useEffect, useRef, useState } from "react";
-import { LuEye, LuInfo, LuRows3 } from "react-icons/lu";
+import { LuEye, LuInfo, LuRows3, LuTriangleAlert } from "react-icons/lu";
 import { useShallow } from "zustand/react/shallow";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
-import { Button, PageHeader } from "@/components/ui";
+import { Alert, Button, PageHeader } from "@/components/ui";
 import { LayoutBuilder } from "@/features/template-builder/components/layout-builder";
 import { TemplateMetadata } from "@/features/template-builder/components/template-metadata";
 import { TemplatePreview } from "@/features/template-builder/components/template-preview";
@@ -183,7 +183,7 @@ export function TemplateForm({
     },
     {
       value: "structure",
-      label: "Structure",
+      label: "Prompt Layout",
       icon: <LuRows3 />,
       badge: structureErrorCount > 0 ? structureErrorCount : undefined,
       badgeColorPalette: structureErrorCount > 0 ? ("red" as const) : undefined,
@@ -238,15 +238,17 @@ export function TemplateForm({
           <Tabs.Content value="structure">
             <VStack align="stretch" gap={4}>
               {hasStructureErrors && (
-                <Box bg="red.50" border="1px solid" borderColor="red.200" p={3} borderRadius="md">
-                  <VStack align="start" gap={1}>
-                    {structureErrors.map((error) => (
-                      <Box key={error} fontSize="sm" color="fg.error">
-                        • {error}
-                      </Box>
+                <Alert
+                  icon={<LuTriangleAlert />}
+                  title={`Template layout has issues (${structureErrorCount})`}
+                  status="error"
+                >
+                  <List.Root>
+                    {structureErrors.map((error, index) => (
+                      <List.Item key={error + String(index)}>{error}</List.Item>
                     ))}
-                  </VStack>
-                </Box>
+                  </List.Root>
+                </Alert>
               )}
 
               <LayoutBuilder task={metadataValues.task} />

@@ -2,7 +2,7 @@ import { Box, HStack, Icon, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
-import { Button, Dialog } from "@/components/ui/index";
+import { Button, Dialog } from "@/components/ui";
 import { useTRPC } from "@/lib/trpc";
 
 interface WorkflowImportDialogProps {

@@ -1,6 +1,7 @@
-import { Box, Card, Heading, HStack, Icon, Text, VStack } from "@chakra-ui/react";
+import { Card, Heading, HStack, List, Text, VStack } from "@chakra-ui/react";
 import type { UnboundTemplate } from "@storyforge/prompt-rendering";
-import { LuInfo } from "react-icons/lu";
+import { LuTriangleAlert } from "react-icons/lu";
+import { Alert } from "@/components/ui/index";
 import { compileDraft, validateDraft } from "@/features/template-builder/services/compile-draft";
 import type { TemplateDraft } from "@/features/template-builder/types";
 
@@ -26,26 +27,20 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
 
   if (compilationErrors.length > 0) {
     return (
-      <VStack align="stretch" gap={4}>
-        <Box bg="red.50" border="1px solid" borderColor="red.200" p={4} borderRadius="md">
-          <HStack gap={2} mb={2}>
-            <Icon as={LuInfo} color="fg.error" />
-            <Heading size="sm" color="red.700">
-              Template Validation Errors
-            </Heading>
-          </HStack>
-          <VStack align="start" gap={1}>
-            {compilationErrors.map((error) => (
-              <Text key={error} fontSize="sm" color="fg.error">
-                • {error}
-              </Text>
-            ))}
-          </VStack>
-        </Box>
-        <Text color="content.muted" fontSize="sm">
-          Fix the validation errors above to see the template preview.
+      <Alert
+        icon={<LuTriangleAlert />}
+        title={`Template has compilation issues (${compilationErrors.length})`}
+        status="error"
+      >
+        <List.Root>
+          {compilationErrors.map((error, index) => (
+            <List.Item key={error + String(index)}>{error}</List.Item>
+          ))}
+        </List.Root>
+        <Text fontSize="sm" mt={4}>
+          Fix the errors above to see the template preview.
         </Text>
-      </VStack>
+      </Alert>
     );
   }
 

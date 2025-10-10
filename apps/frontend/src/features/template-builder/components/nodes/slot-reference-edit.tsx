@@ -1,12 +1,9 @@
 import {
   Accordion,
   Badge,
-  createListCollection,
   HStack,
   Icon,
   IconButton,
-  Input,
-  NumberInput,
   Span,
   Stack,
   Text,
@@ -19,17 +16,8 @@ import { useStore } from "@tanstack/react-form";
 import { useEffect } from "react";
 import { LuCheck, LuX } from "react-icons/lu";
 import { z } from "zod";
-import {
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValueText,
-  Switch,
-} from "@/components/ui";
 import { NodeFrame } from "@/features/template-builder/components/nodes/node-frame";
-import { ParameterInput } from "@/features/template-builder/components/parameter-inputs";
-import type { TemplateVariable } from "@/features/template-builder/components/template-string-editor";
+import { ParamInputGroup } from "@/features/template-builder/components/param-inputs";
 import {
   getNodeIcon,
   MESSAGE_ROLE_SELECT_OPTIONS,
@@ -42,11 +30,7 @@ import {
   slotPrioritySchema,
 } from "@/features/template-builder/services/slot-validation";
 import { useTemplateBuilderStore } from "@/features/template-builder/stores/template-builder-store";
-import type {
-  RecipeParamSpec,
-  SlotDraft,
-  SlotLayoutDraft,
-} from "@/features/template-builder/types";
+import type { SlotDraft, SlotLayoutDraft } from "@/features/template-builder/types";
 import { formatFormError, useAppForm } from "@/lib/app-form";
 
 interface SlotReferenceEditProps {
@@ -59,8 +43,6 @@ interface SlotReferenceEditProps {
   style?: React.CSSProperties;
   containerRef?: React.Ref<HTMLDivElement>;
 }
-
-const roleOptionsCollection = createListCollection({ items: MESSAGE_ROLE_SELECT_OPTIONS });
 
 type SlotEditFormValues = {
   name: string;
@@ -91,7 +73,7 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
   const slotsDraft = useTemplateBuilderStore((state) => state.slotsDraft);
 
   const recipe = slot.recipeId !== "custom" ? getRecipeById(slot.recipeId) : undefined;
-  const availableVariables: TemplateVariable[] = recipe?.availableVariables ?? [];
+  // const availableVariables: TemplateVariable[] = recipe?.availableVariables ?? [];
 
   const paramsSchema = createRecipeParametersSchema(recipe?.parameters ?? []);
 
@@ -100,7 +82,7 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
       message: "Another content block already uses this ID",
     }),
     priority: slotPrioritySchema,
-    budget: slotBudgetSchema.optional().transform((value) => value ?? undefined),
+    budget: slotBudgetSchema.nullable().transform((value) => value ?? null),
     params: paramsSchema,
     omitIfEmpty: z.boolean(),
     headerContent: z.string().optional(),
@@ -142,7 +124,7 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onBlur: ({ value }) => {
+      onChange: ({ value }) => {
         const result = formSchema.safeParse(value);
         if (result.success) return undefined;
 
@@ -201,7 +183,7 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
   }, [form, node, slot]);
 
   const canSubmit = useStore(form.store, (state) => state.canSubmit);
-  const isSubmitting = useStore(form.store, (state) => state.isSubmitting);
+  const hasRecipeParams = recipe && recipe.parameters.length > 0;
 
   return (
     <NodeFrame
@@ -224,17 +206,11 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
               colorPalette="green"
               onClick={() => form.handleSubmit()}
               aria-label="Save block"
-              disabled={!canSubmit || isSubmitting}
+              disabled={!canSubmit}
             >
               <LuCheck />
             </IconButton>
-            <IconButton
-              size="xs"
-              variant="ghost"
-              onClick={onCancel}
-              aria-label="Cancel edit"
-              disabled={isSubmitting}
-            >
+            <IconButton size="xs" variant="ghost" onClick={onCancel} aria-label="Cancel edit">
               <LuX />
             </IconButton>
           </HStack>
@@ -247,92 +223,47 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
             </Text>
           )}
 
-          <Stack gap={3} direction={{ base: "column", lg: "row" }}>
+          <Stack gap={3} direction={{ base: "column", md: "row" }}>
             <form.AppField name="name">
               {(field) => (
-                <field.Field
+                <field.TextInput
                   label="Content Block ID"
                   helperText="Unique ID within this template"
                   required
-                  errorText={formatFormError(field.state.meta.errors[0])}
-                  invalid={field.state.meta.errors.length > 0}
-                  flex={1}
-                >
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value ?? ""}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    onBlur={() => field.handleBlur()}
-                    autoComplete="off"
-                  />
-                </field.Field>
+                  fieldProps={{ flex: 3 }}
+                />
               )}
             </form.AppField>
 
             <form.AppField name="priority">
               {(field) => (
-                <field.Field
+                <field.NumberInput
                   label="Priority"
                   helperText="Higher priority blocks render first when budgets are tight"
                   required
-                  errorText={formatFormError(field.state.meta.errors[0])}
-                  invalid={field.state.meta.errors.length > 0}
-                  flex={1}
-                >
-                  <NumberInput.Root
-                    value={String(field.state.value ?? 0)}
-                    min={0}
-                    max={100}
-                    onValueChange={({ valueAsNumber }) => {
-                      if (Number.isNaN(valueAsNumber)) return;
-                      const clamped = Math.min(Math.max(valueAsNumber, 0), 100);
-                      field.handleChange(clamped);
-                    }}
-                  >
-                    <NumberInput.Input onBlur={() => field.handleBlur()} />
-                    <NumberInput.Control>
-                      <NumberInput.IncrementTrigger />
-                      <NumberInput.DecrementTrigger />
-                    </NumberInput.Control>
-                  </NumberInput.Root>
-                </field.Field>
+                  min={0}
+                  max={100}
+                  fieldProps={{ flex: 1 }}
+                />
               )}
             </form.AppField>
 
             <form.AppField name="budget">
               {(field) => (
-                <field.Field
+                <field.NumberInput
                   label="Token Budget"
                   helperText="Leave blank to allow automatic budgeting"
-                  errorText={formatFormError(field.state.meta.errors[0])}
-                  invalid={field.state.meta.errors.length > 0}
-                  flex={1}
-                >
-                  <NumberInput.Root
-                    value={field.state.value == null ? "" : String(field.state.value)}
-                    min={50}
-                    onValueChange={({ valueAsNumber }) => {
-                      if (Number.isNaN(valueAsNumber)) {
-                        field.handleChange(undefined);
-                        return;
-                      }
-                      field.handleChange(valueAsNumber);
-                    }}
-                  >
-                    <NumberInput.Input placeholder="Automatic" onBlur={() => field.handleBlur()} />
-                    <NumberInput.Control>
-                      <NumberInput.IncrementTrigger />
-                      <NumberInput.DecrementTrigger />
-                    </NumberInput.Control>
-                  </NumberInput.Root>
-                </field.Field>
+                  fieldProps={{ flex: 1 }}
+                  placeholder="Automatic"
+                  allowEmpty
+                  min={50}
+                />
               )}
             </form.AppField>
           </Stack>
 
-          {recipe && recipe.parameters.length > 0 && (
-            <Accordion.Root collapsible defaultValue={["recipe-params"]} width="full">
+          <Accordion.Root collapsible defaultValue={["recipe-params"]} width="full">
+            {hasRecipeParams && (
               <Accordion.Item value="recipe-params">
                 <Accordion.ItemTrigger>
                   <Span flex="1">Block Configuration</Span>
@@ -341,58 +272,48 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
                 <Accordion.ItemContent>
                   <Accordion.ItemBody px={0}>
                     <VStack align="stretch" gap={3} width="full">
-                      {recipe.parameters.map((param: RecipeParamSpec) => (
-                        <form.AppField key={param.key} name={`params.${param.key}`}>
-                          {(field) => (
-                            <ParameterInput
-                              param={param}
-                              value={field.state.value}
-                              onChange={(value) => {
-                                field.handleChange(value);
-                                field.handleBlur();
-                              }}
-                              availableVariables={availableVariables}
-                              isInvalid={field.state.meta.errors.length > 0}
-                              errorText={formatFormError(field.state.meta.errors[0])}
-                            />
-                          )}
-                        </form.AppField>
-                      ))}
+                      <ParamInputGroup
+                        form={form}
+                        fields={{ items: "params" }}
+                        specs={recipe.parameters}
+                      />
                     </VStack>
                   </Accordion.ItemBody>
                 </Accordion.ItemContent>
               </Accordion.Item>
-            </Accordion.Root>
-          )}
-
-          {!recipe && (
-            <VStack align="stretch" gap={3}>
-              <Text fontSize="xs" color="content.muted">
-                This content block does not use a predefined recipe. Provide a JSON specification
-                for the block below.
-              </Text>
-              <form.AppField name="customSpec">
-                {(field) => (
-                  <field.Field
-                    label="Content JSON"
-                    errorText={formatFormError(field.state.meta.errors[0])}
-                    invalid={field.state.meta.errors.length > 0}
-                  >
-                    <Textarea
-                      value={field.state.value ?? ""}
-                      onChange={(event) => field.handleChange(event.target.value)}
-                      onBlur={() => field.handleBlur()}
-                      rows={4}
-                      fontFamily="mono"
-                      placeholder="{ }"
-                    />
-                  </field.Field>
-                )}
-              </form.AppField>
-            </VStack>
-          )}
-
-          <Accordion.Root collapsible width="full">
+            )}
+            {!recipe && (
+              <Accordion.Item value="custom-recipe">
+                <Accordion.ItemTrigger>
+                  <Span flex="1">Custom Recipe Specification</Span>
+                  <Accordion.ItemIndicator />
+                </Accordion.ItemTrigger>
+                <Accordion.ItemContent>
+                  <Text fontSize="xs" color="content.muted">
+                    This content block can't be configured with the UI because it uses a custom
+                    specification. Provide the full content specification as JSON.
+                  </Text>
+                  <form.AppField name="customSpec">
+                    {(field) => (
+                      <field.Field
+                        label="Content JSON"
+                        errorText={formatFormError(field.state.meta.errors[0])}
+                        invalid={field.state.meta.errors.length > 0}
+                      >
+                        <Textarea
+                          value={field.state.value ?? ""}
+                          onChange={(event) => field.handleChange(event.target.value)}
+                          onBlur={() => field.handleBlur()}
+                          rows={4}
+                          fontFamily="mono"
+                          placeholder="{ }"
+                        />
+                      </field.Field>
+                    )}
+                  </form.AppField>
+                </Accordion.ItemContent>
+              </Accordion.Item>
+            )}
             <Accordion.Item value="headers-footers">
               <Accordion.ItemTrigger>
                 <Span flex="1">Headers & Footers</Span>
@@ -404,45 +325,21 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
                     <Stack gap={3} direction={{ base: "column", lg: "row" }}>
                       <form.AppField name="headerContent">
                         {(field) => (
-                          <field.Field
+                          <field.TextareaInput
                             label="Header"
                             helperText="Text displayed before content"
-                            flex={2}
-                          >
-                            <Textarea
-                              value={field.state.value ?? ""}
-                              onChange={(event) => field.handleChange(event.target.value)}
-                              onBlur={() => field.handleBlur()}
-                              rows={2}
-                              placeholder="Optional header"
-                            />
-                          </field.Field>
+                            placeholder="Optional header"
+                            fieldProps={{ flex: 2 }}
+                          />
                         )}
                       </form.AppField>
                       <form.AppField name="headerRole">
                         {(field) => (
-                          <field.Field label="Header Role" flex={1}>
-                            <SelectRoot
-                              collection={roleOptionsCollection}
-                              value={[field.state.value]}
-                              onValueChange={(details) => {
-                                const nextRole = details.value[0] as ChatCompletionMessageRole;
-                                field.handleChange(nextRole);
-                                field.handleBlur();
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValueText placeholder="Select role" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {MESSAGE_ROLE_SELECT_OPTIONS.map((option) => (
-                                  <SelectItem key={option.value} item={option}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </SelectRoot>
-                          </field.Field>
+                          <field.Select
+                            label="Header Role"
+                            options={MESSAGE_ROLE_SELECT_OPTIONS.slice()}
+                            fieldProps={{ flex: 1 }}
+                          />
                         )}
                       </form.AppField>
                     </Stack>
@@ -450,60 +347,30 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
                     <Stack gap={3} direction={{ base: "column", lg: "row" }}>
                       <form.AppField name="footerContent">
                         {(field) => (
-                          <field.Field
+                          <field.TextareaInput
                             label="Footer"
                             helperText="Text displayed after content"
-                            flex={2}
-                          >
-                            <Textarea
-                              value={field.state.value ?? ""}
-                              onChange={(event) => field.handleChange(event.target.value)}
-                              onBlur={() => field.handleBlur()}
-                              rows={2}
-                              placeholder="Optional footer"
-                            />
-                          </field.Field>
+                            placeholder="Optional footer"
+                            fieldProps={{ flex: 2 }}
+                          />
                         )}
                       </form.AppField>
                       <form.AppField name="footerRole">
                         {(field) => (
-                          <field.Field label="Footer Role" flex={1}>
-                            <SelectRoot
-                              collection={roleOptionsCollection}
-                              value={[field.state.value]}
-                              onValueChange={(details) => {
-                                const nextRole = details.value[0] as ChatCompletionMessageRole;
-                                field.handleChange(nextRole);
-                                field.handleBlur();
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValueText placeholder="Select role" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {MESSAGE_ROLE_SELECT_OPTIONS.map((option) => (
-                                  <SelectItem key={option.value} item={option}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </SelectRoot>
-                          </field.Field>
+                          <field.Select
+                            label="Footer Role"
+                            options={MESSAGE_ROLE_SELECT_OPTIONS.slice()}
+                            fieldProps={{ flex: 1 }}
+                          />
                         )}
                       </form.AppField>
                     </Stack>
 
                     <form.AppField name="omitIfEmpty">
                       {(field) => (
-                        <field.Field helperText="Skip the block entirely when it produces no content">
-                          <Switch
-                            checked={Boolean(field.state.value)}
-                            onCheckedChange={({ checked }) => field.handleChange(Boolean(checked))}
-                            onBlur={() => field.handleBlur()}
-                          >
-                            Skip block if empty
-                          </Switch>
-                        </field.Field>
+                        <field.Switch helperText="Skip the block entirely when it produces no content">
+                          Skip block if empty
+                        </field.Switch>
                       )}
                     </form.AppField>
                   </VStack>

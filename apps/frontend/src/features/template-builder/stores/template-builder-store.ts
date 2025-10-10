@@ -43,7 +43,8 @@ export interface TemplateBuilderState {
   // Slot Actions
   createSlotFromRecipe: (
     recipeId: AnyRecipeId | "custom",
-    params?: Record<string, unknown>
+    params?: Record<string, unknown>,
+    index?: number
   ) => string; // Returns the slot name
   updateSlot: (slotName: string, updates: Partial<SlotDraft>) => void;
 
@@ -171,7 +172,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
       }),
 
     // Slot Actions
-    createSlotFromRecipe: (recipeId, params = {}) => {
+    createSlotFromRecipe: (recipeId, params = {}, index) => {
       let slotName = "";
       set((state) => {
         const recipe = recipeId !== "custom" ? getRecipeById(recipeId) : undefined;
@@ -194,7 +195,12 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
           omitIfEmpty: true,
         };
 
-        state.layoutDraft.push(newNode);
+        if (typeof index === "number" && index >= 0) {
+          const boundedIndex = index > state.layoutDraft.length ? state.layoutDraft.length : index;
+          state.layoutDraft.splice(boundedIndex, 0, newNode);
+        } else {
+          state.layoutDraft.push(newNode);
+        }
         state.isDirty = true;
       });
       return slotName;

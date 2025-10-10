@@ -1,5 +1,5 @@
 import { HStack } from "@chakra-ui/react";
-import { Button, Dialog } from "@/components/ui/index";
+import { Button, Dialog } from "@/components/ui";
 import { CharacterMappingStep } from "@/features/scenario-import/components/character-mapping-step";
 import { ChatUploadStep } from "@/features/scenario-import/components/chat-upload-step";
 import { useChatImport } from "@/features/scenario-import/hooks/use-chat-import";

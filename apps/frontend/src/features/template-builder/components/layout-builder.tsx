@@ -1,12 +1,14 @@
 import {
-  Box,
+  List,
   MenuContent,
   MenuItem,
   MenuItemGroup,
   MenuItemGroupLabel,
+  MenuPositioner,
   MenuRoot,
   MenuSeparator,
   MenuTrigger,
+  Portal,
   Stack,
   Text,
   VStack,
@@ -23,9 +25,10 @@ import {
   LuMessageSquareCode,
   LuMessageSquareMore,
   LuPlus,
+  LuTriangleAlert,
 } from "react-icons/lu";
 import { useShallow } from "zustand/react/shallow";
-import { Button, EmptyState } from "@/components/ui/index";
+import { Alert, Button, EmptyState } from "@/components/ui";
 import { LayoutNodeCard } from "@/features/template-builder/components/layout-node-card";
 import { useLayoutDnd } from "@/features/template-builder/hooks/use-layout-dnd";
 import { getRecipesForTask } from "@/features/template-builder/services/recipe-registry";
@@ -59,29 +62,38 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
 
   const handleDeleteNode = useCallback((id: string) => deleteNode(id, true), [deleteNode]);
   const handleAddMessage = useCallback(
-    (role: ChatCompletionMessageRole) => addMessageNode(role),
+    (role: ChatCompletionMessageRole, index?: number) => addMessageNode(role, index),
     [addMessageNode]
   );
   const handleCreateSlotFromRecipe = useCallback(
-    (id: AnyRecipeId | "custom") => task && createSlotFromRecipe(id),
+    (id: AnyRecipeId | "custom", index?: number) =>
+      task ? createSlotFromRecipe(id, undefined, index) : undefined,
     [task, createSlotFromRecipe]
   );
 
-  const taskRecipes = task ? getRecipesForTask(task) : [];
-
   return (
-    <VStack align="stretch" gap={4}>
+    <VStack align="stretch" gap={4} pb={"40%"}>
       {/* Validation Warnings */}
       {missingSlots.length > 0 && (
-        <Box p={3} bg="red.50" borderColor="red.200" borderWidth="1px" borderRadius="md">
-          <Text fontSize="sm" color="red.700" fontWeight="medium">
-            Missing slots referenced in layout:
-          </Text>
-          <Text fontSize="sm" color="fg.error">
-            {missingSlots.join(", ")}
-          </Text>
-        </Box>
+        <Alert
+          icon={<LuTriangleAlert />}
+          title={`Missing slots referenced in layout`}
+          status="error"
+        >
+          <List.Root>
+            {missingSlots.map((error, index) => (
+              <List.Item key={error + String(index)}>{error}</List.Item>
+            ))}
+          </List.Root>
+        </Alert>
       )}
+
+      <AddElementMenu
+        task={task}
+        insertionIndex={0}
+        onAddMessage={handleAddMessage}
+        onCreateSlotFromRecipe={handleCreateSlotFromRecipe}
+      />
 
       {/* Layout Nodes */}
       <DndContext {...dndContextProps}>
@@ -90,7 +102,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
             {layout.length === 0 ? (
               <EmptyState
                 title="No layout elements yet"
-                description="Add blocks to your prompt layout using the menu below."
+                description="Add blocks to your prompt layout using the Add Element menu."
                 icon={<LuLayers />}
               />
             ) : (
@@ -108,65 +120,97 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
         </DragOverlayComponent>
       </DndContext>
 
-      {/* Add Element Menu */}
-      <MenuRoot>
-        <MenuTrigger asChild>
-          <Button variant="outline" colorPalette="primary" w="full">
-            <LuPlus />
-            Add Element
-          </Button>
-        </MenuTrigger>
-        <MenuContent>
-          {/* Message Options */}
-          <MenuItemGroup>
-            <MenuItemGroupLabel>Messages</MenuItemGroupLabel>
-            <MenuItem value="system-message" onClick={() => handleAddMessage("system")}>
-              <LuMessageSquareCode />
-              System Message
-            </MenuItem>
-            <MenuItem value="user-message" onClick={() => handleAddMessage("user")}>
-              <LuMessageSquareMore />
-              User Message
-            </MenuItem>
-            <MenuItem value="assistant-message" onClick={() => handleAddMessage("assistant")}>
-              <LuBotMessageSquare />
-              Assistant Message
-            </MenuItem>
-          </MenuItemGroup>
-          <MenuSeparator />
-          {/* Recipes */}
-          <MenuItemGroup>
-            <MenuItemGroupLabel>Content Blocks</MenuItemGroupLabel>
-            {taskRecipes.map((recipe) => (
-              <MenuItem
-                key={recipe.id}
-                value={`recipe-${recipe.id}`}
-                onClick={() => handleCreateSlotFromRecipe(recipe.id)}
-              >
-                <VStack align="start" gap={1}>
-                  <Stack direction="row" align="center" gap={2}>
-                    <LuLayers /> {recipe.name}
-                  </Stack>
-                  <Text fontSize="xs" color="content.muted">
-                    {recipe.description}
-                  </Text>
-                </VStack>
-              </MenuItem>
-            ))}
-            <MenuSeparator />
-
-            <MenuItem
-              key="custom-slot"
-              value="custom-slot"
-              onClick={() => handleCreateSlotFromRecipe("custom")}
-            >
-              <LuLayers />
-              Custom Block (Advanced)
-            </MenuItem>
-          </MenuItemGroup>
-        </MenuContent>
-      </MenuRoot>
+      {layout.length > 2 && (
+        <AddElementMenu
+          task={task}
+          onAddMessage={handleAddMessage}
+          onCreateSlotFromRecipe={handleCreateSlotFromRecipe}
+        />
+      )}
     </VStack>
+  );
+}
+
+type AddElementMenuProps = {
+  task?: TaskKind;
+  insertionIndex?: number;
+  onAddMessage: (role: ChatCompletionMessageRole, index?: number) => void;
+  onCreateSlotFromRecipe: (id: AnyRecipeId | "custom", index?: number) => void;
+};
+
+function AddElementMenu(props: AddElementMenuProps) {
+  const { task, onAddMessage, onCreateSlotFromRecipe, insertionIndex } = props;
+
+  const taskRecipes = task ? getRecipesForTask(task) : [];
+
+  return (
+    <MenuRoot positioning={{ sameWidth: true }}>
+      <MenuTrigger asChild>
+        <Button variant="outline" colorPalette="primary" w="full">
+          <LuPlus />
+          Add Element
+        </Button>
+      </MenuTrigger>
+      <Portal>
+        <MenuPositioner>
+          <MenuContent>
+            {/* Message Options */}
+            <MenuItemGroup>
+              <MenuItemGroupLabel>Messages</MenuItemGroupLabel>
+              <MenuItem
+                value="system-message"
+                onClick={() => onAddMessage("system", insertionIndex)}
+              >
+                <LuMessageSquareCode />
+                System Message
+              </MenuItem>
+              <MenuItem value="user-message" onClick={() => onAddMessage("user", insertionIndex)}>
+                <LuMessageSquareMore />
+                User Message
+              </MenuItem>
+              <MenuItem
+                value="assistant-message"
+                onClick={() => onAddMessage("assistant", insertionIndex)}
+              >
+                <LuBotMessageSquare />
+                Assistant Message
+              </MenuItem>
+            </MenuItemGroup>
+            <MenuSeparator />
+            {/* Recipes */}
+            <MenuItemGroup>
+              <MenuItemGroupLabel>Content Blocks</MenuItemGroupLabel>
+              {taskRecipes.map((recipe) => (
+                <MenuItem
+                  key={recipe.id}
+                  value={`recipe-${recipe.id}`}
+                  onClick={() => onCreateSlotFromRecipe(recipe.id, insertionIndex)}
+                >
+                  <VStack align="start" gap={1}>
+                    <Stack direction="row" align="center" gap={2}>
+                      <LuLayers /> {recipe.name}
+                    </Stack>
+                    <Text fontSize="xs" color="content.muted">
+                      {recipe.description}
+                    </Text>
+                  </VStack>
+                </MenuItem>
+              ))}
+              <MenuSeparator />
+
+              <MenuItem
+                key="custom-slot"
+                value="custom-slot"
+                onClick={() => onCreateSlotFromRecipe("custom", insertionIndex)}
+              >
+                <LuLayers />
+                Custom Block (Advanced)
+              </MenuItem>
+            </MenuItemGroup>
+          </MenuContent>
+        </MenuPositioner>
+      </Portal>
+    </MenuRoot>
   );
 }
 

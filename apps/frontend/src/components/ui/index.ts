@@ -1,4 +1,5 @@
 export * from "./action-bar";
+export * from "./alert";
 export * from "./autosize-textarea";
 export * from "./avatar";
 export * from "./button";
@@ -13,6 +14,8 @@ export * from "./radio";
 export * from "./select";
 export * from "./split-button";
 export * from "./switch";
+export * from "./tag";
+export * from "./task-kind-select";
 export * from "./toaster";
 export * from "./toggle-tip";
 export * from "./tooltip";

@@ -1,5 +1,5 @@
 import { Box, HStack } from "@chakra-ui/react";
-import { AutosizeTextarea } from "@/components/ui/index";
+import { AutosizeTextarea } from "@/components/ui";
 import { CharacterMiniSelect } from "@/features/scenario-player/components/intent-panel/character-mini-select";
 import { GenerateOrCancelButton } from "@/features/scenario-player/components/intent-panel/generate-or-cancel-button";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";

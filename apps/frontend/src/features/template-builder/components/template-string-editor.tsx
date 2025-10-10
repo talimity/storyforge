@@ -1,7 +1,7 @@
 import { Badge, Box, HStack, Icon, Input, Text, Textarea, VStack } from "@chakra-ui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { LuCheck, LuChevronDown, LuChevronUp, LuCode, LuCopy } from "react-icons/lu";
-import { Button, Field, Tooltip } from "@/components/ui/index";
+import { Button, Field, Tooltip } from "@/components/ui";
 
 export interface TemplateVariable {
   name: string;
