@@ -210,10 +210,10 @@ function resolvePosition(value: unknown): "before_char" | "after_char" | undefin
 }
 
 function deriveNameFromFilename(filename?: string) {
-  if (!filename) return undefined;
+  if (!filename) return "Unnamed Lorebook";
   const withoutExt = filename.replace(/\.[^.]+$/, "");
   const cleaned = withoutExt.replace(/[-_]+/g, " ").trim();
-  return cleaned.length > 0 ? cleaned : undefined;
+  return cleaned.length > 0 ? cleaned : "Unnamed Lorebook";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

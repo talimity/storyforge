@@ -29,7 +29,7 @@ export const conditionRefSchema: z.ZodType<UnboundConditionRef> = z.discriminate
   z.object({ type: z.literal("exists"), ref: dataRefSchema }),
   z.object({ type: z.literal("nonEmpty"), ref: dataRefSchema }),
   z.object({
-    type: z.enum(["eq", "neq", "gt", "lt"]),
+    type: z.enum(["eq", "neq", "gt", "lt"]).describe("Comparison operators"),
     ref: dataRefSchema,
     value: z.unknown(),
   }),

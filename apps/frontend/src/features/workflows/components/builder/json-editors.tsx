@@ -1,6 +1,6 @@
 import { Textarea } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { useFieldContext } from "@/lib/app-form";
+import { useFieldContext } from "@/lib/form-context";
 
 export function GenParamsTextarea() {
   const field = useFieldContext<Record<string, unknown> | undefined>();

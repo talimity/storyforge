@@ -19,6 +19,7 @@ describe("scanLorebooks", () => {
 
   it("activates constant entries regardless of turn content", () => {
     const assignment = makeAssignment({
+      name: "Test Lorebook",
       entries: [
         {
           id: "entry-1",
@@ -45,6 +46,7 @@ describe("scanLorebooks", () => {
   it("respects insertion order per lorebook and assignment order", () => {
     const assignmentA = makeAssignment(
       {
+        name: " Lorebook A",
         entries: [
           {
             id: "a-2",
@@ -70,6 +72,7 @@ describe("scanLorebooks", () => {
 
     const assignmentB = makeAssignment(
       {
+        name: "Lorebook B",
         entries: [
           {
             id: "b-1",
@@ -98,6 +101,7 @@ describe("scanLorebooks", () => {
 
   it("enforces per-lorebook budgets using priority", () => {
     const assignment = makeAssignment({
+      name: "Priority Lorebook",
       entries: [
         {
           id: "low",
@@ -133,6 +137,7 @@ describe("scanLorebooks", () => {
 
   it("requires secondary keys when selective is true", () => {
     const assignment = makeAssignment({
+      name: "Selective Lorebook",
       entries: [
         {
           id: "selective",
@@ -166,6 +171,7 @@ describe("scanLorebooks", () => {
 
   it("activates entries through recursive scanning", () => {
     const assignment = makeAssignment({
+      name: "Recursive Lorebook",
       recursive_scanning: true,
       entries: [
         {
@@ -199,6 +205,7 @@ describe("scanLorebooks", () => {
 
   it("captures regex compilation errors in debug mode", () => {
     const assignment = makeAssignment({
+      name: "Regex Lorebook",
       entries: [
         {
           id: "regex",

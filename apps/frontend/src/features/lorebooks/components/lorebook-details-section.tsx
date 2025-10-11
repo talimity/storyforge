@@ -1,36 +1,7 @@
 import { Badge, Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import { LuBookOpen } from "react-icons/lu";
-import { AutosizeTextarea } from "@/components/ui";
 import { withForm } from "@/lib/app-form";
-import { showErrorToast } from "@/lib/error-handling";
-import { lorebookFormDefaultValues } from "./form-schemas";
-
-function stringifyExtensions(value: Record<string, unknown> | undefined) {
-  try {
-    return JSON.stringify(value ?? {}, null, 2);
-  } catch (error) {
-    console.error("Failed to stringify extensions", error);
-    return "{}";
-  }
-}
-
-function parseExtensions(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return {};
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-    throw new Error("Extensions must be a JSON object");
-  } catch (error) {
-    showErrorToast({
-      title: "Invalid extensions JSON",
-      error,
-    });
-    return undefined;
-  }
-}
+import { extensionsJsonSchema, lorebookFormDefaultValues } from "./form-schemas";
 
 export const LorebookDetailsSection = withForm({
   defaultValues: lorebookFormDefaultValues,
@@ -109,24 +80,14 @@ export const LorebookDetailsSection = withForm({
             Store custom metadata consumed by other tools. Leave empty if unused.
           </Text>
           <form.AppField name="extensions">
-            {(field) => {
-              const serialized = stringifyExtensions(field.state.value);
-              return (
-                <AutosizeTextarea
-                  value={serialized}
-                  onChange={(event) => {
-                    const parsed = parseExtensions(event.target.value);
-                    if (parsed !== undefined) {
-                      field.handleChange(parsed);
-                    }
-                  }}
-                  onBlur={() => field.handleBlur()}
-                  fontFamily="mono"
-                  rows={6}
-                  placeholder="{ }"
-                />
-              );
-            }}
+            {(field) => (
+              <field.JsonEditor
+                label="Extensions"
+                helperText="Store custom metadata consumed by other tools. Leave empty if unused."
+                formatOnBlur
+                schema={extensionsJsonSchema}
+              />
+            )}
           </form.AppField>
         </Stack>
       </Stack>

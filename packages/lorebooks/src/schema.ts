@@ -22,10 +22,10 @@ export const lorebookEntrySchema = z.object({
 });
 
 export const lorebookDataSchema = z.object({
-  name: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  scan_depth: z.number().optional(),
-  token_budget: z.number().optional(),
+  scan_depth: z.number().int().min(0).optional(),
+  token_budget: z.number().int().min(0).optional(),
   recursive_scanning: z.boolean().optional(),
   extensions: z.record(z.string(), z.unknown()).default({}),
   entries: z.array(lorebookEntrySchema),

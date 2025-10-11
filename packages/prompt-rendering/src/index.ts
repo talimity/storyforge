@@ -85,3 +85,6 @@ export type {
 export { validateTemplateStructure } from "./validator.js";
 
 export { PROMPT_TEMPLATE_SPEC_VERSION } from "./version.js";
+
+import jsonSchema from "./dsl-jsonschema.json" with { type: "json" };
+export { jsonSchema };

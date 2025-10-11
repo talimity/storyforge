@@ -5,6 +5,7 @@ export * from "./avatar";
 export * from "./button";
 export * from "./checkbox";
 export * from "./close-button";
+export * from "./color-mode";
 export * from "./dialog";
 export * from "./empty-state";
 export * from "./field";

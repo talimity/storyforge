@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, SimplePageHeader } from "@/components/ui";
+import { toLorebookFormInitial } from "@/features/lorebooks/components/form-schemas";
 import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { LorebookForm } from "@/features/lorebooks/components/lorebook-form";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
@@ -54,13 +55,7 @@ export function LorebookEditPage() {
     );
   }
 
-  const lorebook = lorebookQuery.data;
-  const clonedEntries = lorebook.data.entries.map((entry) => ({
-    ...entry,
-    keys: [...entry.keys],
-    secondary_keys: entry.secondary_keys ? [...entry.secondary_keys] : undefined,
-    extensions: { ...(entry.extensions ?? {}) },
-  }));
+  const lorebook = lorebookQuery.data.data;
 
   return (
     <Container>
@@ -73,15 +68,7 @@ export function LorebookEditPage() {
         }
       />
       <LorebookForm
-        initialData={{
-          name: lorebook.name,
-          description: lorebook.description ?? undefined,
-          scan_depth: lorebook.data.scan_depth,
-          token_budget: lorebook.data.token_budget,
-          recursive_scanning: lorebook.data.recursive_scanning,
-          extensions: lorebook.data.extensions ?? {},
-          entries: clonedEntries,
-        }}
+        initialData={toLorebookFormInitial(lorebook)}
         submitLabel="Save"
         onCancel={() => navigate("/lorebooks")}
         onSubmit={(data) => updateMutation.mutateAsync({ id: String(id), data })}

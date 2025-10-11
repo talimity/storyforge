@@ -19,6 +19,24 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            chakra: ["@chakra-ui/react", "@emotion/react", "@ark-ui/react"],
+            // Code editor and related packages
+            cm: [
+              "@uiw/react-codemirror",
+              "@codemirror/lang-json",
+              "@codemirror/lint",
+              "@codemirror/view",
+              "@uiw/codemirror-theme-vscode",
+            ],
+            icons: ["react-icons/fa6", "react-icons/lu", "react-icons/ri", "react-icons/tb"],
+          },
+        },
+      },
+    },
     plugins: [
       react({
         babel: {

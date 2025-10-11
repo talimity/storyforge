@@ -1,20 +1,21 @@
 import { Card, HStack, Stack, Tabs } from "@chakra-ui/react";
 import { useId } from "react";
 import { LuInfo, LuLibrary } from "react-icons/lu";
+import type { z } from "zod";
 import { useAppForm } from "@/lib/app-form";
 import {
-  type LorebookFormValues,
+  type LorebookPayload,
   lorebookFormDefaultValues,
-  lorebookFormSchema,
+  lorebookSubmitSchema,
 } from "./form-schemas";
 import { LorebookDetailsSection } from "./lorebook-details-section";
 import { LorebookEntriesEditor } from "./lorebook-entries-editor";
 
 export interface LorebookFormProps {
-  initialData?: Partial<LorebookFormValues>;
+  initialData?: Partial<z.input<typeof lorebookSubmitSchema>>;
   submitLabel?: string;
   onCancel: () => void;
-  onSubmit: (data: LorebookFormValues) => Promise<unknown>;
+  onSubmit: (data: LorebookPayload) => Promise<unknown>;
 }
 
 export function LorebookForm({
@@ -25,8 +26,8 @@ export function LorebookForm({
 }: LorebookFormProps) {
   const form = useAppForm({
     defaultValues: { ...lorebookFormDefaultValues, ...initialData },
-    validators: { onBlur: lorebookFormSchema },
-    onSubmit: ({ value }) => onSubmit(value),
+    validators: { onBlur: lorebookSubmitSchema },
+    onSubmit: ({ value }) => onSubmit(lorebookSubmitSchema.parse(value)),
   });
 
   const formId = useId();

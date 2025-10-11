@@ -13,7 +13,8 @@ import {
   type ScenarioFormValues,
   scenarioFormDefaultValues,
 } from "@/features/scenarios/components/form-schemas";
-import { formatFormError, withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/app-form";
+import { formatFormError } from "@/lib/form/field-control";
 import { useTRPC } from "@/lib/trpc";
 
 export type ScenarioLorebookFormValue = ScenarioFormValues["lorebooks"][number];

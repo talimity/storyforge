@@ -5,8 +5,7 @@ import { AutosizeTextarea } from "@/components/ui";
 import { Tag } from "@/components/ui/tag";
 import { LorebookEntryCardHeader } from "@/features/lorebooks/components/lorebook-entry-card-header";
 import { withFieldGroup } from "@/lib/app-form";
-import { showErrorToast } from "@/lib/error-handling";
-import { createLorebookEntryDraft } from "./form-schemas";
+import { createLorebookEntryDraft, extensionsJsonSchema } from "./form-schemas";
 
 export type LorebookEntryCardProps = {
   index: number;
@@ -21,33 +20,6 @@ export type LorebookEntryCardProps = {
 
 const joinList = (value: string[] | undefined) => (value ?? []).join("\n");
 const toLineArray = (value: string) => value.split(/\r?\n/);
-
-function stringifyExtensions(value: Record<string, unknown> | undefined) {
-  try {
-    return JSON.stringify(value ?? {}, null, 2);
-  } catch (error) {
-    console.error("Failed to stringify entry extensions", error);
-    return "{}";
-  }
-}
-
-function parseExtensions(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return {};
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-    throw new Error("Extensions must be a JSON object");
-  } catch (error) {
-    showErrorToast({
-      title: "Invalid entry extensions",
-      error,
-    });
-    return undefined;
-  }
-}
 
 function estimateTokenLength(text: string) {
   return Math.ceil(text.length / 4 / 10) * 10;
@@ -204,6 +176,7 @@ export const LorebookEntryCard = withFieldGroup({
                   <field.NumberInput
                     label="Budget Priority"
                     helperText="Lower values are trimmed first if over token budget"
+                    placeholder="Auto"
                     allowEmpty
                     fieldProps={{ flex: 1 }}
                   />
@@ -214,24 +187,14 @@ export const LorebookEntryCard = withFieldGroup({
             <Stack gap={2}>
               <Text fontWeight="medium">Extensions</Text>
               <group.AppField name="extensions">
-                {(field) => {
-                  const serialized = stringifyExtensions(field.state.value);
-                  return (
-                    <AutosizeTextarea
-                      value={serialized}
-                      onChange={(event) => {
-                        const parsed = parseExtensions(event.target.value);
-                        if (parsed !== undefined) {
-                          field.handleChange(parsed);
-                        }
-                      }}
-                      onBlur={() => field.handleBlur()}
-                      fontFamily="mono"
-                      rows={4}
-                      placeholder="{ }"
-                    />
-                  );
-                }}
+                {(field) => (
+                  <field.JsonEditor
+                    helperText="Store custom metadata consumed by other tools. Leave empty if unused."
+                    formatOnBlur
+                    maxHeight="250px"
+                    schema={extensionsJsonSchema}
+                  />
+                )}
               </group.AppField>
             </Stack>
           </VStack>

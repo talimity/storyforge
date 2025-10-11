@@ -7,11 +7,13 @@ import {
   Span,
   Stack,
   Text,
-  Textarea,
   VStack,
 } from "@chakra-ui/react";
-import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
-import { slotSpecSchema } from "@storyforge/prompt-rendering";
+import {
+  type ChatCompletionMessageRole,
+  jsonSchema,
+  slotSpecSchema,
+} from "@storyforge/prompt-rendering";
 import { useStore } from "@tanstack/react-form";
 import { useEffect } from "react";
 import { LuCheck, LuX } from "react-icons/lu";
@@ -31,7 +33,8 @@ import {
 } from "@/features/template-builder/services/slot-validation";
 import { useTemplateBuilderStore } from "@/features/template-builder/stores/template-builder-store";
 import type { SlotDraft, SlotLayoutDraft } from "@/features/template-builder/types";
-import { formatFormError, useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/app-form";
+import { jsonText } from "@/lib/form/json-text-zod";
 
 interface SlotReferenceEditProps {
   node: SlotLayoutDraft;
@@ -89,23 +92,7 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
     headerRole: z.enum(["system", "user", "assistant"]),
     footerContent: z.string().optional(),
     footerRole: z.enum(["system", "user", "assistant"]),
-    customSpec: z
-      .string()
-      .optional()
-      .superRefine((value, ctx) => {
-        if (!value?.trim()) return;
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(value);
-        } catch {
-          ctx.addIssue({ code: "custom", message: "Invalid JSON" });
-          return;
-        }
-        const result = slotSpecSchema.safeParse(parsed);
-        if (!result.success) {
-          ctx.addIssue({ code: "custom", message: result.error.message });
-        }
-      }),
+    customSpec: jsonText(slotSpecSchema),
   });
 
   const defaultValues = {
@@ -295,20 +282,12 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
                   </Text>
                   <form.AppField name="customSpec">
                     {(field) => (
-                      <field.Field
+                      <field.JsonEditor
                         label="Content JSON"
-                        errorText={formatFormError(field.state.meta.errors[0])}
-                        invalid={field.state.meta.errors.length > 0}
-                      >
-                        <Textarea
-                          value={field.state.value ?? ""}
-                          onChange={(event) => field.handleChange(event.target.value)}
-                          onBlur={() => field.handleBlur()}
-                          rows={4}
-                          fontFamily="mono"
-                          placeholder="{ }"
-                        />
-                      </field.Field>
+                        helperText="Provide the full content specification as JSON."
+                        formatOnBlur
+                        schema={jsonSchema}
+                      />
                     )}
                   </form.AppField>
                 </Accordion.ItemContent>
