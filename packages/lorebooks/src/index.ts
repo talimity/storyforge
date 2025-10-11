@@ -1,5 +1,5 @@
-export type { LorebookHasher } from "./fingerprint.js";
-export { computeLorebookFingerprint } from "./fingerprint.js";
+export type { LorebookHasher } from "./hasher.js";
+export { computeLorebookHash } from "./hasher.js";
 export {
   normalizeLorebookData,
   parseLorebookData,

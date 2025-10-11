@@ -48,8 +48,8 @@ export const lorebookSubmitSchema = z
 export const lorebookFormDefaultValues = init(
   z.object({
     ...lorebookDataSchema.shape,
-    extensions: z.string().default("{}").unwrap(),
-    entries: z.array(lorebookEntryUiSchema),
+    extensions: z.string().default("{}"),
+    entries: z.array(lorebookEntryUiSchema).default([createLorebookEntryDraft(0)]),
   })
 );
 
@@ -65,6 +65,7 @@ export function createLorebookEntryDraft(insertion_order: number): LorebookEntry
     content: "",
     enabled: true,
     extensions: "{}",
+    position: "before_char",
     insertion_order,
   } satisfies z.infer<typeof lorebookEntryUiSchema>;
 }

@@ -36,7 +36,7 @@ const taskTypeOptions = [
 ] as const;
 type TaskFilter = (typeof taskTypeOptions)[number]["value"];
 
-export function TemplatesPage() {
+function TemplatesPage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -170,3 +170,5 @@ export function TemplatesPage() {
     </Container>
   );
 }
+
+export default TemplatesPage;

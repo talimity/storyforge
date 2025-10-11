@@ -9,6 +9,7 @@ import {
   type TextareaProps,
 } from "@chakra-ui/react";
 import { createFormHook, useStore } from "@tanstack/react-form";
+import { lazy, type ReactNode } from "react";
 import {
   UnsavedChangesDialog,
   type UnsavedChangesDialogProps,
@@ -30,7 +31,7 @@ import {
 } from "@/components/ui";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
 import { FieldControl, type FieldPresentationProps } from "@/lib/form/field-control";
-import { JsonEditorField } from "@/lib/form/json-editor";
+// import JsonEditorField from "@/lib/form/json-editor";
 import { fieldContext, formContext, useFieldContext, useFormContext } from "./form-context";
 
 type TextInputFieldProps = FieldPresentationProps &
@@ -193,6 +194,7 @@ function NumberInputField(props: NumberInputFieldProps) {
       {...fieldProps}
     >
       <NumberInput.Root
+        width="100%"
         clampValueOnBlur={!allowEmpty}
         {...inputProps}
         // Weird zag.js behavior -- regardless of field/form state, it will set
@@ -234,7 +236,7 @@ function NumberInputField(props: NumberInputFieldProps) {
 
 type SelectOption = {
   value: string;
-  label: string;
+  label: ReactNode;
   disabled?: boolean;
 };
 
@@ -488,7 +490,7 @@ export function createAppForm() {
       Field: FieldControl,
       TextInput: TextInputField,
       TextareaInput: TextareaField,
-      JsonEditor: JsonEditorField,
+      JsonEditor: lazy(() => import("./form/json-editor")),
       NumberInput: NumberInputField,
       Select: SelectField,
       Checkbox: CheckboxField,

@@ -10,7 +10,7 @@ import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/typ
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-export function TemplateEditPage() {
+function TemplateEditPage() {
   const trpc = useTRPC();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -123,3 +123,5 @@ export function TemplateEditPage() {
     </Container>
   );
 }
+
+export default TemplateEditPage;

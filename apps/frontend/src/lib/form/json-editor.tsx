@@ -1,35 +1,53 @@
+// apps/frontend/src/lib/form/json-editor.tsx
 import { chakra } from "@chakra-ui/react";
 import { inputRecipe as chakraInputRecipe } from "@chakra-ui/react/theme";
-import { indentLess, insertTab } from "@codemirror/commands";
-import { lintGutter } from "@codemirror/lint";
-import { EditorView, keymap, type ViewUpdate } from "@codemirror/view";
 import { deepmerge } from "@fastify/deepmerge";
-import * as events from "@uiw/codemirror-extensions-events";
-import { vscodeDark, vscodeLight } from "@uiw/codemirror-theme-vscode";
-import CodeMirror from "@uiw/react-codemirror";
-import { jsonSchema, updateSchema } from "codemirror-json-schema";
+import Editor, { type OnMount, useMonaco } from "@monaco-editor/react";
 import type { JSONSchema7 } from "json-schema";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { editor } from "monaco-editor";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { z } from "zod";
 import { useColorMode } from "@/components/ui";
+import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { FieldControl, type FieldPresentationProps } from "@/lib/form/field-control";
 import { useFieldContext } from "@/lib/form-context";
 import { inputRecipe } from "@/theme";
 
+import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
+
 type JsonEditorFieldProps = FieldPresentationProps & {
   label?: string;
-  schema: typeof z.core.JSONSchema;
-  maxHeight?: string | number;
+  schema: typeof z.core.JSONSchema | JSONSchema7;
+  /**
+   * Optional: force a stable schema URI. If omitted, we'll use schema.$id
+   * when present, otherwise a per-instance in-memory URI.
+   */
+  schemaUri?: string;
+  /**
+   * Optional: when your JSON references other schemas with $ref, you can
+   * pass them here so Monaco can resolve completion/validation across files.
+   */
+  extraSchemas?: Array<{ uri: string; schema: JSONSchema7 }>;
+  /** Minimum editor height */
+  minHeight?: string | number;
+  /** Fixed editor height */
+  height?: string | number;
   readOnly?: boolean;
-  // optional pretty-print on blur
+  /** Pretty‑print on blur (uses Monaco formatter, falling back to JSON.stringify). */
   formatOnBlur?: boolean;
 };
 
-const ChakraJsonEditorWrapper = chakra("div", deepmerge()(chakraInputRecipe, inputRecipe));
+const fmtStringify = (v: unknown) =>
+  typeof v === "string" ? (v ?? "{}") : JSON.stringify(v ?? {}, null, 2);
 
-export function JsonEditorField(props: JsonEditorFieldProps) {
+const ChakraMonacoWrapper = chakra("div", deepmerge()(chakraInputRecipe, inputRecipe));
+
+function JsonEditorField(props: JsonEditorFieldProps) {
   const { colorMode } = useColorMode();
   const id = useId();
+  const [focused, setFocused] = useState(false);
+  const monaco = useMonaco();
+
   const {
     label,
     helperText,
@@ -38,72 +56,119 @@ export function JsonEditorField(props: JsonEditorFieldProps) {
     errorText,
     invalid,
     schema,
-    maxHeight = "30dvh",
+    schemaUri: schemaUriProp,
+    extraSchemas,
+    minHeight = "200px",
+    height = "30dvh",
     readOnly,
     formatOnBlur,
     fieldProps,
     ...rest
   } = props;
+
+  // --- TanStack form field hookup
   const field = useFieldContext<string | null | undefined>();
-  const [focused, setFocused] = useState(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one-time for mount
+  const initial = useMemo(() => fmtStringify(field.state.value), []);
+  const editorRef = useRef<IStandaloneCodeEditor>(null);
 
-  // pseudo-controlled state to hold the editor value without rerendering on every change
-  const valueRef = useRef(
-    typeof field.state.value === "string"
-      ? (field.state.value ?? "{}")
-      : JSON.stringify(field.state.value ?? {}, null, 2)
-  );
-  const [value, setValue] = useState(valueRef.current);
-  const onChange = useCallback((val: string) => {
-    valueRef.current = val;
-  }, []);
-
-  // keep a ref to the EditorView so we can update the schema dynamically
-  const viewRef = useRef<EditorView | null>(null);
+  // If the form is externally reset, sync the editor.
   useEffect(() => {
-    if (viewRef.current) {
-      // updates schema StateField + refreshes schema lints
-      updateSchema(viewRef.current, schema as JSONSchema7);
+    const text = fmtStringify(field.state.value);
+    const model = editorRef.current?.getModel();
+    if (text !== model?.getValue()) {
+      editorRef.current?.setValue(text);
     }
-  }, [schema]);
+  }, [field.state.value]);
 
-  // set up CodeMirror extensions
-  const extensions = useMemo(
-    () => [
-      jsonSchema(schema as JSONSchema7),
-      lintGutter(),
-      // soft line wrapping
-      EditorView.lineWrapping,
-      // focus tracking for fake focus ring
-      // for some reason handleUpdate's hasFocus is never true
-      events.content({ focus: () => setFocused(true), blur: () => setFocused(false) }),
-      // fix odd default tab behavior
-      keymap.of([
-        { key: "Tab", run: insertTab },
-        { key: "Shift-Tab", run: indentLess },
-      ]),
-    ],
-    [schema]
-  );
+  // Debounced commit while typing
+  const commit = useDebouncedCallback(() => {
+    const model = editorRef.current?.getModel();
+    if (!model || !editorRef.current) return; // unmounting
 
-  // trigger tanstack form updates on blur to avoid state thrashing
-  const handleUpdate = (vu: ViewUpdate) => {
-    if (vu.focusChanged) {
-      const v = valueRef.current;
-      field.handleChange(v);
-      field.handleBlur();
-      setValue(v);
+    const v = editorRef.current.getValue();
+    field.handleChange(v);
+    field.validate("blur");
+  }, 500);
 
+  // --- Monaco schema wiring ---
+  // Each editor instance gets its own model path so fileMatch can be precise.
+  const modelUriStr = useMemo(() => `inmemory://model/json-field-${id}.json`, [id]);
+  // Choose a stable schema URI (prefer $id if present).
+  const computedSchemaUri = useMemo(() => {
+    const s = schema as JSONSchema7;
+    return schemaUriProp ?? s.$id ?? `inmemory://schema/json-field-${id}.schema.json`;
+  }, [schema, schemaUriProp, id]);
+
+  // Register/attach schema to *this* editor's model; clean up on unmount/changes.
+  useEffect(() => {
+    if (!monaco) return;
+
+    console.debug("JSON Editor registering schema:", computedSchemaUri, "for model:", modelUriStr);
+
+    const json = monaco.languages.json;
+    const existing = json.jsonDefaults.diagnosticsOptions?.schemas ?? [];
+    const stripCurrent = existing.filter((s) => s.uri !== computedSchemaUri);
+
+    const ourSchemas = [
+      { uri: computedSchemaUri, fileMatch: [modelUriStr], schema: schema },
+      ...(extraSchemas?.map((x) => ({ uri: x.uri, fileMatch: [modelUriStr], schema: x.schema })) ??
+        []),
+    ];
+
+    json.jsonDefaults.setDiagnosticsOptions({
+      validate: true,
+      allowComments: false,
+      enableSchemaRequest: false,
+      schemas: [...stripCurrent, ...ourSchemas],
+    });
+
+    return () => {
+      const after = (json.jsonDefaults.diagnosticsOptions?.schemas ?? []).filter(
+        (s) => s.uri !== computedSchemaUri && !extraSchemas?.find((ex) => ex.uri === s.uri)
+      );
+
+      json.jsonDefaults.setDiagnosticsOptions({
+        ...(json.jsonDefaults.diagnosticsOptions || {}),
+        schemas: after,
+      });
+    };
+  }, [monaco, schema, computedSchemaUri, modelUriStr, extraSchemas]);
+
+  // --- Editor setup ---
+  const onMount: OnMount = (editor) => {
+    editorRef.current = editor;
+
+    // Keep local ref in sync while typing
+    editor.onDidChangeModelContent(commit);
+
+    editor.onDidFocusEditorWidget(() => setFocused(true));
+
+    // On blur, format (if enabled) and commit final value
+    editor.onDidBlurEditorWidget(async () => {
+      setFocused(false);
+
+      const model = editor.getModel();
+      if (!model) return; // unmounting, model is gone
+
+      let text = model.getValue();
       if (formatOnBlur) {
         try {
-          const pretty = JSON.stringify(JSON.parse(vu.state.doc.toString()), null, 2);
-          if (pretty !== v) {
-            field.handleChange(pretty);
-            setValue(pretty);
+          await editor.getAction("editor.action.formatDocument")?.run();
+          text = model.getValue();
+        } catch {
+          try {
+            text = JSON.stringify(JSON.parse(text), null, 2);
+            model.setValue(text);
+          } catch {
+            // Keep the user's text if it's invalid JSON; Zod will surface a form error.
           }
-        } catch {}
+        }
       }
-    }
+
+      field.handleChange(text);
+      field.handleBlur();
+    });
   };
 
   return (
@@ -116,29 +181,44 @@ export function JsonEditorField(props: JsonEditorFieldProps) {
       invalid={invalid}
       {...fieldProps}
     >
-      <ChakraJsonEditorWrapper
-        asChild
-        h="max-content"
+      <ChakraMonacoWrapper
+        data-test-id="json-editor-field"
         p="0"
-        data-focus-visible={focused ? "" : undefined}
+        h={height}
+        minH={minHeight}
         data-invalid={invalid || !field.state.meta.isValid ? "" : undefined}
+        data-focus-visible={focused ? "" : undefined}
       >
-        <CodeMirror
-          id={id}
-          value={value}
-          editable={!readOnly}
-          maxHeight={typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight}
-          theme={colorMode === "light" ? vscodeLight : vscodeDark}
-          onChange={onChange}
-          onUpdate={handleUpdate}
-          onCreateEditor={(view) => (viewRef.current = view)}
-          basicSetup={{ lineNumbers: true, foldGutter: false, tabSize: 2 }}
-          indentWithTab={false}
-          extensions={extensions}
-          aria-label={label || "JSON Editor"}
-          {...rest}
-        />
-      </ChakraJsonEditorWrapper>
+        {monaco && (
+          <Editor
+            // give the model a path so our schema fileMatch targets only this editor
+            path={modelUriStr}
+            defaultLanguage="json"
+            defaultValue={initial}
+            onMount={onMount}
+            theme={colorMode === "light" ? "vs-light" : "vs-dark"}
+            options={{
+              tabSize: 2,
+              insertSpaces: true,
+              readOnly: !!readOnly,
+              automaticLayout: true,
+              wordWrap: "on",
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              formatOnPaste: true,
+              formatOnType: true,
+              quickSuggestions: true,
+              tabCompletion: "on",
+              folding: false,
+            }}
+            height="100%"
+            aria-label={label || "JSON Editor"}
+            {...rest}
+          />
+        )}
+      </ChakraMonacoWrapper>
     </FieldControl>
   );
 }
+
+export default JsonEditorField;

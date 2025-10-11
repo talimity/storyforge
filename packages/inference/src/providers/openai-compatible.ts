@@ -4,7 +4,6 @@ import {
   InferenceProviderCompatibilityError,
   InferenceProviderError,
 } from "../errors.js";
-import { renderTextTemplate } from "../template/jinja.js";
 import { mergeConsecutiveRoles } from "../transforms.js";
 import type {
   ChatCompletionChunk,
@@ -19,6 +18,16 @@ import type {
 } from "../types.js";
 import { iterateSSE } from "../utils/sse.js";
 import { ProviderAdapter } from "./base.js";
+
+let renderTextTemplateFn: typeof import("../template/jinja.js").renderTextTemplate;
+
+async function getRenderTextTemplate() {
+  if (!renderTextTemplateFn) {
+    const mod = await import("../template/jinja.js");
+    renderTextTemplateFn = mod.renderTextTemplate;
+  }
+  return renderTextTemplateFn;
+}
 
 type ChatRequestMode = "chat" | "text";
 
@@ -553,6 +562,7 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
     const allowPrefill = request.hints?.assistantPrefill !== "forbid";
     const last = request.messages.at(-1);
     const prefix = last?.role === "assistant" && allowPrefill;
+    const renderTextTemplate = await getRenderTextTemplate();
     const prompt = await renderTextTemplate(request.textTemplate, {
       messages: request.messages,
       prefix,

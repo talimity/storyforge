@@ -9,7 +9,7 @@ import {
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-export function CharacterCreatePage() {
+function CharacterCreatePage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -54,3 +54,5 @@ export function CharacterCreatePage() {
     </Container>
   );
 }
+
+export default CharacterCreatePage;

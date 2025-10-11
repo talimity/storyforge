@@ -17,7 +17,7 @@ import {
 } from "@/features/inference-config/components/provider-card";
 import { useTRPC } from "@/lib/trpc";
 
-export function ModelsPage() {
+function ModelsPage() {
   const trpc = useTRPC();
   const [isCreateModelDialogOpen, setIsCreateModelDialogOpen] = useState(false);
   const [isCreateProviderDialogOpen, setIsCreateProviderDialogOpen] = useState(false);
@@ -139,3 +139,5 @@ export function ModelsPage() {
     </Container>
   );
 }
+
+export default ModelsPage;

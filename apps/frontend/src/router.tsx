@@ -1,25 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-import { PlayerShell } from "@/features/scenario-player/components/player-shell";
-import { AppShell } from "./components/app-shell";
-import { CharacterCreatePage } from "./pages/character-create";
-import { CharacterEditPage } from "./pages/character-edit";
-import { CharacterLibraryPage } from "./pages/character-library";
-import { LorebookCreatePage } from "./pages/lorebook-create";
-import { LorebookEditPage } from "./pages/lorebook-edit";
-import { LorebooksPage } from "./pages/lorebook-library";
-import { ModelsPage } from "./pages/models-library";
-import { ScenarioCreatePage } from "./pages/scenario-create";
-import { ScenarioEditPage } from "./pages/scenario-edit";
-import { ScenarioLibraryPage } from "./pages/scenario-library";
-import { PlayerPage } from "./pages/scenario-player";
-import { TemplateCreatePage } from "./pages/template-create";
-import { TemplateEditPage } from "./pages/template-edit";
-import { TemplatesPage } from "./pages/template-library";
-import { TemplateTaskSelectPage } from "./pages/template-task-select";
-import { ThemeDemoPage } from "./pages/theme-demo";
-import { WorkflowCreatePage } from "./pages/workflow-create";
-import { WorkflowEditPage } from "./pages/workflow-edit";
-import { WorkflowsPage } from "./pages/workflow-library";
+import { AppShell } from "@/components/app-shell";
 
 export const router = createBrowserRouter([
   {
@@ -28,90 +8,155 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <CharacterLibraryPage />,
+        lazy: async () => {
+          const { default: CharacterLibraryPage } = await import("./pages/character-library");
+          return { Component: CharacterLibraryPage };
+        },
       },
       {
         path: "characters",
-        element: <CharacterLibraryPage />,
+        lazy: async () => {
+          const { default: CharacterLibraryPage } = await import("./pages/character-library");
+          return { Component: CharacterLibraryPage };
+        },
       },
       {
         path: "characters/create",
-        element: <CharacterCreatePage />,
+        lazy: async () => {
+          const { default: CharacterCreatePage } = await import("./pages/character-create");
+          return { Component: CharacterCreatePage };
+        },
       },
       {
         path: "characters/:id/edit",
-        element: <CharacterEditPage />,
+        lazy: async () => {
+          const { default: CharacterEditPage } = await import("./pages/character-edit");
+          return { Component: CharacterEditPage };
+        },
       },
       {
         path: "scenarios",
-        element: <ScenarioLibraryPage />,
+        lazy: async () => {
+          const { default: ScenarioLibraryPage } = await import("./pages/scenario-library");
+          return { Component: ScenarioLibraryPage };
+        },
       },
       {
         path: "scenarios/create",
-        element: <ScenarioCreatePage />,
+        lazy: async () => {
+          const { default: ScenarioCreatePage } = await import("./pages/scenario-create");
+          return { Component: ScenarioCreatePage };
+        },
       },
       {
         path: "scenarios/:id/edit",
-        element: <ScenarioEditPage />,
+        lazy: async () => {
+          const { default: ScenarioEditPage } = await import("./pages/scenario-edit");
+          return { Component: ScenarioEditPage };
+        },
       },
       {
         path: "models",
-        element: <ModelsPage />,
+        lazy: async () => {
+          const { default: ModelsPage } = await import("./pages/models-library");
+          return { Component: ModelsPage };
+        },
       },
       {
         path: "lorebooks",
-        element: <LorebooksPage />,
+        lazy: async () => {
+          const { default: LorebooksPage } = await import("./pages/lorebook-library");
+          return { Component: LorebooksPage };
+        },
       },
       {
         path: "lorebooks/create",
-        element: <LorebookCreatePage />,
+        lazy: async () => {
+          const { default: LorebookCreatePage } = await import("./pages/lorebook-create");
+          return { Component: LorebookCreatePage };
+        },
       },
       {
         path: "lorebooks/:id/edit",
-        element: <LorebookEditPage />,
+        lazy: async () => {
+          const { default: LorebookEditPage } = await import("./pages/lorebook-edit");
+          return { Component: LorebookEditPage };
+        },
       },
       {
         path: "workflows",
-        element: <WorkflowsPage />,
+        lazy: async () => {
+          const { default: WorkflowsPage } = await import("./pages/workflow-library");
+          return { Component: WorkflowsPage };
+        },
       },
       {
         path: "workflows/create",
-        element: <WorkflowCreatePage />,
+        lazy: async () => {
+          const { default: WorkflowCreatePage } = await import("./pages/workflow-create");
+          return { Component: WorkflowCreatePage };
+        },
       },
       {
         path: "workflows/:id/edit",
-        element: <WorkflowEditPage />,
+        lazy: async () => {
+          const { default: WorkflowEditPage } = await import("./pages/workflow-edit");
+          return { Component: WorkflowEditPage };
+        },
       },
       {
         path: "templates",
-        element: <TemplatesPage />,
+        lazy: async () => {
+          const { default: TemplatesPage } = await import("./pages/template-library");
+          return { Component: TemplatesPage };
+        },
       },
       {
         path: "templates/select-task",
-        element: <TemplateTaskSelectPage />,
+        lazy: async () => {
+          const { default: TemplateTaskSelectPage } = await import("./pages/template-task-select");
+          return { Component: TemplateTaskSelectPage };
+        },
       },
       {
         path: "templates/create",
-        element: <TemplateCreatePage />,
+        lazy: async () => {
+          const { default: TemplateCreatePage } = await import("./pages/template-create");
+          return { Component: TemplateCreatePage };
+        },
       },
       {
         path: "templates/:id/edit",
-        element: <TemplateEditPage />,
+        lazy: async () => {
+          const { default: TemplateEditPage } = await import("./pages/template-edit");
+          return { Component: TemplateEditPage };
+        },
       },
       {
         path: "theme-demo",
-        element: <ThemeDemoPage />,
+        lazy: async () => {
+          const { default: ThemeDemoPage } = await import("./pages/theme-demo");
+          return { Component: ThemeDemoPage };
+        },
       },
     ],
   },
   // Scenario Player exists outside the normal app shell
   {
     path: "/play/:id",
-    element: <PlayerShell />,
+    lazy: async () => {
+      const { default: PlayerShell } = await import(
+        "./features/scenario-player/components/player-shell"
+      );
+      return { Component: PlayerShell };
+    },
     children: [
       {
         index: true,
-        element: <PlayerPage />,
+        lazy: async () => {
+          const { default: PlayerPage } = await import("./pages/scenario-player");
+          return { Component: PlayerPage };
+        },
       },
     ],
   },

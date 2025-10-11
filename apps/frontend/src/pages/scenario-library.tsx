@@ -24,7 +24,7 @@ const SCENARIO_SKELETON_IDS = Array.from(
   (_, index) => `scenario-skeleton-${index}`
 );
 
-export function ScenarioLibraryPage() {
+function ScenarioLibraryPage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -138,3 +138,5 @@ export function ScenarioLibraryPage() {
     </Container>
   );
 }
+
+export default ScenarioLibraryPage;

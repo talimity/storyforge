@@ -20,7 +20,7 @@ import {
 } from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 
-export function PlayerShell() {
+export default function PlayerShell() {
   const { id } = useParams<{ id: string }>();
   if (!id) return <Navigate to="/scenarios" replace />;
 

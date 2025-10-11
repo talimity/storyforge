@@ -1,165 +1,184 @@
 {
-  "$id": "https://storyforge.dev/schemas/recipe-slot-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "StoryForge Recipe SlotSpec (no priority)",
-  "description": "Schema for authoring custom SlotSpecs emitted by recipes (Omit<SlotSpec, 'priority'>).",
-  "$ref": "#/$defs/RecipeSlotSpec",
-
-  "$defs": {
-    "JsonValue": {
-      "description": "Any JSON value (used for DataRef args, condition values, and meta).",
-      "anyOf": [
-        { "type": "string" },
-        { "type": "number" },
-        { "type": "integer" },
-        { "type": "boolean" },
-        { "type": "null" },
-        { "type": "object" },
-        { "type": "array" }
-      ]
+  "$id": "urn:storyforge:slot-spec-authorable",
+  "title": "SlotSpec schema",
+  "description": "The subset of SlotSpec authors can edit in the UI (priority is controlled by the template builder).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["plan"],
+  "properties": {
+    "when": {
+      "$ref": "#/$defs/ConditionRef",
+      "description": "Optional condition gating this slot."
     },
-
+    "budget": { "$ref": "#/$defs/Budget" },
+    "plan": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/PlanNode" },
+      "description": "Ordered list of plan nodes executed to fill this slot."
+    },
+    "meta": {
+      "type": "object",
+      "description": "Arbitrary metadata; ignored by the renderer.",
+      "default": {},
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
     "Role": {
       "type": "string",
       "enum": ["system", "user", "assistant"],
       "description": "Chat message role."
     },
-
-    "Budget": {
-      "type": "object",
-      "title": "Budget",
-      "description": "Optional per-slot or per-node token ceiling.",
-      "properties": {
-        "maxTokens": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Positive integer token limit."
-        }
-      },
-      "additionalProperties": false
-    },
-
     "DataRef": {
       "type": "object",
-      "title": "DataRef",
-      "description": "Reference to a task-provided source (plus optional args).",
+      "additionalProperties": false,
       "required": ["source"],
       "properties": {
         "source": {
           "type": "string",
-          "description": "Named source or reserved helper ($item, $index, $parent, $ctx, $globals).",
-          "examples": ["turns", "characters", "lore", "$item", "$ctx", "$globals"]
+          "description": "Named source from the task's SourceSpec, or reserved helper ($item, $index, $parent, $globals, $ctx)."
         },
         "args": {
-          "$ref": "#/$defs/JsonValue",
-          "description": "Task-specific arguments (shape defined by the task)."
+          "description": "Optional arguments passed to the source resolver (shape is task-defined).",
+          "oneOf": [
+            { "type": "object", "additionalProperties": true },
+            { "type": "array" },
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "null" }
+          ]
         }
       },
-      "additionalProperties": false
+      "examples": [
+        { "source": "turns", "args": { "order": "desc", "limit": 50 } },
+        { "source": "$item", "args": { "path": "intentKind" } },
+        { "source": "$globals" }
+      ]
     },
-
+    "Budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Max tokens for this scope (rough estimator)."
+        }
+      }
+    },
     "ConditionRef": {
-      "title": "ConditionRef",
-      "description": "Discriminated condition used by `if` nodes and slot-level `when`.",
+      "description": "Conditional expression evaluated against a DataRef.",
       "oneOf": [
         {
           "type": "object",
+          "additionalProperties": false,
           "required": ["type", "ref"],
           "properties": {
-            "type": {
-              "const": "exists",
-              "description": "True if `ref` exists (not undefined/null)."
-            },
+            "type": { "const": "exists", "description": "Ref is defined (not undefined/null)." },
             "ref": { "$ref": "#/$defs/DataRef" }
-          },
-          "additionalProperties": false
+          }
         },
         {
           "type": "object",
+          "additionalProperties": false,
           "required": ["type", "ref"],
           "properties": {
             "type": {
               "const": "nonEmpty",
-              "description": "True if `ref` resolves to a non-empty value/collection."
+              "description": "Ref yields a non-empty value (strings/arrays/objects)."
             },
             "ref": { "$ref": "#/$defs/DataRef" }
-          },
-          "additionalProperties": false
+          }
         },
         {
           "type": "object",
+          "additionalProperties": false,
           "required": ["type", "ref", "value"],
           "properties": {
             "type": {
-              "type": "string",
               "enum": ["eq", "neq", "gt", "lt"],
-              "description": "Comparison operator."
+              "description": "Comparison operators."
             },
             "ref": { "$ref": "#/$defs/DataRef" },
             "value": {
-              "$ref": "#/$defs/JsonValue",
-              "description": "Right-hand side for comparison."
+              "description": "Literal to compare against.",
+              "oneOf": [
+                { "type": "string" },
+                { "type": "number" },
+                { "type": "boolean" },
+                { "type": "object", "additionalProperties": true },
+                { "type": "array" },
+                { "type": "null" }
+              ]
             }
-          },
-          "additionalProperties": false
+          }
         }
       ]
     },
-
-    "MessageBlockBase": {
+    "MessageBlock": {
       "type": "object",
-      "title": "MessageBlock",
-      "description": "Common fields for message emission.",
+      "additionalProperties": false,
       "required": ["role"],
       "properties": {
         "role": { "$ref": "#/$defs/Role" },
         "content": {
           "type": "string",
-          "description": "Literal text (may include variable interpolation like {{item.turnNo}})."
+          "description": "Literal text (supports {{}} interpolation)."
         },
         "from": {
           "$ref": "#/$defs/DataRef",
-          "description": "Populate content directly from this DataRef."
+          "description": "If set, content is taken from this DataRef."
         },
         "prefix": {
           "type": "boolean",
           "default": false,
-          "description": "Assistant prefill (only valid when role === 'assistant')."
+          "description": "Assistant-only. If true, treats the message as a prefill/prefix."
         },
         "skipIfEmptyInterpolation": {
           "type": "boolean",
           "default": false,
-          "description": "When true, skip if interpolation produced empty output."
+          "description": "Skip this message if the interpolated content is empty."
         }
       },
-      "additionalProperties": false,
+      "anyOf": [{ "required": ["content"] }, { "required": ["from"] }],
       "allOf": [
         {
-          "if": {
-            "properties": { "role": { "const": "assistant" } },
-            "required": ["role"]
-          },
-          "then": {},
-          "else": {
-            "not": {
-              "required": ["prefix"]
-            },
-            "description": "Disallow `prefix` except on assistant messages."
-          }
+          "if": { "properties": { "prefix": { "const": true } }, "required": ["prefix"] },
+          "then": { "properties": { "role": { "const": "assistant" } } }
         }
       ]
     },
-
-    "MessageNode": {
+    "PlanNode": {
+      "description": "Discriminated union of plan nodes.",
+      "oneOf": [
+        { "$ref": "#/$defs/PlanMessageNode" },
+        { "$ref": "#/$defs/PlanForEachNode" },
+        { "$ref": "#/$defs/PlanIfNode" }
+      ]
+    },
+    "PlanMessageNode": {
       "type": "object",
-      "title": "Plan: message",
+      "additionalProperties": false,
       "required": ["kind", "role"],
       "properties": {
         "kind": { "const": "message" },
-        "budget": { "$ref": "#/$defs/Budget" }
+        "budget": { "$ref": "#/$defs/Budget" },
+        "role": { "$ref": "#/$defs/Role" },
+        "content": { "type": "string" },
+        "from": { "$ref": "#/$defs/DataRef" },
+        "prefix": { "type": "boolean", "default": false },
+        "skipIfEmptyInterpolation": { "type": "boolean", "default": false }
       },
-      "allOf": [{ "$ref": "#/$defs/MessageBlockBase" }],
-      "additionalProperties": false,
+      "anyOf": [{ "required": ["content"] }, { "required": ["from"] }],
+      "allOf": [
+        {
+          "if": { "properties": { "prefix": { "const": true } }, "required": ["prefix"] },
+          "then": { "properties": { "role": { "const": "assistant" } } }
+        }
+      ],
       "examples": [
         {
           "kind": "message",
@@ -168,53 +187,59 @@
         }
       ]
     },
-
-    "ForEachNode": {
+    "Separator": {
       "type": "object",
-      "title": "Plan: forEach",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "const": "separator" },
+        "text": { "type": "string", "default": "" }
+      }
+    },
+    "PlanForEachNode": {
+      "type": "object",
+      "additionalProperties": false,
       "required": ["kind", "source", "map"],
       "properties": {
         "kind": { "const": "forEach" },
-        "source": { "$ref": "#/$defs/DataRef" },
+        "source": {
+          "$ref": "#/$defs/DataRef",
+          "description": "Array-valued DataRef to iterate."
+        },
         "order": {
           "type": "string",
           "enum": ["asc", "desc"],
-          "description": "Optional iteration order (fallback when the source doesn’t control ordering)."
+          "default": "asc",
+          "description": "Optional override; some tasks also accept order in source.args."
         },
         "fillDir": {
           "type": "string",
           "enum": ["append", "prepend"],
+          "default": "append",
           "description": "Where to place each iteration's output in the slot buffer."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "description": "Optional cap on number of iterations."
+          "description": "Max items to process (optional)."
         },
         "map": {
           "type": "array",
           "minItems": 1,
           "items": { "$ref": "#/$defs/PlanNode" },
-          "description": "Nested plan executed for each item."
+          "description": "Nested plan executed for each item. Exposes $item and $index."
         },
         "interleave": {
-          "type": "object",
-          "description": "Optional separator between iterations.",
-          "required": ["kind"],
-          "properties": {
-            "kind": { "const": "separator" },
-            "text": { "type": "string", "description": "Separator text." }
-          },
-          "additionalProperties": false
+          "$ref": "#/$defs/Separator",
+          "description": "Optional separator between iterations."
         },
         "budget": { "$ref": "#/$defs/Budget" },
         "stopWhenOutOfBudget": {
           "type": "boolean",
           "default": false,
-          "description": "Stop iterating when current budgets are exhausted."
+          "description": "If true, stop iterating when the current budget scope is exhausted."
         }
       },
-      "additionalProperties": false,
       "examples": [
         {
           "kind": "forEach",
@@ -230,106 +255,87 @@
         }
       ]
     },
-
-    "IfNode": {
+    "PlanIfNode": {
       "type": "object",
-      "title": "Plan: if",
+      "additionalProperties": false,
       "required": ["kind", "when", "then"],
       "properties": {
         "kind": { "const": "if" },
         "when": { "$ref": "#/$defs/ConditionRef" },
         "then": {
           "type": "array",
-          "items": { "$ref": "#/$defs/PlanNode" },
-          "description": "Plan when the condition is true."
+          "items": { "$ref": "#/$defs/PlanNode" }
         },
         "else": {
           "type": "array",
-          "items": { "$ref": "#/$defs/PlanNode" },
-          "description": "Optional plan when the condition is false."
+          "items": { "$ref": "#/$defs/PlanNode" }
         }
       },
-      "additionalProperties": false
-    },
-
-    "PlanNode": {
-      "title": "Plan node",
-      "description": "One of: message | forEach | if.",
-      "oneOf": [
-        { "$ref": "#/$defs/MessageNode" },
-        { "$ref": "#/$defs/ForEachNode" },
-        { "$ref": "#/$defs/IfNode" }
-      ]
-    },
-
-    "RecipeSlotSpec": {
-      "type": "object",
-      "title": "Recipe SlotSpec (no priority)",
-      "required": ["plan"],
-      "properties": {
-        "when": {
-          "$ref": "#/$defs/ConditionRef",
-          "description": "Optional slot-level condition gate."
-        },
-        "budget": { "$ref": "#/$defs/Budget" },
-        "plan": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/PlanNode" },
-          "description": "Ordered plan that emits messages when executed."
-        },
-        "meta": {
-          "type": "object",
-          "description": "Arbitrary metadata; not interpreted by the renderer.",
-          "additionalProperties": { "$ref": "#/$defs/JsonValue" }
-        }
-      },
-      "additionalProperties": false,
       "examples": [
         {
-          "budget": { "maxTokens": 32768 },
-          "meta": {},
-          "plan": [
+          "kind": "if",
+          "when": {
+            "type": "nonEmpty",
+            "ref": { "source": "$item", "args": { "path": "intentKind" } }
+          },
+          "then": [
             {
-              "kind": "forEach",
-              "source": { "source": "turns", "args": { "order": "desc", "limit": 50 } },
-              "fillDir": "prepend",
-              "map": [
+              "kind": "if",
+              "when": {
+                "type": "eq",
+                "ref": { "source": "$item", "args": { "path": "intentKind" } },
+                "value": "manual_control"
+              },
+              "then": [
                 {
                   "kind": "message",
                   "role": "user",
-                  "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}"
+                  "content": "[Turn {{item.turnNo}}] {{item.authorName}}\nI'll write this turn myself.\n-> {{item.authorName}}: {{item.content}}"
+                }
+              ],
+              "else": [
+                {
+                  "kind": "message",
+                  "role": "user",
+                  "content": "[Turn {{item.turnNo}}] {{item.authorName}}\n{{item.intentPrompt}}]"
+                },
+                {
+                  "kind": "message",
+                  "role": "assistant",
+                  "content": "-> {{item.authorName}}: {{item.content}}"
                 }
               ]
+            }
+          ],
+          "else": [
+            {
+              "kind": "message",
+              "role": "user",
+              "content": "[Turn {{item.turnNo}}] {{item.authorName}}\nI'll write this turn myself.\n-> {{item.authorName}}: {{item.content}}"
             }
           ]
         }
       ]
-    },
-
-    "SlotSpec": {
-      "type": "object",
-      "title": "Full SlotSpec (includes priority)",
-      "required": ["priority", "plan"],
-      "properties": {
-        "priority": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Lower runs first so high-importance content spends budget first."
-        },
-        "when": { "$ref": "#/$defs/ConditionRef" },
-        "budget": { "$ref": "#/$defs/Budget" },
-        "plan": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/PlanNode" }
-        },
-        "meta": {
-          "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/JsonValue" }
-        }
-      },
-      "additionalProperties": false
     }
-  }
+  },
+  "examples": [
+    {
+      "budget": { "maxTokens": 32768 },
+      "plan": [
+        {
+          "kind": "forEach",
+          "source": { "source": "turns", "args": { "order": "desc", "limit": 50 } },
+          "fillDir": "prepend",
+          "map": [
+            {
+              "kind": "message",
+              "role": "user",
+              "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}"
+            }
+          ]
+        }
+      ],
+      "meta": {}
+    }
+  ]
 }

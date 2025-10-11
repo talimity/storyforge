@@ -5,7 +5,7 @@ import { SimplePageHeader } from "@/components/ui";
 import { WorkflowForm } from "@/features/workflows/components/builder/workflow-form";
 import { useTRPC } from "@/lib/trpc";
 
-export function WorkflowCreatePage() {
+function WorkflowCreatePage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -29,3 +29,5 @@ export function WorkflowCreatePage() {
     </Container>
   );
 }
+
+export default WorkflowCreatePage;

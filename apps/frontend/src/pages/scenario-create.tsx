@@ -9,7 +9,7 @@ import {
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-export function ScenarioCreatePage() {
+function ScenarioCreatePage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -57,3 +57,5 @@ export function ScenarioCreatePage() {
     </Container>
   );
 }
+
+export default ScenarioCreatePage;

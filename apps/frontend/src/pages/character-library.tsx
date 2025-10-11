@@ -52,7 +52,7 @@ const characterSortOptions = [
 const GRID_SKELETON_IDS = Array.from({ length: 20 }, () => createId());
 const LIST_SKELETON_IDS = Array.from({ length: 20 }, () => createId());
 
-export function CharacterLibraryPage() {
+function CharacterLibraryPage() {
   const trpc = useTRPC();
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -249,6 +249,8 @@ export function CharacterLibraryPage() {
     </>
   );
 }
+
+export default CharacterLibraryPage;
 
 function CharaGridView(props: {
   characters: CharacterLibraryItem[];

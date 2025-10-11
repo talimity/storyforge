@@ -7,7 +7,7 @@ import { LorebookForm } from "@/features/lorebooks/components/lorebook-form";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-export function LorebookCreatePage() {
+function LorebookCreatePage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -33,3 +33,5 @@ export function LorebookCreatePage() {
     </Container>
   );
 }
+
+export default LorebookCreatePage;

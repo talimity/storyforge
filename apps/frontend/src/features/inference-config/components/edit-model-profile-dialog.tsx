@@ -1,9 +1,12 @@
 import type { ModelProfile } from "@storyforge/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 import { Dialog } from "@/components/ui";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
-import { ModelProfileForm, type ModelProfileFormData } from "./model-profile-form";
+import type { ModelProfileFormData } from "./model-profile-form";
+
+const ModelProfileForm = lazy(() => import("./model-profile-form"));
 
 interface EditModelProfileDialogProps {
   modelProfile: ModelProfile;
@@ -53,12 +56,16 @@ export function EditModelProfileDialog({
           <Dialog.Title>Edit Model Profile</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
-          <ModelProfileForm
-            initialData={modelProfile}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            submitLabel="Save Changes"
-          />
+          <Suspense
+            fallback={<div className="flex h-48 items-center justify-center">Loading form...</div>}
+          >
+            <ModelProfileForm
+              initialData={modelProfile}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              submitLabel="Save Changes"
+            />
+          </Suspense>
         </Dialog.Body>
       </Dialog.Content>
     </Dialog.Root>

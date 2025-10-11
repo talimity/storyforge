@@ -2,7 +2,7 @@ import type { LorebookData } from "./schema.js";
 
 export type LorebookHasher = (input: string) => string;
 
-export function computeLorebookFingerprint(data: LorebookData, hash: LorebookHasher): string {
+export function computeLorebookHash(data: LorebookData, hash: LorebookHasher): string {
   const canonicalEntries = data.entries
     .map<CanonicalEntry>((entry) => ({
       keys: [...entry.keys].sort(localeCompare),

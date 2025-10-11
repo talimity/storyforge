@@ -14,7 +14,7 @@ import {
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-export function ScenarioEditPage() {
+function ScenarioEditPage() {
   const trpc = useTRPC();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -168,3 +168,5 @@ export function ScenarioEditPage() {
     </>
   );
 }
+
+export default ScenarioEditPage;

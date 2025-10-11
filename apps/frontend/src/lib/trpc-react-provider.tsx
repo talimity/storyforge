@@ -55,13 +55,7 @@ export function TRPCReactProvider({ children }: TRPCReactProviderProps) {
 
   return (
     <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-        {/* Add React Query Devtools in development */}
-        {/*{import.meta.env.DEV && (*/}
-        {/*  <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />*/}
-        {/*)}*/}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </TRPCProvider>
   );
 }

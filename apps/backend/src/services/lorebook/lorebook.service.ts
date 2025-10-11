@@ -14,7 +14,7 @@ import {
   schema,
 } from "@storyforge/db";
 import {
-  computeLorebookFingerprint,
+  computeLorebookHash,
   type LorebookData,
   normalizeLorebookData,
   parseLorebookData,
@@ -53,14 +53,14 @@ export class LorebookService {
   constructor(private readonly db: SqliteDatabase) {}
 
   private hashLorebook(data: LorebookData): string {
-    return computeLorebookFingerprint(data, (input) =>
+    return computeLorebookHash(data, (input) =>
       createHash("sha256").update(input, "utf8").digest("hex")
     );
   }
 
   async createLorebook(args: CreateLorebookArgs, outerTx?: SqliteTransaction) {
     const normalized = normalizeLorebookData(args.data);
-    const fingerprint = this.hashLorebook(normalized);
+    const hash = this.hashLorebook(normalized);
     const entryCount = normalized.entries.length;
     const name = normalized.name?.trim() || "Untitled Lorebook";
     const description = normalized.description?.trim() || null;
@@ -70,7 +70,7 @@ export class LorebookService {
       const existing = await tx
         .select()
         .from(schema.lorebooks)
-        .where(eq(schema.lorebooks.fingerprint, fingerprint))
+        .where(eq(schema.lorebooks.fingerprint, hash))
         .limit(1);
 
       if (existing[0]) {
@@ -83,7 +83,7 @@ export class LorebookService {
           name,
           description,
           data: normalized,
-          fingerprint,
+          fingerprint: hash,
           entryCount,
           source,
         })

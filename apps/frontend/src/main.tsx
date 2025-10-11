@@ -12,7 +12,7 @@ import { router } from "@/router";
 import { system } from "@/theme";
 
 const ENABLE_DEVTOOLS = false;
-const ENABLE_STRICT_MODE = false;
+const ENABLE_STRICT_MODE = true;
 const ReactRoot = ENABLE_STRICT_MODE ? React.StrictMode : React.Fragment;
 
 // biome-ignore lint/style/noNonNullAssertion: We are sure the root element exists.

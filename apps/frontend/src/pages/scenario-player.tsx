@@ -14,7 +14,7 @@ import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { useActiveScenario } from "@/hooks/use-active-scenario";
 
-export function PlayerPage() {
+function PlayerPage() {
   const { scenario, participants, chapters, deriveChapterLabel } = useScenarioContext();
   const { setActiveScenario } = useActiveScenario();
   const selectedCharacterId = useScenarioPlayerStore((s) => s.selectedCharacterId);
@@ -137,3 +137,5 @@ export function PlayerPage() {
 
   return <PlayerLayout timeline={timeline} intentPanel={intentPanel} />;
 }
+
+export default PlayerPage;

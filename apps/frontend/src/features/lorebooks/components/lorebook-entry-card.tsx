@@ -4,6 +4,7 @@ import { LuCaseSensitive, LuRegex } from "react-icons/lu";
 import { AutosizeTextarea } from "@/components/ui";
 import { Tag } from "@/components/ui/tag";
 import { LorebookEntryCardHeader } from "@/features/lorebooks/components/lorebook-entry-card-header";
+import { LorebookExtensionsSection } from "@/features/lorebooks/components/lorebook-extensions-section";
 import { withFieldGroup } from "@/lib/app-form";
 import { createLorebookEntryDraft, extensionsJsonSchema } from "./form-schemas";
 
@@ -20,6 +21,27 @@ export type LorebookEntryCardProps = {
 
 const joinList = (value: string[] | undefined) => (value ?? []).join("\n");
 const toLineArray = (value: string) => value.split(/\r?\n/);
+
+function LoreSectionOptionLabel(props: { label: React.ReactNode; value: string }) {
+  const { label, value } = props;
+  return (
+    <Stack direction="row">
+      <Text>{label}</Text>
+      <Tag color="content.muted">{value}</Tag>
+    </Stack>
+  );
+}
+
+const LORE_SECTION_OPTIONS = [
+  {
+    label: <LoreSectionOptionLabel label="First Section" value="before_char" />,
+    value: "before_char",
+  },
+  {
+    label: <LoreSectionOptionLabel label="Second Section" value="after_char" />,
+    value: "after_char",
+  },
+];
 
 function estimateTokenLength(text: string) {
   return Math.ceil(text.length / 4 / 10) * 10;
@@ -84,54 +106,56 @@ export const LorebookEntryCard = withFieldGroup({
               )}
             </group.AppField>
 
-            <group.AppField name="keys">
-              {(field) => (
-                <field.Field
-                  label="Trigger Phrases"
-                  helperText="Phrases that will activate this entry (one per line)"
-                  style={{ opacity: alwaysActive ? 0.75 : 1 }}
-                >
-                  <AutosizeTextarea
-                    disabled={alwaysActive}
-                    value={joinList(field.state.value)}
-                    onChange={(event) => field.handleChange(toLineArray(event.target.value))}
-                    onBlur={(event) => {
-                      const arr = toLineArray(event.target.value);
-                      const cleaned = arr.filter((line) => line.trim().length > 0);
-                      field.handleChange(cleaned.length > 0 ? cleaned : []);
-                      field.handleBlur();
-                    }}
-                    minRows={1}
-                    maxRows={6}
-                  />
-                </field.Field>
-              )}
-            </group.AppField>
+            <Stack direction={{ base: "column", md: "row" }} gap={3}>
+              <group.AppField name="keys">
+                {(field) => (
+                  <field.Field
+                    label="Trigger Phrases"
+                    helperText="Phrases that will activate this entry (one per line)"
+                    style={{ opacity: alwaysActive ? 0.75 : 1 }}
+                  >
+                    <AutosizeTextarea
+                      disabled={alwaysActive}
+                      value={joinList(field.state.value)}
+                      onChange={(event) => field.handleChange(toLineArray(event.target.value))}
+                      onBlur={(event) => {
+                        const arr = toLineArray(event.target.value);
+                        const cleaned = arr.filter((line) => line.trim().length > 0);
+                        field.handleChange(cleaned.length > 0 ? cleaned : []);
+                        field.handleBlur();
+                      }}
+                      minRows={1}
+                      maxRows={6}
+                    />
+                  </field.Field>
+                )}
+              </group.AppField>
 
-            <group.AppField name="secondary_keys">
-              {(field) => (
-                <field.Field
-                  label="Secondary Phrases"
-                  helperText="If provided, at least one primary and one secondary must be present to activate this entry"
-                  style={{ opacity: alwaysActive ? 0.75 : 1 }}
-                >
-                  <AutosizeTextarea
-                    disabled={alwaysActive}
-                    value={joinList(field.state.value)}
-                    onChange={(event) => field.handleChange(toLineArray(event.target.value))}
-                    onBlur={(event) => {
-                      const arr = toLineArray(event.target.value);
-                      const cleaned = arr.filter((line) => line.trim().length > 0);
-                      field.handleChange(cleaned.length > 0 ? cleaned : []);
-                      field.handleBlur();
-                      group.setFieldValue("selective", Boolean(cleaned?.length));
-                    }}
-                    minRows={1}
-                    maxRows={6}
-                  />
-                </field.Field>
-              )}
-            </group.AppField>
+              <group.AppField name="secondary_keys">
+                {(field) => (
+                  <field.Field
+                    label="Secondary Phrases"
+                    helperText="If provided, at least one primary and one secondary must be present to activate this entry"
+                    style={{ opacity: alwaysActive ? 0.75 : 1 }}
+                  >
+                    <AutosizeTextarea
+                      disabled={alwaysActive}
+                      value={joinList(field.state.value)}
+                      onChange={(event) => field.handleChange(toLineArray(event.target.value))}
+                      onBlur={(event) => {
+                        const arr = toLineArray(event.target.value);
+                        const cleaned = arr.filter((line) => line.trim().length > 0);
+                        field.handleChange(cleaned.length > 0 ? cleaned : []);
+                        field.handleBlur();
+                        group.setFieldValue("selective", Boolean(cleaned?.length));
+                      }}
+                      minRows={1}
+                      maxRows={6}
+                    />
+                  </field.Field>
+                )}
+              </group.AppField>
+            </Stack>
 
             <Stack direction={{ base: "column", md: "row" }} gap={3}>
               <group.AppField name="case_sensitive">
@@ -162,10 +186,21 @@ export const LorebookEntryCard = withFieldGroup({
             </group.AppField>
 
             <Stack direction={{ base: "column", md: "row" }} gap={3}>
+              <group.AppField name="position">
+                {(field) => (
+                  <field.Select
+                    label="Lore Section"
+                    helperText="Where prompts should insert this entry"
+                    options={LORE_SECTION_OPTIONS}
+                    fieldProps={{ flex: 1 }}
+                  />
+                )}
+              </group.AppField>
               <group.AppField name="insertion_order">
                 {(field) => (
                   <field.NumberInput
                     label="Insertion Order"
+                    required
                     helperText="Lower numbers appear earlier in the prompt"
                     fieldProps={{ flex: 1 }}
                   />
@@ -184,19 +219,18 @@ export const LorebookEntryCard = withFieldGroup({
               </group.AppField>
             </Stack>
 
-            <Stack gap={2}>
-              <Text fontWeight="medium">Extensions</Text>
+            <LorebookExtensionsSection>
               <group.AppField name="extensions">
                 {(field) => (
                   <field.JsonEditor
                     helperText="Store custom metadata consumed by other tools. Leave empty if unused."
                     formatOnBlur
-                    maxHeight="250px"
+                    height="250px"
                     schema={extensionsJsonSchema}
                   />
                 )}
               </group.AppField>
-            </Stack>
+            </LorebookExtensionsSection>
           </VStack>
         </Card.Body>
       </Card.Root>

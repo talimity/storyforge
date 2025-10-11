@@ -1,6 +1,8 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
+import visualizer from "rollup-plugin-visualizer";
 import { defineConfig, loadEnv } from "vite";
+import monacoEditorPlugin from "vite-plugin-monaco-editor";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -8,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const devServerTarget = `${env.FASTIFY_PROTOCOL ?? "http"}://${env.FASTIFY_HOST ?? "localhost"}:${env.FASTIFY_PORT ?? "3001"}`;
   return {
     server: {
-      allowedHosts: true,
+      // allowedHosts: true,
       port: 3000,
       proxy: {
         // everything under /api goes to Fastify
@@ -22,17 +24,21 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            chakra: ["@chakra-ui/react", "@emotion/react", "@ark-ui/react"],
-            // Code editor and related packages
-            cm: [
-              "@uiw/react-codemirror",
-              "@codemirror/lang-json",
-              "@codemirror/lint",
-              "@codemirror/view",
-              "@uiw/codemirror-theme-vscode",
-            ],
-            icons: ["react-icons/fa6", "react-icons/lu", "react-icons/ri", "react-icons/tb"],
+          manualChunks(id) {
+            if (/node_modules\/react-icons\//.test(id)) return "icons";
+            if (/node_modules\/@?monaco-editor\//.test(id)) return "monaco";
+            if (/node_modules\/@dnd-kit\//.test(id)) return "dnd-kit";
+            if (/node_modules\/(micromark|@micromark|mdast)\//.test(id)) return "markdown";
+            if (/node_modules\/@huggingface\//.test(id)) return "huggingface";
+
+            if (
+              /node_modules\/(react|react-router|react-dom|scheduler)\//.test(id) ||
+              /node_modules\/@chakra-ui\//.test(id) ||
+              /node_modules\/@emotion\//.test(id) ||
+              /node_modules\/@zag-js\//.test(id) ||
+              /node_modules\/@ark-ui\//.test(id)
+            )
+              return "framework";
           },
         },
       },
@@ -42,6 +48,10 @@ export default defineConfig(({ mode }) => {
         babel: {
           plugins: ["babel-plugin-react-compiler"],
         },
+      }),
+      visualizer({ open: false, filename: "dist/stats.html" }),
+      monacoEditorPlugin({
+        languageWorkers: ["json", "editorWorkerService"],
       }),
     ],
     resolve: {

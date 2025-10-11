@@ -15,7 +15,7 @@ import { useTRPC } from "@/lib/trpc";
 
 type TaskFilter = "" | TaskKind;
 
-export function WorkflowsPage() {
+function WorkflowsPage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [tab, setTab] = useState("workflows");
@@ -156,3 +156,5 @@ export function WorkflowsPage() {
     </Container>
   );
 }
+
+export default WorkflowsPage;

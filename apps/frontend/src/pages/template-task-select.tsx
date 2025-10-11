@@ -33,7 +33,7 @@ const taskOptions: TaskOption[] = [
   },
 ];
 
-export function TemplateTaskSelectPage() {
+function TemplateTaskSelectPage() {
   const navigate = useNavigate();
 
   return (
@@ -91,3 +91,5 @@ export function TemplateTaskSelectPage() {
     </Container>
   );
 }
+
+export default TemplateTaskSelectPage;

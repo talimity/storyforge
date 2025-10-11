@@ -9,7 +9,7 @@ import { LorebookCard, LorebookCardSkeleton } from "@/features/lorebooks/compone
 import { LorebookImportDialog } from "@/features/lorebooks/components/lorebook-import-dialog";
 import { useTRPC } from "@/lib/trpc";
 
-export function LorebooksPage() {
+function LorebooksPage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [importOpen, setImportOpen] = useState(false);
@@ -62,3 +62,5 @@ export function LorebooksPage() {
     </Container>
   );
 }
+
+export default LorebooksPage;

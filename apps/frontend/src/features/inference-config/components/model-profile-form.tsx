@@ -31,7 +31,7 @@ interface ModelProfileFormProps {
   submitLabel?: string;
 }
 
-export function ModelProfileForm({
+function ModelProfileForm({
   initialData,
   onSubmit,
   onCancel,
@@ -249,6 +249,8 @@ export function ModelProfileForm({
     </>
   );
 }
+
+export default ModelProfileForm;
 
 function ModelSelector({
   models,

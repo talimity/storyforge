@@ -1,5 +1,6 @@
-import { Badge, Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
+import { Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import { LuBookOpen } from "react-icons/lu";
+import { LorebookExtensionsSection } from "@/features/lorebooks/components/lorebook-extensions-section";
 import { withForm } from "@/lib/app-form";
 import { extensionsJsonSchema, lorebookFormDefaultValues } from "./form-schemas";
 
@@ -69,16 +70,7 @@ export const LorebookDetailsSection = withForm({
           )}
         </form.AppField>
 
-        <Stack gap={2}>
-          <HStack gap={2}>
-            <Text fontWeight="medium">Extensions</Text>
-            <Badge colorPalette="purple" variant="surface">
-              Advanced
-            </Badge>
-          </HStack>
-          <Text fontSize="sm" color="content.muted">
-            Store custom metadata consumed by other tools. Leave empty if unused.
-          </Text>
+        <LorebookExtensionsSection>
           <form.AppField name="extensions">
             {(field) => (
               <field.JsonEditor
@@ -89,7 +81,7 @@ export const LorebookDetailsSection = withForm({
               />
             )}
           </form.AppField>
-        </Stack>
+        </LorebookExtensionsSection>
       </Stack>
     );
   },

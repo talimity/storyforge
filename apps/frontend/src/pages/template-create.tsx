@@ -10,7 +10,7 @@ import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/typ
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-export function TemplateCreatePage() {
+function TemplateCreatePage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -100,3 +100,5 @@ export function TemplateCreatePage() {
     </Container>
   );
 }
+
+export default TemplateCreatePage;

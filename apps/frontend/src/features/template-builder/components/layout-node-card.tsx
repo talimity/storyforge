@@ -1,4 +1,5 @@
-import { Text } from "@chakra-ui/react";
+import { Skeleton, Text } from "@chakra-ui/react";
+import { Suspense } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MessageNodeEdit } from "@/features/template-builder/components/nodes/message-node-edit";
 import { MessageNodeView } from "@/features/template-builder/components/nodes/message-node-view";
@@ -79,17 +80,20 @@ export function LayoutNodeCard(props: LayoutNodeCardProps) {
         );
       }
 
+      // custom slots may need to load monaco from cdn which can be slow
       return (
-        <SlotReferenceEdit
-          containerRef={containerRef}
-          style={style}
-          node={node}
-          slot={slot}
-          isDragging={isDragging}
-          onSave={handleSaveSlot}
-          onCancel={handleCancel}
-          dragHandleProps={dragHandleProps}
-        />
+        <Suspense fallback={<Skeleton h="100px" w="100%" />}>
+          <SlotReferenceEdit
+            containerRef={containerRef}
+            style={style}
+            node={node}
+            slot={slot}
+            isDragging={isDragging}
+            onSave={handleSaveSlot}
+            onCancel={handleCancel}
+            dragHandleProps={dragHandleProps}
+          />
+        </Suspense>
       );
     }
   }

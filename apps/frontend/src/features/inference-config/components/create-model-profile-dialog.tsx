@@ -1,13 +1,17 @@
+import { Skeleton } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 import { Dialog } from "@/components/ui";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
-import { ModelProfileForm, type ModelProfileFormData } from "./model-profile-form";
+import type { ModelProfileFormData } from "./model-profile-form";
 
 interface CreateModelProfileDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 }
+
+const ModelProfileForm = lazy(() => import("./model-profile-form"));
 
 export function CreateModelProfileDialog({ isOpen, onOpenChange }: CreateModelProfileDialogProps) {
   const trpc = useTRPC();
@@ -46,11 +50,13 @@ export function CreateModelProfileDialog({ isOpen, onOpenChange }: CreateModelPr
           <Dialog.Title>Add Model Profile</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
-          <ModelProfileForm
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            submitLabel="Create Model Profile"
-          />
+          <Suspense fallback={<Skeleton minH="lg" minW="lg" />}>
+            <ModelProfileForm
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              submitLabel="Create Model Profile"
+            />
+          </Suspense>
         </Dialog.Body>
       </Dialog.Content>
     </Dialog.Root>

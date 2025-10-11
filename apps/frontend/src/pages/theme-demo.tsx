@@ -35,7 +35,7 @@ import {
   CharacterSingleSelect,
 } from "@/features/characters/components/character-selector";
 
-export function ThemeDemoPage() {
+function ThemeDemoPage() {
   return (
     <Container>
       <SimplePageHeader
@@ -54,6 +54,8 @@ export function ThemeDemoPage() {
     </Container>
   );
 }
+
+export default ThemeDemoPage;
 
 // Example: Using the two-material system
 function MaterialExample() {

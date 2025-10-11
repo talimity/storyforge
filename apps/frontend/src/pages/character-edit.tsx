@@ -14,7 +14,7 @@ import { showSuccessToast } from "@/lib/error-handling";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
 
-export function CharacterEditPage() {
+function CharacterEditPage() {
   const trpc = useTRPC();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -154,3 +154,5 @@ export function CharacterEditPage() {
     </>
   );
 }
+
+export default CharacterEditPage;

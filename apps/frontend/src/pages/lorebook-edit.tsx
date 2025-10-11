@@ -9,7 +9,7 @@ import { LorebookForm } from "@/features/lorebooks/components/lorebook-form";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
-export function LorebookEditPage() {
+function LorebookEditPage() {
   const trpc = useTRPC();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -81,3 +81,5 @@ export function LorebookEditPage() {
     </Container>
   );
 }
+
+export default LorebookEditPage;

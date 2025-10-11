@@ -14,6 +14,7 @@ import { Outlet } from "react-router-dom";
 import { ColorModeToggle } from "@/components/color-mode-toggle";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Logo } from "@/components/logo";
+import { RouteProgress } from "@/components/route-progress";
 import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui";
 
@@ -88,6 +89,7 @@ export function AppShell() {
           overflow="auto"
           data-testid={isMobile ? "mobile-main-content" : "desktop-main-content"}
         >
+          <RouteProgress />
           <Container
             p={{ base: 4, md: 6 }}
             pb={24} // Provide space for action bars/sticky footers

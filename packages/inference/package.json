@@ -4,9 +4,26 @@
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./jinja": {
+      "types": "./dist/template/jinja.d.ts",
+      "default": "./dist/template/jinja.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "jinja": [
+        "dist/template/jinja.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "fmt": "biome format --write .",
     "lint": "biome check --diagnostic-level error --write --unsafe .",
