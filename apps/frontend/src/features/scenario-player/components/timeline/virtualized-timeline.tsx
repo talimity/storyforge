@@ -5,20 +5,17 @@ import { memo, useCallback, useMemo, useRef } from "react";
 import { ChapterSeparator } from "@/features/scenario-player/components/timeline/chapter-separator";
 import { CharacterStarterSelector } from "@/features/scenario-player/components/timeline/character-starter-selector";
 import { DraftTurn } from "@/features/scenario-player/components/timeline/draft-turn";
-import { InsertTurnDialog } from "@/features/scenario-player/components/timeline/insert-turn-dialog";
-import { RetryIntentDialog } from "@/features/scenario-player/components/timeline/retry-intent-dialog";
 import { TimelineTurnRow } from "@/features/scenario-player/components/timeline/timeline-turn-row";
-import { TurnDeleteDialog } from "@/features/scenario-player/components/timeline/turn-delete-dialog";
 import { useTimelineAutoLoadMore } from "@/features/scenario-player/hooks/use-timeline-auto-load-more";
 import { useTimelineFollowOutputMode } from "@/features/scenario-player/hooks/use-timeline-follow-output-mode";
 import { useInitialScroll } from "@/features/scenario-player/hooks/use-timeline-initial-anchor";
 import { useTimelineKeepBottomDistance } from "@/features/scenario-player/hooks/use-timeline-keep-bottom-distance";
 import { useTimelineScrollController } from "@/features/scenario-player/hooks/use-timeline-scroll-controller";
-import { useTurnActions } from "@/features/scenario-player/hooks/use-turn-actions";
 import {
   selectCurrentRun,
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
+import { useTurnUiStore } from "@/features/scenario-player/stores/turn-ui-store";
 
 const LIST_PADDING_Y_BREAKPOINTS = { base: 4, md: 6 };
 
@@ -50,33 +47,13 @@ export function VirtualizedTimeline(props: TimelineProps) {
   } = props;
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
-  const {
-    turnToDelete,
-    showDeleteDialog,
-    isDeleting,
-    retryTurn,
-    editingTurnId,
-    isUpdating,
-    handleDeleteTurn,
-    handleConfirmDelete,
-    handleCancelDelete,
-    handleEditTurn,
-    handleRetryTurn,
-    handleRetrySubmit,
-    handleRetryClose,
-    manualTurnTarget,
-    handleInsertManualTurn,
-    handleManualInsertSubmit,
-    handleManualInsertClose,
-    isTogglingGhost,
-    handleToggleGhostTurn,
-  } = useTurnActions();
-
+  const pinnedTurnIds = useTurnUiStore((state) => state.pinnedTurnIds);
+  const uiCutoffAfterTurnId = useTurnUiStore((state) => state.uiCutoffAfterTurnId);
   // If the active run is generating a new branch, we want to temporarily hide
   // all turns under the branching point, so that the DraftTurn (the list's
   // footer) appears in the spot where the new leaf would be.
   const run = useIntentRunsStore(selectCurrentRun);
-  const cutoffId = run?.truncateAfterTurnId ?? null;
+  const cutoffId = uiCutoffAfterTurnId ?? run?.truncateAfterTurnId ?? null;
   const visibleTurns = useMemo(() => {
     if (!cutoffId) return turns;
     const idx = turns.findIndex((t) => t.id === cutoffId);
@@ -98,18 +75,22 @@ export function VirtualizedTimeline(props: TimelineProps) {
     // https://github.com/TanStack/react-virtual/issues/884
     estimateSize: () => 50,
     scrollPaddingEnd: 80,
-    paddingEnd: 80,
+    paddingEnd: 300,
     overscan: 5,
     // rangeExtractor lets selectively disable virtualization for certain items.
     // we do this to avoid unmounting the turn being edited so we don't lose
     // unsaved changes.
     rangeExtractor: (range) => {
       const base = defaultRangeExtractor(range);
-      if (!editingTurnId) return base;
+      const pinnedIds = Object.keys(pinnedTurnIds);
+      if (pinnedIds.length === 0) return base;
 
-      const editIndex = visibleTurns.findIndex((t) => t.id === editingTurnId);
-      if (editIndex === -1) return base;
-      return [...new Set([...base, editIndex + 1])].sort((a, b) => a - b); // add 1 to account for header
+      const pinnedIndices = pinnedIds
+        .map((id) => visibleTurns.findIndex((turn) => turn.id === id))
+        .filter((idx) => idx >= 0)
+        .map((idx) => idx + 1 + (includeEmptyState ? 1 : 0));
+
+      return [...new Set([...base, ...pinnedIndices])].sort((a, b) => a - b);
     },
     getItemKey: useCallback(
       (i: number) => {
@@ -176,87 +157,58 @@ export function VirtualizedTimeline(props: TimelineProps) {
   }
 
   return (
-    <>
-      <div
-        ref={scrollerRef}
-        style={{ overflowY: "auto", contain: "content", height: "100%" }}
-        data-testid="timeline-scroller"
-      >
-        <div style={virtualListStyles} data-testid="timeline-virtual-list">
-          {items.map((row) => {
-            const isHeader = row.key === "header";
-            const isFooter = row.key === "footer";
-            const isEmpty = row.key === "empty";
-            const rowIdx = row.index - 1 - (includeEmptyState ? 1 : 0);
+    <div
+      ref={scrollerRef}
+      style={{ overflowY: "auto", contain: "content", height: "100%" }}
+      data-testid="timeline-scroller"
+    >
+      <div style={virtualListStyles} data-testid="timeline-virtual-list">
+        {items.map((row) => {
+          const isHeader = row.key === "header";
+          const isFooter = row.key === "footer";
+          const isEmpty = row.key === "empty";
+          const rowIdx = row.index - 1 - (includeEmptyState ? 1 : 0);
 
-            return (
-              <div
-                key={row.key}
-                data-index={row.index}
-                ref={v.measureElement}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  transform: `translateY(${row.start}px)`,
-                }}
-              >
-                {isHeader ? (
-                  <TimelineHeader
-                    scenarioTitle={scenarioTitle}
-                    chapterLabel={firstChapterLabel}
-                    isFetching={isFetching}
-                  />
-                ) : isEmpty ? (
-                  <TimelineEmptyState
-                    scenarioId={scenarioId}
-                    onStarterSelect={onStarterSelect}
-                    isPending={isPending}
-                    turns={turns}
-                  />
-                ) : isFooter ? (
-                  <TimelineFooter />
-                ) : (
-                  <TimelineTurnRow
-                    turn={visibleTurns[rowIdx]}
-                    prevTurn={rowIdx > 0 ? visibleTurns[rowIdx - 1] : null}
-                    nextTurn={rowIdx < visibleTurns.length - 1 ? visibleTurns[rowIdx + 1] : null}
-                    onDelete={handleDeleteTurn}
-                    onEdit={handleEditTurn}
-                    onRetry={handleRetryTurn}
-                    onInsertManual={handleInsertManualTurn}
-                    onToggleGhost={handleToggleGhostTurn}
-                    isUpdating={editingTurnId === row.key && isUpdating}
-                    isTogglingGhost={isTogglingGhost}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
+          return (
+            <div
+              key={row.key}
+              data-index={row.index}
+              ref={v.measureElement}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                transform: `translateY(${row.start}px)`,
+              }}
+            >
+              {isHeader ? (
+                <TimelineHeader
+                  scenarioTitle={scenarioTitle}
+                  chapterLabel={firstChapterLabel}
+                  isFetching={isFetching}
+                />
+              ) : isEmpty ? (
+                <TimelineEmptyState
+                  scenarioId={scenarioId}
+                  onStarterSelect={onStarterSelect}
+                  isPending={isPending}
+                  turns={turns}
+                />
+              ) : isFooter ? (
+                <TimelineFooter />
+              ) : (
+                <TimelineTurnRow
+                  turn={visibleTurns[rowIdx]}
+                  prevTurn={rowIdx > 0 ? visibleTurns[rowIdx - 1] : null}
+                  nextTurn={rowIdx < visibleTurns.length - 1 ? visibleTurns[rowIdx + 1] : null}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
-
-      <TurnDeleteDialog
-        isOpen={showDeleteDialog}
-        cascade={turnToDelete?.cascade}
-        isDeleting={isDeleting}
-        onSubmit={handleConfirmDelete}
-        onClose={handleCancelDelete}
-      />
-      <RetryIntentDialog
-        isOpen={Boolean(retryTurn)}
-        turn={retryTurn}
-        onSubmit={handleRetrySubmit}
-        onClose={handleRetryClose}
-      />
-      <InsertTurnDialog
-        isOpen={Boolean(manualTurnTarget)}
-        turn={manualTurnTarget}
-        onSubmit={handleManualInsertSubmit}
-        onClose={handleManualInsertClose}
-      />
-    </>
+    </div>
   );
 }
 

@@ -3,6 +3,8 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTRPC } from "@/lib/trpc";
 
+const TURN_PAGE_SIZE = 40;
+
 interface UseScenarioTimelineOptions {
   scenarioId: string;
   /**
@@ -10,20 +12,23 @@ interface UseScenarioTimelineOptions {
    * the server uses the scenario's current anchor.
    */
   leafTurnId?: string | null;
-  windowSize?: number;
   layer?: string;
 }
 
 export function useScenarioTimeline({
   scenarioId,
   leafTurnId = null,
-  windowSize = 30,
   layer = "presentation",
 }: UseScenarioTimelineOptions) {
   const trpc = useTRPC();
   const query = useInfiniteQuery(
     trpc.timeline.window.infiniteQueryOptions(
-      { scenarioId, layer, windowSize, timelineLeafTurnId: leafTurnId ?? undefined },
+      {
+        scenarioId,
+        layer,
+        windowSize: TURN_PAGE_SIZE,
+        timelineLeafTurnId: leafTurnId ?? undefined,
+      },
       {
         getNextPageParam: (prev) => prev.cursors.nextCursor ?? undefined,
         initialCursor: undefined,

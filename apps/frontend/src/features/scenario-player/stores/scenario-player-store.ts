@@ -8,8 +8,6 @@ export type TimelineScrollTarget =
 export interface ScenarioPlayerState {
   /** Character selected in the sidebar, the target for new intents */
   selectedCharacterId: string | null;
-  /** ID of the turn that is currently being edited */
-  editingTurnId: string | null;
   /** ID of the leaf turn we are previewing an alternate timeline, or null when not previewing */
   previewLeafTurnId: string | null;
 
@@ -23,14 +21,12 @@ export interface ScenarioPlayerState {
   setPendingScrollTarget: (t: TimelineScrollTarget | null) => void;
   setShouldAutoFollow: (cb: () => boolean) => void;
   setSelectedCharacter: (characterId: string | null) => void;
-  setEditingTurnId: (turnId: string | null) => void;
   setPreviewLeaf: (leafTurnId: string | null) => void;
   reset: () => void;
 }
 
 const initialState = {
   selectedCharacterId: null,
-  editingTurnId: null,
   previewLeafTurnId: null,
   pendingScrollTarget: null,
   shouldAutoFollow: () => false,
@@ -43,11 +39,6 @@ export const useScenarioPlayerStore = create<ScenarioPlayerState>()(
     setSelectedCharacter: (characterId) =>
       set((state) => {
         state.selectedCharacterId = characterId;
-      }),
-
-    setEditingTurnId: (turnId) =>
-      set((state) => {
-        state.editingTurnId = turnId;
       }),
 
     setPreviewLeaf: (leafTurnId) =>
