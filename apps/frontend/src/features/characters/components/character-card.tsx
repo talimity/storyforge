@@ -64,7 +64,6 @@ export const CharacterCard = memo(function CharacterCard({
       <Card.Root
         maxW="300px"
         layerStyle="surface"
-        variant={readOnly ? undefined : "elevated"}
         className={readOnly ? undefined : "group"}
         cursor={readOnly ? "default" : "pointer"}
         data-character-id={character.id}

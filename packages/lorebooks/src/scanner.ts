@@ -317,7 +317,7 @@ function lowerSegment(value: string): string {
 }
 
 function evaluateEntry(entry: LorebookEntry, corpus: Corpus): EvaluationState {
-  if (entry.enabled === false) {
+  if (!entry.enabled) {
     return createEmptyEvaluationState();
   }
 

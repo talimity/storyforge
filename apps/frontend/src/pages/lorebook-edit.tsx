@@ -60,7 +60,7 @@ function LorebookEditPage() {
   return (
     <Container>
       <SimplePageHeader
-        title="Edit Lorebook"
+        title={`Edit Lorebook: ${lorebook.name}`}
         actions={
           <Button variant="outline" onClick={() => setShowPreview(true)}>
             Preview in Scenario

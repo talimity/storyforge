@@ -156,11 +156,7 @@ export function GenerationInfoDialog({ turnId, isOpen, onOpenChange }: Generatio
           </Accordion.ItemTrigger>
           <Accordion.ItemContent>
             <Accordion.ItemBody>
-              <Accordion.Root
-                collapsible
-                width="full"
-                defaultValue={data.stepOrder.length > 0 ? [data.stepOrder[0]] : []}
-              >
+              <Accordion.Root collapsible width="full" defaultValue={[]}>
                 {data.stepOrder.map((stepId, stepIndex) => {
                   const meta = data.stepMetadata[stepId];
                   const prompts = data.prompts[stepId];

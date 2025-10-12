@@ -30,9 +30,6 @@ export function DeleteLorebookDialog({
       <Dialog.Content>
         <Dialog.Header>
           <Dialog.Title>Delete Lorebook</Dialog.Title>
-          <Dialog.Description>
-            This action cannot be undone. The lorebook will be removed from your library.
-          </Dialog.Description>
         </Dialog.Header>
         <Dialog.Body>
           <Text>

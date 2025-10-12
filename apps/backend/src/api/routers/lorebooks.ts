@@ -29,12 +29,12 @@ import {
 import { scanLorebooks, scanLorebooksDebug, sortScenarioLorebooks } from "@storyforge/lorebooks";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { loadScenarioLorebookAssignments } from "../../services/lorebook/lorebook.loader.js";
 import {
   getCharacterLorebooks,
   getLorebookDetail,
   getScenarioLorebooks,
   listLorebooks,
+  loadScenarioLorebookAssignments,
 } from "../../services/lorebook/lorebook.queries.js";
 import { LorebookService } from "../../services/lorebook/lorebook.service.js";
 import { getFullTimelineTurnCtx } from "../../services/timeline/timeline.queries.js";

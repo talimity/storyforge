@@ -4,6 +4,7 @@ import {
   LuBookOpen,
   LuChevronLeft,
   LuChevronRight,
+  LuImages,
   LuLibrary,
   LuPaintBucket,
   LuPlay,
@@ -106,6 +107,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
         <SidebarLink to="/lorebooks" icon={<LuLibrary />} label="Lorebooks" collapsed={collapsed} />
 
+        <SidebarLink to="/assets" icon={<LuImages />} label="Assets" collapsed={collapsed} />
+
+        {/* Generation config Section */}
+        {collapsed ? <Separator /> : <SectionHeader>Generation</SectionHeader>}
+
         <SidebarLink
           to="/workflows"
           icon={<LuWorkflow />}
@@ -123,7 +129,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         <SidebarLink to="/models" icon={<TbCubeSpark />} label="Models" collapsed={collapsed} />
 
         {/* Dev tools Section */}
-        {collapsed ? <Separator /> : <SectionHeader>Developer Tools</SectionHeader>}
+        {collapsed ? <Separator /> : <SectionHeader>Tools</SectionHeader>}
 
         <SidebarLink
           to="/theme-demo"
@@ -151,7 +157,8 @@ function SectionHeader({ children }: { children: ReactNode }) {
       fontWeight="semibold"
       color="content.muted"
       px="4"
-      py="2"
+      pb="1"
+      pt="3"
       textTransform="uppercase"
       letterSpacing="wider"
       textWrap="nowrap"

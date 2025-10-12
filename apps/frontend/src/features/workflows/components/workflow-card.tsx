@@ -35,7 +35,7 @@ export function WorkflowCard(props: { workflow: WorkflowSummaryView }) {
 
   return (
     <>
-      <Card.Root size="sm" layerStyle="surface" variant="elevated">
+      <Card.Root size="sm" layerStyle="surface">
         <Card.Header>
           <HStack justify="space-between" align="center">
             <HStack gap={2}>

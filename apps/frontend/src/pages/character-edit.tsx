@@ -107,7 +107,7 @@ function CharacterEditPage() {
     <>
       <Container>
         <SimplePageHeader
-          title={character.name}
+          title={`Edit Character: ${character.name}`}
           actions={
             <Button
               colorPalette="red"

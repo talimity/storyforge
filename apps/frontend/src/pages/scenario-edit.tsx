@@ -105,7 +105,7 @@ function ScenarioEditPage() {
     <>
       <Container>
         <SimplePageHeader
-          title={scenario.name}
+          title={`Edit Scenario: ${scenario.name}`}
           actions={
             <Stack direction="row" gap={2}>
               <Button

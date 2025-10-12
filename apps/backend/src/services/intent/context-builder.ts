@@ -10,7 +10,7 @@ import type { CharacterCtxDTO, TurnGenCtx } from "@storyforge/gentasks";
 import { scanLorebooks } from "@storyforge/lorebooks";
 import { assertDefined } from "@storyforge/utils";
 import { and, asc, eq, sql } from "drizzle-orm";
-import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.loader.js";
+import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.queries.js";
 import { getFullTimelineTurnCtx } from "../timeline/timeline.queries.js";
 import { TimelineStateService } from "../timeline-events/timeline-state.service.js";
 import { eventDTOsByTurn } from "../timeline-events/utils/event-dtos.js";
@@ -58,24 +58,33 @@ export class IntentContextBuilder {
       events: eventsByTurn[t.turnId] ?? [],
     }));
     const nextTurnNumber = (turns.at(-1)?.turnNo ?? 0) + 1;
-    const loreEntries = scanLorebooks({ turns: enrichedTurns, lorebooks });
+    // TODO: this is definitely not a good way to do this
+    // templates may need raw kind for switch case behavior, but also need
+    // model-friendly kind and a formatted prompt to insert in the text
+    const intentPrompt = intent
+      ? getTurnIntentPrompt({
+          kind: intent.kind,
+          targetName: currentActorName,
+          text: intent.constraint ?? null,
+        })?.prompt
+      : undefined;
+
+    const loreEntries = scanLorebooks({
+      turns: enrichedTurns,
+      lorebooks,
+      // user input should be able to trigger lorebook entries
+      options: { extraSegments: [intentPrompt ?? ""] },
+    });
 
     return {
       turns: enrichedTurns,
       characters,
-      // TODO: this is definitely not a good way to do this
-      // templates may need raw kind for switch case behavior, but also need
-      // model-friendly kind and a formatted prompt to insert in the text
       ...(intent
         ? {
             currentIntent: {
               kind: intent.kind,
               constraint: intent.constraint,
-              prompt: getTurnIntentPrompt({
-                kind: intent.kind,
-                targetName: currentActorName,
-                text: intent.constraint ?? null,
-              })?.prompt,
+              prompt: intentPrompt,
             },
           }
         : {}),

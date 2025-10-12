@@ -74,19 +74,6 @@ function MaterialExample() {
         </Card.Body>
       </Card.Root>
 
-      {/* Elevated primary surface */}
-      <Card.Root layerStyle="surface" variant="elevated">
-        <Card.Body>
-          <Heading size="lg" mb={4}>
-            Primary Surface, with Interactive
-          </Heading>
-          <Text color="content.muted" mb={4}>
-            This uses the primary surface material, with an layer style that applies a lift effect
-            on hover to indicate interactivity.
-          </Text>
-        </Card.Body>
-      </Card.Root>
-
       {/* Contrast material (leather-like in light mode) */}
       <Card.Root layerStyle="contrast">
         <Card.Body>

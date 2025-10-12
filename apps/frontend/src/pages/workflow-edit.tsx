@@ -48,7 +48,7 @@ function WorkflowEditPage() {
 
   return (
     <Container>
-      <SimplePageHeader title="Edit Workflow" />
+      <SimplePageHeader title={`Edit Workflow: ${data.name}`} />
       <WorkflowForm
         initialData={{
           task: data.task,

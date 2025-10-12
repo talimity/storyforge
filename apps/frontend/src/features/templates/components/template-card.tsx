@@ -71,7 +71,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
 
   return (
     <>
-      <Card.Root size="sm" layerStyle="surface" variant="elevated">
+      <Card.Root size="sm" layerStyle="surface">
         <Card.Header>
           <HStack justify="space-between" align="center">
             <Heading size="md" truncate>
