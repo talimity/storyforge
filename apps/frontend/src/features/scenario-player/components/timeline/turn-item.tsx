@@ -3,8 +3,7 @@ import type { TimelineTurn } from "@storyforge/contracts";
 import { useCallback, useMemo } from "react";
 import { LuGhost } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
-import Markdown from "react-markdown";
-import { Avatar, Button, Prose, Tooltip } from "@/components/ui";
+import { Avatar, Button, StreamingMarkdown, Tooltip } from "@/components/ui";
 import { IntentProvenanceIndicator } from "@/features/scenario-player/components/timeline/intent-provenance-indicator";
 import { getIntentProvenanceDisplay } from "@/features/scenario-player/components/timeline/intent-provenance-utils";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
@@ -118,9 +117,13 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
         {isEditing ? (
           <TurnEditor turnId={turn.id} originalContent={turn.content.text} />
         ) : (
-          <Prose maxW="85ch" size="lg" data-testid="turn-content">
-            <Markdown>{turn.content.text}</Markdown>
-          </Prose>
+          <StreamingMarkdown
+            text={turn.content.text}
+            dialogueAuthorId={authorChar?.id ?? null}
+            maxW="85ch"
+            size="lg"
+            data-testid="turn-content"
+          />
         )}
 
         {turn.swipes && turn.swipes.swipeCount > 1 && (

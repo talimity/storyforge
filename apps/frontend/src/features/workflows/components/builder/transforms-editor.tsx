@@ -1,36 +1,20 @@
-import {
-  Card,
-  Center,
-  createListCollection,
-  Heading,
-  HStack,
-  IconButton,
-  Input,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Card, Center, Heading, HStack, IconButton, Stack, Text, VStack } from "@chakra-ui/react";
 import { LuChevronDown, LuChevronUp, LuRegex, LuScissorsLineDashed, LuTrash } from "react-icons/lu";
-import {
-  Button,
-  InfoTip,
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValueText,
-} from "@/components/ui";
+import { Button, InfoTip } from "@/components/ui";
 import { withFieldGroup } from "@/lib/app-form";
 import type { WorkflowFormValues } from "./form-schemas";
 
 type TransformValues = WorkflowFormValues["steps"][0]["transforms"];
-type ApplyTarget = "input" | "output";
-type TrimChoice = "start" | "end" | "both";
-const applyOptions = createListCollection({
-  items: [
-    { value: "input", label: "input" },
-    { value: "output", label: "output" },
-  ] as const,
-});
+
+const applyOptions = [
+  { value: "input", label: "input" },
+  { value: "output", label: "output" },
+] as const;
+const trimOptions = [
+  { value: "start", label: "start" },
+  { value: "end", label: "end" },
+  { value: "both", label: "both" },
+] as const;
 
 function TransformsInfoTip() {
   return (
@@ -98,6 +82,7 @@ export const TransformsEditor = withFieldGroup({
                     <VStack align="stretch" gap={2}>
                       <HStack justify="space-between">
                         <HStack gap={2}>
+                          {isRegex ? <LuRegex /> : <LuScissorsLineDashed />}
                           <Text fontSize="sm" color="content.subtle">
                             {isRegex ? "Regex substitution" : "Trim text"}
                           </Text>
@@ -136,62 +121,21 @@ export const TransformsEditor = withFieldGroup({
                           <HStack gap={3}>
                             <group.AppField name={`items[${i}].applyTo`}>
                               {(applyField) => (
-                                <applyField.Field label="Apply To" flex={1}>
-                                  <SelectRoot
-                                    collection={applyOptions}
-                                    value={[applyField.state.value ?? "output"]}
-                                    onValueChange={(d) =>
-                                      applyField.handleChange(
-                                        (d.value[0] as ApplyTarget) ?? "output"
-                                      )
-                                    }
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValueText />
-                                    </SelectTrigger>
-                                    <SelectContent portalled={false}>
-                                      {applyOptions.items.map((item) => (
-                                        <SelectItem key={item.value} item={item}>
-                                          {item.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </SelectRoot>
-                                </applyField.Field>
+                                <applyField.Select
+                                  label="Apply To"
+                                  options={applyOptions.slice()}
+                                  fieldProps={{ flex: 1 }}
+                                />
                               )}
                             </group.AppField>
                             <group.AppField name={`items[${i}].trim`}>
                               {(trimField) => {
-                                const trimOptions = createListCollection({
-                                  items: [
-                                    { value: "start", label: "start" },
-                                    { value: "end", label: "end" },
-                                    { value: "both", label: "both" },
-                                  ],
-                                });
                                 return (
-                                  <trimField.Field label="Trim" flex={1}>
-                                    <SelectRoot
-                                      collection={trimOptions}
-                                      value={[trimField.state.value ?? "end"]}
-                                      onValueChange={(d) =>
-                                        trimField.handleChange(
-                                          () => (d.value[0] ?? "end") as TrimChoice
-                                        )
-                                      }
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValueText />
-                                      </SelectTrigger>
-                                      <SelectContent portalled={false}>
-                                        {trimOptions.items.map((item) => (
-                                          <SelectItem key={item.value} item={item}>
-                                            {item.label}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </SelectRoot>
-                                  </trimField.Field>
+                                  <trimField.Select
+                                    label="Trim"
+                                    options={trimOptions.slice()}
+                                    fieldProps={{ flex: 1 }}
+                                  />
                                 );
                               }}
                             </group.AppField>
@@ -200,67 +144,38 @@ export const TransformsEditor = withFieldGroup({
 
                         {isRegex && (
                           <>
-                            <group.AppField name={`items[${i}].regex.pattern`}>
-                              {(patternField) => (
-                                <patternField.Field label="Pattern">
-                                  <Input
-                                    value={patternField.state.value ?? ""}
-                                    onChange={(event) =>
-                                      patternField.handleChange(event.target.value)
-                                    }
+                            <Stack direction={{ base: "column", md: "row" }} gap={3}>
+                              <group.AppField name={`items[${i}].regex.pattern`}>
+                                {(patternField) => (
+                                  <patternField.TextInput
+                                    label="Pattern"
                                     placeholder="e.g., \\s+$"
+                                    fieldProps={{ flex: 3 }}
                                   />
-                                </patternField.Field>
-                              )}
-                            </group.AppField>
-                            <group.AppField name={`items[${i}].regex.flags`}>
-                              {(flagsField) => (
-                                <flagsField.Field label="Flags">
-                                  <Input
-                                    value={flagsField.state.value ?? ""}
-                                    onChange={(event) =>
-                                      flagsField.handleChange(event.target.value)
-                                    }
-                                    placeholder="gi"
+                                )}
+                              </group.AppField>
+                              <group.AppField name={`items[${i}].regex.flags`}>
+                                {(flagsField) => (
+                                  <flagsField.TextInput
+                                    label="Flags"
+                                    placeholder="e.g., gi"
+                                    fieldProps={{ flex: 1 }}
                                   />
-                                </flagsField.Field>
-                              )}
-                            </group.AppField>
+                                )}
+                              </group.AppField>
+                            </Stack>
                             <group.AppField name={`items[${i}].regex.substitution`}>
                               {(subField) => (
-                                <subField.Field label="Substitution">
-                                  <Input
-                                    value={subField.state.value ?? ""}
-                                    onChange={(event) => subField.handleChange(event.target.value)}
-                                    placeholder=""
-                                  />
-                                </subField.Field>
+                                <subField.TextareaInput label="Substitution" placeholder="e.g., " />
                               )}
                             </group.AppField>
                             <group.AppField name={`items[${i}].applyTo`}>
                               {(applyField) => (
-                                <applyField.Field label="Apply To">
-                                  <SelectRoot
-                                    collection={applyOptions}
-                                    value={[applyField.state.value ?? "output"]}
-                                    onValueChange={(d) =>
-                                      applyField.handleChange(
-                                        (d.value[0] as ApplyTarget) ?? "output"
-                                      )
-                                    }
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValueText />
-                                    </SelectTrigger>
-                                    <SelectContent portalled={false}>
-                                      {applyOptions.items.map((item) => (
-                                        <SelectItem key={item.value} item={item}>
-                                          {item.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </SelectRoot>
-                                </applyField.Field>
+                                <applyField.Select
+                                  label="Apply To"
+                                  options={applyOptions.slice()}
+                                  fieldProps={{ flex: 1 }}
+                                />
                               )}
                             </group.AppField>
                           </>

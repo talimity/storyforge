@@ -11,6 +11,7 @@ import {
   Stack,
   Tabs,
   Text,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import type { ChatCompletionMessage } from "@storyforge/inference";
 import { useQuery } from "@tanstack/react-query";
@@ -338,13 +339,15 @@ export function GenerationInfoDialog({ turnId, isOpen, onOpenChange }: Generatio
     );
   }, [query.isLoading, query.isError, query.data, query.error]);
 
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   return (
     <Dialog.Root
       lazyMount
       open={isOpen}
       onOpenChange={onOpenChange}
       scrollBehavior="inside"
-      size="cover"
+      size={isMobile ? "full" : "cover"}
     >
       <Dialog.Content>
         <Dialog.Header>

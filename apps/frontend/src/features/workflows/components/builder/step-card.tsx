@@ -99,7 +99,7 @@ export const StepCard = withFieldGroup({
             )}
           </group.AppField>
 
-          <Stack direction="row" gap={3} wrap="wrap">
+          <Stack direction={{ base: "column", md: "row" }} gap={3}>
             <group.AppField name="modelProfileId">
               {(field) => (
                 <field.Field

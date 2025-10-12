@@ -49,6 +49,19 @@ export const Prose = chakra("div", {
     [inWhere("& a strong")]: {
       color: "inherit",
     },
+    [inWhere("& em")]: {
+      color: "fg.emphasized",
+    },
+    [inWhere("& q")]: {
+      fontWeight: "600",
+      color: "fg.emphasized",
+    },
+    [inWhere("& q::before")]: {
+      content: "none",
+    },
+    [inWhere("& q::after")]: {
+      content: "none",
+    },
     [inWhere("& h1")]: {
       fontSize: "2.15em",
       letterSpacing: "-0.02em",
@@ -137,6 +150,16 @@ export const Prose = chakra("div", {
       paddingInlineStart: "1em",
       overflowX: "auto",
       fontWeight: "400",
+    },
+    [inWhere("& details::details-content")]: {
+      marginTop: "1em",
+      marginBottom: "1em",
+      paddingInlineStart: "1em",
+      paddingInlineEnd: "1em",
+    },
+    [inWhere("& details > summary")]: {
+      cursor: "pointer",
+      fontWeight: "600",
     },
     [inWhere("& ol")]: {
       marginTop: "1em",

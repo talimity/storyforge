@@ -1,8 +1,7 @@
 import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
 import { memo } from "react";
-import Markdown from "react-markdown";
 import { useShallow } from "zustand/react/shallow";
-import { Avatar, Prose } from "@/components/ui";
+import { Avatar, StreamingMarkdown } from "@/components/ui";
 import { AutoFollowOnDraft } from "@/features/scenario-player/components/timeline/auto-follow-draft";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
@@ -47,16 +46,17 @@ export function DraftTurn() {
               <Heading size="md" fontWeight="bold">
                 {authorName}
               </Heading>
-              {/*<HStack gap={2}>*/}
-              {/*  <StepSummary />*/}
-              {/*</HStack>*/}
             </Stack>
           </HStack>
         </HStack>
         {previewText ? (
-          <Prose maxW="85ch" size="lg" color="content.muted">
-            <Markdown>{previewText}</Markdown>
-          </Prose>
+          <StreamingMarkdown
+            text={previewText}
+            dialogueAuthorId={author?.id ?? null}
+            maxW="85ch"
+            size="lg"
+            color="content.muted"
+          />
         ) : (
           <Text fontSize="sm" color="content.muted">
             Thinking…

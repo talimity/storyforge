@@ -1,12 +1,4 @@
-import {
-  Box,
-  Flex,
-  HStack,
-  IconButton,
-  Show,
-  Skeleton,
-  useBreakpointValue,
-} from "@chakra-ui/react";
+import { Box, Flex, HStack, IconButton, Skeleton, useBreakpointValue } from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
 import { LuArrowLeft, LuBookOpen, LuSettings } from "react-icons/lu";
 import { Link, Navigate, Outlet, useParams } from "react-router-dom";
@@ -36,7 +28,7 @@ export default function PlayerShell() {
 }
 
 function PlayerShellInner() {
-  const isMobile = useBreakpointValue({ base: true, lg: false });
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   const { scenario } = useScenarioContext();
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
@@ -56,7 +48,7 @@ function PlayerShellInner() {
       <Flex
         as="header"
         h="12"
-        px={4}
+        px={2}
         bg="surface"
         align="center"
         justify="space-between"
@@ -65,21 +57,33 @@ function PlayerShellInner() {
       >
         {/* Left Section */}
         <HStack gap={3}>
-          {/* Mobile menu button */}
-          <Show when={!isMobile}>
+          {isMobile ? (
+            <IconButton
+              position="fixed"
+              variant="ghost"
+              size="sm"
+              aria-label="Back to Library"
+              data-testid="scenario-back-button"
+              asChild
+            >
+              <Link to="/scenarios">
+                <LuArrowLeft />
+              </Link>
+            </IconButton>
+          ) : (
             <Button
               position="fixed"
               variant="ghost"
               size="sm"
-              asChild
               data-testid="scenario-back-button"
+              asChild
             >
               <Link to="/scenarios">
                 <LuArrowLeft />
                 Library
               </Link>
             </Button>
-          </Show>
+          )}
         </HStack>
 
         {/* Center Section - Story Nav */}
@@ -100,8 +104,6 @@ function PlayerShellInner() {
           </IconButton>
         </HStack>
       </Flex>
-
-      {/* Main Layout */}
       <Flex flex="1" overflow="hidden" data-testid="player-shell-content">
         {/*Eventual toggleable side panel*/}
 

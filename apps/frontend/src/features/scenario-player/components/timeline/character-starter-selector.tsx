@@ -1,9 +1,8 @@
-import { Box, Flex, Image, Text, VStack } from "@chakra-ui/react";
+import { Box, Center, Flex, HStack, Image, Stack, Text } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
-import Markdown from "react-markdown";
-import { Button, Prose } from "@/components/ui";
+import { LuCheck, LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { Button, StreamingMarkdown } from "@/components/ui";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
 
@@ -77,7 +76,13 @@ export function CharacterStarterSelector({
       <Box bg="primary.solid" color="contentContrast" p={4} borderTopRadius="lg">
         <Flex align="center" justify="space-between">
           {hasMultipleCharacters && (
-            <Button onClick={goToPreviousCharacter} variant="ghost" size="sm">
+            <Button
+              onClick={goToPreviousCharacter}
+              size="md"
+              variant="ghost"
+              colorPalette="neutral"
+              ml={2}
+            >
               <LuChevronLeft />
             </Button>
           )}
@@ -110,7 +115,7 @@ export function CharacterStarterSelector({
               size="md"
               variant="ghost"
               colorPalette="neutral"
-              ml={2}
+              mr={2}
             >
               <LuChevronRight />
             </Button>
@@ -118,57 +123,63 @@ export function CharacterStarterSelector({
         </Flex>
       </Box>
 
-      {/* Full-width Message Area */}
-      <Box p={6}>
+      {/* Message Area */}
+      <Stack gap={4} py={4}>
         {currentStarter ? (
           <>
             {/* Starter Navigation */}
             {hasMultipleStarters && (
-              <Flex align="center" justify="center" gap={2} mb={4}>
-                <Button
-                  onClick={goToPreviousStarter}
-                  variant="ghost"
-                  size="sm"
-                  colorPalette="neutral"
-                >
-                  <LuChevronLeft />
+              <HStack justify="space-between" px={4}>
+                <Flex align="center" justify="center" gap={2}>
+                  <Button
+                    onClick={goToPreviousStarter}
+                    variant="ghost"
+                    size="sm"
+                    colorPalette="neutral"
+                  >
+                    <LuChevronLeft />
+                  </Button>
+                  <Text fontSize="sm" color="content.muted" px={2} aria-live="polite">
+                    {currentStarterIndex + 1} of {currentCharacter.starters.length}
+                  </Text>
+                  <Button
+                    onClick={goToNextStarter}
+                    variant="ghost"
+                    size="sm"
+                    colorPalette="neutral"
+                  >
+                    <LuChevronRight />
+                  </Button>
+                </Flex>
+                <Button onClick={handleSelect} colorPalette="primary" variant="solid" size="md">
+                  <LuCheck />
+                  Choose this starter
                 </Button>
-                <Text fontSize="sm" color="content.muted" px={2} aria-live="polite">
-                  {currentStarterIndex + 1} of {currentCharacter.starters.length}
-                </Text>
-                <Button onClick={goToNextStarter} variant="ghost" size="sm" colorPalette="neutral">
-                  <LuChevronRight />
-                </Button>
-              </Flex>
+              </HStack>
             )}
 
             {/* Starter Message */}
-            <Box mb={6}>
-              <Box
-                bg="surface.muted"
-                borderRadius="lg"
-                p={6}
-                minH="200px"
-                maxH="540px"
-                overflowY="auto"
-                border="1px solid"
-                borderColor="border"
-              >
-                <Prose maxW="85ch" size="lg">
-                  <Markdown>{currentStarter.message}</Markdown>
-                </Prose>
-              </Box>
+            <Box
+              bg="surface.muted"
+              p={4}
+              minH="200px"
+              maxH="50dvh"
+              overflowY="auto"
+              borderTop="1px solid"
+              borderBottom="1px solid"
+              borderColor="border"
+            >
+              <StreamingMarkdown
+                text={currentStarter.message}
+                dialogueAuthorId={currentCharacter.character.id}
+              />
             </Box>
 
-            {/* Action Button */}
-            <VStack>
-              <Button onClick={handleSelect} colorPalette="primary" variant="solid" size="lg">
-                Choose this starter
-              </Button>
-              <Text fontSize="sm" color="content.muted" mt={2}>
+            <Center>
+              <Text fontSize="sm" color="content.muted">
                 You can always edit the content later.
               </Text>
-            </VStack>
+            </Center>
           </>
         ) : (
           <Box textAlign="center" py={8}>
@@ -178,7 +189,7 @@ export function CharacterStarterSelector({
             </Text>
           </Box>
         )}
-      </Box>
+      </Stack>
     </Box>
   );
 }

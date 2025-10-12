@@ -1,25 +1,7 @@
-import {
-  Center,
-  Code,
-  createListCollection,
-  Heading,
-  HStack,
-  IconButton,
-  Input,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Center, Code, Heading, HStack, IconButton, Text, VStack } from "@chakra-ui/react";
 
 import { LuChevronDown, LuChevronUp, LuClipboardPen, LuTrash } from "react-icons/lu";
-import {
-  Button,
-  InfoTip,
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValueText,
-} from "@/components/ui";
+import { Button, InfoTip } from "@/components/ui";
 import { withFieldGroup } from "@/lib/app-form";
 import type { WorkflowFormValues } from "./form-schemas";
 
@@ -46,13 +28,10 @@ function OutputsInfoTip() {
 }
 
 type OutputValues = WorkflowFormValues["steps"][0]["outputs"];
-type CaptureValue = OutputValues[0]["capture"];
-const captureOptions = createListCollection({
-  items: [
-    { value: "assistantText", label: "Assistant text" },
-    { value: "jsonParsed", label: "Parsed JSON value" },
-  ],
-});
+const captureOptions = [
+  { value: "assistantText", label: "Assistant text" },
+  { value: "jsonParsed", label: "Parsed JSON value" },
+];
 
 export const OutputsEditor = withFieldGroup({
   defaultValues: { items: [] as OutputValues },
@@ -89,53 +68,32 @@ export const OutputsEditor = withFieldGroup({
                   <HStack key={String(i)} gap={2} align="end">
                     <group.AppField name={`${basePath}.key`}>
                       {(keyField) => (
-                        <keyField.Field label="Key" flex={1}>
-                          <Input
-                            value={keyField.state.value ?? ""}
-                            onChange={(event) => keyField.handleChange(event.target.value)}
-                            placeholder="e.g., content"
-                          />
-                        </keyField.Field>
+                        <keyField.TextInput
+                          label="Key"
+                          placeholder="e.g., content"
+                          fieldProps={{ flex: 1 }}
+                        />
                       )}
                     </group.AppField>
 
                     <group.AppField name={`${basePath}.capture`}>
                       {(captureField) => (
-                        <captureField.Field label="Captured Value" flex={1}>
-                          <SelectRoot
-                            collection={captureOptions}
-                            value={[captureField.state.value ?? "assistantText"]}
-                            onValueChange={(details) =>
-                              captureField.handleChange(
-                                (details.value[0] as CaptureValue) ?? "assistantText"
-                              )
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValueText />
-                            </SelectTrigger>
-                            <SelectContent portalled={false}>
-                              {captureOptions.items.map((item) => (
-                                <SelectItem key={item.value} item={item}>
-                                  {item.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </SelectRoot>
-                        </captureField.Field>
+                        <captureField.Select
+                          label="Captured Value"
+                          options={captureOptions}
+                          fieldProps={{ flex: 1 }}
+                        />
                       )}
                     </group.AppField>
 
                     {output?.capture === "jsonParsed" ? (
                       <group.AppField name={`${basePath}.jsonPath`}>
                         {(jsonField) => (
-                          <jsonField.Field label="JSON Path" flex={1.5}>
-                            <Input
-                              value={jsonField.state.value ?? ""}
-                              onChange={(event) => jsonField.handleChange(event.target.value)}
-                              placeholder="$.path"
-                            />
-                          </jsonField.Field>
+                          <jsonField.TextInput
+                            label="JSON Path"
+                            placeholder="$.path"
+                            fieldProps={{ flex: 1.5 }}
+                          />
                         )}
                       </group.AppField>
                     ) : (
