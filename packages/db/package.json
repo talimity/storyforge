@@ -6,7 +6,6 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "db:generate": "pnpm drizzle-kit generate",
     "db:migrate": "pnpm drizzle-kit migrate",
