@@ -1,4 +1,4 @@
-import type { SourcesFor, TaskKind } from "@storyforge/gentasks";
+import type { TaskKind, TaskSourcesMap } from "@storyforge/gentasks";
 import type {
   ChatCompletionMessageRole,
   SlotSpec,
@@ -27,7 +27,7 @@ export type RecipeId<K extends TaskKind> = K extends "turn_generation"
 export type AnyRecipeId = RecipeId<TaskKind>;
 
 /** Represents a recipe for a specific task kind and its associated sources */
-type RecipeOf<K extends TaskKind> = RecipeDefinition<K, SourcesFor<K>>;
+type RecipeOf<K extends TaskKind> = RecipeDefinition<K, TaskSourcesMap[K]>;
 
 // Concrete per-task shapes
 export type TurnGenRecipe = RecipeOf<"turn_generation">;

@@ -122,7 +122,7 @@ export const standardTurnGenCtx: FakeTurnGenCtx = {
       "Continue the conversation between Alice and Bob while Charlie observes from the shadows",
     constraint: "Keep the tone mysterious but not threatening",
   },
-  stepInputs: {
+  stepOutputs: {
     planner: {
       plan: {
         goals: ["Develop character relationships", "Advance the mystery plot"],
@@ -169,7 +169,7 @@ export const largeTurnGenCtx: FakeTurnGenCtx = {
       summary: `Chapter ${i + 6}: Additional chapter summary for testing budget limits and array truncation behavior.`,
     })),
   ],
-  stepInputs: {},
+  stepOutputs: {},
   characters: richCharactersDTOFixture,
   currentIntent: {
     description: "Test budget limits with large context",
@@ -188,7 +188,7 @@ export const stepChainedCtx = {
     description: "Execute a multi-step workflow with planner -> writer chaining",
     constraint: "Follow the planner's guidance precisely",
   },
-  stepInputs: {
+  stepOutputs: {
     planner: {
       plan: JSON.stringify({
         goals: ["Create dramatic tension", "Reveal character motivation"],
@@ -216,7 +216,7 @@ export const emptyTurnGenCtx = {
   currentIntent: {
     description: "Test conditional rendering with empty arrays",
   },
-  stepInputs: {},
+  stepOutputs: {},
   globals: {
     testMode: "empty_context",
   },
@@ -230,7 +230,7 @@ export const noTurnsCtx = {
   currentIntent: {
     description: "Test scenario where examples should render due to no current turns",
   },
-  stepInputs: {},
+  stepOutputs: {},
   globals: {
     testMode: "no_turns_with_examples",
   },
@@ -277,7 +277,7 @@ export const deterministicTurnGenCtx: FakeTurnGenCtx = {
   currentIntent: {
     description: "Deterministic test intent",
   },
-  stepInputs: {
+  stepOutputs: {
     test: "deterministic_value",
   },
   globals: {

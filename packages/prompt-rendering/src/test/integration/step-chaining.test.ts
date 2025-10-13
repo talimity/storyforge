@@ -45,8 +45,8 @@ describe("Step Chaining via stepOutput", () => {
     // Step 3: Inject plan into step inputs for writer
     const contextWithPlan = {
       ...standardTurnGenCtx,
-      stepInputs: {
-        ...standardTurnGenCtx.stepInputs,
+      stepOutputs: {
+        ...standardTurnGenCtx.stepOutputs,
         planner: {
           plan: JSON.parse(mockPlannerResponse),
         },
@@ -86,7 +86,7 @@ describe("Step Chaining via stepOutput", () => {
     // Test the registry's ability to resolve nested step outputs
     const nestedContext = {
       ...standardTurnGenCtx,
-      stepInputs: {
+      stepOutputs: {
         planner: {
           plan: {
             summary: "Nested plan summary",
@@ -127,7 +127,7 @@ describe("Step Chaining via stepOutput", () => {
     // Context without the expected step output
     const contextMissingPlan = {
       ...standardTurnGenCtx,
-      stepInputs: {
+      stepOutputs: {
         otherStep: {
           data: "some other data",
         },
@@ -157,7 +157,7 @@ describe("Step Chaining via stepOutput", () => {
     // Test with different data types in step outputs
     const typedContext = {
       ...standardTurnGenCtx,
-      stepInputs: {
+      stepOutputs: {
         analyzer: {
           score: 85,
           passed: true,
@@ -231,7 +231,7 @@ describe("Step Chaining via stepOutput", () => {
     // Simulate a 3-step workflow: analyzer → planner → writer
     const multiStepContext = {
       ...standardTurnGenCtx,
-      stepInputs: {
+      stepOutputs: {
         analyzer: {
           sentiment: "tense",
           pacing: "moderate",

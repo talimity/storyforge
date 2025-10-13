@@ -78,6 +78,7 @@ Because templates never reach into the raw context directly, swapping in a diffe
 - **Task/Template decoupling** keeps templates portable and testable. To add a new task kind, define its SourceSpec and allowed sources, then templates can target it without renderer changes.
 - **Two-phase rendering** isolates content generation from final assembly, which simplifies budgeting and lets layout concerns remain independent of data-fetching logic.
 - **Reserved helper scopes** provide ergonomic access to loop items and globals without expanding every SourceSpec.
+- **Runner-provided metadata** augments contexts before render; e.g., workflow runners attach `ctx.model` so templates can react to the active provider/model configuration without task builders wiring that data manually.
 - **Versioned schema** allows iterative evolution of the template language; higher versions can introduce new node types or metadata while maintaining backward compatibility via parsing.
 - **Pluggable budgets and registries** mean future work (e.g., accurate token estimators, dynamic source providers) can slot in without rewriting templates.
 

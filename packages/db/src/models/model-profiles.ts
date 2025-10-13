@@ -16,6 +16,8 @@ export const modelProfiles = sqliteTable("model_profiles", {
   capabilityOverrides: text("capability_overrides", { mode: "json" }).$type<
     Record<string, unknown>
   >(),
+  // Optional instructions referenced by prompt templates for this model
+  modelInstruction: text("model_instruction"),
   textTemplate: text("text_template"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()

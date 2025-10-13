@@ -5,7 +5,7 @@ import type {
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
-import type { TurnCtxDTO } from "../types.js";
+import type { RuntimeSourceSpec, TurnCtxDTO } from "../types.js";
 
 // Chapter summarization context
 export type ChapterSummCtx = {
@@ -23,7 +23,10 @@ export type ChapterSummSources = {
 };
 
 // Convenience type aliases
-export type ChapterSummTemplate = PromptTemplate<"chapter_summarization", ChapterSummSources>;
+export type ChapterSummTemplate = PromptTemplate<
+  "chapter_summarization",
+  ChapterSummSources & RuntimeSourceSpec
+>;
 export type ChapterSummRegistry = SourceRegistry<ChapterSummCtx, ChapterSummSources>;
 
 const makeChapterSummarizationRegistry = (

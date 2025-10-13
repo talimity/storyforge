@@ -2,7 +2,7 @@ import type { ProviderConfig } from "@storyforge/inference";
 import { MockAdapter } from "@storyforge/inference";
 import type { PromptTemplate } from "@storyforge/prompt-rendering";
 import { DefaultBudgetManager } from "@storyforge/prompt-rendering";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import type {
   GenWorkflow,
   ModelProfileResolved,
@@ -59,14 +59,18 @@ describe("Workflow Runner", () => {
       loadModelProfile: vi.fn(async (id: string) => {
         const profile: ModelProfileResolved = {
           id,
+          displayName: `Profile ${id}`,
           provider: {
             kind: "mock",
             auth: {},
           },
+          providerId: "provider1",
+          providerName: "Mock Provider",
           modelId: "mock-model",
           defaultGenParams: {
             temperature: 0.7,
           },
+          modelInstruction: "Stay concise",
         };
         return profile;
       }),
@@ -111,7 +115,6 @@ describe("Workflow Runner", () => {
       characters: [],
       nextTurnNumber: 1,
       currentIntent: { kind: "turn_generation", prompt: "Test intent" },
-      stepInputs: {},
       globals: {
         isNarratorTurn: false,
         char: "Alice",
@@ -203,7 +206,6 @@ describe("Workflow Runner", () => {
         prompt: "Multi-step test",
         kind: "turn_generation",
       },
-      stepInputs: {},
       globals: {
         isNarratorTurn: false,
         char: "Alice",
@@ -220,6 +222,81 @@ describe("Workflow Runner", () => {
     expect(result.finalOutputs).toHaveProperty("draft_content");
     expect(result.finalOutputs).toHaveProperty("final_content");
     expect(Object.keys(result.stepResponses)).toHaveLength(2);
+  });
+
+  it("exposes model metadata in prompt globals", async () => {
+    const loadTemplateMock = mockDeps.loadTemplate as Mock;
+    loadTemplateMock.mockResolvedValueOnce({
+      id: "template-meta",
+      name: "Model Meta Template",
+      task: "turn_generation",
+      version: 1,
+      layout: [
+        { kind: "message", role: "system", content: "System" },
+        { kind: "slot", name: "main" },
+      ],
+      slots: {
+        main: {
+          priority: 0,
+          plan: [
+            {
+              kind: "message",
+              role: "user",
+              content: "{{ctx.model.modelInstruction}} :: {{ctx.model.id}}",
+            },
+          ],
+          meta: {},
+        },
+      },
+    } as PromptTemplate<"turn_generation", any>);
+
+    const runner = makeWorkflowRunner(mockDeps);
+    const workflow: GenWorkflow<"turn_generation"> = {
+      id: "meta-workflow",
+      name: "Meta",
+      task: "turn_generation",
+      version: 1,
+      steps: [
+        {
+          id: "step-meta",
+          stop: [],
+          modelProfileId: "profile-meta",
+          promptTemplateId: "template-meta",
+          outputs: [],
+        },
+      ],
+    };
+
+    const context: TurnGenCtx = {
+      turns: [],
+      characters: [],
+      nextTurnNumber: 1,
+      globals: {
+        isNarratorTurn: false,
+        char: "Alice",
+        user: "Bob",
+      },
+      loreEntriesByPosition: { before_char: [], after_char: [] },
+    };
+
+    const handle = await runner.startRun(workflow, context, {});
+    const collectEvents = (async () => {
+      for await (const event of handle.events()) {
+        capturedEvents.push(event);
+        if (event.type === "run_finished" || event.type === "run_error") break;
+      }
+    })();
+
+    await handle.result;
+    await collectEvents;
+
+    const promptRendered = capturedEvents.find((event) => event.type === "prompt_rendered");
+    expect(promptRendered).toBeDefined();
+    const userMessage =
+      promptRendered?.type === "prompt_rendered"
+        ? promptRendered.messages.find((msg) => msg.role === "user")
+        : undefined;
+    expect(userMessage?.content).toBe("Stay concise :: mock-model");
   });
 
   it("should apply transforms correctly", async () => {
@@ -264,7 +341,6 @@ describe("Workflow Runner", () => {
       characters: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "Transform test", kind: "turn_generation" },
-      stepInputs: {},
       globals: {
         isNarratorTurn: false,
         char: "Alice",
@@ -357,7 +433,6 @@ describe("Workflow Runner", () => {
       characters: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "Cancel test", kind: "turn_generation" },
-      stepInputs: {},
       globals: {
         isNarratorTurn: false,
         char: "Alice",
@@ -440,7 +515,6 @@ describe("Workflow Runner", () => {
       characters: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "JSON test", kind: "turn_generation" },
-      stepInputs: {},
       globals: {
         isNarratorTurn: false,
         char: "Alice",
@@ -489,7 +563,6 @@ describe("Workflow Runner", () => {
       characters: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "Snapshot test", kind: "turn_generation" },
-      stepInputs: {},
       globals: {
         isNarratorTurn: false,
         char: "Alice",
@@ -562,7 +635,6 @@ describe("Workflow Runner", () => {
         prompt: "Stream return test",
         kind: "turn_generation",
       },
-      stepInputs: {},
       globals: {
         isNarratorTurn: false,
         char: "Alice",
@@ -619,7 +691,6 @@ describe("Workflow Runner", () => {
         prompt: "Transform event test",
         kind: "turn_generation",
       },
-      stepInputs: {},
       globals: {
         isNarratorTurn: false,
         char: "Alice",

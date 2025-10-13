@@ -17,7 +17,7 @@ describe("evaluateCondition", () => {
     chapterSummaries: [],
     characters: [{ id: "alice", name: "Alice", description: "A warrior" }],
     currentIntent: { description: "Test intent" },
-    stepInputs: { planner: { plan: "Talk about weather" } },
+    stepOutputs: { planner: { plan: "Talk about weather" } },
     globals: { worldName: "Fantasyland" },
   };
 
@@ -455,8 +455,8 @@ describe("evaluateCondition", () => {
       const complexRegistry = makeRegistry<typeof mockCtx, any>({
         turnCount: (_ref, ctx) => ctx.turns.length,
         firstCharacterName: (_ref, ctx) => ctx.characters[0]?.name,
-        hasStepInputs: (_ref, ctx) => Boolean(ctx.stepInputs),
-        stepPlan: (_ref, ctx) => (ctx as any).stepInputs?.planner?.plan,
+        hasStepInputs: (_ref, ctx) => Boolean(ctx.stepOutputs),
+        stepPlan: (_ref, ctx) => (ctx as any).stepOutputs?.planner?.plan,
       });
 
       const conditions: { condition: ConditionRef; expected: boolean }[] = [

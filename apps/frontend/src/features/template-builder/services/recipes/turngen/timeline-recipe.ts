@@ -1,6 +1,5 @@
 import type { IntentKind } from "@storyforge/contracts";
 import type { TurnGenSources } from "@storyforge/gentasks";
-import type { SlotSpec } from "@storyforge/prompt-rendering";
 import type { InferRecipeParams, RecipeDefinition } from "@/features/template-builder/types";
 
 const MAX_TURNS_PARAM = {
@@ -135,9 +134,7 @@ export const timelineAdvancedRecipe: RecipeDefinition<
     "Lists turns from the scenario's timeline in chronological order. The player's narrative guidance is included before each turn.",
   parameters: advancedParameters,
 
-  toSlotSpec(
-    params: InferRecipeParams<typeof advancedParameters>
-  ): Omit<SlotSpec<TurnGenSources>, "priority"> {
+  toSlotSpec(params: InferRecipeParams<typeof advancedParameters>) {
     return {
       budget: { maxTokens: params.budget },
       meta: {},

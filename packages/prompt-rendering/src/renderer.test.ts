@@ -51,7 +51,7 @@ describe("render function", () => {
     currentIntent: {
       description: "Test intent",
     },
-    stepInputs: {},
+    stepOutputs: {},
   };
 
   describe("basic functionality", () => {

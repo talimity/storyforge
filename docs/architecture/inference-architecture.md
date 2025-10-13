@@ -76,7 +76,7 @@ Adapters should catch HTTP/JSON issues, call `bubbleProviderError`, and throw co
 All adapters share the preflight/capability machinery and return the same response shapes, allowing higher layers to treat them interchangeably.
 
 ## Integration with Workflows & Intent Engine
-1. The workflow runner loads a model profile from the database (via `WorkflowDeps.loadModelProfile`). The profile contains `providerId`, model ID, optional capability overrides, default sampling params, and an optional text template.
+1. The workflow runner loads a model profile from the database (via `WorkflowDeps.loadModelProfile`). The profile now carries provider identifiers/names, display name, model ID, optional model-specific instruction text, capability overrides, default sampling params, and an optional text template.
 2. `WorkflowRunnerManager` hands the profile to `createAdapter`, then applies overrides via `.withOverrides()` and passes the adapter to the runner.
 3. During step execution the runner:
    - Renders a prompt, optionally merges consecutive roles, and derives assistant-prefill hints.

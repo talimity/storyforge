@@ -7,6 +7,6 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["src/**/*.json"],
+  "include": ["src/**/*.json", "src/**/*.ts"],
   "exclude": ["**/*.test.ts", "src/test/**", "**/__tests__/**"]
 }

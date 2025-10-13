@@ -89,7 +89,6 @@ export class IntentContextBuilder {
           }
         : {}),
       nextTurnNumber,
-      stepInputs: {},
       globals: {
         char: currentActorName,
         user: userProxyName,

@@ -176,6 +176,13 @@
       "when": 1760762760119,
       "tag": "0024_lorebook-overrides",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1761099358609,
+      "tag": "0025_add-model-instruction",
+      "breakpoints": true
     }
   ]
 }

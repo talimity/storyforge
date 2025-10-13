@@ -101,10 +101,14 @@ export class WorkflowTestService {
         const modelId = stepModelMap[stepId] ?? "mock-fast";
         return {
           id: profileId,
+          displayName: profileId,
           provider: { kind: "mock", auth: {} },
+          providerId: "mock-provider",
+          providerName: "Mock",
           modelId,
           capabilityOverrides: undefined,
           defaultGenParams: undefined,
+          modelInstruction: null,
         };
       },
       makeAdapter: () => adapter,

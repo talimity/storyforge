@@ -35,9 +35,9 @@ The workflow runner (`makeWorkflowRunner`) executes steps sequentially. High-lev
 1. **Preparation**
    - Workflow JSON is validated.
    - A run entry is created in the in-memory `RunStore`, yielding an AbortController, event queue, and result promise. The run is attached to any parent AbortSignal for cancellation propagation.
-   - The base task context is wrapped by `ensureExtendedContext`, guaranteeing a `stepInputs` map exists even if the caller omitted one.
+   - The base task context is wrapped by `ensureExtendedContext`, guaranteeing a shared `stepOutputs` map exists even if the caller omitted one.
 2. **Step loop**
-   - For each step the runner emits `step_started` and builds the working context by merging accumulated `stepInputs` (captured outputs from prior steps).
+   - For each step the runner emits `step_started` and builds the working context by layering the accumulated `stepOutputs` (captured outputs from prior steps).
    - The step’s prompt template is loaded and compiled with the task’s allowed source list. Compilation re-runs prompt validation and produces immutable leaf functions.
    - The prompt is rendered via `render`, using a budget manager seeded with `maxContextTokens`. The `createExtendedRegistry` wrapper simply forwards to the task registry, but ensures type compatibility with the augmented context.
    - The runner records `prompt_rendered` and optionally `input_transformed` events if transforms mutate the messages.
@@ -54,9 +54,9 @@ The workflow runner (`makeWorkflowRunner`) executes steps sequentially. High-lev
 Throughout execution, event consumers (backend services, front-end devtools, diagnostics recorders) can subscribe to the run’s AsyncBroadcast to receive telemetry in real time. Stored snapshots make it easy to inspect a run’s state at any moment.
 
 ## Step Context Sharing
-Steps communicate through the `stepInputs` object:
-- Output capture keys populate `stepInputs` for subsequent steps, enabling chained workflows (e.g., a reasoning draft feeding into a prose rewrite).
-- The prompt templating system accesses these via the `stepOutput` source defined in each task’s SourceSpec.
+Steps communicate through the `stepOutputs` object:
+- Output capture keys populate `stepOutputs` for subsequent steps, enabling chained workflows (e.g., a reasoning draft feeding into a prose rewrite).
+- The prompt templating system accesses these via the runtime-provided `stepOutput` source added by the extended registry.
 - `createExtendedRegistry` keeps DataRef resolution agnostic to the extended shape, so task-specific handlers do not need to know whether they are reading initial context or derived data.
 
 ## Error Handling & Cancellation

@@ -60,7 +60,7 @@ export const sampleTurnGenCtx = {
     description: "Continue the conversation between Alice and Bob",
     constraint: "Keep the tone light and friendly",
   },
-  stepInputs: {
+  stepOutputs: {
     planner: {
       plan: "Alice should ask Bob about his background",
       reasoning: "This will help develop character relationships",
@@ -86,7 +86,7 @@ export const sampleWritingAssistantCtx = {
     tone: "formal",
     verbosity: "concise",
   },
-  stepInputs: {
+  stepOutputs: {
     analyzer: {
       suggestions: ["Use more vivid adjectives", "Vary sentence structure"],
     },

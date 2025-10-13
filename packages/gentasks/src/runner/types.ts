@@ -13,7 +13,7 @@ import type {
   UnboundTemplate,
 } from "@storyforge/prompt-rendering";
 import type { z } from "zod";
-import type { ContextFor, SourcesFor, TaskKind } from "../types.js";
+import type { ContextFor, TaskKind, TaskSourcesMap } from "../types.js";
 import type { outputCaptureSchema, transformSpecSchema } from "./schemas.js";
 
 export type TransformSpec = z.infer<typeof transformSpecSchema>;
@@ -46,19 +46,25 @@ export type GenStep = {
 // Model profile with resolved provider config
 export type ModelProfileResolved = {
   id: string;
+  displayName: string;
   provider: ProviderConfig;
+  providerId: string;
+  providerName: string;
   modelId: string;
   textTemplate?: string | null;
+  modelInstruction?: string | null;
   capabilityOverrides?: Partial<TextInferenceCapabilities>;
   defaultGenParams?: Partial<TextInferenceGenParams>;
 };
+
+export type { RunnerModelContext } from "../types.js";
 
 // Runner dependencies with proper typing
 export type WorkflowDeps<K extends TaskKind> = {
   loadTemplate: (id: string) => Promise<UnboundTemplate>;
   loadModelProfile: (id: string) => Promise<ModelProfileResolved>;
   makeAdapter: (cfg: ProviderConfig) => ProviderAdapter;
-  registry: SourceRegistry<ContextFor<K>, SourcesFor<K>>;
+  registry: SourceRegistry<ContextFor<K>, TaskSourcesMap[K]>;
   budgetFactory: (maxTokens?: number) => BudgetManager;
 };
 

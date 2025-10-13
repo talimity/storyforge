@@ -6,7 +6,7 @@ import type {
 import type { PromptTemplate, SourceHandlerMap } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
-import type { CharacterCtxDTO, TurnCtxDTO } from "../types.js";
+import type { CharacterCtxDTO, RuntimeSourceSpec, TurnCtxDTO } from "../types.js";
 
 type TurnGenGlobals = {
   /** Whether the current turn is a narrator turn */
@@ -60,11 +60,6 @@ export type TurnGenCtx = {
    */
   nextTurnNumber: number;
   /**
-   * Captured outputs from previous steps in the same workflow.
-   * TODO: rename to `stepOutputs` to match source registry naming convention
-   */
-  stepInputs: Record<string, unknown>;
-  /**
    * Extra global variables that can be accessed in prompts. Should always be
    * scalar values.
    */
@@ -91,7 +86,6 @@ export type TurnGenSources = {
     args: never;
     out: TurnGenCtx["currentIntent"];
   };
-  stepOutput: { args: { key: string }; out: unknown };
   globals: { args: never; out: TurnGenGlobals };
   lore: {
     args: { position?: NormalizedLorebookPosition; limit?: number } | undefined;
@@ -135,7 +129,6 @@ export const turnGenRegistry = makeTurnGenRegistry({
     return typeof limit === "number" ? arr.slice(0, limit) : arr;
   },
   currentIntent: (_ref, ctx) => ctx.currentIntent,
-  stepOutput: (ref, ctx) => ctx.stepInputs[ref.args.key],
   globals: (_ref, ctx) => ctx.globals,
   lore: (ref, ctx) => {
     const position: NormalizedLorebookPosition = ref.args?.position ?? "before_char";
@@ -155,10 +148,9 @@ export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
   "turns",
   "characters",
   "currentIntent",
-  "stepOutput",
   "globals",
   "lore"
 );
 
-export type TurnGenTemplate = PromptTemplate<"turn_generation", TurnGenSources>;
+export type TurnGenTemplate = PromptTemplate<"turn_generation", TurnGenSources & RuntimeSourceSpec>;
 export type TurnGenRegistry = typeof turnGenRegistry;

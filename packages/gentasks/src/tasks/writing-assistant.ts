@@ -5,6 +5,7 @@ import type {
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
+import type { RuntimeSourceSpec } from "../types.js";
 
 // Writing assistant context
 export type WritingAssistantCtx = {
@@ -15,7 +16,6 @@ export type WritingAssistantCtx = {
     tone?: string;
     [key: string]: unknown;
   };
-  stepInputs?: Record<string, unknown>;
   globals?: Record<string, unknown>;
 };
 
@@ -33,10 +33,6 @@ export type WritingAssistantSources = {
     args: never;
     out: Record<string, unknown> | undefined;
   };
-  stepOutput: {
-    args: { key: string };
-    out: unknown;
-  };
   globals: {
     args: never;
     out: Record<string, unknown> | undefined;
@@ -52,7 +48,10 @@ export type WritingAssistantSources = {
 };
 
 // Convenience type aliases
-export type WritingAssistantTemplate = PromptTemplate<"writing_assistant", WritingAssistantSources>;
+export type WritingAssistantTemplate = PromptTemplate<
+  "writing_assistant",
+  WritingAssistantSources & RuntimeSourceSpec
+>;
 export type WritingAssistantRegistry = SourceRegistry<WritingAssistantCtx, WritingAssistantSources>;
 
 const makeWritingAssistRegistry = (
@@ -63,7 +62,6 @@ export const writingAssistRegistry = makeWritingAssistRegistry({
   userText: (_ref, ctx) => ctx.userText,
   context: (_ref, ctx) => ctx.context,
   stylePrefs: (_ref, ctx) => ctx.stylePrefs,
-  stepOutput: (ref, ctx) => (ctx.stepInputs ? ctx.stepInputs[ref.args.key] : undefined),
   globals: (_ref, ctx) => ctx.globals,
   styleGuide: (_ref, ctx) => (ctx.stylePrefs ? ctx.stylePrefs.styleGuide : undefined),
   tone: (_ref, ctx) => (ctx.stylePrefs ? ctx.stylePrefs.tone : undefined),
@@ -73,7 +71,6 @@ export const WRITING_ASSIST_SOURCE_NAMES = exactKeys<WritingAssistantSources>()(
   "userText",
   "context",
   "stylePrefs",
-  "stepOutput",
   "globals",
   "styleGuide",
   "tone"

@@ -25,6 +25,7 @@ export type {
   GenWorkflow,
   ModelProfileResolved,
   OutputCapture,
+  RunnerModelContext,
   TransformSpec,
   WorkflowDeps,
   WorkflowEvent,

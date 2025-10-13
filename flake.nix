@@ -26,6 +26,7 @@
           packages = with pkgs; [
             nodejs_24
             pkgsUnstable.nodePackages.pnpm
+            python3
           ];
 
           # keep pnpm’s global cache inside the project

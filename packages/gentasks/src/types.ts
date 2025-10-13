@@ -1,3 +1,4 @@
+import type { ProviderKind } from "@storyforge/inference";
 import type { z } from "zod";
 import type { taskKindSchema } from "./schemas.js";
 import type { ChapterSummCtx, ChapterSummSources } from "./tasks/chapter-summarization.js";
@@ -56,6 +57,22 @@ export type CharacterCtxDTO = {
   description: string;
 };
 
+export type RunnerModelContext = {
+  /** Provider-facing model identifier */
+  id: string;
+  /** Human-friendly display name for the configured profile */
+  displayName: string;
+  /** Optional per-model guidance text */
+  modelInstruction?: string | null;
+  /** Friendly name for the backing provider */
+  providerName: string;
+  providerKind: ProviderKind;
+};
+
+export type RuntimeSourceSpec = {
+  stepOutput: { args: { key: string }; out: unknown };
+};
+
 export type TaskKind = z.infer<typeof taskKindSchema>;
 export type TaskSourcesMap = {
   turn_generation: TurnGenSources;
@@ -68,5 +85,7 @@ export type TaskContextMap = {
   chapter_summarization: ChapterSummCtx;
   writing_assistant: WritingAssistantCtx;
 };
-export type SourcesFor<K extends TaskKind> = TaskSourcesMap[K];
+type AugmentedSources<K extends TaskKind> = TaskSourcesMap[K] & RuntimeSourceSpec;
+
+export type SourcesFor<K extends TaskKind> = AugmentedSources<K>;
 export type ContextFor<K extends TaskKind> = TaskContextMap[K];

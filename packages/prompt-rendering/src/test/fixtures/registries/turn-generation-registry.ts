@@ -11,7 +11,7 @@ export type FakeTurnGenCtx = {
   chapterSummaries: { chapterNo: number; summary: string }[];
   characters: { id: string; name: string; description: string }[];
   currentIntent: { description: string; constraint?: string };
-  stepInputs: Record<string, unknown>;
+  stepOutputs: Record<string, unknown>;
   globals?: Record<string, unknown>;
 };
 
@@ -145,11 +145,11 @@ export function makeSpecTurnGenerationRegistry(): SourceRegistry<
     // Step output resolver for chaining workflows
     stepOutput: (ref, ctx) => {
       const args = ref.args as { key: string };
-      if (!ctx.stepInputs) return undefined;
+      if (!ctx.stepOutputs) return undefined;
 
       // Support nested keys like "planner.plan"
       const keys = args.key.split(".");
-      let result: any = ctx.stepInputs;
+      let result: any = ctx.stepOutputs;
 
       for (const key of keys) {
         if (result === null || result === undefined) return undefined;

@@ -195,6 +195,17 @@ function ModelProfileForm({
             )}
           </form.AppField>
 
+          <form.AppField name="modelInstruction">
+            {(field) => (
+              <field.TextareaInput
+                label="Model-Specific Instruction"
+                placeholder="Optional guidance injected into prompt globals"
+                autosize
+                helperText="Available to templates as ctx.model.modelInstruction. Use for per-model quirks or reminders."
+              />
+            )}
+          </form.AppField>
+
           {effectiveTextCompletions ? (
             <VStack align="stretch" gap={2}>
               <Text fontWeight="medium">Text Completion Template</Text>
@@ -367,6 +378,7 @@ function getInitialValues(initial?: Partial<ModelProfileFormValues>): ModelProfi
     displayName: initial?.displayName ?? "",
     modelId: initial?.modelId ?? "",
     textTemplate: initial?.textTemplate ?? null,
+    modelInstruction: initial?.modelInstruction ?? null,
     capabilityOverrides: initial?.capabilityOverrides ?? {},
   };
 }

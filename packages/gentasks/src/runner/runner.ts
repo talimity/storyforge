@@ -3,13 +3,14 @@ import type {
   ChatCompletionRequestHints,
   ChatCompletionResponse,
 } from "@storyforge/inference";
+import type { SourceSpec } from "@storyforge/prompt-rendering";
 import {
   compileTemplate,
   type ChatCompletionMessage as RenderedChatCompletionMessage,
   render,
 } from "@storyforge/prompt-rendering";
 import { safeJson } from "@storyforge/utils";
-import type { ContextFor, SourcesFor, TaskKind } from "../types.js";
+import type { ContextFor, RunnerModelContext, SourcesFor, TaskKind } from "../types.js";
 import {
   createExtendedRegistry,
   type ExtendedContext,
@@ -21,6 +22,7 @@ import type {
   GenStep,
   GenStepResult,
   GenWorkflow,
+  ModelProfileResolved,
   OutputCapture,
   TransformSpec,
   WorkflowDeps,
@@ -191,20 +193,19 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
     // 1. Load and compile the prompt template
     const template = await deps.loadTemplate(step.promptTemplateId);
     const allowed = extendedRegistry.list?.();
-    const compiled = compileTemplate<K, SourcesFor<K>>(template, {
+    const compiled = compileTemplate<K, SourcesFor<K> & SourceSpec>(template, {
       allowedSources: allowed?.length ? allowed : undefined,
     });
 
     // 2. Render the prompt with context + step outputs
-    const base = ensureExtendedContext(baseCtx);
-    // Incorporate outputs from previous steps
-    const ctx: ExtendedContext<ContextFor<K>> = {
-      ...base,
-      stepInputs: { ...base.stepInputs, ...stepOutputs },
-    };
+    const ctx = ensureExtendedContext(baseCtx, stepOutputs);
+
+    // Load model profile once so prompt rendering has access to metadata
+    const profile = await deps.loadModelProfile(step.modelProfileId);
+    const ctxWithModel = attachModelContext(ctx, profile);
 
     const budget = deps.budgetFactory(step.maxContextTokens);
-    const messages = render(compiled, ctx, budget, extendedRegistry);
+    const messages = render(compiled, ctxWithModel, budget, extendedRegistry);
 
     emit({
       type: "prompt_rendered",
@@ -233,8 +234,7 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
     // 4. Derive hints for the request
     const hints = deriveHints(transformedMessages);
 
-    // 5. Load model profile and create adapter
-    const profile = await deps.loadModelProfile(step.modelProfileId);
+    // 5. Create adapter for the selected model profile
     const adapter = deps
       .makeAdapter(profile.provider)
       // Apply per-model capability overrides so adapter preflight respects them
@@ -323,6 +323,21 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
   }
 
   return { startRun };
+}
+
+function attachModelContext<Ctx extends object>(
+  ctx: ExtendedContext<Ctx>,
+  profile: ModelProfileResolved
+): ExtendedContext<Ctx> {
+  const model: RunnerModelContext = {
+    id: profile.modelId,
+    displayName: profile.displayName,
+    modelInstruction: profile.modelInstruction ?? undefined,
+    providerName: profile.providerName,
+    providerKind: profile.provider.kind,
+  };
+
+  return { ...ctx, model };
 }
 
 /**

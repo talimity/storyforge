@@ -56,6 +56,7 @@ function mapModelProfile(model: DbModelProfile): ApiModelProfile {
     displayName: model.displayName,
     modelId: model.modelId,
     textTemplate: model.textTemplate ?? null,
+    modelInstruction: model.modelInstruction ?? null,
     capabilityOverrides: parsed.success ? parsed.data : null,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,

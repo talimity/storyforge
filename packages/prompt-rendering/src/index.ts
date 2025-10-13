@@ -64,6 +64,7 @@ export type {
   CompileOptions,
   ConditionRef,
   DataRef,
+  DataRefOf,
   LayoutNode,
   MessageBlock,
   PlanNode,

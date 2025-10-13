@@ -1,0 +1,1 @@
+ALTER TABLE `model_profiles` ADD `model_instruction` text;

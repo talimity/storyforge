@@ -1,43 +1,81 @@
-import type { SourceRegistry } from "@storyforge/prompt-rendering";
-import type { ContextFor, SourcesFor, TaskKind } from "../types.js";
+import type { DataRef, DataRefOf, SourceRegistry, SourceSpec } from "@storyforge/prompt-rendering";
+import type {
+  ContextFor,
+  RunnerModelContext,
+  RuntimeSourceSpec,
+  SourcesFor,
+  TaskKind,
+  TaskSourcesMap,
+} from "../types.js";
 
 /**
- * Extends a task context with `stepInputs` so it can be used in source handlers
- * that need access to inputs from previous steps.
+ * Extends a task context with runtime-provided fields (step outputs + model metadata).
  */
 export type ExtendedContext<Ctx> = Ctx & {
-  stepInputs: Record<string, unknown>;
+  stepOutputs: Record<string, unknown>;
+  model?: RunnerModelContext;
 };
 
 /**
- * Creates an extended registry that wraps the base registry and adds stepInputs
- * to the context.
+ * Creates an extended registry that wraps the base registry and resolves
+ * runtime sources (currently `stepOutput`).
  */
 export function createExtendedRegistry<K extends TaskKind>(
-  baseRegistry: SourceRegistry<ContextFor<K>, SourcesFor<K>>
-): SourceRegistry<ExtendedContext<ContextFor<K>>, SourcesFor<K>> {
-  return {
-    resolve(ref, ctx) {
-      return baseRegistry.resolve(ref, ctx);
-    },
-    list() {
-      return baseRegistry.list?.() || [];
-    },
-  };
+  baseRegistry: SourceRegistry<ContextFor<K>, TaskSourcesMap[K]>
+): SourceRegistry<ExtendedContext<ContextFor<K>>, SourcesFor<K> & SourceSpec> {
+  function resolve(
+    ref: Parameters<
+      SourceRegistry<ExtendedContext<ContextFor<K>>, SourcesFor<K> & SourceSpec>["resolve"]
+    >[0],
+    ctx: ExtendedContext<ContextFor<K>>
+  ): unknown {
+    if (isStepOutputRef(ref)) {
+      const key = (ref.args as RuntimeSourceSpec["stepOutput"]["args"] | undefined)?.key;
+      return key ? ctx.stepOutputs[key] : undefined;
+    }
+    return baseRegistry.resolve(
+      ref as DataRefOf<TaskSourcesMap[K] & SourceSpec>,
+      ctx as ContextFor<K>
+    );
+  }
+
+  const list: SourceRegistry<ExtendedContext<ContextFor<K>>, SourcesFor<K> & SourceSpec>["list"] =
+    () => {
+      const baseList = baseRegistry.list?.bind(baseRegistry) as (() => string[]) | undefined;
+      const base = baseList ? baseList() : [];
+      if (base.includes("stepOutput")) {
+        return base as Array<keyof (SourcesFor<K> & SourceSpec) & string>;
+      }
+      return [...base, "stepOutput"] as Array<keyof (SourcesFor<K> & SourceSpec) & string>;
+    };
+
+  return { resolve, list } as SourceRegistry<
+    ExtendedContext<ContextFor<K>>,
+    SourcesFor<K> & SourceSpec
+  >;
 }
 
-function hasStepInputs<Ctx extends object>(
+function hasStepOutputs<Ctx extends object>(
   ctx: Ctx | ExtendedContext<Ctx>
 ): ctx is ExtendedContext<Ctx> {
-  return "stepInputs" in ctx && typeof ctx.stepInputs === "object";
+  return "stepOutputs" in ctx && typeof (ctx as ExtendedContext<Ctx>).stepOutputs === "object";
 }
 
 /**
- * Ensure a context has stepInputs property
+ * Ensure a context has runtime augmentation at render time.
  */
-export function ensureExtendedContext<Ctx extends object>(ctx: Ctx): ExtendedContext<Ctx> {
-  if (hasStepInputs(ctx)) {
-    return ctx;
+export function ensureExtendedContext<Ctx extends object>(
+  ctx: Ctx,
+  stepOutputs: Record<string, unknown>
+): ExtendedContext<Ctx> {
+  if (hasStepOutputs(ctx)) {
+    return { ...ctx, stepOutputs };
   }
-  return { ...ctx, stepInputs: {} };
+  return { ...ctx, stepOutputs };
+}
+
+function isStepOutputRef<_K extends TaskKind>(
+  ref: DataRef<string, unknown>
+): ref is DataRef<"stepOutput", RuntimeSourceSpec["stepOutput"]["args"]> {
+  return (ref as { source?: string }).source === "stepOutput";
 }

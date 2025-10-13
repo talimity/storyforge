@@ -85,7 +85,7 @@ describe("Assistant Prefix Emission", () => {
         description: "Test with empty context",
         constraint: "Generate minimal plan",
       },
-      stepInputs: {},
+      stepOutputs: {},
       globals: {},
     };
 

@@ -27,8 +27,10 @@ export {
 export {
   CharacterCtxDTO,
   ContextFor,
+  RunnerModelContext,
   SourcesFor,
   TaskKind,
+  TaskSourcesMap,
   TimelineEventDTO,
   TurnCtxDTO,
 } from "./types.js";

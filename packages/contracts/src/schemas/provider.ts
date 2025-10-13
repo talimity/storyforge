@@ -60,6 +60,10 @@ export const modelProfileSchema = z.object({
   displayName: z.string().describe("User-friendly name for this model"),
   modelId: z.string().describe("Model identifier as used by the provider"),
   textTemplate: z.string().nullable().describe("Optional text completion template"),
+  modelInstruction: z
+    .string()
+    .nullable()
+    .describe("Optional model-specific guidance injected into prompt globals"),
   capabilityOverrides: textInferenceCapabilitiesSchema
     .partial()
     .nullable()
@@ -73,6 +77,7 @@ export const createModelProfileSchema = z.object({
   displayName: z.string().min(1).max(100),
   modelId: z.string().min(1).max(200),
   textTemplate: z.string().nullable(),
+  modelInstruction: z.string().nullable(),
   capabilityOverrides: textInferenceCapabilitiesSchema.partial().nullable(),
 });
 

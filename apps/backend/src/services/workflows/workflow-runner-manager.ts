@@ -4,8 +4,8 @@ import {
   chapterSummarizationRegistry,
   type ModelProfileResolved,
   makeWorkflowRunner,
-  type SourcesFor,
   type TaskKind,
+  type TaskSourcesMap,
   turnGenRegistry,
   type WorkflowRunner,
   writingAssistRegistry,
@@ -31,7 +31,7 @@ const REGISTRIES = {
   chapter_summarization: chapterSummarizationRegistry,
   writing_assistant: writingAssistRegistry,
 } as const satisfies {
-  [K in TaskKind]: SourceRegistry<ContextFor<K>, SourcesFor<K>>;
+  [K in TaskKind]: SourceRegistry<ContextFor<K>, TaskSourcesMap[K]>;
 };
 
 function getRegistryForTask<K extends TaskKind>(taskKind: K): (typeof REGISTRIES)[K] {
@@ -71,7 +71,7 @@ export class WorkflowRunnerManager {
       loadModelProfile: (id) => this.loadModelProfile(id),
       budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
       makeAdapter: createAdapter,
-      registry: registry as unknown as SourceRegistry<ContextFor<K>, SourcesFor<K>>,
+      registry: registry as unknown as SourceRegistry<ContextFor<K>, TaskSourcesMap[K]>,
     });
 
     this.runners.set(taskKind, runner);
@@ -136,9 +136,13 @@ export class WorkflowRunnerManager {
 
     return {
       id: row.profile.id,
+      displayName: row.profile.displayName,
       provider: providerConfig,
+      providerId: row.provider.id,
+      providerName: row.provider.name,
       modelId: row.profile.modelId,
       textTemplate: row.profile.textTemplate,
+      modelInstruction: row.profile.modelInstruction,
       capabilityOverrides: overrides,
       defaultGenParams: undefined,
     };

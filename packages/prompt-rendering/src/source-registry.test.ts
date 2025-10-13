@@ -23,7 +23,7 @@ describe("makeRegistry", () => {
       { id: "bob", name: "Bob", description: "A wise mage" },
     ],
     currentIntent: { description: "Characters have a conversation" },
-    stepInputs: { planner: { plan: "Talk about the weather" } },
+    stepOutputs: { planner: { plan: "Talk about the weather" } },
     globals: { worldName: "Fantasyland" },
   };
 
@@ -196,8 +196,8 @@ describe("makeRegistry", () => {
       >({
         stepOutput: (ref, ctx) => {
           const args = ref.args as { key: string };
-          const stepInputs: any = ctx.stepInputs || {};
-          return stepInputs[args.key];
+          const stepOutputs: any = ctx.stepOutputs || {};
+          return stepOutputs[args.key];
         },
         globalValue: (ref, ctx) => {
           const args = ref.args as { key: string };

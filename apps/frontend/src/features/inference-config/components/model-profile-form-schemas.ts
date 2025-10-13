@@ -7,6 +7,7 @@ export const modelProfileFormSchema = createModelProfileSchema.pick({
   displayName: true,
   modelId: true,
   textTemplate: true,
+  modelInstruction: true,
   capabilityOverrides: true,
 });
 

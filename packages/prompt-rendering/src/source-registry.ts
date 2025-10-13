@@ -1,21 +1,24 @@
-import type { DataRef, SourceHandler, SourceRegistry, SourceSpec } from "./types.js";
+import type { DataRef, DataRefOf, SourceHandler, SourceRegistry, SourceSpec } from "./types.js";
 
 /**
  * Registry implementation that delegates to a map of source handlers.
  */
-class MapBasedRegistry<Ctx, S extends SourceSpec> implements SourceRegistry<Ctx, S> {
+class MapBasedRegistry<Ctx, S> implements SourceRegistry<Ctx, S> {
   constructor(
     private readonly handlers: {
       [K in keyof S & string]: SourceHandler<Ctx, S, K>;
     }
   ) {}
 
+  // Overloads to satisfy the SourceRegistry contract
   resolve<K extends keyof S & string>(
-    ref: DataRef<K, S[K]["args"]>,
+    ref: DataRef<K, (S & SourceSpec)[K]["args"]>,
     ctx: Ctx
-  ): S[K]["out"] | undefined {
-    const handler = this.handlers[ref.source];
-    return handler ? handler(ref, ctx) : undefined;
+  ): (S & SourceSpec)[K]["out"] | undefined;
+  resolve(ref: DataRefOf<S & SourceSpec>, ctx: Ctx): unknown;
+  resolve(ref: DataRef<string, unknown> | DataRefOf<S & SourceSpec>, ctx: Ctx): unknown {
+    const handler = this.handlers[(ref as { source: string }).source as keyof S & string];
+    return handler ? (handler as unknown as (r: unknown, c: Ctx) => unknown)(ref, ctx) : undefined;
   }
 
   list(): Array<keyof S & string> {
@@ -38,7 +41,7 @@ class MapBasedRegistry<Ctx, S extends SourceSpec> implements SourceRegistry<Ctx,
  * });
  * ```
  */
-export function makeRegistry<Ctx, S extends SourceSpec>(
+export function makeRegistry<Ctx, S>(
   handlers: { [K in keyof S & string]: SourceHandler<Ctx, S, K> }
 ): SourceRegistry<Ctx, S> {
   return new MapBasedRegistry(handlers);

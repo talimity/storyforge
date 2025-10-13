@@ -56,16 +56,11 @@ export function isNonEmpty(value: unknown): boolean {
  * @param registry The source registry to use for resolution
  * @returns The resolved value, or undefined if resolution fails
  */
-export function resolveDataRef<
-  Ctx extends object,
-  S extends SourceSpec,
-  K extends keyof S & string,
->(
-  // ref: DataRef<K, S[K]["args"]>,
+export function resolveDataRef<Ctx extends object, S extends SourceSpec>(
   ref: DataRefOf<S>,
   ctx: Ctx,
   registry: SourceRegistry<Ctx, S>
-): S[K]["out"] | undefined {
+): unknown {
   try {
     return registry.resolve(ref, ctx);
   } catch (error) {

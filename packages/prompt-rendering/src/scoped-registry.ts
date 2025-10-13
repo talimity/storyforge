@@ -1,6 +1,6 @@
 import { resolvePath } from "./path-resolver.js";
 import { isReservedSource } from "./reserved-sources.js";
-import type { DataRef, SourceRegistry, SourceSpec } from "./types.js";
+import type { DataRef, DataRefOf, SourceRegistry, SourceSpec } from "./types.js";
 
 type LoopFrame = { item?: unknown; index?: number };
 type ScopeChain = { frames: LoopFrame[] };
@@ -47,7 +47,7 @@ function getGlobals(ctx: unknown): unknown {
   return isRecord(ctx) && "globals" in ctx ? ctx.globals : undefined;
 }
 
-class ScopedRegistry<Ctx extends object, S extends SourceSpec> implements SourceRegistry<Ctx, S> {
+class ScopedRegistry<Ctx extends object, S> implements SourceRegistry<Ctx, S> {
   public readonly [SCOPE_SYMBOL]: ScopeChain;
   public readonly [BASE_SYMBOL]: SourceRegistry<Ctx, S>;
 
@@ -57,12 +57,14 @@ class ScopedRegistry<Ctx extends object, S extends SourceSpec> implements Source
   }
 
   resolve<K extends keyof S & string>(
-    ref: DataRef<K, S[K]["args"]>,
+    ref: DataRef<K, (S & SourceSpec)[K]["args"]>,
     ctx: Ctx
-  ): S[K]["out"] | undefined {
-    const src = String(ref.source);
+  ): (S & SourceSpec)[K]["out"] | undefined;
+  resolve(ref: DataRefOf<S & SourceSpec>, ctx: Ctx): unknown;
+  resolve(ref: DataRef<string, unknown> | DataRefOf<S & SourceSpec>, ctx: Ctx): unknown {
+    const src = String((ref as { source?: string }).source);
     if (!isReservedSource(src)) {
-      return this[BASE_SYMBOL].resolve(ref, ctx);
+      return this[BASE_SYMBOL].resolve(ref as DataRefOf<S & SourceSpec>, ctx);
     }
 
     switch (src) {

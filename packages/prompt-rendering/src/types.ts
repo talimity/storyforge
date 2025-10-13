@@ -142,9 +142,14 @@ export interface BudgetManager {
 
 /** ---------- Source Registry ---------- */
 
-export interface SourceRegistry<Ctx, S extends SourceSpec> {
-  /** Resolve a DataRef for a given task context. Must be pure & synchronous. */
-  resolve<K extends keyof S & string>(ref: DataRefOf<S>, ctx: Ctx): S[K]["out"] | undefined;
+export interface SourceRegistry<Ctx, S> {
+  /** Resolve a typed DataRef for a given task context. Must be pure & synchronous. */
+  resolve<K extends keyof S & string>(
+    ref: DataRef<K, (S & SourceSpec)[K]["args"]>,
+    ctx: Ctx
+  ): (S & SourceSpec)[K]["out"] | undefined;
+  /** Resolve an arbitrary DataRef union; returns unknown for convenience helpers. */
+  resolve(ref: DataRefOf<S & SourceSpec>, ctx: Ctx): unknown;
   /** Optional: enumerate valid source names for authoring-time validation. */
   list?(): Array<keyof S & string>;
 }
@@ -153,12 +158,12 @@ export interface SourceRegistry<Ctx, S extends SourceSpec> {
  * Source handler function type - receives a DataRef and task context,
  * returns any value that the source provides.
  */
-export type SourceHandler<Ctx, S extends SourceSpec, K extends keyof S & string> = (
-  ref: DataRef<K, S[K]["args"]>,
+export type SourceHandler<Ctx, S, K extends keyof S & string> = (
+  ref: DataRef<K, (S & SourceSpec)[K]["args"]>,
   ctx: Ctx
-) => S[K]["out"];
+) => (S & SourceSpec)[K]["out"];
 
-export type SourceHandlerMap<Ctx, S extends SourceSpec> = {
+export type SourceHandlerMap<Ctx, S> = {
   [K in keyof S & string]: SourceHandler<Ctx, S, K & string>;
 };
 

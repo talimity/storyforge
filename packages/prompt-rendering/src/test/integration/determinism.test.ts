@@ -86,7 +86,7 @@ describe("Determinism & Immutability", () => {
       chapterSummaries: deterministicTurnGenCtx.chapterSummaries,
       characters: deterministicTurnGenCtx.characters,
       currentIntent: deterministicTurnGenCtx.currentIntent,
-      stepInputs: deterministicTurnGenCtx.stepInputs,
+      stepOutputs: deterministicTurnGenCtx.stepOutputs,
       globals: deterministicTurnGenCtx.globals,
     };
 

@@ -33,12 +33,12 @@ export function makeTurnGenTestRegistry(): SourceRegistry<any, any> {
     currentIntent: (_ref, ctx) => ctx.currentIntent.description,
     intentConstraint: (_ref, ctx) => ctx.currentIntent.constraint,
 
-    // Step inputs
+    // Step outputs
     stepOutput: (ref: any, ctx) => {
       const args = ref.args;
-      return ctx.stepInputs?.[args.key];
+      return ctx.stepOutputs?.[args.key];
     },
-    plannerPlan: (_ref, ctx) => (ctx.stepInputs?.planner as any)?.plan,
+    plannerPlan: (_ref, ctx) => (ctx.stepOutputs?.planner as any)?.plan,
 
     // Test values for different data types
     emptyArray: () => [],
