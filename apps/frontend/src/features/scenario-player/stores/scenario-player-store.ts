@@ -3,7 +3,13 @@ import { immer } from "zustand/middleware/immer";
 
 export type TimelineScrollTarget =
   | { kind: "bottom" }
-  | { kind: "turn"; turnId: string; edge?: "start" | "center" | "end" };
+  | {
+      kind: "turn";
+      turnId: string;
+      edge?: "start" | "center" | "end";
+      /** Skip scrolling if the target is already fully visible */
+      skipIfVisible?: boolean;
+    };
 
 export interface ScenarioPlayerState {
   /** Character selected in the sidebar, the target for new intents */

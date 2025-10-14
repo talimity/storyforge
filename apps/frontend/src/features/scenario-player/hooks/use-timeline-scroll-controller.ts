@@ -72,6 +72,19 @@ export function useTimelineScrollController<
         // virtualizer and let it measure new items before attempting to scroll
         // to them.
         requestAnimationFrame(() => {
+          const scrollerEl = scrollerRef.current;
+          if (scrollerEl && pendingScrollTarget.skipIfVisible) {
+            const fullyVisible = isTurnFullyVisible(scrollerEl, focusTurnId);
+            if (fullyVisible) {
+              setPendingScrollTarget(null);
+              console.debug(
+                "useTimelineScrollController: skipped scroll, turn already visible",
+                focusTurnId
+              );
+              return;
+            }
+          }
+
           v.scrollToIndex(turnVirtualIndex, { align: pendingScrollTarget.edge, behavior: "auto" });
           setPendingScrollTarget(null);
           console.debug(
@@ -86,4 +99,24 @@ export function useTimelineScrollController<
         assertNever(pendingScrollTarget);
     }
   }, [pendingScrollTarget, setPendingScrollTarget, v, visibleTurns, scrollerRef.current]);
+}
+
+const VISIBILITY_EPSILON = 2;
+
+function isTurnFullyVisible(scroller: Element, turnId: string) {
+  if (!(scroller instanceof Element)) return false;
+  const selector = `[data-turn-id="${escapeAttributeSelectorValue(turnId)}"]`;
+  const target = scroller.querySelector<HTMLElement>(selector);
+  if (!target) return false;
+
+  const scrollerRect = scroller.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+
+  const withinTop = targetRect.top >= scrollerRect.top + VISIBILITY_EPSILON;
+  const withinBottom = targetRect.bottom <= scrollerRect.bottom - VISIBILITY_EPSILON;
+  return withinTop && withinBottom;
+}
+
+function escapeAttributeSelectorValue(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
 }

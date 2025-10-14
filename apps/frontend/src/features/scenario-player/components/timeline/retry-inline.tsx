@@ -247,7 +247,12 @@ export function RetryInline({ turn }: RetryInlineProps) {
                     setTimeout(() => {
                       clearUiCutoff();
                       // put the original turn back into view since it was likely longer than the retry UI
-                      setScrollTarget({ kind: "turn", turnId: turn.id, edge: "end" });
+                      setScrollTarget({
+                        kind: "turn",
+                        turnId: turn.id,
+                        edge: "end",
+                        skipIfVisible: true,
+                      });
                     }, 0);
                   }}
                   disabled={isSubmitting}
