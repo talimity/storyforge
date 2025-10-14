@@ -108,7 +108,7 @@ export class WorkflowTestService {
           modelId,
           capabilityOverrides: undefined,
           defaultGenParams: undefined,
-          modelInstruction: null,
+          modelInstruction: "Write some mock stuff.",
         };
       },
       makeAdapter: () => adapter,
