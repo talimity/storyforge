@@ -15,10 +15,9 @@ export function DraftTurn() {
   const { runId, isActive, authorId, previewText, isPresentation, charCount } = useDraftPreview();
   const [showInternal, setShowInternal] = useState(false);
 
-  // Reset internal toggle when the active run changes or when a presentation step starts
   useEffect(() => {
     setShowInternal(false);
-  }, []);
+  }, [runId]);
 
   const author = authorId ? getCharacterByParticipantId(authorId) : null;
   const authorName = author?.name ?? "Generating";
@@ -116,17 +115,16 @@ function useDraftPreview() {
 
       const run = s.runsById[id];
       const last = run.provisional[run.provisional.length - 1];
-      const runningStepId = Object.values(run.steps).find((st) => st.status === "running")?.id;
-      const runningStep = runningStepId ? run.steps[runningStepId] : undefined;
+      // Use throttled UI-facing fields from the store
 
       return {
         runId: id,
         isActive: run.status === "pending" || run.status === "running",
         isStreaming: last?.status === "streaming" || run.livePreview.length > 0,
         authorId: run.currentActorParticipantId ?? null,
-        previewText: (last?.text || run.livePreview || "").trim(),
+        previewText: (run.displayPreview || last?.text || "").trim(),
         isPresentation: run.lastTokenIsPresentation ?? true,
-        charCount: runningStep?.charCount ?? 0,
+        charCount: run.displayCharCount ?? 0,
       };
     })
   );

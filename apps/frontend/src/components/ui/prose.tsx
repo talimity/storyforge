@@ -53,7 +53,7 @@ export const Prose = chakra("div", {
       color: "fg.emphasized",
     },
     [inWhere("& q")]: {
-      fontWeight: "600",
+      fontWeight: "500",
       color: "fg.emphasized",
     },
     [inWhere("& q::before")]: {

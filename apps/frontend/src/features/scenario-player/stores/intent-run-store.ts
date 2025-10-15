@@ -1,9 +1,10 @@
-// apps/frontend/src/features/scenario-player/stores/intent-run-store.ts
-
 import type { IntentEvent } from "@storyforge/contracts";
 import type { WorkflowEvent } from "@storyforge/gentasks";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+
+const DRAFT_FLUSH_INTERVAL_MS = 100; // ~10 FPS
+const draftFlushTimers = new Map<string, number>();
 
 export type IntentRunStatus = "pending" | "running" | "finished" | "failed" | "cancelled";
 
@@ -39,6 +40,8 @@ export interface IntentRun {
 
   // current draft (streaming) text, independent of committed effects
   livePreview: string;
+  // throttled, UI-facing preview copied from livePreview
+  displayPreview: string;
 
   // often just one item; list allows future multi-effect previews
   provisional: ProvisionalTurn[];
@@ -55,6 +58,8 @@ export interface IntentRun {
 
   /** Whether the most recent token is presentation prose (default true when unknown). */
   lastTokenIsPresentation?: boolean;
+  /** Throttled char count for progress display */
+  displayCharCount: number;
 
   // client display hint
   /**
@@ -97,16 +102,18 @@ export const useIntentRunsStore = create<IntentRunsState>()(
           status: "pending",
           startedAt: Date.now(),
           livePreview: "",
+          displayPreview: "",
           provisional: [],
           committedTurnIds: [],
           steps: {},
           truncateAfterTurnId: undefined,
+          displayCharCount: 0,
         };
         s.currentRunId = intentId;
         s.lastScenarioId = scenarioId;
       }),
 
-    applyEvent: (ev) =>
+    applyEvent: (ev) => {
       set((s) => {
         const run = s.runsById[ev.intentId];
         if (!run) {
@@ -165,6 +172,22 @@ export const useIntentRunsStore = create<IntentRunsState>()(
               const p = run.provisional[run.provisional.length - 1];
               if (p.status === "streaming") p.text += ev.delta;
             }
+            // schedule throttled UI flush for display fields
+            if (!draftFlushTimers.has(ev.intentId)) {
+              const tid = setTimeout(() => {
+                // copy snapshot to UI-facing fields
+                useIntentRunsStore.setState((state) => {
+                  const r = state.runsById[ev.intentId];
+                  if (!r) return state;
+                  r.displayPreview = r.livePreview;
+                  const running = Object.values(r.steps).find((st) => st.status === "running");
+                  r.displayCharCount = running?.charCount ?? 0;
+                  return state;
+                });
+                draftFlushTimers.delete(ev.intentId);
+              }, DRAFT_FLUSH_INTERVAL_MS) as unknown as number;
+              draftFlushTimers.set(ev.intentId, tid);
+            }
             return;
           }
 
@@ -177,15 +200,19 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             // this event triggers an invalidation of the timeline, so we can
             // show the real state from the server
             run.truncateAfterTurnId = undefined;
+            run.displayPreview = "";
+            run.displayCharCount = 0;
             return;
 
           case "intent_finished":
             run.status = "finished";
             run.finishedAt = ev.ts;
             run.truncateAfterTurnId = undefined;
+            run.displayPreview = "";
+            run.displayCharCount = 0;
             return;
 
-          case "intent_failed":
+          case "intent_failed": {
             run.status = ev.cancelled ? "cancelled" : "failed";
             run.error = ev.cancelled ? undefined : ev.error;
             if (ev.partialText) {
@@ -203,9 +230,14 @@ export const useIntentRunsStore = create<IntentRunsState>()(
               run.livePreview = ev.partialText;
             }
             run.truncateAfterTurnId = undefined;
+            run.displayPreview = run.livePreview;
+            const running = Object.values(run.steps).find((st) => st.status === "running");
+            run.displayCharCount = running?.charCount ?? 0;
             return;
+          }
         }
-      }),
+      });
+    },
 
     clearActiveRun: () =>
       set((s) => {
@@ -250,6 +282,8 @@ function reduceRunnerEvent(run: IntentRun, e: WorkflowEvent) {
       run.provisional[0].text = "";
       run.livePreview = "";
       run.lastTokenIsPresentation = undefined;
+      run.displayPreview = "";
+      run.displayCharCount = 0;
       break;
     case "run_error":
       if (e.stepId) {

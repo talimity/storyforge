@@ -114,6 +114,8 @@ export function RetryInline({ turn }: RetryInlineProps) {
   const displayAvatarPath = selectedCharacter?.avatarPath ?? authorAvatar ?? undefined;
   const displayAvatarSrc = getApiUrl(displayAvatarPath);
 
+  // const newActor = displayName !== speakerLabel;
+
   return (
     <Box layerStyle="surface" borderRadius="md" p={4} data-testid="retry-inline">
       <Stack gap={3} align="stretch">
@@ -133,21 +135,17 @@ export function RetryInline({ turn }: RetryInlineProps) {
                 {displayName}
               </Heading>
               <Text fontSize="xs" color="content.muted">
-                Retry turn #{turn.turnNo}
+                #{turn.turnNo}
               </Text>
-              {displayName !== speakerLabel ? (
-                <Text fontSize="xs" color="content.muted">
-                  Original speaker: {speakerLabel}
-                </Text>
-              ) : null}
             </Stack>
           </HStack>
         </HStack>
 
         <Stack gap={4} pt={1}>
-          <Stack gap={1}>
+          <Stack borderBottomWidth={1} borderBottomColor="border" pb={1}>
+            <Heading size="md">Retry Options</Heading>
             <Text fontSize="sm" color="content.muted">
-              Configure how you want to replay this beat.
+              Select a new direction for the story. The scenario will branch from this point.
             </Text>
           </Stack>
 

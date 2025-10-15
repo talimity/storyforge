@@ -22,7 +22,7 @@ The vision is something akin a turn-based/text-based version of The Sims, which 
 # ⚠️ IMPORTANT: DO NOT pass `-w` after any of these commands. They should be run as-is from the workspace root.
 # To scope a command to a specific package, use `pnpm --filter=package [script]` instead.
 
-# Rebuild type declarations with after changing shared packages (slow; uses `tsc`)
+# Rebuild type declarations with after changing shared packages
 pnpm build
 # Run typechecker and Biome linter (fast; uses beta Typescript-Go native compiler)
 pnpm lint
@@ -34,7 +34,6 @@ pnpm test
 ```bash
 # Remember to generate migrations when changing database schema in packages/db
 pnpm --filter=db db:generate --name=descriptive-name # Drizzle migration generation
-pnpm --filter=db db:migrate # Run migrations against the database
 ```
 
 ### Technical Choices
@@ -106,6 +105,7 @@ storyforge
 
 ### DURING work on a task
 - You MUST `pnpm build` any time you are making changes across packages
+  - Don't try to scope this to a single package or you will miss dependencies, just run `pnpm build` from the root and let pnpm topologically build what needs to be built
 - You MUST follow existing conventions and patterns as much as possible
 - You MUST run `pnpm lint` and address diagnostics incrementally; it will be easier than fixing dozens of errors at the end
 - You MUST NOT use `any` casts (the linter will outright fail them)
