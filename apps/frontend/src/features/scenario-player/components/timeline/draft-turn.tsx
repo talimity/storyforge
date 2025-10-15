@@ -1,7 +1,7 @@
 import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
-import { memo } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { Avatar, StreamingMarkdown } from "@/components/ui";
+import { Avatar, Button, StreamingMarkdown } from "@/components/ui";
 import { AutoFollowOnDraft } from "@/features/scenario-player/components/timeline/auto-follow-draft";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
@@ -12,13 +12,26 @@ const MemoAvatar = memo(Avatar, (prev, next) => prev.src === next.src);
 
 export function DraftTurn() {
   const { getCharacterByParticipantId } = useScenarioContext();
-  const { runId, isActive, authorId, previewText } = useDraftPreview();
+  const { runId, isActive, authorId, previewText, isPresentation, charCount } = useDraftPreview();
+  const [showInternal, setShowInternal] = useState(false);
 
-  if (!isActive) return null;
+  // Reset internal toggle when the active run changes or when a presentation step starts
+  useEffect(() => {
+    setShowInternal(false);
+  }, []);
 
   const author = authorId ? getCharacterByParticipantId(authorId) : null;
   const authorName = author?.name ?? "Generating";
   const avatarSrc = getApiUrl(author?.avatarPath ?? undefined);
+
+  const shouldShowText = isPresentation || showInternal;
+  const hint = useMemo(() => (isPresentation ? null : "Draft"), [isPresentation]);
+  const approxTokens = useMemo(
+    () => (charCount > 0 ? Math.max(1, Math.round(charCount / 4)) : 0),
+    [charCount]
+  );
+
+  if (!isActive) return null;
 
   return (
     <Box
@@ -46,20 +59,36 @@ export function DraftTurn() {
               <Heading size="md" fontWeight="bold">
                 {authorName}
               </Heading>
+              {hint && (
+                <Text fontSize="xs" color="content.subtle">
+                  {hint}
+                </Text>
+              )}
             </Stack>
           </HStack>
+          {!isPresentation && (
+            <Button size="xs" variant="ghost" onClick={() => setShowInternal((v) => !v)}>
+              {showInternal ? "Hide draft" : "Show draft"}
+            </Button>
+          )}
         </HStack>
-        {previewText ? (
-          <StreamingMarkdown
-            text={previewText}
-            dialogueAuthorId={author?.id ?? null}
-            maxW="85ch"
-            size="lg"
-            color="content.muted"
-          />
+        {shouldShowText ? (
+          previewText ? (
+            <StreamingMarkdown
+              text={previewText}
+              dialogueAuthorId={author?.id ?? null}
+              maxW="85ch"
+              size="lg"
+              color="content.muted"
+            />
+          ) : (
+            <Text fontSize="sm" color="content.muted">
+              Thinking…
+            </Text>
+          )
         ) : (
           <Text fontSize="sm" color="content.muted">
-            Thinking…
+            {approxTokens > 0 ? `Thinking… (~${approxTokens} tokens)` : "Thinking…"}
           </Text>
         )}
 
@@ -74,11 +103,21 @@ function useDraftPreview() {
     useShallow((s) => {
       const id = s.currentRunId;
       if (!id) {
-        return { isActive: false, isStreaming: false, authorId: null, previewText: "" };
+        return {
+          runId: "",
+          isActive: false,
+          isStreaming: false,
+          authorId: null,
+          previewText: "",
+          isPresentation: true,
+          charCount: 0,
+        };
       }
 
       const run = s.runsById[id];
       const last = run.provisional[run.provisional.length - 1];
+      const runningStepId = Object.values(run.steps).find((st) => st.status === "running")?.id;
+      const runningStep = runningStepId ? run.steps[runningStepId] : undefined;
 
       return {
         runId: id,
@@ -86,6 +125,8 @@ function useDraftPreview() {
         isStreaming: last?.status === "streaming" || run.livePreview.length > 0,
         authorId: run.currentActorParticipantId ?? null,
         previewText: (last?.text || run.livePreview || "").trim(),
+        isPresentation: run.lastTokenIsPresentation ?? true,
+        charCount: runningStep?.charCount ?? 0,
       };
     })
   );

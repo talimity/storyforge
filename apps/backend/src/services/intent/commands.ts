@@ -92,6 +92,16 @@ export function makeCommands(deps: IntentExecDeps) {
         participantId: args.actorId,
       });
 
+      // Determine which steps are presentation steps (player-facing prose).
+      // Heuristic: a step that captures assistant text under key "content".
+      const presentationStepIds = new Set(
+        workflow.steps
+          .filter((s) =>
+            s.outputs.some((o) => o.capture === "assistantText" && o.key === "content")
+          )
+          .map((s) => s.id)
+      );
+
       yield {
         type: "gen_start",
         intentId,
@@ -106,7 +116,14 @@ export function makeCommands(deps: IntentExecDeps) {
       for await (const ev of handle.events()) {
         if (ev.type === "stream_delta") {
           partial += ev.delta;
-          yield { type: "gen_token", intentId, stepId: ev.stepId, delta: ev.delta, ts: now() };
+          yield {
+            type: "gen_token",
+            intentId,
+            stepId: ev.stepId,
+            delta: ev.delta,
+            presentation: presentationStepIds.has(ev.stepId),
+            ts: now(),
+          };
         } else {
           yield { type: "gen_event", intentId, payload: ev, ts: now() };
         }

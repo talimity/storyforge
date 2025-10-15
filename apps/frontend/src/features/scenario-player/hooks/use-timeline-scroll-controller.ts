@@ -118,5 +118,5 @@ function isTurnFullyVisible(scroller: Element, turnId: string) {
 }
 
 function escapeAttributeSelectorValue(value: string) {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }

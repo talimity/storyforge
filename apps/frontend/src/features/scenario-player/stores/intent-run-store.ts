@@ -22,6 +22,10 @@ export type StepState = {
   status: "idle" | "running" | "finished" | "error";
   /** latest rendered prompt for debug, optional */
   lastPromptPreview?: { messages: unknown[] };
+  /** Number of streamed token deltas received for this step */
+  deltaCount?: number;
+  /** Approximate characters streamed for this step */
+  charCount?: number;
 };
 
 export interface IntentRun {
@@ -48,6 +52,9 @@ export interface IntentRun {
   // convenience flags
   currentActorParticipantId?: string | null;
   error?: string;
+
+  /** Whether the most recent token is presentation prose (default true when unknown). */
+  lastTokenIsPresentation?: boolean;
 
   // client display hint
   /**
@@ -143,6 +150,11 @@ export const useIntentRunsStore = create<IntentRunsState>()(
           case "gen_token": {
             // append to live preview and to the current streaming provisional
             run.livePreview += ev.delta;
+            run.lastTokenIsPresentation = ev.presentation ?? true;
+            // Track per-step progress counts
+            const step = (run.steps[ev.stepId] ??= { id: ev.stepId, status: "running" });
+            step.deltaCount = (step.deltaCount ?? 0) + 1;
+            step.charCount = (step.charCount ?? 0) + ev.delta.length;
             if (run.provisional.length === 0) {
               run.provisional.push({
                 text: ev.delta,
@@ -219,7 +231,13 @@ export const useIntentRunsStore = create<IntentRunsState>()(
 function reduceRunnerEvent(run: IntentRun, e: WorkflowEvent) {
   switch (e.type) {
     case "step_started":
-      run.steps[e.stepId] = { id: e.stepId, name: e.name, status: "running" };
+      run.steps[e.stepId] = {
+        id: e.stepId,
+        name: e.name,
+        status: "running",
+        deltaCount: 0,
+        charCount: 0,
+      };
       break;
     case "prompt_rendered":
       run.steps[e.stepId] ??= { id: e.stepId, status: "running" };
@@ -231,6 +249,7 @@ function reduceRunnerEvent(run: IntentRun, e: WorkflowEvent) {
       run.steps[e.stepId].status = "finished";
       run.provisional[0].text = "";
       run.livePreview = "";
+      run.lastTokenIsPresentation = undefined;
       break;
     case "run_error":
       if (e.stepId) {

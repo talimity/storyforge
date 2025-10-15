@@ -369,7 +369,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
             key={action.id}
             size={buttonSize}
             variant="ghost"
-            color={action.color || "content.muted"}
+            colorPalette={action.color || "neutral"}
             onClick={action.onSelect}
             disabled={action.disabled || isPreviewing}
             aria-label={action.label || action.id}

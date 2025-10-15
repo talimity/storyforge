@@ -25,7 +25,7 @@ export type IntentEvent =
       sequence: number;
       effect: "new_turn" /* | "new_timeline_event" */;
       turnId: string;
-      // Correlates this effect to the workflow run that produced it.
+      /* Correlates this effect to the workflow run that produced it. */
       workflowRunId: string;
       ts: number;
     }
@@ -38,6 +38,17 @@ export type IntentEvent =
       branchFromTurnId?: string;
       ts: number;
     }
-  | { type: "gen_token"; intentId: string; stepId: string; delta: string; ts: number }
+  | {
+      type: "gen_token";
+      intentId: string;
+      stepId: string;
+      delta: string;
+      /**
+       * True when the streaming token belongs to a presentation step intended
+       * for player-facing text, vs planning/draft steps.
+       */
+      presentation: boolean;
+      ts: number;
+    }
   | { type: "gen_event"; intentId: string; payload: WorkflowEvent; ts: number }
   | { type: "gen_finish"; intentId: string; workflowId: string; text: string; ts: number };
