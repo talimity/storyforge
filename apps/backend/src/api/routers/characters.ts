@@ -1,6 +1,7 @@
 import {
   characterAutocompleteInputSchema,
   characterAutocompleteResponseSchema,
+  characterColorPaletteResponseSchema,
   characterIdSchema,
   characterIdsSchema,
   characterImportResponseSchema,
@@ -26,7 +27,11 @@ import {
 } from "../../services/character/character.queries.js";
 import { transformCharacter } from "../../services/character/character.transforms.js";
 import { CharacterService } from "../../services/character/character-service.js";
-import { maybeProcessCharaImage } from "../../services/character/utils/face-detection.js";
+import { DEFAULT_CHARACTER_COLOR } from "../../services/character/utils/color.js";
+import {
+  getColorsFromCharaImage,
+  maybeProcessCharaImage,
+} from "../../services/character/utils/portraits.js";
 import { publicProcedure, router } from "../index.js";
 
 // Note: this router is old, don't use it as a reference
@@ -163,12 +168,10 @@ export const charactersRouter = router({
         ...input
       } = rawInput as z.infer<typeof createCharacterSchema>;
 
+      const charaImageData = await maybeProcessCharaImage(imageDataUri);
       const charaSvc = new CharacterService(ctx.db);
       const newCharacter = await charaSvc.createCharacter({
-        characterData: {
-          ...input,
-          ...(await maybeProcessCharaImage(imageDataUri)),
-        },
+        characterData: { ...input, ...charaImageData },
         starters: starters.map((s) => ({ message: s.message, isPrimary: s.isPrimary })),
       });
 
@@ -273,5 +276,38 @@ export const charactersRouter = router({
           message: "Character not found",
         });
       }
+    }),
+
+  colorPalette: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/characters/{id}/color-palette",
+        tags: ["characters"],
+        summary: "Gets the color palette for a character's portrait",
+      },
+    })
+    .input(characterIdSchema)
+    .output(characterColorPaletteResponseSchema)
+    .query(async ({ input, ctx }) => {
+      const chara = await getCharacterDetail(ctx.db, input.id);
+
+      if (!chara) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+
+      if (!chara.portrait) {
+        return {
+          current: chara.defaultColor,
+          palette: Array.from(new Set([chara.defaultColor, DEFAULT_CHARACTER_COLOR])),
+        };
+      }
+
+      const colors = await getColorsFromCharaImage(chara.portrait, chara.portraitFocalPoint);
+      if (!colors.includes(chara.defaultColor)) {
+        colors.unshift(chara.defaultColor);
+      }
+
+      return { current: chara.defaultColor, palette: colors };
     }),
 });

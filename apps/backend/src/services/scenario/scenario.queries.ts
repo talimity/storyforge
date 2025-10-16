@@ -152,6 +152,7 @@ export async function listScenarios(db: SqliteDatabase, filters?: ListScenariosP
       role: tScenarioParticipants.role,
       orderIndex: tScenarioParticipants.orderIndex,
       isUserProxy: tScenarioParticipants.isUserProxy,
+      colorOverride: tScenarioParticipants.colorOverride,
       characterId: tCharacters.id,
       characterName: tCharacters.name,
       characterCreatedAt: tCharacters.createdAt,
@@ -159,6 +160,7 @@ export async function listScenarios(db: SqliteDatabase, filters?: ListScenariosP
       characterCardType: tCharacters.cardType,
       characterTags: tCharacters.tags,
       characterNotes: tCharacters.creatorNotes,
+      characterDefaultColor: tCharacters.defaultColor,
       hasPortrait: sql<number>`CASE WHEN ${tCharacters.portrait} IS NULL THEN 0 ELSE 1 END`,
     })
     .from(tScenarioParticipants)
@@ -183,6 +185,12 @@ export async function listScenarios(db: SqliteDatabase, filters?: ListScenariosP
       updatedAt: participant.characterUpdatedAt,
     });
 
+    const defaultColor = participant.characterDefaultColor.toLowerCase();
+    const overrideColor = participant.colorOverride
+      ? participant.colorOverride.toLowerCase()
+      : null;
+    const effectiveColor = overrideColor ?? defaultColor;
+
     const character: ApiScenarioParticipant["character"] = {
       id: participant.characterId,
       name: participant.characterName,
@@ -193,6 +201,7 @@ export async function listScenarios(db: SqliteDatabase, filters?: ListScenariosP
       creatorNotes: participant.characterNotes,
       imagePath,
       avatarPath,
+      defaultColor,
     };
 
     list.push({
@@ -200,6 +209,7 @@ export async function listScenarios(db: SqliteDatabase, filters?: ListScenariosP
       role: participant.role,
       orderIndex: participant.orderIndex ?? 0,
       isUserProxy: Boolean(participant.isUserProxy),
+      color: effectiveColor,
       character,
     });
 
@@ -251,7 +261,13 @@ export async function getScenarioDetail(db: SqliteDatabase, scenarioId: string) 
     where: { id: scenarioId },
     with: {
       participants: {
-        columns: { id: true, role: true, orderIndex: true, isUserProxy: true },
+        columns: {
+          id: true,
+          role: true,
+          orderIndex: true,
+          isUserProxy: true,
+          colorOverride: true,
+        },
         with: { character: scenarioCharaSummaryColumns },
         where: { type: "character" },
         orderBy: (p) => [p.orderIndex],
@@ -316,11 +332,12 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
             status: true,
             characterId: true,
             isUserProxy: true,
+            colorOverride: true,
           },
           orderBy: (p) => [p.orderIndex],
           with: {
             character: {
-              columns: { id: true, name: true, updatedAt: true },
+              columns: { id: true, name: true, updatedAt: true, defaultColor: true },
               extras: { hasPortrait: sql<number>`portrait IS NOT NULL` },
             },
           },
@@ -339,6 +356,28 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
     });
   }
 
+  const participants = scenario.participants ?? [];
+  const characters = participants.map((p) => p.character).filter(isDefined);
+
+  const characterColors = new Map<string, string>();
+  const characterResponses = characters.map((c) => {
+    const defaultColor = c.defaultColor.toLowerCase();
+    characterColors.set(c.id, defaultColor);
+    return { id: c.id, name: c.name, defaultColor, ...getCharaAssetPaths(c) };
+  });
+
+  const participantResponses = participants.map((p) => {
+    const override = p.colorOverride ? p.colorOverride.toLowerCase() : null;
+    const baseColor = p.characterId ? (characterColors.get(p.characterId) ?? null) : null;
+    return {
+      id: p.id,
+      type: p.type,
+      status: p.status,
+      characterId: p.characterId,
+      color: override ?? baseColor ?? null,
+    };
+  });
+
   return {
     scenario: {
       id: scenario.id,
@@ -346,16 +385,8 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
       rootTurnId: rootTurn?.id ?? null,
       anchorTurnId: scenario.anchorTurnId,
     },
-    participants: scenario.participants.map((p) => ({
-      id: p.id,
-      type: p.type,
-      status: p.status,
-      characterId: p.characterId,
-    })),
-    characters: scenario.participants
-      .map((p) => p.character)
-      .filter(isDefined)
-      .map((c) => ({ id: c.id, name: c.name, ...getCharaAssetPaths(c) })),
+    characters: characterResponses,
+    participants: participantResponses,
   };
 }
 
@@ -570,6 +601,7 @@ export async function getScenarioCharacterStarters(db: SqliteDatabase, scenarioI
         ...getCharaAssetPaths(character),
         createdAt: character.createdAt,
         updatedAt: character.updatedAt,
+        defaultColor: character.defaultColor.toLowerCase(),
       },
       starters: character.starters,
     }));
@@ -584,6 +616,7 @@ const scenarioCharaSummaryColumns = {
     cardType: true,
     tags: true,
     creatorNotes: true,
+    defaultColor: true,
   },
   extras: { hasPortrait: sql<number>`portrait IS NOT NULL` },
 } as const;

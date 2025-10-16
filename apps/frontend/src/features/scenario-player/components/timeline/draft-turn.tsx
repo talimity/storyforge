@@ -16,6 +16,7 @@ export function DraftTurn() {
   const [showInternal, setShowInternal] = useState(false);
 
   useEffect(() => {
+    void runId;
     setShowInternal(false);
   }, [runId]);
 

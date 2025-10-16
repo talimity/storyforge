@@ -18,6 +18,7 @@ export const Prose = chakra("div", {
     maxWidth: "65ch",
     fontSize: "sm",
     lineHeight: "1.7em",
+    "--dialogue-color": "var(--chakra-colors-fg-emphasized)",
     "& :where(*):first-of-type": {
       marginTop: "0 !important",
     },
@@ -53,8 +54,14 @@ export const Prose = chakra("div", {
       color: "fg.emphasized",
     },
     [inWhere("& q")]: {
-      fontWeight: "500",
-      color: "fg.emphasized",
+      // fontWeight: "500",
+      color: "var(--dialogue-color)",
+    },
+    [inWhere("& q[data-author]")]: {
+      color: "var(--chakra-colors-fg-emphasized)",
+      "@supports (color: oklch(50% 0.1 180))": {
+        color: "color-mix(in oklch, var(--dialogue-color) 50%, var(--chakra-colors-fg-emphasized))",
+      },
     },
     [inWhere("& q::before")]: {
       content: "none",

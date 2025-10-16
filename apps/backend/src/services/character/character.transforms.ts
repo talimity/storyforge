@@ -32,6 +32,7 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
       ? JSON.parse(JSON.stringify(dbCharacter.tavernCardData))
       : null,
     ...getCharaAssetPaths(dbCharacter),
+    defaultColor: dbCharacter.defaultColor,
     portraitFocalPoint: dbCharacter.portraitFocalPoint,
     createdAt: sqliteTimestampToDate(dbCharacter.createdAt),
     updatedAt: sqliteTimestampToDate(dbCharacter.updatedAt),
@@ -44,7 +45,14 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
 export function transformCharacterSummary(
   charaSummary: Pick<
     DbCharacter,
-    "id" | "name" | "createdAt" | "updatedAt" | "cardType" | "tags" | "creatorNotes"
+    | "id"
+    | "name"
+    | "createdAt"
+    | "updatedAt"
+    | "cardType"
+    | "tags"
+    | "creatorNotes"
+    | "defaultColor"
   > & { hasPortrait: number }
 ): ApiCharacterSummary {
   return {
@@ -56,5 +64,6 @@ export function transformCharacterSummary(
     tags: charaSummary.tags || [],
     creatorNotes: charaSummary.creatorNotes,
     ...getCharaAssetPaths(charaSummary),
+    defaultColor: charaSummary.defaultColor,
   };
 }

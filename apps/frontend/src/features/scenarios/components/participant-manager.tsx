@@ -1,4 +1,17 @@
-import { Card, Grid, HStack, IconButton, Stack, Text, VStack } from "@chakra-ui/react";
+import {
+  Card,
+  Code,
+  ColorPicker,
+  Grid,
+  HStack,
+  IconButton,
+  Portal,
+  parseColor,
+  Skeleton,
+  Stack,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { LuX } from "react-icons/lu";
 import { Avatar, Field, Radio, RadioGroup } from "@/components/ui";
@@ -16,6 +29,7 @@ const participantDefaults: ParticipantValues = {
   characterId: "",
   role: undefined,
   isUserProxy: false,
+  colorOverride: null,
 };
 
 type ParticipantManagerProps = {
@@ -44,7 +58,7 @@ export const ParticipantManager = withFieldGroup({
             errorMessages.length > 0 &&
             (participantsField.state.meta.isTouched || participantsField.state.meta.isDirty);
 
-          const setUserProxyByIndex = (
+          const setProxyByIndex = (
             idx: number | null,
             source: ParticipantValues[] = participants
           ) => {
@@ -99,7 +113,7 @@ export const ParticipantManager = withFieldGroup({
                       fields={`items[${idx}]`}
                       characterId={participant.characterId}
                       onRemove={() => participantsField.removeValue(idx)}
-                      onSelectAsProxy={() => setUserProxyByIndex(idx)}
+                      onSelectAsProxy={() => setProxyByIndex(idx)}
                     />
                   ))}
                 </Grid>
@@ -140,8 +154,14 @@ const ParticipantCard = withFieldGroup({
     );
 
     const characterData = characterQuery.data;
-    const displayName = characterData?.name || "Loading...";
+
+    if (!characterData) {
+      return <ParticipantCardSkeleton />;
+    }
+
+    const displayName = characterData.name;
     const isProxy = group.state.values.isUserProxy;
+    const defaultColor = characterData.defaultColor;
 
     return (
       <Card.Root layerStyle="surface">
@@ -186,6 +206,56 @@ const ParticipantCard = withFieldGroup({
               )}
             </group.AppField>
 
+            <group.AppField name={"colorOverride"}>
+              {(field) => {
+                const current = field.state.value || defaultColor;
+                const hasOverride = current !== defaultColor;
+                console.log({
+                  current,
+                  defaultColor,
+                  hasOverride,
+                  characterId,
+                });
+                return (
+                  <field.Field label="Color" helperText="Affects dialogue color in the scenario.">
+                    <Stack gap={2}>
+                      <HStack gap={2} align="flex-end">
+                        <ColorPicker.Root
+                          key={`${characterId}_color`}
+                          name={`dialogue-color-${characterId}`}
+                          value={parseColor(current)}
+                          onValueChange={(details) => {
+                            field.handleChange(details.value.toString("hex").toLowerCase());
+                          }}
+                        >
+                          <ColorPicker.HiddenInput />
+                          <ColorPicker.Control width="full">
+                            <ColorPicker.Input />
+                            <ColorPicker.Trigger />
+                          </ColorPicker.Control>
+                          <Portal>
+                            <ColorPicker.Positioner>
+                              <ColorPicker.Content>
+                                <ColorPicker.Area />
+                                <HStack>
+                                  <ColorPicker.Sliders />
+                                </HStack>
+                              </ColorPicker.Content>
+                            </ColorPicker.Positioner>
+                          </Portal>
+                        </ColorPicker.Root>
+                        {hasOverride ? (
+                          <IconButton variant="outline" onClick={() => field.handleChange(null)}>
+                            <LuX />
+                          </IconButton>
+                        ) : null}
+                      </HStack>
+                    </Stack>
+                  </field.Field>
+                );
+              }}
+            </group.AppField>
+
             <RadioGroup
               value={isProxy ? characterId : ""}
               onValueChange={(details) => {
@@ -195,7 +265,7 @@ const ParticipantCard = withFieldGroup({
               }}
             >
               <Radio value={characterId}>
-                <Text fontSize="sm">Use for {"{{user}}"} replacements</Text>
+                Force as <Code>{"{{user}}"}</Code>
               </Radio>
             </RadioGroup>
           </Stack>
@@ -204,3 +274,30 @@ const ParticipantCard = withFieldGroup({
     );
   },
 });
+
+function ParticipantCardSkeleton() {
+  return (
+    <Card.Root variant="outline">
+      <Card.Body>
+        <Stack gap={3}>
+          <HStack justify="space-between">
+            <HStack gap={2}>
+              <Skeleton boxSize="40px" borderRadius="md" />
+              <VStack gap={0} align="start">
+                <Skeleton height="16px" width="100px" />
+                <Skeleton height="12px" width="60px" />
+              </VStack>
+            </HStack>
+            <Skeleton boxSize="24px" borderRadius="md" />
+          </HStack>
+
+          <Skeleton height="32px" width="100%" />
+
+          <Skeleton height="80px" width="100%" />
+
+          <Skeleton height="32px" width="100%" />
+        </Stack>
+      </Card.Body>
+    </Card.Root>
+  );
+}

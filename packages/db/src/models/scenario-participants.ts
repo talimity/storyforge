@@ -24,6 +24,7 @@ export const scenarioParticipants = sqliteTable(
     role: text("role"), // Free-form role description (e.g., "Player", "GM", etc.)
     isUserProxy: integer("is_user_proxy", { mode: "boolean" }).notNull().default(false), // Indicates if this participant replaces {{user}} macros
     orderIndex: integer("order_index").notNull().default(0), // Display order
+    colorOverride: text("color_override"),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),

@@ -20,12 +20,14 @@ describe("scenarios router integration", () => {
         characterData: {
           name: "Test Character",
           description: "A test character for integration testing",
+          defaultColor: "#6b7280",
         },
       }),
       await charaWriter.createCharacter({
         characterData: {
           name: "Another Test Character",
           description: "Another test character for integration testing",
+          defaultColor: "#6b7280",
         },
       }),
     ];

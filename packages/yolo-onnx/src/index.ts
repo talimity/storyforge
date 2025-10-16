@@ -342,7 +342,7 @@ export interface CropResultOptions {
  */
 export async function cropByFocalPoint(
   imageInput: sharp.SharpInput,
-  focal: Pick<FocalPoint, "x" | "y" | "width" | "height">,
+  focal: { x: number; y: number; w: number; h: number },
   {
     padding = 1.2,
     square = true,
@@ -360,7 +360,11 @@ export async function cropByFocalPoint(
   }
 
   // Face bounding-box (absolute px)
-  const baseBox = focalPointToBox(focal, imgW, imgH);
+  const baseBox = focalPointToBox(
+    { x: focal.x, y: focal.y, width: focal.w, height: focal.h },
+    imgW,
+    imgH
+  );
 
   const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 

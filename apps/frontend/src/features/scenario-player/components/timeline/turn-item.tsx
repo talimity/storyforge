@@ -32,10 +32,14 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
   const overlay = useTurnUiStore(selectOverlayForTurn(turn.id));
 
   const isEditing = editingTurnId === turn.id;
-  const { getCharacterByParticipantId } = useScenarioContext();
+  const { getCharacterByParticipantId, participantsById } = useScenarioContext();
   const authorChar = getCharacterByParticipantId(turn.authorParticipantId);
   const authorName = authorChar?.name ?? "Narrator";
   const avatarSrc = getApiUrl(authorChar?.avatarPath ?? undefined);
+  const participant = participantsById[turn.authorParticipantId];
+  const dialogueColor = participant?.color
+    ? participant.color.toLowerCase()
+    : (authorChar?.defaultColor?.toLowerCase() ?? null);
 
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const { isPreviewing, previewSibling } = useBranchPreview();
@@ -120,6 +124,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
           <StreamingMarkdown
             text={turn.content.text}
             dialogueAuthorId={authorChar?.id ?? null}
+            dialogueTintColor={dialogueColor}
             maxW="85ch"
             size="lg"
             data-testid="turn-content"

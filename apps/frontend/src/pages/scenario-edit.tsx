@@ -97,6 +97,10 @@ function ScenarioEditPage() {
       characterId: participant.character.id,
       role: participant.role || undefined,
       isUserProxy: participant.isUserProxy || false,
+      colorOverride:
+        participant.color.toLowerCase() !== participant.character.defaultColor.toLowerCase()
+          ? participant.color.toLowerCase()
+          : null,
     })),
     lorebooks: scenario.lorebooks,
   };
@@ -138,7 +142,8 @@ function ScenarioEditPage() {
               participants: vals.participants.map((participant) => ({
                 characterId: participant.characterId,
                 role: participant.role,
-                isUserProxy: participant.isUserProxy ?? false,
+                isUserProxy: participant.isUserProxy,
+                colorOverride: participant.colorOverride,
               })),
               lorebooks: serializeLorebookAssignments(vals.lorebooks),
             });

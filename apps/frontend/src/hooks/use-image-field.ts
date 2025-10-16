@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { FILE_ERROR_MESSAGES, showErrorToast } from "@/lib/error-handling";
 
-// Discriminated union for proper image state management
 export type ImageFieldState =
   | { type: "none" }
   | { type: "existing"; url: string; displayName?: string }
@@ -121,7 +120,7 @@ export function useImageField({
   const getDisplayName = useCallback((): string | null => {
     switch (state.type) {
       case "existing":
-        return state.displayName || "Current Image";
+        return state.displayName || null;
       case "new":
         return state.displayName;
       default:

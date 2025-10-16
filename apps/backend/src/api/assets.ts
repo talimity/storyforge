@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { getCharacterPortrait } from "../services/character/character.queries.js";
 import { getCharaAssetCacheKey } from "../services/character/utils/chara-asset-helpers.js";
-import { getCharaAvatarCrop } from "../services/character/utils/face-detection.js";
+import { getCharaAvatarCrop } from "../services/character/utils/portraits.js";
 
 const cacheBustingQuerySchema = z.object({
   cb: z.string().optional(),

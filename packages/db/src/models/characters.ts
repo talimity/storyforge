@@ -23,6 +23,7 @@ export const characters = sqliteTable("characters", {
   isStarred: integer("is_starred", { mode: "boolean" }).notNull().default(false),
   tavernCardData: text("tavern_card_data", { mode: "json" }),
   portrait: blob("portrait", { mode: "buffer" }),
+  defaultColor: text("default_color").notNull().default("#6b7280"),
   portraitFocalPoint: text("portrait_focal_point", { mode: "json" })
     .$type<{
       x: number;

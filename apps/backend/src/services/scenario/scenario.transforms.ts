@@ -13,9 +13,16 @@ export function transformScenarioParticipant(
     throw new Error(`Scenario participant ${p.id} has no character`);
   }
 
+  const character = transformCharacterSummary(p.character);
+  const color = (p.colorOverride ?? character.defaultColor).toLowerCase();
+
   return {
-    ...p,
-    character: transformCharacterSummary(p.character),
+    id: p.id,
+    role: p.role,
+    orderIndex: p.orderIndex,
+    isUserProxy: p.isUserProxy,
+    color,
+    character,
   };
 }
 

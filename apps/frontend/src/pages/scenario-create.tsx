@@ -44,6 +44,7 @@ function ScenarioCreatePage() {
               characterId: participant.characterId,
               role: participant.role,
               isUserProxy: participant.isUserProxy ?? false,
+              colorOverride: participant.colorOverride ?? null,
             })),
             lorebooks: serializeLorebookAssignments(vals.lorebooks),
           });

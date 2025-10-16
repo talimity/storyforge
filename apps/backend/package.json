@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsgo -p tsconfig.json --noEmit",
-    "typecheck:legacy": "tsc -p tsconfig.json --noEmit"
+    "typecheck:legacy": "tsc -p tsconfig.json --noEmit",
+    "reset-character-colors": "tsx src/scripts/reset-character-colors.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
@@ -27,13 +28,14 @@
     "@storyforge/contracts": "workspace:*",
     "@storyforge/db": "workspace:*",
     "@storyforge/gentasks": "workspace:*",
-    "@storyforge/lorebooks": "workspace:*",
     "@storyforge/inference": "workspace:*",
+    "@storyforge/lorebooks": "workspace:*",
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/timeline-events": "workspace:*",
     "@storyforge/utils": "workspace:*",
     "@storyforge/yolo-onnx": "workspace:*",
     "@trpc/server": "catalog:",
+    "colorthief": "catalog:",
     "fastify": "^5.6.1",
     "fastify-plugin": "^5.1.0",
     "fastify-sse-v2": "^4.2.1",
@@ -49,14 +51,15 @@
     "zod-openapi": "catalog:"
   },
   "devDependencies": {
+    "@types/colorthief": "catalog:",
     "@types/node": "catalog:",
     "@types/png-chunk-text": "^1.0.3",
     "@types/png-chunks-encode": "^1.0.2",
     "@types/png-chunks-extract": "^1.0.2",
+    "@typescript/native-preview": "catalog:",
     "drizzle-orm": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "@typescript/native-preview": "catalog:",
     "vitest": "catalog:"
   }
 }

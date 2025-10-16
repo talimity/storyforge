@@ -55,6 +55,7 @@ export async function listCharacters(db: SqliteDatabase, params?: ListCharacters
       turnCount: sql<number>`COALESCE(${turnStats.turnCount}, 0)`,
       lastTurnAt: turnStats.lastTurnAt,
       hasPortrait: sql<number>`CASE WHEN ${tCharacters.portrait} IS NULL THEN 0 ELSE 1 END`,
+      defaultColor: tCharacters.defaultColor,
     })
     .from(tCharacters)
     .leftJoin(turnStats, eq(turnStats.characterId, tCharacters.id))
@@ -123,6 +124,7 @@ export async function listCharacters(db: SqliteDatabase, params?: ListCharacters
       turnCount: Number(row.turnCount ?? 0),
       imagePath,
       avatarPath,
+      defaultColor: row.defaultColor,
     };
   });
 }
@@ -210,6 +212,7 @@ export async function searchCharacters(
       cardType: tCharacters.cardType,
       hasPortrait: sql<number>`${tCharacters.portrait} IS NOT NULL`,
       updatedAt: tCharacters.updatedAt,
+      defaultColor: tCharacters.defaultColor,
     })
     .from(tCharacters)
     .$dynamic();
@@ -263,5 +266,6 @@ export async function searchCharacters(
     name: char.name,
     cardType: char.cardType,
     ...getCharaAssetPaths(char),
+    defaultColor: char.defaultColor,
   }));
 }

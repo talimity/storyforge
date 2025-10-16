@@ -1,9 +1,15 @@
 import { z } from "zod";
 
+const hexColorSchema = z
+  .string()
+  .regex(/^#[0-9a-fA-F]{6}$/)
+  .describe("Hex RGB color string (e.g., #336699)");
+
 const scenarioParticipantFormSchema = z.object({
   characterId: z.string(),
   role: z.string().optional(),
   isUserProxy: z.boolean(),
+  colorOverride: hexColorSchema.optional().nullable(),
 });
 
 const manualLorebookFormSchema = z.object({

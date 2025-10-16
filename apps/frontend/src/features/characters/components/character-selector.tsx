@@ -54,6 +54,7 @@ function useCharacterCollection(
     cardType: character.cardType,
     imagePath: character.imagePath,
     avatarPath: character.avatarPath,
+    defaultColor: character.defaultColor,
   }));
 
   const combinedCharacters = getCombinedCharacters(characters, requiredCharacters);

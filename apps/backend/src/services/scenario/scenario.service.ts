@@ -6,7 +6,7 @@ import type {
 } from "@storyforge/contracts";
 import {
   type Scenario,
-  type ScenarioParticipant,
+  type ScenarioParticipant as ScenarioParticipantRow,
   type SqliteDatabase,
   type SqliteTransaction,
   schema,
@@ -52,6 +52,7 @@ export class ScenarioService {
             isUserProxy: participant.isUserProxy ?? false,
             orderIndex,
             type: "character" as const,
+            colorOverride: participant.colorOverride,
           }))
         )
         .returning({
@@ -175,7 +176,13 @@ export class ScenarioService {
       assertDefined(p.characterId);
       const input = inputById.get(p.characterId);
       if (!input) return false;
-      return p.role !== input.role || p.isUserProxy !== input.isUserProxy;
+
+      const { role: newRole, isUserProxy: newProxy, colorOverride: newColor } = input;
+      const roleChanged = newRole !== undefined && newRole !== p.role;
+      const proxyChanged = newProxy !== p.isUserProxy;
+      const colorChange = newColor !== undefined && newColor !== p.colorOverride;
+
+      return roleChanged || proxyChanged || colorChange;
     });
 
     // Execute removals (hard delete if no turns exist)
@@ -239,6 +246,7 @@ export class ScenarioService {
           isUserProxy: p.isUserProxy ?? false,
           orderIndex: nextOrder++,
           type: "character" as const,
+          colorOverride: p.colorOverride,
         }))
       );
     }
@@ -251,10 +259,7 @@ export class ScenarioService {
 
       await tx
         .update(schema.scenarioParticipants)
-        .set({
-          role: input.role,
-          isUserProxy: input.isUserProxy ?? false,
-        })
+        .set(input)
         .where(eq(schema.scenarioParticipants.id, existing.id));
     }
   }
@@ -408,9 +413,9 @@ export class ScenarioService {
   async addParticipant(
     args: {
       scenarioId: string;
-      characterId: ScenarioParticipant["characterId"];
-      type: ScenarioParticipant["type"];
-      role?: ScenarioParticipant["role"];
+      characterId: ScenarioParticipantRow["characterId"];
+      type: ScenarioParticipantRow["type"];
+      role?: ScenarioParticipantRow["role"];
     },
     outerTx?: SqliteTransaction
   ) {
@@ -449,6 +454,7 @@ export class ScenarioService {
           type,
           role,
           orderIndex: type === "narrator" ? 999 : maxOrderIndex + 1,
+          colorOverride: null,
         })
         .returning();
 

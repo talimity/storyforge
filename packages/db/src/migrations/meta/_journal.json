@@ -183,6 +183,13 @@
       "when": 1761099358609,
       "tag": "0025_add-model-instruction",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1761142827474,
+      "tag": "0026_character-colors",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { imageDataUriSchema } from "../utils/data-uri-validation.js";
 
+export const hexColorSchema = z
+  .string()
+  .toLowerCase()
+  .regex(/^#[0-9a-fA-F]{6}$/)
+  .describe("Hex RGB color string (e.g., #336699)");
+
 export const cardTypeSchema = z.enum(["character", "group", "persona", "scenario"]);
 export type CardType = z.infer<typeof cardTypeSchema>;
 
@@ -108,6 +114,7 @@ export const characterSchema = z.object({
   tavernCardData: z.any().nullable(),
   imagePath: z.string().nullable(),
   avatarPath: z.string().nullable(),
+  defaultColor: hexColorSchema,
   portraitFocalPoint: focalPointSchema, // exposed so edit UI can seed crop
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -121,6 +128,7 @@ export const characterSummarySchema = characterSchema.pick({
   creatorNotes: true,
   avatarPath: true,
   imagePath: true,
+  defaultColor: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -181,10 +189,16 @@ export const characterAutocompleteItemSchema = z.object({
   imagePath: z.string().nullable(),
   avatarPath: z.string().nullable(),
   cardType: cardTypeSchema,
+  defaultColor: hexColorSchema,
 });
 
 export const characterAutocompleteResponseSchema = z.object({
   characters: z.array(characterAutocompleteItemSchema),
+});
+
+export const characterColorPaletteResponseSchema = z.object({
+  current: hexColorSchema,
+  palette: z.array(hexColorSchema),
 });
 
 // Export inferred types
@@ -204,6 +218,7 @@ export type CharactersListQueryInput = z.infer<typeof charactersListQuerySchema>
 export type CharacterAutocompleteInput = z.infer<typeof characterAutocompleteInputSchema>;
 export type CharacterAutocompleteItem = z.infer<typeof characterAutocompleteItemSchema>;
 export type CharacterAutocompleteResponse = z.infer<typeof characterAutocompleteResponseSchema>;
+export type CharacterColorPaletteResponse = z.infer<typeof characterColorPaletteResponseSchema>;
 export type CharacterStarterInput = z.infer<typeof characterStarterInputSchema>;
 export type FocalPoint = z.infer<typeof focalPointSchema>;
 export type SetCharacterStarredInput = z.infer<typeof setCharacterStarredSchema>;

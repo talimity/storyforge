@@ -9,13 +9,17 @@ import type {
 } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import { eq } from "drizzle-orm";
-import { identifyCharacterFace, maybeProcessCharaImage } from "./utils/face-detection.js";
 import {
   parseTavernCard,
   type TavernCard,
   type TavernCardV1,
   type TavernCardV2,
 } from "./utils/parse-tavern-card.js";
+import {
+  getColorsFromCharaImage,
+  identifyCharacterFace,
+  maybeProcessCharaImage,
+} from "./utils/portraits.js";
 
 export class CharacterService {
   constructor(private db: SqliteDatabase) {}
@@ -126,12 +130,27 @@ export class CharacterService {
     const { id, starters, imageDataUri, portraitFocalPoint, ...updates } = input;
     const characterUpdates: Partial<NewCharacter> = { ...updates };
 
-    const imageUpdates = await this.resolveImageUpdate(imageDataUri);
+    const existing = await this.db
+      .select({
+        id: schema.characters.id,
+        name: schema.characters.name,
+        defaultColor: schema.characters.defaultColor,
+      })
+      .from(schema.characters)
+      .where(eq(schema.characters.id, id))
+      .get();
+
+    if (!existing) {
+      return undefined;
+    }
+
+    const imageUpdates = await maybeProcessCharaImage(imageDataUri);
     if (imageUpdates) {
       characterUpdates.portrait = imageUpdates.portrait;
       if ("portraitFocalPoint" in imageUpdates) {
         characterUpdates.portraitFocalPoint = imageUpdates.portraitFocalPoint;
       }
+      characterUpdates.defaultColor = imageUpdates.defaultColor;
     }
 
     if (portraitFocalPoint) {
@@ -169,33 +188,6 @@ export class CharacterService {
     return identifyCharacterFace(record.portrait);
   }
 
-  private async resolveImageUpdate(imageDataUri: UpdateCharacterInput["imageDataUri"]): Promise<
-    | { portrait: Buffer | null }
-    | {
-        portrait: Buffer;
-        portraitFocalPoint: NewCharacter["portraitFocalPoint"];
-      }
-    | undefined
-  > {
-    if (imageDataUri === undefined) {
-      return undefined;
-    }
-
-    if (imageDataUri === null) {
-      return { portrait: null };
-    }
-
-    const processed = await maybeProcessCharaImage(imageDataUri);
-    if (!processed) {
-      return undefined;
-    }
-
-    return {
-      portrait: processed.portrait,
-      portraitFocalPoint: processed.portraitFocalPoint,
-    };
-  }
-
   async deleteCharacter(id: string) {
     const result = await this.db
       .delete(schema.characters)
@@ -221,6 +213,7 @@ export class CharacterService {
     imageBuffer: Buffer,
     focalPoint: NewCharacter["portraitFocalPoint"]
   ) {
+    const colors = await getColorsFromCharaImage(imageBuffer, focalPoint);
     const characterData = {
       name: card.data.name,
       description: card.data.description,
@@ -236,6 +229,7 @@ export class CharacterService {
       tavernCardData: JSON.stringify(card),
       portrait: imageBuffer,
       portraitFocalPoint: focalPoint,
+      defaultColor: colors[0],
     };
 
     const starters: NewCharacterStarter[] = [];
@@ -265,6 +259,7 @@ export class CharacterService {
     imageBuffer: Buffer,
     focalPoint: NewCharacter["portraitFocalPoint"]
   ) {
+    const colors = await getColorsFromCharaImage(imageBuffer, focalPoint);
     const characterData = {
       name: card.name,
       description: card.description,
@@ -280,6 +275,7 @@ export class CharacterService {
       tavernCardData: JSON.stringify(card),
       portrait: imageBuffer,
       portraitFocalPoint: focalPoint,
+      defaultColor: colors[0],
     };
 
     const starters: NewCharacterStarter[] = [];

@@ -96,7 +96,6 @@ export function CharacterForm({
 
   const imageField = useImageField({
     initialUrl: initialData?.imageDataUri ?? undefined,
-    initialDisplayName: "Current Portrait",
   });
 
   const [showCropDialog, setShowCropDialog] = useState(false);

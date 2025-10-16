@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { characterStarterSchema, characterSummarySchema } from "./character.js";
+import { characterStarterSchema, characterSummarySchema, hexColorSchema } from "./character.js";
 import { intentSchema } from "./intents.js";
 import { scenarioLorebookAssignmentInputSchema, scenarioLorebookItemSchema } from "./lorebook.js";
 
@@ -12,6 +12,7 @@ const scenarioParticipantInputSchema = z.object({
   characterId: z.string().min(1),
   role: z.string().optional(),
   isUserProxy: z.boolean().default(false),
+  colorOverride: hexColorSchema.optional().nullable(),
 });
 
 export const createScenarioSchema = z.object({
@@ -44,6 +45,7 @@ export const assignCharacterSchema = z.object({
   characterId: z.string().min(1),
   role: z.string().optional(),
   orderIndex: z.number().int().min(0).optional(),
+  colorOverride: hexColorSchema.optional().nullable(),
 });
 
 export const unassignCharacterSchema = z.object({
@@ -67,6 +69,7 @@ export const scenarioParticipantSchema = z.object({
   role: z.string().nullish(),
   orderIndex: z.number(),
   isUserProxy: z.boolean(),
+  color: hexColorSchema,
   character: characterSummarySchema, // Populated character data
 });
 
@@ -169,6 +172,7 @@ export const playEnvironmentOutputSchema = z.object({
         type: z.enum(["character", "narrator", "deleted_character"]),
         status: z.enum(["active", "inactive"]),
         characterId: z.string().nullable(),
+        color: hexColorSchema.nullable(),
       })
     )
     .describe("Participants in the scenario (including narrator)"),
@@ -179,6 +183,7 @@ export const playEnvironmentOutputSchema = z.object({
         name: z.string(),
         imagePath: z.string().nullable(),
         avatarPath: z.string().nullable(),
+        defaultColor: hexColorSchema,
       })
     )
     .describe("Characters in the scenario"),
