@@ -54,13 +54,22 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
     async (dir: "left" | "right") => {
       if (isGenerating) return;
       const siblingId = dir === "left" ? turn.swipes?.leftTurnId : turn.swipes?.rightTurnId;
-      await previewSibling(siblingId);
+      await previewSibling(siblingId, turn.id);
     },
-    [isGenerating, previewSibling, turn.swipes]
+    [isGenerating, previewSibling, turn.swipes, turn.id]
   );
 
   const shouldRenderActions = isEditing || inView;
   const isDeleteOverlayActive = overlay?.mode === "delete";
+
+  const colorStyle = useMemo(() => {
+    const resolvedDialogueColor =
+      typeof dialogueColor === "string" ? dialogueColor : "var(--chakra-colors-fg-emphasized)";
+
+    return {
+      "--input-color": resolvedDialogueColor,
+    } as React.CSSProperties;
+  }, [dialogueColor]);
 
   return (
     <Box
@@ -72,6 +81,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
       data-testid="turn-item"
       opacity={turn.isGhost ? 0.5 : 1}
       ref={ref}
+      style={colorStyle}
     >
       <Stack gap={2} pointerEvents={isDeleteOverlayActive ? "none" : undefined}>
         <HStack justify="space-between" pb={1} align="flex-start">
@@ -86,12 +96,12 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
               />
             )}
             <Stack gap={0}>
-              <Heading size="md" fontWeight="bold">
+              <Heading size="md" fontWeight="bold" layerStyle="tinted.normal">
                 {authorName}
               </Heading>
               <HStack gap={2}>
                 <Tooltip content={turn.createdAt.toLocaleString() ?? "Unknown"}>
-                  <Text fontSize="xs" color="content.muted">
+                  <Text fontSize="xs" layerStyle="tinted.muted">
                     #{turn.turnNo}
                   </Text>
                 </Tooltip>

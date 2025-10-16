@@ -477,6 +477,21 @@ const semanticTokens = defineSemanticTokens({
   },
 });
 
+export const tintedNormalStyle = makeTintedStyle("normal");
+export const tintedSubtleStyle = makeTintedStyle("subtle");
+export const tintedMutedStyle = makeTintedStyle("muted");
+
+function makeTintedStyle(key: string) {
+  return {
+    "--tint-source": `var(--input-color, currentColor, var(--chakra-colors-fg-${key === "normal" ? "emphasized" : key}))`,
+    "--tint-input-hued": "color-mix(in oklch, var(--tint-source) 99%, var(--_tint-seed) 1%)",
+    color:
+      `oklch(from var(--tint-input-hued) ` +
+      `calc(var(--tint-L-base-${key}) + (var(--tint-L-${key}) - var(--tint-L-base-${key})) * clamp(0, calc(c / var(--tint-C-norm)), 1))` +
+      ` clamp(0, calc(c * ${key === "normal" ? "0.85" : "0.50"}), var(--tint-C-cap-${key})) h)`,
+  };
+}
+
 // Layer styles for the two materials and interactables
 const layerStyles = defineLayerStyles({
   // Primary material
@@ -515,6 +530,11 @@ const layerStyles = defineLayerStyles({
       boxShadow: "medium",
     },
   },
+
+  // Tint layers
+  "tinted.normal": { value: tintedNormalStyle },
+  "tinted.subtle": { value: tintedSubtleStyle },
+  "tinted.muted": { value: tintedMutedStyle },
 });
 
 // Override input styles to support the two-material system
@@ -608,17 +628,48 @@ const buttonRecipe = {
   },
 };
 
+const tintConstants = {
+  ":where(:root, :host)": {
+    "--_tint-seed": "oklch(0.70 0.15 200)",
+
+    "--tint-L-normal": "0.64",
+    "--tint-L-subtle": "0.58",
+    "--tint-L-muted": "0.50",
+
+    "--tint-C-cap-normal": "0.18",
+    "--tint-C-cap-subtle": "0.14",
+    "--tint-C-cap-muted": "0.12",
+
+    "--tint-L-base-normal": "0.28",
+    "--tint-L-base-subtle": "0.24",
+    "--tint-L-base-muted": "0.22",
+
+    "--tint-C-norm": "0.05", // Normalization factor for chroma
+  },
+
+  "html.dark": {
+    "--tint-L-normal": "0.84",
+    "--tint-L-subtle": "0.78",
+    "--tint-L-muted": "0.70",
+
+    "--tint-C-cap-normal": "0.09",
+    "--tint-C-cap-subtle": "0.07",
+    "--tint-C-cap-muted": "0.05",
+
+    "--tint-L-base-normal": "0.94",
+    "--tint-L-base-subtle": "0.92",
+    "--tint-L-base-muted": "0.8",
+  },
+};
+
 // Complete theme configuration
 export const appTheme = defineConfig({
   globalCss: {
+    ...tintConstants,
     // Mainly only needed for dialogs as they are outside the app root
     body: {
       fontFamily: "var(--chakra-fonts-body)",
       color: "var(--chakra-colors-content)",
-    },
-    "h1, h2, h3, h4, h5, h6": {
-      fontFamily: "var(--chakra-fonts-heading)",
-      color: "var(--chakra-colors-content-emphasized)",
     },
     "::selection": {
       backgroundColor: {

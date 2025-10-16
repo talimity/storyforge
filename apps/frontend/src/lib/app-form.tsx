@@ -31,7 +31,6 @@ import {
 } from "@/components/ui";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
 import { FieldControl, type FieldPresentationProps } from "@/lib/form/field-control";
-// import JsonEditorField from "@/lib/form/json-editor";
 import { fieldContext, formContext, useFieldContext, useFormContext } from "./form-context";
 
 type TextInputFieldProps = FieldPresentationProps &
@@ -461,8 +460,9 @@ type SubscribedUnsavedChangesDialogProps = Partial<UnsavedChangesDialogProps>;
 function SubscribedUnsavedChangesDialog(props: SubscribedUnsavedChangesDialogProps) {
   const form = useFormContext();
   const isDirty = useStore(form.store, (state) => state.isDirty);
+  const isSubmitting = useStore(form.store, (state) => state.isSubmitting);
   const hasSubmitted = useStore(form.store, (state) => state.isSubmitSuccessful);
-  const hasUnsavedChanges = isDirty && !hasSubmitted;
+  const hasUnsavedChanges = isDirty && !hasSubmitted && !isSubmitting;
   const { message, ...dialogProps } = props;
   const effectiveMessage = message ?? "You have unsaved changes. Are you sure you want to leave?";
   const { showDialog, handleConfirmNavigation, handleCancelNavigation } =
@@ -488,13 +488,13 @@ export function createAppForm() {
     formContext,
     fieldComponents: {
       Field: FieldControl,
-      TextInput: TextInputField,
-      TextareaInput: TextareaField,
+      Checkbox: CheckboxField,
       JsonEditor: lazy(() => import("./form/json-editor")),
       NumberInput: NumberInputField,
       Select: SelectField,
-      Checkbox: CheckboxField,
       Switch: SwitchField,
+      TextInput: TextInputField,
+      TextareaInput: TextareaField,
     },
     formComponents: {
       SubmitButton,

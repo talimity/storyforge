@@ -31,6 +31,7 @@ export const createCharacterSchema = z.object({
   customSystemPrompt: z.string().nullish(),
   styleInstructions: z.string().nullish(),
   tags: z.array(z.string()).default([]),
+  defaultColor: hexColorSchema.optional(),
   revision: z.string().default("1.0"),
   // Form-provided starters for create
   starters: z
@@ -60,6 +61,7 @@ export const updateCharacterSchema = z.object({
   cardType: cardTypeSchema.optional(),
   imageDataUri: imageDataUriSchema.nullish(),
   styleInstructions: z.string().optional().nullable(),
+  defaultColor: hexColorSchema.optional(),
   // Allow overriding the portrait focal point without changing the portrait image
   portraitFocalPoint: focalPointSchema.optional(),
   // Form-provided starters for update (optional)

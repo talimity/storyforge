@@ -1,6 +1,7 @@
 "use client";
 
 import { chakra } from "@chakra-ui/react";
+import { tintedNormalStyle } from "@/theme";
 
 const TRAILING_PSEUDO_REGEX = /(::?[\w-]+(?:\([^)]*\))?)+$/;
 const EXCLUDE_CLASSNAME = ".not-prose";
@@ -18,7 +19,6 @@ export const Prose = chakra("div", {
     maxWidth: "65ch",
     fontSize: "sm",
     lineHeight: "1.7em",
-    "--dialogue-color": "var(--chakra-colors-fg-emphasized)",
     "& :where(*):first-of-type": {
       marginTop: "0 !important",
     },
@@ -54,14 +54,10 @@ export const Prose = chakra("div", {
       color: "fg.emphasized",
     },
     [inWhere("& q")]: {
-      // fontWeight: "500",
-      color: "var(--dialogue-color)",
+      color: "var(--chakra-colors-fg-emphasized)",
     },
     [inWhere("& q[data-author]")]: {
-      color: "var(--chakra-colors-fg-emphasized)",
-      "@supports (color: oklch(50% 0.1 180))": {
-        color: "color-mix(in oklch, var(--dialogue-color) 50%, var(--chakra-colors-fg-emphasized))",
-      },
+      ...tintedNormalStyle,
     },
     [inWhere("& q::before")]: {
       content: "none",
@@ -291,8 +287,8 @@ export const Prose = chakra("div", {
       color: "fg.muted",
     },
     [inWhere("& h1, h2, h3, h4")]: {
-      color: "fg",
       fontWeight: "600",
+      ...tintedNormalStyle,
     },
   },
   variants: {

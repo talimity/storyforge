@@ -1,12 +1,10 @@
 import {
   Card,
   Code,
-  ColorPicker,
   Grid,
+  Heading,
   HStack,
   IconButton,
-  Portal,
-  parseColor,
   Skeleton,
   Stack,
   Text,
@@ -17,6 +15,7 @@ import { LuX } from "react-icons/lu";
 import { Avatar, Field, Radio, RadioGroup } from "@/components/ui";
 import { cardTypeLabels } from "@/features/characters/character-enums";
 import { CharacterMultiSelect } from "@/features/characters/components/character-selector";
+import { CharacterPaletteEditor } from "@/features/characters/components/form/character-palette-editor";
 import { withFieldGroup } from "@/lib/app-form";
 import { formatFormError } from "@/lib/form/field-control";
 import { getApiUrl } from "@/lib/get-api-url";
@@ -161,7 +160,6 @@ const ParticipantCard = withFieldGroup({
 
     const displayName = characterData.name;
     const isProxy = group.state.values.isUserProxy;
-    const defaultColor = characterData.defaultColor;
 
     return (
       <Card.Root layerStyle="surface">
@@ -177,9 +175,9 @@ const ParticipantCard = withFieldGroup({
                   src={getApiUrl(characterData?.avatarPath)}
                 />
                 <VStack gap={0} align="start">
-                  <Text fontWeight="medium" truncate flex={1} minWidth={0}>
+                  <Heading size="md" truncate flex={1} minWidth={0}>
                     {displayName}
-                  </Text>
+                  </Heading>
                   <Text color="content.muted" textStyle="sm">
                     {cardTypeLabels[characterData?.cardType || "character"]}
                   </Text>
@@ -196,65 +194,14 @@ const ParticipantCard = withFieldGroup({
               </IconButton>
             </HStack>
 
-            <group.AppField name={"role"}>
-              {(field) => (
-                <field.TextInput
-                  label="Role"
-                  placeholder="e.g., Player, NPC, Antagonist (optional)"
-                  size="sm"
-                />
-              )}
-            </group.AppField>
-
-            <group.AppField name={"colorOverride"}>
-              {(field) => {
-                const current = field.state.value || defaultColor;
-                const hasOverride = current !== defaultColor;
-                console.log({
-                  current,
-                  defaultColor,
-                  hasOverride,
-                  characterId,
-                });
-                return (
-                  <field.Field label="Color" helperText="Affects dialogue color in the scenario.">
-                    <Stack gap={2}>
-                      <HStack gap={2} align="flex-end">
-                        <ColorPicker.Root
-                          key={`${characterId}_color`}
-                          name={`dialogue-color-${characterId}`}
-                          value={parseColor(current)}
-                          onValueChange={(details) => {
-                            field.handleChange(details.value.toString("hex").toLowerCase());
-                          }}
-                        >
-                          <ColorPicker.HiddenInput />
-                          <ColorPicker.Control width="full">
-                            <ColorPicker.Input />
-                            <ColorPicker.Trigger />
-                          </ColorPicker.Control>
-                          <Portal>
-                            <ColorPicker.Positioner>
-                              <ColorPicker.Content>
-                                <ColorPicker.Area />
-                                <HStack>
-                                  <ColorPicker.Sliders />
-                                </HStack>
-                              </ColorPicker.Content>
-                            </ColorPicker.Positioner>
-                          </Portal>
-                        </ColorPicker.Root>
-                        {hasOverride ? (
-                          <IconButton variant="outline" onClick={() => field.handleChange(null)}>
-                            <LuX />
-                          </IconButton>
-                        ) : null}
-                      </HStack>
-                    </Stack>
-                  </field.Field>
-                );
-              }}
-            </group.AppField>
+            <CharacterPaletteEditor
+              characterId={characterId}
+              label="Dialogue Color"
+              helperText="Affects dialogue color in the scenario."
+              form={group}
+              fields={{ selectedColor: "colorOverride" }}
+              allowReset
+            />
 
             <RadioGroup
               value={isProxy ? characterId : ""}

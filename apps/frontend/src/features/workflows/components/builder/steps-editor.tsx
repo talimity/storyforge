@@ -1,7 +1,8 @@
-import { Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
+import { Stack, VStack } from "@chakra-ui/react";
 import { createId } from "@storyforge/utils";
 import { LuListOrdered, LuListPlus } from "react-icons/lu";
 import { Button, EmptyState } from "@/components/ui";
+import { TabHeader } from "@/components/ui/tab-header";
 import { withForm } from "@/lib/app-form";
 import { workflowFormDefaultValues } from "./form-schemas";
 import { StepCard } from "./step-card";
@@ -10,7 +11,7 @@ export const StepsEditor = withForm({
   defaultValues: workflowFormDefaultValues,
   render: function Render({ form }) {
     return (
-      <form.Field name="steps" mode="array">
+      <form.AppField name="steps" mode="array">
         {(stepsField) => {
           const handleAdd = () => {
             const newStep = {
@@ -37,21 +38,17 @@ export const StepsEditor = withForm({
 
           return (
             <Stack gap={6}>
-              <HStack direction="row" justify="space-between">
-                <HStack gap={3}>
-                  <LuListOrdered size={20} />
-                  <VStack align="start" gap={0}>
-                    <Heading size="md">Workflow Steps</Heading>
-                    <Text color="content.muted" fontSize="sm">
-                      Configure content generation steps
-                    </Text>
-                  </VStack>
-                </HStack>
-                <Button variant="outline" onClick={handleAdd}>
-                  <LuListPlus />
-                  Add Step
-                </Button>
-              </HStack>
+              <TabHeader
+                title="Workflow Steps"
+                description="Configure content generation steps"
+                icon={LuListOrdered}
+                actions={
+                  <Button variant="outline" onClick={handleAdd}>
+                    <LuListPlus />
+                    Add Step
+                  </Button>
+                }
+              />
 
               {stepsField.state.value.length === 0 ? (
                 <EmptyState
@@ -87,7 +84,7 @@ export const StepsEditor = withForm({
             </Stack>
           );
         }}
-      </form.Field>
+      </form.AppField>
     );
   },
 });

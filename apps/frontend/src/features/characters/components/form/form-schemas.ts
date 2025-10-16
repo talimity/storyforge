@@ -10,11 +10,15 @@ export const characterFormSchema = createCharacterSchema
     starters: true,
     styleInstructions: true,
     imageDataUri: true,
+    defaultColor: true,
   })
   .extend({
     cardType: createCharacterSchema.shape.cardType.unwrap(),
     starters: createCharacterSchema.shape.starters.unwrap(),
     portraitFocalPoint: focalPointSchema.optional(),
+    // null needed for compatibility with chara palette editor, but needs to be
+    // handled properly in form submission
+    defaultColor: createCharacterSchema.shape.defaultColor.nullable(),
   });
 
 export const characterFormDefaultValues = init(characterFormSchema);

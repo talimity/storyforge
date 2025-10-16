@@ -5,7 +5,7 @@ import { SimplePageHeader } from "@/components/ui";
 import {
   CharacterForm,
   type CharacterFormData,
-} from "@/features/characters/components/character-form";
+} from "@/features/characters/components/form/character-form";
 import { showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 

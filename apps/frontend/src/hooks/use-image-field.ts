@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { FILE_ERROR_MESSAGES, showErrorToast } from "@/lib/error-handling";
+import { convertFileToDataUri } from "@/lib/file-to-data-uri";
 
 export type ImageFieldState =
   | { type: "none" }
@@ -57,30 +58,13 @@ export function useImageField({
     [allowedTypes, maxSizeBytes]
   );
 
-  const convertFileToDataUri = useCallback((file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        resolve(result);
-      };
-      reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
-      reader.readAsDataURL(file);
-    });
-  }, []);
-
   const handleUpload = useCallback(
     async (file: File) => {
       if (!validateFile(file)) return;
 
       try {
         const dataUri = await convertFileToDataUri(file);
-        setState({
-          type: "new",
-          file,
-          dataUri,
-          displayName: file.name,
-        });
+        setState({ type: "new", file, dataUri, displayName: file.name });
       } catch (error) {
         showErrorToast({
           title: FILE_ERROR_MESSAGES.PROCESS_FAILED,
@@ -89,7 +73,7 @@ export function useImageField({
         });
       }
     },
-    [validateFile, convertFileToDataUri]
+    [validateFile]
   );
 
   const handleRemove = useCallback(() => {
@@ -128,12 +112,10 @@ export function useImageField({
     }
   }, [state]);
 
-  const getFileSize = useCallback((): string | null => {
-    if (state.type === "new") {
-      return `${(state.file.size / 1024).toFixed(1)} KB`;
-    }
-    return null;
-  }, [state]);
+  const getFileSize = useCallback(
+    () => (state.type === "new" ? `${(state.file.size / 1024).toFixed(1)} KB` : null),
+    [state]
+  );
 
   // Get the value to submit to the API
   const getSubmissionValue = useCallback(() => {
@@ -147,10 +129,6 @@ export function useImageField({
     }
   }, [state]);
 
-  const isDirty = useCallback(() => {
-    return state.type === "new" || state.type === "removed";
-  }, [state.type]);
-
   return {
     state,
     handleUpload,
@@ -160,7 +138,6 @@ export function useImageField({
     getDisplayName,
     getFileSize,
     getSubmissionValue,
-    isDirty,
     hasImage: state.type === "existing" || state.type === "new",
   };
 }

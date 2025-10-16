@@ -38,8 +38,8 @@ import { useCharacterLibraryState } from "@/features/characters/hooks/use-charac
 import { useTRPC } from "@/lib/trpc";
 
 const viewModeOptions = [
-  { value: "list", label: <LuLayoutList /> },
   { value: "grid", label: <LuLayoutGrid /> },
+  { value: "list", label: <LuLayoutList /> },
 ];
 
 const characterSortOptions = [

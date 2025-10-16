@@ -69,7 +69,7 @@ export const ScenarioLorebookManager = withForm({
     }, [form, storedLorebooks, participantIds, characterLorebooks]);
 
     return (
-      <form.Field name="lorebooks" mode="array">
+      <form.AppField name="lorebooks" mode="array">
         {(lorebooksField) => {
           const lorebooks = lorebooksField.state.value ?? [];
           const manualEntries = lorebooks.filter(isManualEntry);
@@ -214,7 +214,7 @@ export const ScenarioLorebookManager = withForm({
             </Stack>
           );
         }}
-      </form.Field>
+      </form.AppField>
     );
   },
 });

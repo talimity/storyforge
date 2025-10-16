@@ -1,7 +1,8 @@
-import { Accordion, Badge, Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
+import { Accordion, Badge, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
 import { LuMessageSquarePlus } from "react-icons/lu";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/index";
+import { TabHeader } from "@/components/ui/tab-header";
 import { withFieldGroup } from "@/lib/app-form";
 import type { CharacterFormValues } from "./form-schemas";
 
@@ -50,13 +51,24 @@ export const CharacterStartersEditor = withFieldGroup({
 
           return (
             <VStack align="stretch" gap={4}>
-              <HStack justify="space-between" align="center">
-                <Heading size="md">Scenario Starters</Heading>
-                <Button onClick={handleAdd} variant="outline" disabled={disabled}>
-                  <LuMessageSquarePlus />
-                  Add Starter
-                </Button>
-              </HStack>
+              <TabHeader
+                title="Scenario Starters"
+                description="Starting turns to open a scenario with this character."
+                icon={LuMessageSquarePlus}
+                actions={
+                  <Button onClick={handleAdd} variant="outline" disabled={disabled}>
+                    <LuMessageSquarePlus />
+                    Add Starter
+                  </Button>
+                }
+              />
+              {/*<HStack justify="space-between" align="center">*/}
+              {/*  <Heading size="md">Scenario Starters</Heading>*/}
+              {/*  <Button onClick={handleAdd} variant="outline" disabled={disabled}>*/}
+              {/*    <LuMessageSquarePlus />*/}
+              {/*    Add Starter*/}
+              {/*  </Button>*/}
+              {/*</HStack>*/}
 
               {starters.length === 0 && (
                 <Text color="content.muted" fontSize="sm">

@@ -361,7 +361,6 @@ function createProviderCollection(providers: ProviderConfig[]) {
 }
 
 function createModelsCollection(models?: SearchModelsOutput["models"]) {
-  console.log("createModelsCollection", models?.length);
   return createListCollection({
     items: (models ?? []).map((model) => ({
       label: model.name || model.id,

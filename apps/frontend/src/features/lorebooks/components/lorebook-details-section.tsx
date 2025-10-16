@@ -1,5 +1,6 @@
-import { Heading, HStack, Stack, Text, VStack } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import { LuBookOpen } from "react-icons/lu";
+import { TabHeader } from "@/components/ui/tab-header";
 import { LorebookExtensionsSection } from "@/features/lorebooks/components/lorebook-extensions-section";
 import { withForm } from "@/lib/app-form";
 import { extensionsJsonSchema, lorebookFormDefaultValues } from "./form-schemas";
@@ -9,15 +10,11 @@ export const LorebookDetailsSection = withForm({
   render: function Render({ form }) {
     return (
       <Stack gap={6}>
-        <HStack gap={3}>
-          <LuBookOpen size={20} />
-          <VStack align="start" gap={0}>
-            <Heading size="md">Lorebook Metadata</Heading>
-            <Text color="content.muted" fontSize="sm">
-              Configure basic metadata and global settings.
-            </Text>
-          </VStack>
-        </HStack>
+        <TabHeader
+          title="Lorebook Metadata"
+          description="Configure basic metadata and global settings."
+          icon={LuBookOpen}
+        />
 
         <Stack gap={4}>
           <form.AppField name="name">

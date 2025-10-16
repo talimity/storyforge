@@ -1,4 +1,4 @@
-import { type ComponentPropsWithoutRef, type CSSProperties, memo, useMemo } from "react";
+import { type ComponentPropsWithoutRef, memo, useMemo } from "react";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -68,17 +68,8 @@ export const StreamingMarkdown = memo(function StreamingMarkdown({
   // instead of double line breaks for new paragraphs
   const remarkPlugins = useMemo(() => [remarkGfm, remarkBreaks], []);
 
-  const resolvedDialogueColor =
-    typeof dialogueTintColor === "string"
-      ? dialogueTintColor.toLowerCase()
-      : "var(--chakra-colors-fg-emphasized)";
-
-  const proseStyle: CSSProperties & { "--dialogue-color": string } = {
-    "--dialogue-color": resolvedDialogueColor,
-  };
-
   return (
-    <Prose maxW={maxW} size={size} style={proseStyle} {...rest}>
+    <Prose maxW={maxW} size={size} {...rest}>
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}

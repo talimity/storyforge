@@ -1,6 +1,7 @@
-import { Card, Heading, HStack, Separator, Stack, Text, VStack } from "@chakra-ui/react";
+import { Card, Stack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
 import { LuFileText } from "react-icons/lu";
+import { TabHeader } from "@/components/ui/tab-header";
 import { TaskKindSelect, taskKindOptions } from "@/components/ui/task-kind-select";
 import type { TemplateFormData } from "@/features/template-builder/template-form-schema";
 import { withForm } from "@/lib/app-form";
@@ -23,17 +24,11 @@ export const TemplateMetadata = withForm({
     return (
       <Card.Root layerStyle="surface">
         <Stack p={6} gap={4}>
-          <HStack gap={3}>
-            <LuFileText size={20} />
-            <VStack align="start" gap={0}>
-              <Heading size="md">Prompt Template Information</Heading>
-              <Text color="content.muted" fontSize="sm">
-                Basic metadata and configuration
-              </Text>
-            </VStack>
-          </HStack>
-
-          <Separator />
+          <TabHeader
+            title="Prompt Template Information"
+            description="Basic metadata and configuration"
+            icon={LuFileText}
+          />
 
           <Stack gap={4}>
             <form.AppField name="name">

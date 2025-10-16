@@ -4,6 +4,7 @@ import { useId, useRef, useState } from "react";
 import { LuFile, LuUpload, LuX } from "react-icons/lu";
 import { Button, Dialog, toaster } from "@/components/ui";
 import { showSuccessToast } from "@/lib/error-handling";
+import { convertFileToDataUri } from "@/lib/file-to-data-uri";
 import { useTRPC } from "@/lib/trpc";
 
 interface CharacterImportDialog {
@@ -74,18 +75,6 @@ export function CharacterImportDialog({ isOpen, onClose, onImportSuccess }: Char
         previews[file.name] = e.target?.result as string;
         setFilePreviews((prev) => ({ ...prev, ...previews }));
       };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const convertFileToDataUri = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        resolve(result);
-      };
-      reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
       reader.readAsDataURL(file);
     });
   };

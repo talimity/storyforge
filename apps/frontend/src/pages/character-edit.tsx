@@ -1,4 +1,4 @@
-import { Container, Heading, Separator, Spinner, Stack, Text } from "@chakra-ui/react";
+import { Container, Spinner, Stack, Text } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,10 +8,8 @@ import { CharacterDeleteDialog } from "@/features/characters/components/characte
 import {
   CharacterForm,
   type CharacterFormData,
-} from "@/features/characters/components/character-form";
-import { CharacterLorebookManager } from "@/features/characters/components/character-lorebook-manager";
+} from "@/features/characters/components/form/character-form";
 import { showSuccessToast } from "@/lib/error-handling";
-import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
 
 function CharacterEditPage() {
@@ -38,6 +36,7 @@ function CharacterEditPage() {
         queryClient.invalidateQueries(trpc.characters.list.pathFilter());
         if (id) {
           queryClient.invalidateQueries(trpc.characters.getById.queryFilter({ id }));
+          queryClient.invalidateQueries(trpc.characters.colorPalette.queryFilter({ id }));
         }
 
         navigate("/characters");
@@ -94,8 +93,9 @@ function CharacterEditPage() {
     description: character.description,
     cardType: character.cardType,
     styleInstructions: character.styleInstructions || "",
-    imageDataUri: character.avatarPath ? getApiUrl(character.avatarPath) || undefined : undefined,
+    imageDataUri: undefined,
     portraitFocalPoint: character.portraitFocalPoint,
+    defaultColor: character.defaultColor,
     starters: character.starters.map((s) => ({
       id: s.id,
       message: s.message,
@@ -121,23 +121,19 @@ function CharacterEditPage() {
         />
         <CharacterForm
           initialData={initialFormData}
-          onSubmit={(formData: CharacterFormData) =>
-            updateCharacterMutation.mutateAsync({ id: String(id), ...formData })
-          }
+          onSubmit={(formData: CharacterFormData) => {
+            const defaultColor = formData.defaultColor === null ? undefined : formData.defaultColor;
+
+            return updateCharacterMutation.mutateAsync({
+              id: String(id),
+              ...formData,
+              defaultColor,
+            });
+          }}
           onCancel={() => navigate("/characters")}
           submitLabel="Update Character"
-          portraitSrc={
-            character.imagePath
-              ? (getApiUrl(character.imagePath) ?? character.imagePath)
-              : undefined
-          }
-          characterId={id}
+          currentCharacter={character}
         />
-        <Separator my={6} />
-        <Stack gap={4}>
-          <Heading size="md">Linked Lorebooks</Heading>
-          <CharacterLorebookManager characterId={id ?? ""} />
-        </Stack>
       </Container>
 
       <CharacterDeleteDialog

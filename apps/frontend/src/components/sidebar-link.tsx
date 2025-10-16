@@ -12,7 +12,7 @@ interface SidebarLinkProps {
 
 export function SidebarLink({ to, icon, label, collapsed = false }: SidebarLinkProps) {
   const location = useLocation();
-  const isActive = location.pathname === to;
+  const isActive = location.pathname.startsWith(to);
 
   const linkContent = (
     <Button

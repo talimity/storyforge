@@ -3,7 +3,7 @@ import { useState } from "react";
 import ReactCrop, { type PercentCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import type { FocalPoint } from "@storyforge/contracts";
-import { Button, Dialog } from "@/components/ui";
+import { Button, Dialog } from "@/components/ui/index";
 
 const PADDING = 1.1; // must match server crop padding
 

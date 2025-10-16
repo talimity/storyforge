@@ -18,27 +18,54 @@ export function useBranchPreview() {
   const resolveLeaf = useMutation(trpc.timeline.resolveLeaf.mutationOptions());
   const switchTimeline = useMutation(trpc.timeline.switchTimeline.mutationOptions());
 
+  const commitSwitch = useCallback(
+    async (leafTurnId: string) => {
+      await switchTimeline.mutateAsync({ scenarioId: scenario.id, leafTurnId });
+      await Promise.all([
+        qc.invalidateQueries(trpc.timeline.window.pathFilter()),
+        qc.invalidateQueries(trpc.timeline.state.pathFilter()),
+        qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
+      ]);
+      setPreviewLeaf(null); // do this after invalidate resolves to avoid flickering
+    },
+    [switchTimeline, scenario.id, qc, trpc, setPreviewLeaf]
+  );
+
   const previewSibling = useCallback(
-    async (siblingId: string | null | undefined) => {
+    async (siblingId: string | null | undefined, currentTurnId: string) => {
       if (isGenerating || !siblingId) return;
 
-      const { leafTurnId } = await resolveLeaf.mutateAsync({
+      const { leafTurnId: siblingLeafId } = await resolveLeaf.mutateAsync({
         scenarioId: scenario.id,
         fromTurnId: siblingId,
       });
+      const siblingIsLeaf = siblingLeafId === siblingId;
 
       setPendingScrollTarget({ kind: "turn", turnId: siblingId, edge: "end" });
 
-      // If the resolved leaf equals the current anchor turn, we are effectively on the active timeline
-      // so clear preview; otherwise set preview to that leaf.
+      // If the target leaf is the same as the anchor, we are 'previewing' the
+      // active timeline, so exit preview.
       const anchor = scenario.anchorTurnId ?? null;
-      setPreviewLeaf(leafTurnId && anchor && leafTurnId === anchor ? null : leafTurnId);
+      if (siblingLeafId && anchor && siblingLeafId === anchor) {
+        setPreviewLeaf(null);
+      }
+      // Skip preview and switch immediately if the user is swiping through
+      // several leaf nodes of equal depth at the bottom of the active timeline.
+      else if (!previewLeafTurnId && siblingIsLeaf && currentTurnId === scenario.anchorTurnId) {
+        await commitSwitch(siblingLeafId);
+      }
+      // Preview the resolved leaf
+      else {
+        setPreviewLeaf(siblingLeafId && anchor && siblingLeafId === anchor ? null : siblingLeafId);
+      }
     },
     [
       isGenerating,
       resolveLeaf,
       scenario.id,
       scenario.anchorTurnId,
+      previewLeafTurnId,
+      commitSwitch,
       setPreviewLeaf,
       setPendingScrollTarget,
     ]
@@ -46,14 +73,8 @@ export function useBranchPreview() {
 
   const commitPreview = useCallback(async () => {
     if (!previewLeafTurnId) return;
-    await switchTimeline.mutateAsync({ scenarioId: scenario.id, leafTurnId: previewLeafTurnId });
-    await Promise.all([
-      qc.invalidateQueries(trpc.timeline.window.pathFilter()),
-      qc.invalidateQueries(trpc.timeline.state.pathFilter()),
-      qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
-    ]);
-    setPreviewLeaf(null); // do this after invalidate resolves to avoid flickering
-  }, [previewLeafTurnId, switchTimeline, scenario.id, setPreviewLeaf, qc, trpc]);
+    await commitSwitch(previewLeafTurnId);
+  }, [previewLeafTurnId, commitSwitch]);
 
   const exitPreview = useCallback(() => setPreviewLeaf(null), [setPreviewLeaf]);
 

@@ -22,7 +22,7 @@ export function createDataUriValidator(maxSizeBytes: number, mimeTypePattern?: R
       return estSize <= maxSizeBytes;
     },
     {
-      message: `File size must be less than ${maxSizeBytes / 1024 / 1024}MB`,
+      message: `File must be PNG or JPEG less than ${maxSizeBytes / 1024 / 1024}MB`,
     }
   );
 }

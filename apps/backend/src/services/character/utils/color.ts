@@ -1,7 +1,4 @@
 import { getColor, getPalette } from "colorthief";
-import { createChildLogger } from "../../../logging.js";
-
-const log = createChildLogger("character-color-utils");
 
 export const DEFAULT_CHARACTER_COLOR = "#6b7280".toLowerCase();
 
@@ -18,18 +15,18 @@ export async function extractDominantColor(imageBuffer: Buffer): Promise<string>
   try {
     const rgb = await getColor(imageBuffer);
     return rgbToHex(rgb).toLowerCase();
-  } catch (error) {
-    log.warn(error, "Failed to extract dominant color for character portrait");
+  } catch (_err) {
+    // log.warn("Failed to extract dominant color for character portrait");
     return DEFAULT_CHARACTER_COLOR;
   }
 }
 
 export async function extractDominantColors(imageBuffer: Buffer): Promise<string[]> {
   try {
-    const rgb = await getPalette(imageBuffer, 5);
+    const rgb = await getPalette(imageBuffer, 6, 1);
     return rgb.map((color) => rgbToHex(color).toLowerCase());
-  } catch (error) {
-    log.warn(error, "Failed to extract dominant colors for character portrait");
+  } catch (_er) {
+    // log.warn(error, "Failed to extract dominant colors for character portrait");
     return [DEFAULT_CHARACTER_COLOR];
   }
 }

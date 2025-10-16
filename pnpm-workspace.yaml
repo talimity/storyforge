@@ -3,6 +3,7 @@ packages:
   - packages/*
 
 catalog:
+  '@biomejs/biome': ^2.2.7
   '@libsql/client': ^0.15.10
   '@trpc/client': ^11.6.0
   '@trpc/react-query': ^11.6.0
@@ -12,7 +13,7 @@ catalog:
   '@types/hast': ^3.0.4
   '@types/json-schema': ^7.0.15
   '@types/node': ^24.8.1
-  '@typescript/native-preview': ^7.0.0-dev.20251018.1
+  '@typescript/native-preview': 7.0.0-dev.20251023.1
   colorthief: ^2.6.0
   drizzle-kit: beta
   drizzle-orm: 1.0.0-beta.1-ac4ce44
@@ -28,7 +29,7 @@ catalog:
   typescript: ^5.9.3
   unified: ^11.0.5
   unist-util-visit: ^5.0.0
-  vitest: ^3.2.4
+  vitest: ^4.0.2
   zod: ^4.1.12
   zod-openapi: ^5.4.3
 

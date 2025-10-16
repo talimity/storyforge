@@ -117,7 +117,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
   );
 
   const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
-  const buttonSize = isMobile ? "sm" : "2xs";
+  const buttonSize = isMobile ? "sm" : "xs";
   const isRetryAvailable = Boolean(turn.parentTurnId);
 
   const handleStartEdit = useCallback(() => {
@@ -370,6 +370,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
             size={buttonSize}
             variant="ghost"
             colorPalette={action.color || "neutral"}
+            layerStyle="tinted.subtle"
             onClick={action.onSelect}
             disabled={action.disabled || isPreviewing}
             aria-label={action.label || action.id}
@@ -387,6 +388,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
             <IconButton
               size={buttonSize}
               variant="ghost"
+              layerStyle="tinted.subtle"
               aria-label="More actions"
               disabled={isPreviewing}
             >

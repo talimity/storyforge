@@ -1,6 +1,7 @@
 import { Card, HStack, IconButton, Spinner, Stack, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LuTrash2 } from "react-icons/lu";
+import { LuFileText, LuTrash2 } from "react-icons/lu";
+import { TabHeader } from "@/components/ui/tab-header";
 import {
   LorebookMultiSelect,
   type LorebookSelectItem,
@@ -67,7 +68,12 @@ export function CharacterLorebookManager({ characterId }: CharacterLorebookManag
   const isBusy = lorebooksQuery.isLoading || linkMutation.isPending || unlinkMutation.isPending;
 
   return (
-    <Stack gap={4}>
+    <Stack gap={6}>
+      <TabHeader
+        title="Character Books"
+        description="Lorebooks which can be automatically used by this character in scenarios."
+        icon={LuFileText}
+      />
       <LorebookMultiSelect onSelect={handleAddLorebooks} disabled={linkMutation.isPending} />
 
       {lorebooksQuery.isLoading ? (

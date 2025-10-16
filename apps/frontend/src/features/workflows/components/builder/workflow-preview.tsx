@@ -10,12 +10,12 @@ import {
   Separator,
   Stack,
   Text,
-  VStack,
 } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { LuEye, LuPlay } from "react-icons/lu";
 import { Button, Field } from "@/components/ui";
+import { TabHeader } from "@/components/ui/tab-header";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
 import { ScenarioSingleSelect } from "@/features/scenarios/components/scenario-selector";
 import { useTRPC } from "@/lib/trpc";
@@ -67,15 +67,11 @@ export function WorkflowPreviewTab({ values }: Props) {
 
   return (
     <Stack gap={6}>
-      <HStack gap={3}>
-        <LuEye size={20} />
-        <VStack align="start" gap={0}>
-          <Heading size="md">Preview</Heading>
-          <Text color="content.muted" fontSize="sm">
-            Check workflow outputs and events with a fake model
-          </Text>
-        </VStack>
-      </HStack>
+      <TabHeader
+        title="Preview"
+        description="Check workflow outputs and events with a fake model"
+        icon={LuEye}
+      />
 
       <Card.Root p={4} layerStyle="surface">
         <Stack gap={4}>

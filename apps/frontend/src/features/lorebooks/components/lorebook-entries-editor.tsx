@@ -1,8 +1,6 @@
 import {
   ButtonGroup,
   Center,
-  Heading,
-  HStack,
   IconButton,
   Input,
   InputGroup,
@@ -16,6 +14,7 @@ import { useStore } from "@tanstack/react-form";
 import { useEffect, useRef, useState } from "react";
 import { LuChevronLeft, LuChevronRight, LuLibrary, LuPlus, LuSearch } from "react-icons/lu";
 import { Button, CloseButton, EmptyState } from "@/components/ui";
+import { TabHeader } from "@/components/ui/tab-header";
 import { withForm } from "@/lib/app-form";
 import {
   createLorebookEntryDraft,
@@ -30,7 +29,7 @@ export const LorebookEntriesEditor = withForm({
     const [editingId, setEditingId] = useState<Set<string>>(new Set<string>());
     const [matchedIds, setMatchedIds] = useState<Set<string> | null>(null);
     return (
-      <form.Field name="entries" mode="array">
+      <form.AppField name="entries" mode="array">
         {(entriesField) => {
           const entries = entriesField.state.value ?? [];
 
@@ -49,20 +48,17 @@ export const LorebookEntriesEditor = withForm({
 
           return (
             <Stack gap={6}>
-              <HStack justify="space-between" align="center">
-                <HStack gap={3}>
-                  <LuLibrary size={20} />
-                  <VStack align="start" gap={0}>
-                    <Heading size="md">Lore Entries</Heading>
-                    <Text color="content.muted" fontSize="sm">
-                      Entries are matched against recent turns to inject relevant lore content.
-                    </Text>
-                  </VStack>
-                </HStack>
-                <Button variant="outline" onClick={handleAdd}>
-                  <LuPlus /> Add Entry
-                </Button>
-              </HStack>
+              <TabHeader
+                title="Lore Entries"
+                description="Entries are matched against recent turns to inject relevant lore content."
+                icon={LuLibrary}
+                actions={
+                  <Button variant="outline" onClick={handleAdd}>
+                    <LuPlus /> Add Entry
+                  </Button>
+                }
+              />
+
               <LorebookEntriesFilter form={form} onFilterChange={setMatchedIds} />
 
               {entries.length === 0 ? (
@@ -121,7 +117,7 @@ export const LorebookEntriesEditor = withForm({
             </Stack>
           );
         }}
-      </form.Field>
+      </form.AppField>
     );
   },
 });

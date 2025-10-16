@@ -1,7 +1,6 @@
-import { Box, Heading, HStack, Icon, Image, Stack, Text, VStack } from "@chakra-ui/react";
-import { useId } from "react";
-import { LuUpload, LuX } from "react-icons/lu";
-import { Button } from "@/components/ui";
+import { Heading, HStack, Image, Stack, Text, VStack } from "@chakra-ui/react";
+import { LuX } from "react-icons/lu";
+import { Button } from "@/components/ui/index";
 import type { useImageField } from "@/hooks/use-image-field";
 
 interface CharacterImageFieldProps {
@@ -18,67 +17,15 @@ interface CharacterImageFieldProps {
 export function CharacterImageField({
   imageField,
   isDisabled = false,
-  onFileChange,
   onRemove,
   onAdjustCrop,
   overridePreviewUrl,
   onResetCrop,
   isResettingCrop = false,
 }: CharacterImageFieldProps) {
-  const imageInputId = useId();
-
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault();
-  };
-
-  const handleDrop = async (event: React.DragEvent) => {
-    event.preventDefault();
-    const files = Array.from(event.dataTransfer.files);
-    await imageField.handleFiles(files);
-  };
-
   return (
     <Stack gap={4}>
       <Heading size="md">Portrait Image</Heading>
-
-      {!imageField.hasImage && (
-        <Box
-          border="2px dashed"
-          borderColor="border.muted"
-          borderRadius="md"
-          p={8}
-          textAlign="center"
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          _hover={{ borderColor: "border.emphasized" }}
-          cursor="pointer"
-          onClick={() => document.getElementById(imageInputId)?.click()}
-        >
-          <VStack gap={3}>
-            <Icon fontSize="3xl" color="fg.muted">
-              <LuUpload />
-            </Icon>
-            <VStack gap={1}>
-              <Text fontWeight="medium">Drop portrait image here or click to browse</Text>
-              <Text fontSize="xs" color="fg.muted">
-                Supports PNG and JPEG files up to 10MB. A 2:3 aspect ratio is recommended.
-              </Text>
-            </VStack>
-            <Button size="sm" variant="outline" disabled={isDisabled}>
-              Select File
-            </Button>
-          </VStack>
-
-          <input
-            id={imageInputId}
-            type="file"
-            accept="image/png,image/jpeg,image/jpg"
-            style={{ display: "none" }}
-            onChange={onFileChange}
-            disabled={isDisabled}
-          />
-        </Box>
-      )}
 
       {imageField.hasImage && (
         <HStack p={4} layerStyle="surface" justify="space-between" align="center">

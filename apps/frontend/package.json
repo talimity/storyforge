@@ -81,7 +81,7 @@
     "react-intersection-observer": "^9.16.0",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "catalog:",
-    "vite": "^7.1.10",
+    "vite": "^7.1.12",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vitest": "catalog:"
   }

@@ -97,8 +97,6 @@ describe("IntentContextBuilder", () => {
     const builder = new IntentContextBuilder(db, SCENARIO_ID);
     const ctx = await builder.buildContext({ actorParticipantId: PARTICIPANT_ID });
 
-    console.log(ctx.turns);
-
     expect(ctx.turns).toHaveLength(2);
     expect(ctx.turns[0].turnNo).toBe(1);
     expect(ctx.turns[0].content).toBe("Root turn");
