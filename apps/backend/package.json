@@ -35,7 +35,7 @@
     "@storyforge/utils": "workspace:*",
     "@storyforge/yolo-onnx": "workspace:*",
     "@trpc/server": "catalog:",
-    "colorthief": "catalog:",
+    "colorthief": "^2.6.0",
     "fastify": "^5.6.1",
     "fastify-plugin": "^5.1.0",
     "fastify-sse-v2": "^4.2.1",
@@ -51,7 +51,7 @@
     "zod-openapi": "catalog:"
   },
   "devDependencies": {
-    "@types/colorthief": "catalog:",
+    "@types/colorthief": "^2.6.0",
     "@types/node": "catalog:",
     "@types/png-chunk-text": "^1.0.3",
     "@types/png-chunks-encode": "^1.0.2",
