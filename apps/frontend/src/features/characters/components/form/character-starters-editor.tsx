@@ -53,7 +53,7 @@ export const CharacterStartersEditor = withFieldGroup({
             <VStack align="stretch" gap={4}>
               <TabHeader
                 title="Scenario Starters"
-                description="Starting turns to open a scenario with this character."
+                description="Opening turns for this character in a scenario."
                 icon={LuMessageSquarePlus}
                 actions={
                   <Button onClick={handleAdd} variant="outline" disabled={disabled}>
@@ -146,12 +146,12 @@ const StarterItem = withFieldGroup({
                 );
               }}
             </group.Subscribe>
-            {isPrimary && <Badge size="sm">Primary</Badge>}
+            {isPrimary && <Badge size="sm">Default</Badge>}
           </HStack>
           <Accordion.ItemIndicator />
         </Accordion.ItemTrigger>
         <Accordion.ItemContent>
-          <Accordion.ItemBody px={0}>
+          <Accordion.ItemBody px={1}>
             <VStack align="stretch" gap={4} width="full">
               <group.AppField name="id">
                 {(field) => (
@@ -162,8 +162,9 @@ const StarterItem = withFieldGroup({
               <group.AppField name="message">
                 {(field) => (
                   <field.TextareaInput
-                    label="Message"
-                    helperText="You can use Markdown here"
+                    label="Text"
+                    helperText="Provide the opening message for this starter."
+                    placeholder="Enter starter message..."
                     minRows={4}
                     maxRows={20}
                   />
@@ -176,7 +177,7 @@ const StarterItem = withFieldGroup({
                     colorPalette="primary"
                     onCheckedChange={(checked) => onPrimaryToggle(checked)}
                   >
-                    Use as primary greeting
+                    Default Starter
                   </field.Switch>
                 )}
               </group.AppField>

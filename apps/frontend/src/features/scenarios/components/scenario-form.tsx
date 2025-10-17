@@ -141,10 +141,10 @@ export function ScenarioForm({
               </Text>
               <ScenarioLorebookManager form={form} disabled={false} />
             </Stack>
+          </Stack>
 
-            <Separator />
-
-            {/* Form Actions */}
+          {/* Form Actions */}
+          <Card.Footer borderTopWidth={1} borderTopColor="border" pt={6}>
             <HStack justify="space-between" width="full">
               <form.AppForm>
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
@@ -155,7 +155,7 @@ export function ScenarioForm({
                 </form.SubmitButton>
               </form.AppForm>
             </HStack>
-          </Stack>
+          </Card.Footer>
         </form>
       </Card.Root>
 

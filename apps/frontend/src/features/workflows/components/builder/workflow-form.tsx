@@ -1,4 +1,4 @@
-import { Card, HStack, Stack, Tabs } from "@chakra-ui/react";
+import { Card, HStack, Tabs } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import { useId } from "react";
 import { LuEye, LuInfo, LuListOrdered } from "react-icons/lu";
@@ -86,7 +86,7 @@ export function WorkflowForm(props: WorkflowFormProps) {
             </Tabs.Content>
           </Tabs.Root>
 
-          <Stack p={6} pt={0}>
+          <Card.Footer borderTopWidth={1} borderTopColor="border" pt={6}>
             <HStack justify="space-between" width="full">
               <form.AppForm>
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
@@ -97,7 +97,7 @@ export function WorkflowForm(props: WorkflowFormProps) {
                 </form.SubmitButton>
               </form.AppForm>
             </HStack>
-          </Stack>
+          </Card.Footer>
         </form>
       </Card.Root>
 

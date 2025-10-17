@@ -16,7 +16,7 @@ import {
 import type { ChatCompletionMessage } from "@storyforge/inference";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useMemo } from "react";
-import { Button, Dialog } from "@/components/ui";
+import { Button, Dialog, StreamingMarkdown } from "@/components/ui";
 import { useTRPC } from "@/lib/trpc";
 
 interface GenerationInfoDialogProps {
@@ -326,7 +326,7 @@ export function GenerationInfoDialog({ turnId, isOpen, onOpenChange }: Generatio
           <Accordion.ItemContent>
             <Accordion.ItemBody>
               <Box>
-                <JsonBlock value={data.finalOutputs} />
+                <OutputsBlock outputs={data.finalOutputs} />
               </Box>
             </Accordion.ItemBody>
           </Accordion.ItemContent>
@@ -380,6 +380,30 @@ function MessageList({ messages, label }: { messages: ChatCompletionMessage[]; l
           </Box>
         );
       })}
+    </Stack>
+  );
+}
+
+function OutputsBlock({ outputs }: { outputs: Record<string, unknown> }) {
+  const keys = Object.keys(outputs);
+  if (!keys.length) {
+    return (
+      <Text fontSize="sm" color="content.muted">
+        No outputs captured.
+      </Text>
+    );
+  }
+
+  return (
+    <Stack gap={4}>
+      {keys.map((key) => (
+        <Box key={key} bg="bg.muted" p={3} borderRadius="md">
+          <Text fontWeight="medium" mb={1}>
+            {key}
+          </Text>
+          <StreamingMarkdown text={String(outputs[key])} />
+        </Box>
+      ))}
     </Stack>
   );
 }

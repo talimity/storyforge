@@ -20,8 +20,8 @@ export const characterIdsSchema = z.object({
 });
 
 export const createCharacterSchema = z.object({
-  name: z.string().min(1),
-  description: z.string(),
+  name: z.string().min(1, "Name is required").max(500, "Name is too long"),
+  description: z.string().max(50000, "Description is too long"),
   cardType: cardTypeSchema.default("character"),
   imageDataUri: imageDataUriSchema.nullish(),
   legacyPersonality: z.string().nullish(),
@@ -38,7 +38,7 @@ export const createCharacterSchema = z.object({
     .array(
       z.object({
         id: z.string().optional(),
-        message: z.string().min(1),
+        message: z.string().min(1, "Starter message is required"),
         isPrimary: z.boolean(),
       })
     )

@@ -1,4 +1,4 @@
-import { Card, HStack, Stack, Tabs } from "@chakra-ui/react";
+import { Card, HStack, Tabs } from "@chakra-ui/react";
 import { useId } from "react";
 import { LuInfo, LuLibrary } from "react-icons/lu";
 import type { z } from "zod";
@@ -63,8 +63,8 @@ export function LorebookForm({
             </Tabs.Content>
           </Tabs.Root>
 
-          <Stack p={6} pt={0}>
-            <HStack justify="space-between">
+          <Card.Footer borderTopWidth={1} borderTopColor="border" pt={6}>
+            <HStack justify="space-between" width="full">
               <form.AppForm>
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
                   Cancel
@@ -74,7 +74,7 @@ export function LorebookForm({
                 </form.SubmitButton>
               </form.AppForm>
             </HStack>
-          </Stack>
+          </Card.Footer>
         </form>
       </Card.Root>
 

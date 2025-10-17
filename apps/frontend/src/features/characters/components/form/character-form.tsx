@@ -160,11 +160,11 @@ export function CharacterForm({
         <Separator />
 
         <Card.Body px={0} py={0}>
-          <Tabs.Root defaultValue="metadata" lazyMount unmountOnExit>
+          <Tabs.Root defaultValue="basic" lazyMount unmountOnExit>
             <Tabs.List>
-              <Tabs.Trigger value="metadata">
+              <Tabs.Trigger value="basic">
                 <LuInfo />
-                Metadata
+                Basic Info
               </Tabs.Trigger>
               <Tabs.Trigger value="starters">
                 <LuMessageCircle />
@@ -178,7 +178,7 @@ export function CharacterForm({
               )}
             </Tabs.List>
 
-            <Tabs.Content value="metadata" p={6}>
+            <Tabs.Content value="basic" p={6}>
               <Stack gap={4}>
                 <form.AppField name="name">
                   {(field) => (
