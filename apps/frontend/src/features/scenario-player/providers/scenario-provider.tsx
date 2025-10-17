@@ -3,32 +3,30 @@ import { useScenarioEnvironment } from "@/features/scenario-player/hooks/use-sce
 import { useScenarioTimelineState } from "@/features/scenario-player/hooks/use-scenario-timeline-state";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 
-type ScenarioEnvironment = ReturnType<typeof useScenarioEnvironment>;
-type ScenarioParticipant = ScenarioEnvironment["participants"][number];
-type ScenarioCharacter = ScenarioEnvironment["characters"][number];
-type ScenarioTimelineState = ReturnType<typeof useScenarioTimelineState>;
-type ScenarioChapter = ScenarioTimelineState["chapters"]["chapters"][number];
+type ScenarioCtxEnvironment = ReturnType<typeof useScenarioEnvironment>;
+export type ScenarioCtxParticipant = ScenarioCtxEnvironment["participants"][number];
+export type ScenarioCtxCharacter = ScenarioCtxEnvironment["characters"][number];
+type ScenarioCtxTimelineState = ReturnType<typeof useScenarioTimelineState>;
+type ScenarioCtxChapter = ScenarioCtxTimelineState["chapters"]["chapters"][number];
 
-type ScenarioCtx = ScenarioEnvironment & {
-  participantsById: Record<string, ScenarioParticipant>;
-  charactersById: Record<string, ScenarioCharacter>;
-  getCharacterByParticipantId: (participantId: string) => ScenarioCharacter | null;
-  timelineState: ScenarioTimelineState;
-  chapters: ScenarioTimelineState["chapters"]["chapters"];
-  chaptersByEventId: Record<string, ScenarioChapter>;
+type ScenarioCtx = ScenarioCtxEnvironment & {
+  participantsById: Record<string, ScenarioCtxParticipant>;
+  charactersById: Record<string, ScenarioCtxCharacter>;
+  getCharacterById: (characterId?: string | null) => ScenarioCtxCharacter | null;
+  getParticipantById: (participantId?: string | null) => ScenarioCtxParticipant | null;
+  getCharacterByParticipantId: (participantId: string) => ScenarioCtxCharacter | null;
+  timelineState: ScenarioCtxTimelineState;
+  chapters: ScenarioCtxTimelineState["chapters"]["chapters"];
+  chaptersByEventId: Record<string, ScenarioCtxChapter>;
   chapterLabelsByEventId: Record<string, string>;
-  deriveChapterLabel: (chapter: ScenarioChapter) => string;
+  deriveChapterLabel: (chapter: ScenarioCtxChapter) => string;
 };
 const ScenarioContext = createContext<ScenarioCtx | null>(null);
 
-export function ScenarioProvider({
-  scenarioId,
-  children,
-}: {
-  scenarioId: string;
-  children: ReactNode;
-}) {
+export function ScenarioProvider(props: { scenarioId: string; children: ReactNode }) {
+  const { scenarioId, children } = props;
   const env = useScenarioEnvironment(scenarioId);
+
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
   const timelineState = useScenarioTimelineState({
     scenarioId,
@@ -36,7 +34,7 @@ export function ScenarioProvider({
   });
   const chapters = useMemo(() => timelineState.chapters.chapters, [timelineState]);
   const deriveChapterLabel = useMemo(
-    () => (chapter: ScenarioChapter) => {
+    () => (chapter: ScenarioCtxChapter) => {
       const trimmed = chapter.title?.trim();
       return trimmed ? `Ch.${chapter.number} - ${trimmed}` : `Chapter ${chapter.number}`;
     },
@@ -62,6 +60,23 @@ export function ScenarioProvider({
     () => Object.fromEntries(env.characters.map((c) => [c.id, c])),
     [env.characters]
   );
+
+  const getCharacterById = useMemo(
+    () => (characterId?: string | null) => {
+      if (!characterId) return null;
+      return charactersById[characterId] || null;
+    },
+    [charactersById]
+  );
+
+  const getParticipantById = useMemo(
+    () => (participantId?: string | null) => {
+      if (!participantId) return null;
+      return participantsById[participantId] || null;
+    },
+    [participantsById]
+  );
+
   const getCharacterByParticipantId = useMemo(
     () => (participantId: string) => {
       const p = participantsById[participantId];
@@ -75,6 +90,8 @@ export function ScenarioProvider({
       ...env,
       participantsById,
       charactersById,
+      getCharacterById,
+      getParticipantById,
       getCharacterByParticipantId,
       timelineState,
       chapters,
@@ -86,6 +103,8 @@ export function ScenarioProvider({
       env,
       participantsById,
       charactersById,
+      getCharacterById,
+      getParticipantById,
       getCharacterByParticipantId,
       timelineState,
       chapters,

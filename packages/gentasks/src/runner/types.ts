@@ -72,6 +72,17 @@ export type WorkflowDeps<K extends TaskKind> = {
 export type WorkflowRunId = string;
 
 // Event types for workflow execution
+export type WorkflowRunResume = {
+  fromStepId: string;
+  seededOutputs: Record<string, unknown>;
+  stepResponses?: Record<string, ChatCompletionResponse>;
+};
+
+export type WorkflowRunStartOpts = {
+  parentSignal?: AbortSignal;
+  resume?: WorkflowRunResume;
+};
+
 export type WorkflowEvent =
   | {
       type: "run_started";
@@ -182,6 +193,6 @@ export interface WorkflowRunner<K extends TaskKind> {
   startRun(
     workflow: GenWorkflow<K>,
     ctx: ContextFor<K>,
-    opts: { parentSignal?: AbortSignal }
+    opts?: WorkflowRunStartOpts
   ): Promise<WorkflowRunHandle>;
 }

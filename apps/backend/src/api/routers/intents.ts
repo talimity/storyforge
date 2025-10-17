@@ -36,6 +36,7 @@ export const intentsRouter = router({
         scenarioId: input.scenarioId,
         ...input.parameters,
         branchFrom: input.branchFrom,
+        replayFrom: input.replayFrom,
       });
       return { intentId: result.id };
     }),

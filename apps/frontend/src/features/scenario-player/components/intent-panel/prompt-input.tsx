@@ -49,6 +49,7 @@ export function PromptInput(props: PromptInputProps) {
         variant="onContrast"
         bg="bg"
         pb={12}
+        mb={12}
         value={inputText}
         onChange={(e) => onInputChange(e.target.value)}
         disabled={textareaDisabled}

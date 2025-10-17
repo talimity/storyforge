@@ -1,56 +1,56 @@
-import { Box, Heading, HStack, SegmentGroup, Stack, Text } from "@chakra-ui/react";
-import type { IntentKind, TimelineTurn } from "@storyforge/contracts";
+import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
+import type { TimelineTurn } from "@storyforge/contracts";
 import { useStore } from "@tanstack/react-form";
-import { useEffect, useMemo } from "react";
-import { Avatar, Button } from "@/components/ui";
-import { CharacterMiniSelect } from "@/features/scenario-player/components/intent-panel/character-mini-select";
-import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { Avatar, Button, Tooltip } from "@/components/ui";
+import { GuidanceField } from "@/features/scenario-player/components/timeline/retry-form/guidance-field";
+import { IntentKindControl } from "@/features/scenario-player/components/timeline/retry-form/intent-kind-control";
+import { TargetCharacterField } from "@/features/scenario-player/components/timeline/retry-form/target-character-field";
+import {
+  type ScenarioCtxCharacter,
+  type ScenarioCtxParticipant,
+  useScenarioContext,
+} from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import {
   createIntentInputPayload,
   getInitialIntentFormValues,
-  INTENT_KIND_CONFIG,
-  type IntentFormValues,
   intentFormSchema,
 } from "@/features/scenario-player/utils/intent-form";
 import { useAppForm } from "@/lib/app-form";
 import { showErrorToast } from "@/lib/error-handling";
 import { getApiUrl } from "@/lib/get-api-url";
+import { useTRPC } from "@/lib/trpc";
 import { useScenarioIntentActions } from "../../hooks/use-scenario-intent-actions";
 import { selectIsGenerating, useIntentRunsStore } from "../../stores/intent-run-store";
 import { useTurnUiStore } from "../../stores/turn-ui-store";
+import { RetryReplaySection } from "./retry-replay-section";
+import { TurnHeader } from "./turn-header";
+
+function selectTintColor(
+  candidates: Array<ScenarioCtxParticipant | ScenarioCtxCharacter | null>
+): string | null {
+  return (
+    candidates
+      .map((c) => {
+        if (!c) return null;
+        if ("defaultColor" in c) return c.defaultColor;
+        return c.color || null;
+      })
+      .filter(Boolean)
+      .at(0)
+      ?.toLowerCase() || null
+  );
+}
 
 interface RetryInlineProps {
   turn: TimelineTurn;
 }
 
-const INTENT_KIND_SEGMENTS: Array<{ value: IntentKind; label: string; description: string }> = [
-  {
-    value: "manual_control",
-    label: "Direct Control",
-    description: "Write a character's turn directly; another character will respond",
-  },
-  {
-    value: "guided_control",
-    label: "Guided Control",
-    description: "Give high-level guidance to a character",
-  },
-  {
-    value: "narrative_constraint",
-    label: "Story Constraint",
-    description:
-      "Provide a specific goal or tone; the narrator will justify it in-universe before another character responds",
-  },
-  {
-    value: "continue_story",
-    label: "Continue Story",
-    description: "Let the model respond without additional guidance",
-  },
-];
-
 export function RetryInline({ turn }: RetryInlineProps) {
-  const { participants, participantsById, characters, charactersById, scenario } =
-    useScenarioContext();
+  const trpc = useTRPC();
+  const { participants, getCharacterById, getParticipantById, scenario } = useScenarioContext();
   const { createIntent } = useScenarioIntentActions();
   const startRun = useIntentRunsStore((state) => state.startRun);
   const isGenerating = useIntentRunsStore(selectIsGenerating);
@@ -58,21 +58,86 @@ export function RetryInline({ turn }: RetryInlineProps) {
   const closeOverlay = useTurnUiStore((state) => state.closeOverlay);
   const clearUiCutoff = useTurnUiStore((state) => state.clearUiCutoff);
 
-  const initialValues = useMemo(
-    () => getInitialIntentFormValues(turn, participants),
-    [participants, turn]
-  );
+  const generationInfoQuery = useQuery({
+    ...trpc.timeline.generationInfo.queryOptions({ turnId: turn.id }),
+    retry: false,
+  });
+
+  const generationInfo = generationInfoQuery.data;
+  const isGenerationInfoNotFound = generationInfoQuery.error?.data?.code === "NOT_FOUND";
 
   const form = useAppForm({
-    defaultValues: initialValues,
-    validators: { onChange: intentFormSchema },
+    formId: `retry-intent-form-${turn.id}`,
+    defaultValues: getInitialIntentFormValues(turn, participants),
+    validators: { onBlur: intentFormSchema },
     onSubmit: async ({ value }) => {
+      // todo: this is not idiomatic tanstack form validation
+
       try {
         const intentInput = createIntentInputPayload(value, participants);
+
+        let replayFrom:
+          | {
+              generationRunId: string;
+              resumeFromStepId: string;
+              expectedWorkflowId: string;
+              stepOutputOverrides?: Record<string, string>;
+            }
+          | undefined;
+
+        if (value.replayMode === "resume") {
+          if (!generationInfo) {
+            showErrorToast({
+              title: "Unable to reuse previous outputs",
+              error: "No generation history is available for this turn.",
+            });
+            return;
+          }
+
+          const resumeStepId = value.replayResumeStepId;
+          if (!resumeStepId) {
+            showErrorToast({
+              title: "Select a workflow step",
+              error: "Choose which workflow step to regenerate before retrying.",
+            });
+            return;
+          }
+
+          const stepOrder = generationInfo.stepOrder;
+          const resumeIndex = stepOrder.indexOf(resumeStepId);
+          if (resumeIndex <= 0) {
+            showErrorToast({
+              title: "Invalid replay step",
+              error: "The selected step cannot be replayed. Please pick a later step.",
+            });
+            return;
+          }
+
+          const overridesByStep = value.replayOverrides ?? {};
+          const flattened: Record<string, string> = {};
+          for (const stepId of stepOrder.slice(0, resumeIndex)) {
+            const stepOverrides = overridesByStep[stepId];
+            if (!stepOverrides) continue;
+            for (const [key, rawValue] of Object.entries(stepOverrides)) {
+              if (typeof rawValue === "string") {
+                flattened[key] = rawValue;
+              }
+            }
+          }
+
+          replayFrom = {
+            generationRunId: generationInfo.generationRunId,
+            resumeFromStepId: resumeStepId,
+            expectedWorkflowId: generationInfo.workflowId,
+            ...(Object.keys(flattened).length > 0 ? { stepOutputOverrides: flattened } : {}),
+          };
+        }
+
         const { intentId } = await createIntent({
           scenarioId: scenario.id,
           parameters: intentInput,
           branchFrom: { kind: "turn_parent", targetId: turn.id },
+          ...(replayFrom ? { replayFrom } : {}),
         });
         startRun({ intentId, scenarioId: scenario.id, kind: value.kind });
         closeOverlay(turn.id);
@@ -83,45 +148,39 @@ export function RetryInline({ turn }: RetryInlineProps) {
     },
   });
 
-  useEffect(() => {
-    form.reset(initialValues);
-  }, [form, initialValues]);
+  const author = getParticipantById(turn.authorParticipantId);
+  const authorCharacter = getCharacterById(author?.characterId);
+  const authorDisplayName = authorCharacter?.name ?? "Narrator";
+  const authorAvatar = authorCharacter?.avatarPath;
 
-  const kind = useStore(form.store, (state) => getKind(state.values.kind));
-  const config = INTENT_KIND_CONFIG[kind];
-
-  const formValues = useStore(form.store, (state) => state.values);
-
-  const handleKindChange = (nextKind: IntentKind) => {
-    form.setFieldValue("kind", nextKind);
-    const nextConfig = INTENT_KIND_CONFIG[nextKind];
-    if (!nextConfig.allowsTarget) {
-      form.setFieldValue("characterId", null);
-    }
-    if (!nextConfig.requiresText) {
-      form.setFieldValue("text", "");
-    }
-  };
-
-  const author = participantsById[turn.authorParticipantId];
-  const characterName = author?.characterId ? charactersById[author.characterId]?.name : null;
-  const speakerLabel = characterName ?? "Narrator";
-  const authorAvatar = author?.characterId ? charactersById[author.characterId]?.avatarPath : null;
-
-  const selectedCharacterId = resolveCharacterId(formValues);
-  const selectedCharacter = selectedCharacterId ? charactersById[selectedCharacterId] : null;
-  const displayName = selectedCharacter?.name ?? speakerLabel;
-  const displayAvatarPath = selectedCharacter?.avatarPath ?? authorAvatar ?? undefined;
+  const selectedCharacterId = useStore(form.store, (state) => state.values.characterId);
+  const selectedCharacter = getCharacterById(selectedCharacterId);
+  const displayName = selectedCharacter?.name ?? authorDisplayName;
+  const displayAvatarPath = selectedCharacter?.avatarPath ?? authorAvatar;
   const displayAvatarSrc = getApiUrl(displayAvatarPath);
+
+  const tintColor = selectTintColor([selectedCharacter, author, authorCharacter]);
+  const tintCss = { "--input-color": tintColor || "var(--chakra-colors-fg-emphasized)" };
+
+  const headerMetadata = useMemo(
+    () => [
+      <Tooltip key="turn-no" content={turn.createdAt.toLocaleString() ?? "Unknown"}>
+        <Text fontSize="xs" layerStyle="tinted.muted">
+          #{turn.turnNo}
+        </Text>
+      </Tooltip>,
+    ],
+    [turn.createdAt, turn.turnNo]
+  );
 
   // const newActor = displayName !== speakerLabel;
 
   return (
-    <Box layerStyle="surface" borderRadius="md" p={4} data-testid="retry-inline">
+    <Box layerStyle="surface" borderRadius="md" p={4} data-testid="retry-inline" css={tintCss}>
       <Stack gap={3} align="stretch">
-        <HStack justify="space-between" pb={1} align="flex-start">
-          <HStack alignItems="center" gap={3}>
-            {displayAvatarSrc ? (
+        <TurnHeader
+          avatar={
+            displayAvatarSrc && (
               <Avatar
                 shape="rounded"
                 layerStyle="surface"
@@ -129,103 +188,42 @@ export function RetryInline({ turn }: RetryInlineProps) {
                 name={displayName}
                 src={displayAvatarSrc}
               />
-            ) : null}
-            <Stack gap={0}>
-              <Heading size="md" fontWeight="bold">
-                {displayName}
-              </Heading>
-              <Text fontSize="xs" color="content.muted">
-                #{turn.turnNo}
-              </Text>
-            </Stack>
-          </HStack>
-        </HStack>
+            )
+          }
+          title={displayName}
+          metadata={headerMetadata}
+        />
 
         <Stack gap={4} pt={1}>
-          <Stack borderBottomWidth={1} borderBottomColor="border" pb={1}>
+          <Stack>
             <Heading size="md">Retry Options</Heading>
             <Text fontSize="sm" color="content.muted">
               Select a new direction for the story. The scenario will branch from this point.
             </Text>
           </Stack>
 
-          <Box overflowX="auto" maxW="100%" pb={1}>
-            <SegmentGroup.Root
-              value={kind}
-              onValueChange={(detail) => {
-                if (isIntentKind(detail.value)) {
-                  handleKindChange(detail.value);
-                }
-              }}
-              size="xs"
-              disabled={isGenerating}
-            >
-              <SegmentGroup.Indicator />
-              <SegmentGroup.Items
-                items={INTENT_KIND_SEGMENTS.map((item) => ({
-                  value: item.value,
-                  label: item.label,
-                }))}
-              />
-            </SegmentGroup.Root>
-            <Stack gap={1} pt={2}>
-              {INTENT_KIND_SEGMENTS.map((item) =>
-                item.value === kind ? (
-                  <Text key={item.value} fontSize="xs" color="content.muted">
-                    {item.description}
-                  </Text>
-                ) : null
-              )}
-            </Stack>
-          </Box>
+          <IntentKindControl form={form} isGenerating={isGenerating} />
 
-          {config.allowsTarget && (
-            <form.AppField name="characterId">
-              {(field) => {
-                const currentId = field.state.value ?? null;
-                const selectedName = currentId ? (charactersById[currentId]?.name ?? "") : "";
-                return (
-                  <field.Field label="Target Character" required={config.requiresTarget}>
-                    <Stack gap={2}>
-                      <HStack gap={2}>
-                        <CharacterMiniSelect
-                          characters={characters}
-                          value={currentId}
-                          onChange={(value) => {
-                            field.handleChange(value ?? "");
-                            field.handleBlur();
-                          }}
-                          portalled={false}
-                          disabled={isGenerating}
-                        />
-                        <Text fontSize="sm">{selectedName}</Text>
-                      </HStack>
-                    </Stack>
-                  </field.Field>
-                );
-              }}
-            </form.AppField>
-          )}
+          <TargetCharacterField
+            form={form}
+            fields={{ characterId: "characterId", kind: "kind" }}
+            isGenerating={isGenerating}
+          />
 
-          {config.requiresText ? (
-            <form.AppField name="text">
-              {(field) => (
-                <field.TextareaInput
-                  label="Intent Guidance"
-                  required
-                  minRows={3}
-                  maxRows={12}
-                  disabled={isGenerating}
-                />
-              )}
-            </form.AppField>
-          ) : (
-            <Box>
-              <Text fontSize="xs" color="content.muted">
-                No additional guidance needed. Select Retry to continue from this point.
-              </Text>
-            </Box>
-          )}
+          <GuidanceField
+            form={form}
+            fields={{ text: "text", kind: "kind", characterId: "characterId" }}
+            isGenerating={isGenerating}
+          />
+
+          <RetryReplaySection
+            form={form}
+            generationInfo={generationInfo}
+            isLoading={generationInfoQuery.isLoading}
+            isError={generationInfoQuery.isError}
+            isNotFound={isGenerationInfoNotFound}
+            isGenerating={isGenerating}
+          />
 
           <form.Subscribe
             selector={(state) => ({
@@ -277,23 +275,4 @@ export function RetryInline({ turn }: RetryInlineProps) {
       </Stack>
     </Box>
   );
-}
-
-function getKind(kind: IntentFormValues["kind"] | undefined): IntentKind {
-  return kind ?? "continue_story";
-}
-
-function isIntentKind(value: string | null | undefined): value is IntentKind {
-  if (!value) return false;
-  return INTENT_KIND_SEGMENTS.some((segment) => segment.value === value);
-}
-
-function resolveCharacterId(values: Partial<IntentFormValues>): string | null {
-  if (!values.kind) return null;
-  const raw = values.characterId;
-  if (typeof raw === "string") {
-    const trimmed = raw.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
-  return raw ?? null;
 }

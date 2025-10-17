@@ -1,4 +1,4 @@
-import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
+import { Box, Stack, Text } from "@chakra-ui/react";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Avatar, Button, StreamingMarkdown } from "@/components/ui";
@@ -6,6 +6,7 @@ import { AutoFollowOnDraft } from "@/features/scenario-player/components/timelin
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
 import { getApiUrl } from "@/lib/get-api-url";
+import { TurnHeader } from "./turn-header";
 
 // chakra avatar is kind of heavy so we don't want to render on every token
 const MemoAvatar = memo(Avatar, (prev, next) => prev.src === next.src);
@@ -23,13 +24,16 @@ export function DraftTurn() {
   const author = authorId ? getCharacterByParticipantId(authorId) : null;
   const authorName = author?.name ?? "Generating";
   const avatarSrc = getApiUrl(author?.avatarPath ?? undefined);
-
+  const tintColor = author?.defaultColor ? author.defaultColor.toLowerCase() : null;
   const shouldShowText = isPresentation || showInternal;
-  const hint = useMemo(() => (isPresentation ? null : "Draft"), [isPresentation]);
-  const approxTokens = useMemo(
-    () => (charCount > 0 ? Math.max(1, Math.round(charCount / 4)) : 0),
-    [charCount]
-  );
+  const hint = isPresentation ? null : "Draft";
+  const approxTokens = charCount > 0 ? Math.max(1, Math.round(charCount / 4)) : 0;
+
+  const tintCss = useMemo(() => {
+    const resolvedTint =
+      typeof tintColor === "string" ? tintColor : "var(--chakra-colors-fg-emphasized)";
+    return { "--input-color": resolvedTint };
+  }, [tintColor]);
 
   if (!isActive) return null;
 
@@ -42,11 +46,12 @@ export function DraftTurn() {
       data-testid="draft-turn-item"
       opacity={0.9}
       borderStyle="dashed"
+      css={tintCss}
     >
       <Stack gap={2}>
-        <HStack justify="space-between" pb={1}>
-          <HStack alignItems="center">
-            {avatarSrc && (
+        <TurnHeader
+          avatar={
+            avatarSrc ? (
               <MemoAvatar
                 shape="rounded"
                 layerStyle="surface"
@@ -54,24 +59,22 @@ export function DraftTurn() {
                 name={authorName}
                 src={avatarSrc}
               />
-            )}
-            <Stack gap={0}>
-              <Heading size="md" fontWeight="bold">
-                {authorName}
-              </Heading>
-              {hint && (
-                <Text fontSize="xs" color="content.subtle">
-                  {hint}
-                </Text>
-              )}
-            </Stack>
-          </HStack>
-          {!isPresentation && (
-            <Button size="xs" variant="ghost" onClick={() => setShowInternal((v) => !v)}>
-              {showInternal ? "Hide draft" : "Show draft"}
-            </Button>
-          )}
-        </HStack>
+            ) : null
+          }
+          title={authorName}
+          metadata={[
+            <Text fontSize="xs" layerStyle="tinted.muted" key="hint">
+              {hint}
+            </Text>,
+          ]}
+          rightSlot={
+            !isPresentation ? (
+              <Button size="xs" variant="ghost" onClick={() => setShowInternal((v) => !v)}>
+                {showInternal ? "Hide draft" : "Show draft"}
+              </Button>
+            ) : null
+          }
+        />
         {shouldShowText ? (
           previewText ? (
             <StreamingMarkdown
@@ -79,15 +82,14 @@ export function DraftTurn() {
               dialogueAuthorId={author?.id ?? null}
               maxW="85ch"
               size="lg"
-              color="content.muted"
             />
           ) : (
-            <Text fontSize="sm" color="content.muted">
+            <Text fontSize="md" color="content.muted">
               Thinking…
             </Text>
           )
         ) : (
-          <Text fontSize="sm" color="content.muted">
+          <Text fontSize="md" color="content.muted">
             {approxTokens > 0 ? `Thinking… (~${approxTokens} tokens)` : "Thinking…"}
           </Text>
         )}

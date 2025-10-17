@@ -28,7 +28,13 @@ const requiredTextSchema = z
     message: "Enter some guidance",
   });
 
-export const intentFormSchema = z.discriminatedUnion("kind", [
+const replaySettingsSchema = z.object({
+  replayMode: z.enum(["full", "resume"]),
+  replayResumeStepId: z.string().nullable(),
+  replayOverrides: z.record(z.string(), z.record(z.string(), z.string())).default({}).optional(),
+});
+
+const baseIntentSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("manual_control"),
     characterId: z.string().min(1, "Select a character"),
@@ -51,7 +57,18 @@ export const intentFormSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
+export const intentFormSchema = baseIntentSchema.and(replaySettingsSchema);
+
 export type IntentFormValues = z.infer<typeof intentFormSchema>;
+
+export const intentFormDefaultValues: IntentFormValues = {
+  kind: "continue_story",
+  characterId: null,
+  text: "",
+  replayMode: "full",
+  replayResumeStepId: null,
+  replayOverrides: {},
+};
 
 export function getInitialIntentFormValues(
   turn: TimelineTurn | null,
@@ -61,7 +78,14 @@ export function getInitialIntentFormValues(
   // not reuse the intent inputs because they generally only apply to the first
   // effect (subsequent effects are usually just continuations).
   if (!turn?.provenance || turn.provenance.effectSequence > 0) {
-    return { kind: "continue_story", characterId: null, text: "" };
+    return {
+      kind: "continue_story",
+      characterId: null,
+      text: "",
+      replayMode: "full",
+      replayResumeStepId: null,
+      replayOverrides: {},
+    };
   }
 
   const { intentKind, inputText, targetParticipantId } = turn.provenance;
@@ -73,13 +97,41 @@ export function getInitialIntentFormValues(
 
   switch (intentKind) {
     case "manual_control":
-      return { kind: "manual_control", characterId: characterId ?? "", text };
+      return {
+        kind: "manual_control",
+        characterId: characterId ?? "",
+        text,
+        replayMode: "full",
+        replayResumeStepId: null,
+        replayOverrides: {},
+      };
     case "guided_control":
-      return { kind: "guided_control", characterId: characterId ?? "", text };
+      return {
+        kind: "guided_control",
+        characterId: characterId ?? "",
+        text,
+        replayMode: "full",
+        replayResumeStepId: null,
+        replayOverrides: {},
+      };
     case "narrative_constraint":
-      return { kind: "narrative_constraint", characterId, text };
+      return {
+        kind: "narrative_constraint",
+        characterId,
+        text,
+        replayMode: "full",
+        replayResumeStepId: null,
+        replayOverrides: {},
+      };
     case "continue_story":
-      return { kind: "continue_story", characterId, text };
+      return {
+        kind: "continue_story",
+        characterId,
+        text,
+        replayMode: "full",
+        replayResumeStepId: null,
+        replayOverrides: {},
+      };
     default: {
       const exhaustiveCheck: never = intentKind;
       throw new Error(`Unsupported intent kind: ${exhaustiveCheck}`);

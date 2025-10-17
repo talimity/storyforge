@@ -1,6 +1,6 @@
-import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
+import { Box, HStack, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { useCallback, useMemo } from "react";
+import { type ReactNode, useCallback, useMemo } from "react";
 import { LuGhost } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
 import { Avatar, Button, StreamingMarkdown, Tooltip } from "@/components/ui";
@@ -20,6 +20,7 @@ import { getApiUrl } from "@/lib/get-api-url";
 import { DeleteOverlay } from "./delete-overlay";
 import { TurnActions } from "./turn-actions";
 import { TurnEditor } from "./turn-editor";
+import { TurnHeader } from "./turn-header";
 
 export interface TurnItemProps {
   turn: TimelineTurn;
@@ -62,14 +63,41 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
   const shouldRenderActions = isEditing || inView;
   const isDeleteOverlayActive = overlay?.mode === "delete";
 
-  const colorStyle = useMemo(() => {
+  const tintCss = useMemo(() => {
     const resolvedDialogueColor =
       typeof dialogueColor === "string" ? dialogueColor : "var(--chakra-colors-fg-emphasized)";
-
-    return {
-      "--input-color": resolvedDialogueColor,
-    } as React.CSSProperties;
+    return { "--input-color": resolvedDialogueColor };
   }, [dialogueColor]);
+
+  const headerMetadata = useMemo(() => {
+    const items: ReactNode[] = [
+      <Tooltip key="turn-no" content={turn.createdAt.toLocaleString() ?? "Unknown"}>
+        <Text fontSize="xs" layerStyle="tinted.muted">
+          #{turn.turnNo}
+        </Text>
+      </Tooltip>,
+    ];
+
+    if (inView && turn.isGhost) {
+      items.push(
+        <Text as="span" fontSize="xs" color="content.muted" key="ghost">
+          <Tooltip
+            content={
+              "This turn is not included in prompts or factored into the timeline's current state."
+            }
+          >
+            <LuGhost aria-label="Ghost turn" />
+          </Tooltip>
+        </Text>
+      );
+    }
+
+    if (inView && provenanceDisplay) {
+      items.push(<IntentProvenanceIndicator key="provenance" display={provenanceDisplay} />);
+    }
+
+    return items;
+  }, [inView, provenanceDisplay, turn.createdAt, turn.isGhost, turn.turnNo]);
 
   return (
     <Box
@@ -81,12 +109,12 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
       data-testid="turn-item"
       opacity={turn.isGhost ? 0.5 : 1}
       ref={ref}
-      style={colorStyle}
+      css={tintCss}
     >
       <Stack gap={2} pointerEvents={isDeleteOverlayActive ? "none" : undefined}>
-        <HStack justify="space-between" pb={1} align="flex-start">
-          <HStack alignItems="center" gap={3}>
-            {avatarSrc && (
+        <TurnHeader
+          avatar={
+            avatarSrc ? (
               <Avatar
                 shape="rounded"
                 layerStyle="surface"
@@ -94,39 +122,16 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
                 name={authorName}
                 src={avatarSrc}
               />
-            )}
-            <Stack gap={0}>
-              <Heading size="md" fontWeight="bold" layerStyle="tinted.normal">
-                {authorName}
-              </Heading>
-              <HStack gap={2}>
-                <Tooltip content={turn.createdAt.toLocaleString() ?? "Unknown"}>
-                  <Text fontSize="xs" layerStyle="tinted.muted">
-                    #{turn.turnNo}
-                  </Text>
-                </Tooltip>
-                {inView && turn.isGhost ? (
-                  <Text as="span" fontSize="xs" color="content.muted">
-                    <Tooltip
-                      content={
-                        "This turn is not included in prompts or factored into the timeline's current state."
-                      }
-                    >
-                      <LuGhost aria-label="Ghost turn" />
-                    </Tooltip>
-                  </Text>
-                ) : null}
-                {inView && provenanceDisplay && (
-                  <IntentProvenanceIndicator display={provenanceDisplay} />
-                )}
-              </HStack>
-            </Stack>
-          </HStack>
-
-          {shouldRenderActions ? (
-            <TurnActions turn={turn} isPreviewing={isPreviewing} isGenerating={isGenerating} />
-          ) : null}
-        </HStack>
+            ) : null
+          }
+          title={authorName}
+          metadata={headerMetadata}
+          rightSlot={
+            shouldRenderActions ? (
+              <TurnActions turn={turn} isPreviewing={isPreviewing} isGenerating={isGenerating} />
+            ) : null
+          }
+        />
 
         {isEditing ? (
           <TurnEditor turnId={turn.id} originalContent={turn.content.text} />

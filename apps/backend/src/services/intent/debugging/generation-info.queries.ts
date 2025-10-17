@@ -83,6 +83,7 @@ export async function getGenerationInfoForTurn(
     (run.participant?.type === "narrator" ? "Narrator" : (run.participant?.id ?? "Narrator"));
 
   return generationInfoOutputSchema.parse({
+    generationRunId: run.id,
     workflowId: run.workflowId,
     workflowName: run.workflow?.name ?? null,
     task: "turn_generation" as const,

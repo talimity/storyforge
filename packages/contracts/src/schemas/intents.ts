@@ -31,6 +31,15 @@ export const intentInputSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
+export const intentReplayInputSchema = z
+  .object({
+    generationRunId: z.string(),
+    resumeFromStepId: z.string(),
+    stepOutputOverrides: z.record(z.string(), z.unknown()).optional(),
+    expectedWorkflowId: z.string().optional(),
+  })
+  .describe("Replay configuration that seeds a workflow from a previous generation run");
+
 // Intent API schemas
 export const createIntentInputSchema = z.object({
   scenarioId: z.string(),
@@ -41,6 +50,7 @@ export const createIntentInputSchema = z.object({
     .describe(
       "Optionally creates a branching point by applying the intent's effects to a specified parent turn, or to the same parent of a previously-created intent"
     ),
+  replayFrom: intentReplayInputSchema.optional(),
 });
 export const createIntentOutputSchema = z.object({ intentId: z.string() });
 
@@ -83,3 +93,4 @@ export type IntentStatus = z.infer<typeof intentStatusSchema>;
 export type IntentEffect = z.infer<typeof intentEffectSchema>;
 export type IntentInterruptInput = z.infer<typeof intentInterruptInputSchema>;
 export type IntentInterruptOutput = z.infer<typeof intentInterruptOutputSchema>;
+export type IntentReplayInput = z.infer<typeof intentReplayInputSchema>;

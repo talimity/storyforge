@@ -29,6 +29,7 @@ import type {
   WorkflowEvent,
   WorkflowRunHandle,
   WorkflowRunner,
+  WorkflowRunStartOpts,
 } from "./types.js";
 
 const INFERENCE_REQUEST_TIMEOUT_MS = 1000 * 60 * 5;
@@ -64,7 +65,7 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
   async function startRun(
     workflow: GenWorkflow<K>,
     baseCtx: ContextFor<K>,
-    opts: { parentSignal?: AbortSignal } = {}
+    opts: WorkflowRunStartOpts = {}
   ): Promise<WorkflowRunHandle> {
     const validatedWorkflow = validateWorkflow(workflow);
 
@@ -82,8 +83,18 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
       signal,
       resultPromise,
     } = store.create(validatedWorkflow.id, validatedWorkflow.task);
+    const resume = opts.resume;
     const emit = (event: WorkflowEvent) => store.push(runId, event);
     const now = () => Date.now();
+
+    if (resume?.seededOutputs) {
+      store.updateStepOutputs(runId, resume.seededOutputs);
+    }
+    if (resume?.stepResponses) {
+      for (const [stepId, response] of Object.entries(resume.stepResponses)) {
+        store.saveStepResponse(runId, stepId, response);
+      }
+    }
 
     // Start execution in background
     // noinspection ES6MissingAwait
@@ -96,10 +107,22 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
         ts: now(),
       });
 
-      const stepOutputs: Record<string, unknown> = {};
+      const stepOutputs: Record<string, unknown> = resume?.seededOutputs
+        ? { ...resume.seededOutputs }
+        : {};
+      const startIdx = resume
+        ? validatedWorkflow.steps.findIndex((step) => step.id === resume.fromStepId)
+        : 0;
+      if (resume && startIdx === -1) {
+        throw new Error(
+          `Resume step ${resume.fromStepId} not found in workflow ${validatedWorkflow.id}`
+        );
+      }
 
       try {
-        for (const step of validatedWorkflow.steps) {
+        for (let idx = 0; idx < validatedWorkflow.steps.length; idx += 1) {
+          if (resume && idx < startIdx) continue;
+          const step = validatedWorkflow.steps[idx];
           // Check for cancellation
           if (signal.aborted) {
             throw new Error("Workflow cancelled");

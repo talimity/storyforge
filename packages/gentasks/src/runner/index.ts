@@ -32,5 +32,7 @@ export type {
   WorkflowRunHandle,
   WorkflowRunId,
   WorkflowRunner,
+  WorkflowRunResume,
   WorkflowRunSnapshot,
+  WorkflowRunStartOpts,
 } from "./types.js";

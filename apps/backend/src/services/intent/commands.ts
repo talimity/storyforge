@@ -1,5 +1,6 @@
 import type { IntentKind } from "@storyforge/contracts";
 import { type SqliteTxLike, schema } from "@storyforge/db";
+import type { GenWorkflow, WorkflowRunResume } from "@storyforge/gentasks";
 import { eq, sql } from "drizzle-orm";
 import { getTurngenWorkflowForScope } from "../workflows/workflow.queries.js";
 import { chooseNextActorFair } from "./actor-selection.js";
@@ -14,6 +15,16 @@ export function makeCommands(deps: IntentExecDeps) {
   const { db, timeline, runner, now, intentId, scenarioId } = deps;
   // Correlate the next insertTurn with the most recent workflow run
   let lastWorkflowRunId: string | undefined;
+  const replayState = deps.replay ? { ...deps.replay, consumed: false } : undefined;
+
+  // If a replay context is provided, consume it if the actor matches.
+  // Replay state can only be consumed by the first generateTurn call for the matching actor.
+  function consumeReplayIfEligible(actorId: string) {
+    if (!replayState || replayState.consumed) return undefined;
+    if (replayState.actorParticipantId !== actorId) return undefined;
+    replayState.consumed = true;
+    return replayState;
+  }
 
   return {
     insertTurn: async function* (args: {
@@ -77,20 +88,30 @@ export function makeCommands(deps: IntentExecDeps) {
       intentKind?: IntentKind;
       constraint?: string;
       branchFromTurnId?: string;
+      workflowOverride?: GenWorkflow<"turn_generation">;
+      resume?: WorkflowRunResume;
     }): IntentCommandGenerator<{ presentation: string; outputs: Record<string, unknown> }> {
       let partial = "";
       const intent = args.intentKind
         ? { kind: args.intentKind, constraint: args.constraint }
         : undefined;
+
+      // Build prompt render context
       const ctx = await new IntentContextBuilder(db, scenarioId).buildContext({
         actorParticipantId: args.actorId,
         intent,
         leafTurnId: args.branchFromTurnId ?? null,
       });
-      const workflow = await getTurngenWorkflowForScope(db, {
-        scenarioId,
-        participantId: args.actorId,
-      });
+
+      // Check for replay eligibility
+      const replay = args.resume
+        ? { workflow: args.workflowOverride, resume: args.resume }
+        : consumeReplayIfEligible(args.actorId);
+
+      // Pick workflow: from override > from replay payload > from matched scope
+      const fetchWorkflow = async () =>
+        getTurngenWorkflowForScope(db, { scenarioId, participantId: args.actorId });
+      const workflow = args.workflowOverride || (replay?.workflow ?? (await fetchWorkflow()));
 
       // Determine which steps are presentation steps (player-facing prose).
       // Heuristic: a step that captures assistant text under key "content".
@@ -110,7 +131,11 @@ export function makeCommands(deps: IntentExecDeps) {
         branchFromTurnId: args.branchFromTurnId,
         ts: now(),
       };
-      const handle = await runner.startRun(workflow, ctx, { parentSignal: deps.signal });
+
+      const handle = await runner.startRun(workflow, ctx, {
+        parentSignal: deps.signal,
+        resume: args.resume ?? replay?.resume,
+      });
       lastWorkflowRunId = handle.id;
 
       for await (const ev of handle.events()) {
@@ -132,6 +157,7 @@ export function makeCommands(deps: IntentExecDeps) {
       const { finalOutputs } = await handle.result;
       const text = String(finalOutputs.content ?? partial ?? "").trim();
       if (!text) throw new Error("Empty generation output");
+
       yield { type: "gen_finish", intentId, workflowId: workflow.id, text, ts: now() };
 
       return { presentation: text, outputs: finalOutputs };

@@ -138,6 +138,7 @@ export const generationInfoInputSchema = z.object({
   turnId: z.string(),
 });
 export const generationInfoOutputSchema = z.object({
+  generationRunId: z.string(),
   workflowId: z.string(),
   workflowName: z.string().nullable(),
   task: z.literal("turn_generation"),

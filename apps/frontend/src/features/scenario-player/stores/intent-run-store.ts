@@ -151,6 +151,9 @@ export const useIntentRunsStore = create<IntentRunsState>()(
               // turn finishes generating.
               run.truncateAfterTurnId = ev.branchFromTurnId;
             }
+            if (ev.participantId) {
+              run.currentActorParticipantId = ev.participantId;
+            }
             return;
           }
 

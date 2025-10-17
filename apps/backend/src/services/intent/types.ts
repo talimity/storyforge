@@ -1,11 +1,12 @@
-import type { IntentEvent } from "@storyforge/contracts";
+import type { IntentEvent, IntentReplayInput } from "@storyforge/contracts";
 import type { SqliteDatabase } from "@storyforge/db";
-import type { WorkflowRunner } from "@storyforge/gentasks";
+import type { GenWorkflow, WorkflowRunner, WorkflowRunResume } from "@storyforge/gentasks";
 import type { TimelineService } from "../timeline/timeline.service.js";
 
 export type CreateIntentArgs = {
   scenarioId: string;
   branchFrom?: { kind: "turn_parent" | "intent_start"; targetId: string };
+  replayFrom?: IntentReplayInput;
 } & (
   | { kind: "manual_control"; targetParticipantId: string; text: string }
   | { kind: "guided_control"; targetParticipantId: string; text: string }
@@ -25,6 +26,13 @@ export type IntentExecDeps = {
   scenarioId: string;
   signal: AbortSignal;
   branchFromTurnId?: string;
+  replay?: IntentReplayConfig;
+};
+
+export type IntentReplayConfig = {
+  actorParticipantId: string;
+  workflow: GenWorkflow<"turn_generation">;
+  resume: WorkflowRunResume;
 };
 
 export type IntentRunHandle = {
