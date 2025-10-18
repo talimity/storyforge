@@ -55,6 +55,7 @@ export type CharacterCtxDTO = {
   id: string;
   name: string;
   description: string;
+  styleInstructions?: string;
 };
 
 export type RunnerModelContext = {

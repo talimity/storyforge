@@ -12,6 +12,8 @@ export type TimelineScrollTarget =
     };
 
 export interface ScenarioPlayerState {
+  /** Whether player is ready */
+  isReady: boolean;
   /** Character selected in the sidebar, the target for new intents */
   selectedCharacterId: string | null;
   /** ID of the leaf turn we are previewing an alternate timeline, or null when not previewing */
@@ -24,6 +26,7 @@ export interface ScenarioPlayerState {
   shouldAutoFollow: () => boolean;
 
   // Actions
+  ready: () => void;
   setPendingScrollTarget: (t: TimelineScrollTarget | null) => void;
   setShouldAutoFollow: (cb: () => boolean) => void;
   setSelectedCharacter: (characterId: string | null) => void;
@@ -32,6 +35,7 @@ export interface ScenarioPlayerState {
 }
 
 const initialState = {
+  isReady: false,
   selectedCharacterId: null,
   previewLeafTurnId: null,
   pendingScrollTarget: null,
@@ -41,6 +45,11 @@ const initialState = {
 export const useScenarioPlayerStore = create<ScenarioPlayerState>()(
   immer((set) => ({
     ...initialState,
+
+    ready: () =>
+      set((state) => {
+        state.isReady = true;
+      }),
 
     setSelectedCharacter: (characterId) =>
       set((state) => {

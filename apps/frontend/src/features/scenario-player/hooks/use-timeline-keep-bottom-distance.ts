@@ -8,7 +8,6 @@ type Args<TScrollEl extends Element | Window, TItemEl extends Element> = {
   turns: { id: string }[];
 };
 
-// credit @zcfan via https://github.com/TanStack/virtual/discussions/195#discussioncomment-13906325
 export function useTimelineKeepBottomDistance<
   TScrollEl extends Element | Window,
   TItemEl extends Element,
@@ -31,6 +30,7 @@ export function useTimelineKeepBottomDistance<
   );
 
   const keepBottomDistance = useCallback(() => {
+    // adapted from https://github.com/TanStack/virtual/discussions/195#discussioncomment-13906325
     if (hasPendingScrollTarget) return;
     console.log("useTimelineKeepBottomDistance -> keepBottomDistance", {
       totalSize: virtualizer.getTotalSize(),

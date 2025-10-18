@@ -4,6 +4,7 @@ import { CharacterMiniSelect } from "@/features/scenario-player/components/inten
 import { GenerateOrCancelButton } from "@/features/scenario-player/components/intent-panel/generate-or-cancel-button";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
+import { useIsInputFocused } from "@/hooks/use-is-input-focused";
 
 type PromptInputProps = {
   withCharacterSelect?: boolean;
@@ -28,10 +29,10 @@ export function PromptInput(props: PromptInputProps) {
     placeholder,
   } = props;
 
-  const { characters, charactersById } = useScenarioContext();
+  const { characters, getCharacterById } = useScenarioContext();
   const { selectedCharacterId, setSelectedCharacter } = useScenarioPlayerStore();
 
-  const selectedCharacter = selectedCharacterId ? charactersById[selectedCharacterId] : null;
+  const selectedCharacter = getCharacterById(selectedCharacterId);
   const selectedCharacterName = selectedCharacter?.name ?? "";
   const selectionRequired = characterSelectionRequired ?? Boolean(withCharacterSelect);
   const hasSelectedCharacter = selectedCharacterName.length > 0;
@@ -42,21 +43,24 @@ export function PromptInput(props: PromptInputProps) {
     ? (placeholder ?? `Enter ${selectedCharacterName}'s action or dialogue...`)
     : (placeholder ?? (selectionRequired ? "Select a character..." : "Share your guidance..."));
 
+  const { ref: textareaRef, isFocused: isInputFocused } = useIsInputFocused();
+
   return (
     <Box position="relative" isolation="isolate">
       <AutosizeTextarea
+        ref={textareaRef}
         placeholder={textareaPlaceholder}
         variant="onContrast"
         bg="bg"
-        pb={12}
-        mb={12}
         value={inputText}
         onChange={(e) => onInputChange(e.target.value)}
         disabled={textareaDisabled}
+        minRows={isInputFocused ? 3 : 1}
+        style={{ transition: "min-height 0.2s ease" }}
       />
       <HStack
         gap="1"
-        position="absolute"
+        position="relative"
         bottom="2"
         insetStart="2"
         insetEnd="2"

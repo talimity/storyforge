@@ -8,7 +8,7 @@ import {
 } from "@storyforge/db";
 import type { CharacterCtxDTO, TurnGenCtx } from "@storyforge/gentasks";
 import { scanLorebooks } from "@storyforge/lorebooks";
-import { assertDefined } from "@storyforge/utils";
+import { assertDefined, stripNulls } from "@storyforge/utils";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.queries.js";
 import { getFullTimelineTurnCtx } from "../timeline/timeline.queries.js";
@@ -49,7 +49,8 @@ export class IntentContextBuilder {
       lorebooksPromise,
     ]);
 
-    const { characters, userProxyName, currentActorName } = charaData;
+    const { characters, userProxyName, actor, actorIsNarrator } = charaData;
+    const actorName = actorIsNarrator ? "Narrator" : actor.name;
 
     // Enrich turn DTO with events
     const eventsByTurn = eventDTOsByTurn(derivation.events);
@@ -64,7 +65,7 @@ export class IntentContextBuilder {
     const intentPrompt = intent
       ? getTurnIntentPrompt({
           kind: intent.kind,
-          targetName: currentActorName,
+          targetName: actorName,
           text: intent.constraint ?? null,
         })?.prompt
       : undefined;
@@ -79,6 +80,7 @@ export class IntentContextBuilder {
     return {
       turns: enrichedTurns,
       characters,
+      actor,
       ...(intent
         ? {
             currentIntent: {
@@ -90,10 +92,10 @@ export class IntentContextBuilder {
         : {}),
       nextTurnNumber,
       globals: {
-        char: currentActorName,
+        char: actorName,
         user: userProxyName,
         scenario: scenario.description,
-        isNarratorTurn: charaData.actorIsNarrator,
+        isNarratorTurn: actorIsNarrator,
       },
       loreEntriesByPosition: loreEntries,
     };
@@ -106,8 +108,8 @@ export class IntentContextBuilder {
    */
   private async loadParticipantCharaData(actorParticipantId: string): Promise<{
     characters: CharacterCtxDTO[];
+    actor: CharacterCtxDTO;
     userProxyName: string;
-    currentActorName: string;
     actorIsNarrator: boolean;
   }> {
     // TODO: Possibly make sorting configurable via recipe
@@ -131,6 +133,7 @@ export class IntentContextBuilder {
         participantId: tScenarioParticipants.id,
         isUserProxy: tScenarioParticipants.isUserProxy,
         charaType: tCharacters.cardType,
+        styleInstructions: tCharacters.styleInstructions,
       })
       .from(tCharacters)
       .innerJoin(
@@ -162,13 +165,12 @@ export class IntentContextBuilder {
     );
 
     // TODO: Make narrator name configurable
-    const currentActorName = actorIsNarrator
-      ? "Narrator"
-      : data.find((chara) => chara.participantId === actorParticipantId)?.name;
-
+    const actor = data.find((chara) => chara.participantId === actorParticipantId);
     // DB constraints and invariants should ensure neither of these are null
-    assertDefined(currentActorName, "Actor character not found");
+    assertDefined(actor, "Actor participant not found in scenario");
     assertDefined(userProxyName, "No fallback player proxy character found");
+
+    const currentActorName = actorIsNarrator ? "Narrator" : actor.name;
 
     // TODO: HACK - we replace `{{char}}` macros in character data here.
     // normally the template engine would handle this, but it uses a single
@@ -182,7 +184,7 @@ export class IntentContextBuilder {
       description: chara.description.replaceAll("{{char}}", currentActorName),
     }));
 
-    return { characters, userProxyName, currentActorName, actorIsNarrator };
+    return { characters, actor: stripNulls(actor), userProxyName, actorIsNarrator };
   }
 
   private async loadScenarioData() {

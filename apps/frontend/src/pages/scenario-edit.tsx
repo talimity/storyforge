@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui";
 import { SimplePageHeader } from "@/components/ui/page-header";
-import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
 import {
   ScenarioForm,
@@ -20,7 +19,6 @@ function ScenarioEditPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
 
   const {
     data: scenario,
@@ -113,13 +111,6 @@ function ScenarioEditPage() {
           actions={
             <Stack direction="row" gap={2}>
               <Button
-                variant="outline"
-                onClick={() => setShowPreview(true)}
-                disabled={updateScenarioMutation.isPending}
-              >
-                Preview Lore Activation
-              </Button>
-              <Button
                 colorPalette="red"
                 variant="outline"
                 onClick={() => setShowDeleteDialog(true)}
@@ -163,12 +154,6 @@ function ScenarioEditPage() {
           setShowDeleteDialog(false);
         }}
         isDeleting={deleteScenarioMutation.isPending}
-      />
-      <LoreActivationPreviewDialog
-        isOpen={showPreview}
-        onOpenChange={setShowPreview}
-        scenarioId={id}
-        title="Scenario Lore Activation"
       />
     </>
   );

@@ -10,11 +10,9 @@ interface QuickActionsPanelProps {
 }
 
 export function QuickActionsPanel({ isGenerating, onContinue }: QuickActionsPanelProps) {
-  const { characters, charactersById } = useScenarioContext();
+  const { characters, getCharacterById } = useScenarioContext();
   const { selectedCharacterId, setSelectedCharacter } = useScenarioPlayerStore();
-  const selectedCharacterName = selectedCharacterId
-    ? (charactersById[selectedCharacterId]?.name ?? "")
-    : "";
+  const selectedCharacterName = getCharacterById(selectedCharacterId)?.name;
 
   return (
     <HStack gap={2} wrap="wrap">

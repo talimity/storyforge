@@ -52,6 +52,10 @@ export type TurnGenCtx = {
    */
   characters: CharacterCtxDTO[];
   /**
+   * The character authoring the current turn.
+   */
+  actor: CharacterCtxDTO;
+  /**
    * The intent input that triggered this turn generation, if any.
    */
   currentIntent?: { kind: string; prompt?: string; constraint?: string };

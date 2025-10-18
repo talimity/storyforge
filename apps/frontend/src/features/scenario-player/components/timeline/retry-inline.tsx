@@ -1,8 +1,9 @@
-import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
+import { Box, HStack, Stack, Tabs, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
 import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { LuRefreshCcw, LuWorkflow } from "react-icons/lu";
 import { Avatar, Button, Tooltip } from "@/components/ui";
 import { GuidanceField } from "@/features/scenario-player/components/timeline/retry-form/guidance-field";
 import { IntentKindControl } from "@/features/scenario-player/components/timeline/retry-form/intent-kind-control";
@@ -195,35 +196,54 @@ export function RetryInline({ turn }: RetryInlineProps) {
         />
 
         <Stack gap={4} pt={1}>
-          <Stack>
-            <Heading size="md">Retry Options</Heading>
-            <Text fontSize="sm" color="content.muted">
-              Select a new direction for the story. The scenario will branch from this point.
-            </Text>
-          </Stack>
+          <Tabs.Root defaultValue="retry" lazyMount unmountOnExit>
+            <Tabs.List>
+              <Tabs.Trigger value="retry">
+                <LuRefreshCcw />
+                Regenerate
+              </Tabs.Trigger>
+              {generationInfo && !isGenerationInfoNotFound && (
+                <Tabs.Trigger value="replay">
+                  <LuWorkflow />
+                  Workflow Replay
+                </Tabs.Trigger>
+              )}
+            </Tabs.List>
 
-          <IntentKindControl form={form} isGenerating={isGenerating} />
+            <Tabs.Content value="retry">
+              <Text mb={2} color="content.muted">
+                Generate a new turn from scratch with updated intent, character, or guidance.
+              </Text>
+              <IntentKindControl form={form} isGenerating={isGenerating} />
 
-          <TargetCharacterField
-            form={form}
-            fields={{ characterId: "characterId", kind: "kind" }}
-            isGenerating={isGenerating}
-          />
+              <TargetCharacterField
+                form={form}
+                fields={{ characterId: "characterId", kind: "kind" }}
+                isGenerating={isGenerating}
+              />
 
-          <GuidanceField
-            form={form}
-            fields={{ text: "text", kind: "kind", characterId: "characterId" }}
-            isGenerating={isGenerating}
-          />
+              <GuidanceField
+                form={form}
+                fields={{ text: "text", kind: "kind", characterId: "characterId" }}
+                isGenerating={isGenerating}
+              />
+            </Tabs.Content>
 
-          <RetryReplaySection
-            form={form}
-            generationInfo={generationInfo}
-            isLoading={generationInfoQuery.isLoading}
-            isError={generationInfoQuery.isError}
-            isNotFound={isGenerationInfoNotFound}
-            isGenerating={isGenerating}
-          />
+            <Tabs.Content value="replay">
+              <Text mb={2} color="content.muted">
+                Reuse parts of the previous turn generation to retry from a specific workflow step.
+                You can't change the target character or guidance when replaying.
+              </Text>
+              <RetryReplaySection
+                form={form}
+                generationInfo={generationInfo}
+                isLoading={generationInfoQuery.isLoading}
+                isError={generationInfoQuery.isError}
+                isNotFound={isGenerationInfoNotFound}
+                isGenerating={isGenerating}
+              />
+            </Tabs.Content>
+          </Tabs.Root>
 
           <form.Subscribe
             selector={(state) => ({

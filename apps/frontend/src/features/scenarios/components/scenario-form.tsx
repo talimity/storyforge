@@ -136,8 +136,8 @@ export function ScenarioForm({
             <Stack gap={4}>
               <Heading size="md">Lorebooks</Heading>
               <Text color="content.muted" fontSize="sm">
-                Manual assignments stay with the scenario. Inherited lorebooks follow their
-                characters and can be disabled if you don’t want them active.
+                Assign lorebooks to this scenario to provide additional context or setting details.
+                Inherited character lorebooks can also be toggled here.
               </Text>
               <ScenarioLorebookManager form={form} disabled={false} />
             </Stack>
