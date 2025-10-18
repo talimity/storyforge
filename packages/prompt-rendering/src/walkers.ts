@@ -27,7 +27,6 @@ function toMessageBlock<S extends SourceSpec>(
     role: node.role,
     content: node.content,
     from: node.from,
-    prefix: node.prefix,
     skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
   };
 }

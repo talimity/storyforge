@@ -57,28 +57,6 @@ describe("Layout Assembler", () => {
         });
       });
 
-      it("should preserve prefix flag", () => {
-        const budget = createBudget();
-        const layout: CompiledLayoutNode[] = [
-          {
-            kind: "message",
-            role: "assistant",
-            content: compileLeaf("Assistant message"),
-            prefix: true,
-          },
-        ];
-        const slotBuffers: SlotExecutionResult = {};
-
-        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
-
-        expect(result).toHaveLength(1);
-        expect(result[0]).toEqual({
-          role: "assistant",
-          content: "Assistant message",
-          prefix: true,
-        });
-      });
-
       it("should skip message when out of budget", () => {
         const budget = createBudget(1); // Very small budget
         const layout: CompiledLayoutNode[] = [

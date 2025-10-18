@@ -93,7 +93,6 @@ function compileLayoutNode<S extends SourceSpec = SourceSpec>(
         role: node.role,
         content: node.content ? compileLeaf(node.content) : undefined,
         from: node.from,
-        prefix: node.prefix,
         skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
       });
 
@@ -123,7 +122,6 @@ function compileMessageBlock<S extends SourceSpec = SourceSpec>(
     role: block.role,
     content: block.content ? compileLeaf(block.content) : undefined,
     from: block.from,
-    prefix: block.prefix,
     skipIfEmptyInterpolation: block.skipIfEmptyInterpolation,
   });
 }
@@ -171,7 +169,6 @@ function compilePlanNode<S extends SourceSpec = SourceSpec>(
         role: node.role,
         content: node.content ? compileLeaf(node.content) : undefined,
         from: node.from,
-        prefix: node.prefix,
         skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
         budget: node.budget,
       });
@@ -184,14 +181,7 @@ function compilePlanNode<S extends SourceSpec = SourceSpec>(
         limit: node.limit,
         fillDir: node.fillDir,
         map: compilePlanNodes(node.map),
-        interleave: node.interleave
-          ? Object.freeze({
-              kind: "separator",
-              text: node.interleave.text ? compileLeaf(node.interleave.text) : undefined,
-            })
-          : undefined,
         budget: node.budget,
-        stopWhenOutOfBudget: node.stopWhenOutOfBudget,
       });
 
     case "if":

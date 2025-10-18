@@ -12,7 +12,6 @@ export type MessageBlock<S extends SourceSpec = SourceSpec> = {
   role: ChatCompletionMessageRole;
   content?: string;
   from?: DataRefOf<S>;
-  prefix?: boolean;
   skipIfEmptyInterpolation?: boolean;
 };
 
@@ -98,9 +97,7 @@ export type PlanNode<S extends SourceSpec = SourceSpec> =
       fillDir?: "append" | "prepend";
       limit?: number;
       map: PlanNode<S>[]; // evaluated with {item} in scope
-      interleave?: { kind: "separator"; text?: string };
       budget?: Budget;
-      stopWhenOutOfBudget?: boolean; // default: true
     }
   | {
       kind: "if";
@@ -125,8 +122,6 @@ export type ConditionRef<S extends SourceSpec = SourceSpec> =
 export type ChatCompletionMessage = {
   role: ChatCompletionMessageRole;
   content: string;
-  /** If last message is an assistant and prefix is true, the model continues from this content. Requires prefill capability. */
-  prefix?: boolean;
 };
 
 export interface BudgetManager {
@@ -231,9 +226,7 @@ export type CompiledPlanNode<S extends SourceSpec = SourceSpec> = Readonly<
       fillDir?: "append" | "prepend";
       limit?: number;
       map: readonly CompiledPlanNode<S>[];
-      interleave?: { kind: "separator"; text?: CompiledLeafFunction };
       budget?: Budget;
-      stopWhenOutOfBudget?: boolean;
     }
   | {
       kind: "if";
@@ -247,7 +240,6 @@ export type CompiledMessageBlock<S extends SourceSpec = SourceSpec> = Readonly<{
   role: ChatCompletionMessageRole;
   content?: CompiledLeafFunction;
   from?: DataRefOf<S>;
-  prefix?: boolean;
   skipIfEmptyInterpolation?: boolean;
 }>;
 

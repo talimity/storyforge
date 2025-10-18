@@ -63,8 +63,7 @@
               "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}"
             }
           ],
-          "budget": { "maxTokens": 900 },
-          "stopWhenOutOfBudget": true
+          "budget": { "maxTokens": 900 }
         }
       ]
     },
@@ -85,8 +84,7 @@
               "content": "Ch {{item.chapterNo}}: {{item.summary}}"
             }
           ],
-          "budget": { "maxTokens": 700 },
-          "stopWhenOutOfBudget": true
+          "budget": { "maxTokens": 700 }
         }
       ]
     },
@@ -112,8 +110,7 @@
               "content": "{{item.name}} — Example: {{item.description}}"
             }
           ],
-          "budget": { "maxTokens": 500 },
-          "stopWhenOutOfBudget": true
+          "budget": { "maxTokens": 500 }
         }
       ]
     }

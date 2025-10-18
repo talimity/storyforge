@@ -29,7 +29,6 @@ describe("compileTemplate", () => {
                 content: "Item: {{item.name}}",
               },
             ],
-            interleave: { kind: "separator", text: "{{separator}}" },
           },
           {
             kind: "if",
@@ -102,10 +101,6 @@ describe("compileTemplate", () => {
           expect(typeof mapNode.content).toBe("function");
           expect(mapNode.content!({ item: { name: "Test" } })).toBe("Item: Test");
         }
-
-        // Check interleave separator
-        expect(typeof forEachNode.interleave?.text).toBe("function");
-        expect(forEachNode.interleave!.text!({ separator: "---" })).toBe("---");
       }
 
       // Check if node content

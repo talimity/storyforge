@@ -26,12 +26,7 @@ describe("walkers", () => {
       const template = createTemplate({
         layout: [
           { kind: "message", role: "system", content: "System message" },
-          {
-            kind: "message",
-            role: "user",
-            content: "User message",
-            prefix: true,
-          },
+          { kind: "message", role: "user", content: "User message" },
           { kind: "message", role: "assistant", from: { source: "response" } },
         ],
       });
@@ -43,7 +38,6 @@ describe("walkers", () => {
         role: "system",
         content: "System message",
         from: undefined,
-        prefix: undefined,
       });
       expect(blocks[0].path).toBe("layout[0]");
 
@@ -51,7 +45,6 @@ describe("walkers", () => {
         role: "user",
         content: "User message",
         from: undefined,
-        prefix: true,
       });
       expect(blocks[1].path).toBe("layout[1]");
 
@@ -59,7 +52,6 @@ describe("walkers", () => {
         role: "assistant",
         content: undefined,
         from: { source: "response" },
-        prefix: undefined,
       });
       expect(blocks[2].path).toBe("layout[2]");
     });
@@ -73,7 +65,7 @@ describe("walkers", () => {
             header: { role: "system", content: "Header message" },
             footer: [
               { role: "user", content: "Footer 1" },
-              { role: "assistant", content: "Footer 2", prefix: true },
+              { role: "assistant", content: "Footer 2" },
             ],
           },
         ],
@@ -95,7 +87,6 @@ describe("walkers", () => {
         role: "system",
         content: "Header message",
         from: undefined,
-        prefix: undefined,
       });
       expect(blocks[0].path).toBe("layout[0].header[0]");
 
@@ -104,7 +95,6 @@ describe("walkers", () => {
         role: "user",
         content: "Footer 1",
         from: undefined,
-        prefix: undefined,
       });
       expect(blocks[1].path).toBe("layout[0].footer[0]");
 
@@ -113,7 +103,6 @@ describe("walkers", () => {
         role: "assistant",
         content: "Footer 2",
         from: undefined,
-        prefix: true,
       });
       expect(blocks[2].path).toBe("layout[0].footer[1]");
     });
@@ -140,7 +129,6 @@ describe("walkers", () => {
         role: "system",
         content: "Plan message 1",
         from: undefined,
-        prefix: undefined,
       });
       expect(blocks[0].path).toBe("slots.someContentSlot.plan[0]");
 
@@ -148,7 +136,6 @@ describe("walkers", () => {
         role: "user",
         content: undefined,
         from: { source: "input" },
-        prefix: undefined,
       });
       expect(blocks[1].path).toBe("slots.someContentSlot.plan[1]");
     });
@@ -189,7 +176,6 @@ describe("walkers", () => {
         role: "user",
         content: "Item: {{item.name}}",
         from: undefined,
-        prefix: undefined,
       });
       expect(blocks[0].path).toBe("slots.items.plan[0].forEach.map[0]");
 
@@ -197,7 +183,6 @@ describe("walkers", () => {
         role: "assistant",
         content: undefined,
         from: { source: "response" },
-        prefix: undefined,
       });
       expect(blocks[1].path).toBe("slots.items.plan[0].forEach.map[1]");
     });
@@ -241,7 +226,6 @@ describe("walkers", () => {
         role: "user",
         content: "Then message",
         from: undefined,
-        prefix: undefined,
       });
       expect(blocks[0].path).toBe("slots.conditionalSlot.plan[0].if.then[0].plan[0]");
 
@@ -250,7 +234,6 @@ describe("walkers", () => {
         role: "system",
         content: "Else message 1",
         from: undefined,
-        prefix: undefined,
       });
       expect(blocks[1].path).toBe("slots.conditionalSlot.plan[0].if.else[0].plan[0]");
 
@@ -259,7 +242,6 @@ describe("walkers", () => {
         role: "assistant",
         content: undefined,
         from: { source: "fallback" },
-        prefix: undefined,
       });
       expect(blocks[2].path).toBe("slots.conditionalSlot.plan[0].if.else[1].plan[0]");
     });
@@ -307,7 +289,6 @@ describe("walkers", () => {
         role: "user",
         content: "Deeply nested message",
         from: undefined,
-        prefix: undefined,
       });
       expect(blocks[0].path).toBe(
         "slots.veryNestedSlot.plan[0].forEach.map[0].plan[0].if.then[0].plan[0].forEach.map[0]"

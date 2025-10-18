@@ -47,7 +47,6 @@ describe("characters router integration", () => {
       expect(result.characters[0]).toHaveProperty("turnCount");
       expect(result.characters[0]).toHaveProperty("isStarred");
       expect(result.characters[0]).toHaveProperty("lastTurnAt");
-      // Note: characters.list returns stub objects without description field
     });
   });
 

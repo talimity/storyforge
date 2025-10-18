@@ -41,7 +41,6 @@ export const messageBlockSchema = z.object({
   role: roleSchema,
   content: z.string().optional(),
   from: dataRefSchema.optional(),
-  prefix: z.boolean().optional(),
   skipIfEmptyInterpolation: z.boolean().optional(),
 });
 
@@ -76,14 +75,7 @@ export const planNodeSchema: z.ZodType<UnboundPlanNode> = z.lazy(() =>
       fillDir: z.enum(["append", "prepend"]).optional(),
       limit: z.number().int().positive().optional(),
       map: z.array(planNodeSchema),
-      interleave: z
-        .object({
-          kind: z.literal("separator"),
-          text: z.string().optional(),
-        })
-        .optional(),
       budget: budgetSchema.optional(),
-      stopWhenOutOfBudget: z.boolean().optional(),
     }),
     z.object({
       kind: z.literal("if"),

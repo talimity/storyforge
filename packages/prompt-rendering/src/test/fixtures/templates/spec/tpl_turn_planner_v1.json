@@ -24,8 +24,7 @@
     {
       "kind": "message",
       "role": "assistant",
-      "content": "{\"goals\":",
-      "prefix": true
+      "content": "{\"goals\":"
     }
   ],
   "slots": {

@@ -67,7 +67,6 @@ function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
     role: ChatCompletionMessageRole;
     content?: CompiledLeafFunction;
     from?: DataRefOf<S>;
-    prefix?: boolean;
     skipIfEmptyInterpolation?: boolean;
   },
   ctx: Ctx,
@@ -123,10 +122,6 @@ function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
     role: block.role,
     content,
   };
-
-  if (block.prefix) {
-    message.prefix = true;
-  }
 
   result.push(message);
   return "emitted";

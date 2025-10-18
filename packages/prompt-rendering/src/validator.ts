@@ -1,6 +1,5 @@
 import { TemplateStructureError } from "./errors.js";
 import type { PromptTemplate, SourceSpec } from "./types.js";
-import { iterMessageBlocks } from "./walkers.js";
 
 /**
  * Validates the structural consistency of a prompt template.
@@ -12,7 +11,6 @@ export function validateTemplateStructure<K extends string, S extends SourceSpec
 ): void {
   validateUniqueSlotNames(template);
   validateLayoutSlotReferences(template);
-  validateAssistantPrefixUsage(template);
 }
 
 /**
@@ -42,22 +40,6 @@ function validateLayoutSlotReferences<K extends string, S extends SourceSpec>(
       if (!availableSlots.has(node.name)) {
         throw new TemplateStructureError(`Layout references non-existent slot: "${node.name}"`);
       }
-    }
-  }
-}
-
-/**
- * Validates that prefix:true only appears on assistant role messages.
- * Uses the walker to check all message blocks including headers/footers.
- */
-function validateAssistantPrefixUsage<K extends string, S extends SourceSpec>(
-  template: PromptTemplate<K, S>
-): void {
-  for (const { block, path } of iterMessageBlocks(template)) {
-    if (block.prefix === true && block.role !== "assistant") {
-      throw new TemplateStructureError(
-        `prefix:true can only be used with role:'assistant', found on role:'${block.role}' at ${path}`
-      );
     }
   }
 }

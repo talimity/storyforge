@@ -189,45 +189,6 @@ describe("Plan Executor", () => {
       });
     });
 
-    describe("prefix flag", () => {
-      it("should preserve prefix flag when true", () => {
-        const budget = createBudget();
-        const node: CompiledPlanNode<any> & { kind: "message" } = {
-          kind: "message",
-          role: "assistant",
-          content: compileLeaf("Test message"),
-          prefix: true,
-        };
-
-        const result = executeMessageNode(node, ctx, budget, registry);
-
-        expect(result).toHaveLength(1);
-        expect(result[0]).toEqual({
-          role: "assistant",
-          content: "Test message",
-          prefix: true,
-        });
-      });
-
-      it("should not include prefix when false or undefined", () => {
-        const budget = createBudget();
-        const node: CompiledPlanNode<any> & { kind: "message" } = {
-          kind: "message",
-          role: "user",
-          content: compileLeaf("Test message"),
-        };
-
-        const result = executeMessageNode(node, ctx, budget, registry);
-
-        expect(result).toHaveLength(1);
-        expect(result[0]).toEqual({
-          role: "user",
-          content: "Test message",
-        });
-        expect(result[0].prefix).toBeUndefined();
-      });
-    });
-
     describe("budget handling", () => {
       it("should consume budget for message content", () => {
         const budget = createBudget(100);
@@ -459,67 +420,8 @@ describe("Plan Executor", () => {
       });
     });
 
-    describe("interleave separators", () => {
-      it("should add separators between items", () => {
-        const budget = createBudget();
-        const childNode: CompiledPlanNode<any> = {
-          kind: "message",
-          role: "assistant",
-          content: compileLeaf("{{item}}"),
-        };
-        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
-          kind: "forEach",
-          source: { source: "singleItem" },
-          map: [childNode],
-          interleave: { kind: "separator", text: compileLeaf("---") },
-        };
-
-        // Use an array with multiple items for this test
-        const multiItemRegistry = makeOrderingTestRegistry();
-        const result = executeForEachNode(
-          {
-            ...node,
-            source: { source: "strings" },
-            limit: 3,
-          },
-          ctx,
-          budget,
-          multiItemRegistry
-        );
-
-        expect(result).toHaveLength(5); // 3 items + 2 separators
-        expect(result[0].role).toBe("assistant");
-        expect(result[1].role).toBe("user"); // Separator
-        expect(result[1].content).toBe("---");
-        expect(result[2].role).toBe("assistant");
-        expect(result[3].role).toBe("user"); // Separator
-        expect(result[4].role).toBe("assistant");
-      });
-
-      it("should not add separator after last item", () => {
-        const budget = createBudget();
-        const childNode: CompiledPlanNode<any> = {
-          kind: "message",
-          role: "assistant",
-          content: compileLeaf("{{item}}"),
-        };
-        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
-          kind: "forEach",
-          source: { source: "singleItem" },
-          map: [childNode],
-          interleave: { kind: "separator", text: compileLeaf("---") },
-        };
-
-        const result = executeForEachNode(node, ctx, budget, orderingRegistry);
-
-        expect(result).toHaveLength(1); // Only the single item, no separator
-        expect(result[0].role).toBe("assistant");
-        expect(result[0].content).toBe("only");
-      });
-    });
-
     describe("budget handling", () => {
-      it("should stop early when out of budget and stopWhenOutOfBudget is true", () => {
+      it("should stop early when out of budget", () => {
         const budget = createBudget(5); // Very small budget
         const childNode: CompiledPlanNode<any> = {
           kind: "message",
@@ -530,58 +432,11 @@ describe("Plan Executor", () => {
           kind: "forEach",
           source: { source: "characters" },
           map: [childNode],
-          stopWhenOutOfBudget: true,
         };
 
         const result = executeForEachNode(node, ctx, budget, registry);
 
         // Should have fewer results than the full character array
-        expect(result.length).toBeLessThan(ctx.characters.length);
-      });
-
-      it("should continue when stopWhenOutOfBudget is false", () => {
-        const budget = createBudget(100); // Reasonable budget
-
-        // Create a child node that logs execution but may produce empty messages
-        const childNode: CompiledPlanNode<any> = {
-          kind: "message",
-          role: "user",
-          content: compileLeaf("{{item.name}}"),
-        };
-
-        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
-          kind: "forEach",
-          source: { source: "characters" },
-          map: [childNode], // Only use the main child node
-          stopWhenOutOfBudget: false,
-        };
-
-        const result = executeForEachNode(node, ctx, budget, registry);
-
-        // Should process all 3 characters since we have adequate budget and stopWhenOutOfBudget is false
-        expect(result.length).toBe(ctx.characters.length);
-        expect(result[0].content).toBe("Alice");
-        expect(result[1].content).toBe("Bob");
-        expect(result[2].content).toBe("Charlie");
-      });
-
-      it("should default stopWhenOutOfBudget to true", () => {
-        const budget = createBudget(5); // Very small budget
-        const childNode: CompiledPlanNode<any> = {
-          kind: "message",
-          role: "user",
-          content: compileLeaf("This is a long message that will consume budget"),
-        };
-        const node: CompiledPlanNode<any> & { kind: "forEach" } = {
-          kind: "forEach",
-          source: { source: "characters" },
-          map: [childNode],
-          // stopWhenOutOfBudget not specified, should default to true
-        };
-
-        const result = executeForEachNode(node, ctx, budget, registry);
-
-        // Should have fewer results due to budget stopping
         expect(result.length).toBeLessThan(ctx.characters.length);
       });
 

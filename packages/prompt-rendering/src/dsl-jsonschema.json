@@ -132,24 +132,13 @@
           "$ref": "#/$defs/DataRef",
           "description": "If set, content is taken from this DataRef."
         },
-        "prefix": {
-          "type": "boolean",
-          "default": false,
-          "description": "Assistant-only. If true, treats the message as a prefill/prefix."
-        },
         "skipIfEmptyInterpolation": {
           "type": "boolean",
           "default": false,
           "description": "Skip this message if the interpolated content is empty."
         }
       },
-      "anyOf": [{ "required": ["content"] }, { "required": ["from"] }],
-      "allOf": [
-        {
-          "if": { "properties": { "prefix": { "const": true } }, "required": ["prefix"] },
-          "then": { "properties": { "role": { "const": "assistant" } } }
-        }
-      ]
+      "anyOf": [{ "required": ["content"] }, { "required": ["from"] }]
     },
     "PlanNode": {
       "description": "Discriminated union of plan nodes.",
@@ -169,16 +158,9 @@
         "role": { "$ref": "#/$defs/Role" },
         "content": { "type": "string" },
         "from": { "$ref": "#/$defs/DataRef" },
-        "prefix": { "type": "boolean", "default": false },
         "skipIfEmptyInterpolation": { "type": "boolean", "default": false }
       },
       "anyOf": [{ "required": ["content"] }, { "required": ["from"] }],
-      "allOf": [
-        {
-          "if": { "properties": { "prefix": { "const": true } }, "required": ["prefix"] },
-          "then": { "properties": { "role": { "const": "assistant" } } }
-        }
-      ],
       "examples": [
         {
           "kind": "message",
@@ -186,15 +168,6 @@
           "content": "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}"
         }
       ]
-    },
-    "Separator": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["kind"],
-      "properties": {
-        "kind": { "const": "separator" },
-        "text": { "type": "string", "default": "" }
-      }
     },
     "PlanForEachNode": {
       "type": "object",
@@ -229,16 +202,7 @@
           "items": { "$ref": "#/$defs/PlanNode" },
           "description": "Nested plan executed for each item. Exposes $item and $index."
         },
-        "interleave": {
-          "$ref": "#/$defs/Separator",
-          "description": "Optional separator between iterations."
-        },
-        "budget": { "$ref": "#/$defs/Budget" },
-        "stopWhenOutOfBudget": {
-          "type": "boolean",
-          "default": false,
-          "description": "If true, stop iterating when the current budget scope is exhausted."
-        }
+        "budget": { "$ref": "#/$defs/Budget" }
       },
       "examples": [
         {

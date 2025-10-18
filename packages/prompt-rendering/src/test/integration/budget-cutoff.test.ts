@@ -86,56 +86,6 @@ describe("Budget Cut-off Behavior", () => {
     expect(result1).toMatchSnapshot("stable-budget-constrained");
   });
 
-  it("should handle stopWhenOutOfBudget flag correctly", () => {
-    // Create a custom template with stopWhenOutOfBudget explicitly set to true
-    const customTemplate = {
-      ...turnWriterV2Json,
-      id: "budget_test_template",
-      layout: [
-        {
-          kind: "message",
-          role: "system",
-          content: "You write vivid, concise third-person prose.",
-        },
-        { kind: "slot", name: "turns", omitIfEmpty: true },
-      ],
-      slots: {
-        turns: {
-          priority: 0,
-          budget: { maxTokens: 200 }, // Very small slot budget
-          plan: [
-            {
-              kind: "forEach",
-              source: { source: "turns", args: { order: "desc", limit: 20 } },
-              map: [
-                {
-                  kind: "message",
-                  role: "user",
-                  content: "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
-                },
-              ],
-              budget: { maxTokens: 200 },
-              stopWhenOutOfBudget: true, // Explicit early stop
-            },
-          ],
-        },
-      },
-    };
-
-    const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(customTemplate);
-
-    const budget = new DefaultBudgetManager({ maxTokens: 10000 });
-    const result = render(compiled, largeTurnGenCtx, budget, registry);
-
-    // Should stop early due to slot budget + stopWhenOutOfBudget=true
-    const turnMessages = result.filter((m) => m.content?.match(/^\[\d+]/));
-    expect(turnMessages.length).toBeLessThan(10); // Should be much less than the 20+ turns available
-
-    // Should still have valid structure
-    // With merged user messages, structure can be exactly 2 (system + user)
-    expect(result.length).toBeGreaterThanOrEqual(2);
-  });
-
   it("should handle zero budget gracefully", () => {
     const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(turnWriterV2Json);
 

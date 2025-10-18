@@ -124,15 +124,11 @@ export function executeMessageNode<Ctx extends CtxWithGlobals, S extends SourceS
     return [];
   }
 
-  // Create the message, preserving prefix flag
+  // Create the message
   const message: ChatCompletionMessage = {
     role: node.role,
     content,
   };
-
-  if (node.prefix) {
-    message.prefix = true;
-  }
 
   return [message];
 }
@@ -149,9 +145,7 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
   _itemScope?: unknown
 ): PlanExecutionResult {
   // Only check budget at the start if we have a specific node budget
-  // If stopWhenOutOfBudget is false, we should always try to process
-  const stopWhenOutOfBudget = node.stopWhenOutOfBudget ?? true;
-  if (node.budget && stopWhenOutOfBudget && !budget.hasAny()) {
+  if (node.budget && !budget.hasAny()) {
     return [];
   }
 
@@ -207,7 +201,7 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
       const item = orderedArray[i];
 
       // Check budget before processing
-      if (stopWhenOutOfBudget && !budget.hasAny()) {
+      if (!budget.hasAny()) {
         break;
       }
 
@@ -219,7 +213,7 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
         nodeResult.push(...childResults);
 
         // Check budget after each child
-        if (stopWhenOutOfBudget && !budget.hasAny()) {
+        if (!budget.hasAny()) {
           break;
         }
       }
@@ -227,18 +221,6 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
         results.unshift(...nodeResult);
       } else {
         results.push(...nodeResult);
-      }
-
-      // Add separator if specified and not the last item
-      if (node.interleave && i < orderedArray.length - 1) {
-        const separatorText = node.interleave.text
-          ? node.interleave.text(createScope(ctx, item))
-          : "";
-
-        if (separatorText && budget.canFitTokenEstimate(separatorText)) {
-          budget.consume(separatorText);
-          results.push({ role: "user", content: separatorText });
-        }
       }
     }
   });
