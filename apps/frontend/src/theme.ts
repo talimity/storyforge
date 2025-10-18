@@ -5,6 +5,7 @@ import {
   defineLayerStyles,
   defineSemanticTokens,
   defineTokens,
+  type SystemStyleObject,
 } from "@chakra-ui/react";
 
 // Base color tokens - abstract names instead of material names
@@ -628,6 +629,29 @@ const buttonRecipe = {
   },
 };
 
+const makeChakraSlotWrapper = (
+  slot: string,
+  styles: Partial<Record<string, SystemStyleObject | undefined>>
+) => ({
+  slots: [],
+  variants: {
+    variant: {
+      outline: {
+        [slot]: styles,
+      },
+    },
+  },
+});
+
+export const selectSlotRecipe = makeChakraSlotWrapper(
+  "trigger",
+  inputRecipe.variants.variant.outline
+);
+export const comboboxSlotRecipe = makeChakraSlotWrapper(
+  "input",
+  inputRecipe.variants.variant.outline
+);
+
 const tintConstants = {
   ":where(:root, :host)": {
     "--_tint-seed": "oklch(0.70 0.15 200)",
@@ -720,8 +744,13 @@ export const appTheme = defineConfig({
     recipes: {
       input: inputRecipe,
       textarea: inputRecipe,
-      select: inputRecipe,
+      // select: selectRecipe,
       button: buttonRecipe,
+    },
+    slotRecipes: {
+      select: selectSlotRecipe,
+      numberInput: comboboxSlotRecipe,
+      combobox: comboboxSlotRecipe,
     },
   },
   // Conditions for responsive design and states
