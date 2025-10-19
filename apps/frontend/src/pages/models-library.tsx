@@ -1,10 +1,11 @@
-import { Container, SimpleGrid, Tabs } from "@chakra-ui/react";
+import { SimpleGrid, Tabs } from "@chakra-ui/react";
 import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuPlugZap, LuPlus } from "react-icons/lu";
 import { TbCube } from "react-icons/tb";
 import { Button, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { CreateModelProfileDialog } from "@/features/inference-config/components/create-model-profile-dialog";
 import { CreateProviderDialog } from "@/features/inference-config/components/create-provider-dialog";
 import {
@@ -28,7 +29,7 @@ function ModelsPage() {
   const providerList = providersQuery.data?.providers || [];
 
   return (
-    <Container>
+    <PageContainer>
       <PageHeader.Root>
         <PageHeader.Title>Models</PageHeader.Title>
         <PageHeader.Tagline>Manage AI models and provider configurations</PageHeader.Tagline>
@@ -136,7 +137,7 @@ function ModelsPage() {
         isOpen={isCreateProviderDialogOpen}
         onOpenChange={setIsCreateProviderDialogOpen}
       />
-    </Container>
+    </PageContainer>
   );
 }
 

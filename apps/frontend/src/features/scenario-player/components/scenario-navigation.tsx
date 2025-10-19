@@ -1,6 +1,7 @@
 import {
   Box,
   HStack,
+  Icon,
   IconButton,
   Input,
   Menu,
@@ -73,11 +74,12 @@ export function ScenarioNavigation() {
     <>
       <Popover.Root positioning={{ placement: "bottom", gutter: 4 }} lazyMount unmountOnExit>
         <Popover.Trigger asChild>
-          <Button position="relative" variant="ghost">
-            <Text fontWeight="medium" fontSize="sm" lineClamp={1}>
-              {headerLabel}
-            </Text>
-            <LuChevronDown />
+          <Button variant="ghost" position="relative" px="8">
+            <Text truncate>{headerLabel}</Text>
+            {/* icon makes text off-center so use absolute positioning */}
+            <Icon position="absolute" right="3" size="sm">
+              <LuChevronDown />
+            </Icon>
           </Button>
         </Popover.Trigger>
         <Portal>

@@ -1,8 +1,8 @@
-import { Container } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useNavigate } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { LorebookForm } from "@/features/lorebooks/components/lorebook-form";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
@@ -23,14 +23,14 @@ function LorebookCreatePage() {
   );
 
   return (
-    <Container>
+    <PageContainer>
       <SimplePageHeader title="Create Lorebook" />
       <LorebookForm
         submitLabel="Create Lorebook"
         onCancel={() => navigate("/lorebooks")}
         onSubmit={(data) => createMutation.mutateAsync({ data })}
       />
-    </Container>
+    </PageContainer>
   );
 }
 

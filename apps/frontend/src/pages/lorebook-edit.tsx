@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, SimplePageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { toLorebookFormInitial } from "@/features/lorebooks/components/form-schemas";
 import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { LorebookForm } from "@/features/lorebooks/components/lorebook-form";
@@ -58,7 +59,7 @@ function LorebookEditPage() {
   const lorebook = lorebookQuery.data.data;
 
   return (
-    <Container>
+    <PageContainer>
       <SimplePageHeader
         title={`Edit Lorebook: ${lorebook.name}`}
         actions={
@@ -78,7 +79,7 @@ function LorebookEditPage() {
         onOpenChange={setShowPreview}
         allowScenarioSelect
       />
-    </Container>
+    </PageContainer>
   );
 }
 

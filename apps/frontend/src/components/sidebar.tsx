@@ -21,7 +21,7 @@ import { useActiveScenarioWithData } from "@/hooks/use-active-scenario";
 
 interface SidebarProps {
   collapsed: boolean;
-  onToggleCollapse: () => void;
+  onToggleCollapse?: () => void;
 }
 
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
@@ -56,6 +56,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         boxSize="8"
         onClick={onToggleCollapse}
         data-testid="sidebar-toggle"
+        display={onToggleCollapse ? "flex" : "none"}
       >
         {collapsed ? <LuChevronRight /> : <LuChevronLeft />}
       </Button>

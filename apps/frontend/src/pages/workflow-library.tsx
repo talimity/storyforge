@@ -1,4 +1,4 @@
-import { Box, Container, HStack, SimpleGrid, Skeleton, Tabs } from "@chakra-ui/react";
+import { Box, HStack, SimpleGrid, Skeleton, Tabs } from "@chakra-ui/react";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -6,6 +6,7 @@ import { useState } from "react";
 import { LuImport, LuListPlus, LuMapPin, LuPlus, LuWorkflow } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { Button, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { AssignmentDialog } from "@/features/workflows/components/assignment-dialog";
 import { AssignmentItem } from "@/features/workflows/components/assignment-list";
@@ -40,7 +41,7 @@ function WorkflowsPage() {
   const scopes = assignmentsQuery.data?.scopes ?? [];
 
   return (
-    <Container>
+    <PageContainer>
       <PageHeader.Root>
         <PageHeader.Title>Workflows</PageHeader.Title>
         <PageHeader.Tagline>
@@ -133,7 +134,7 @@ function WorkflowsPage() {
                 onActionClick={() => setAssignOpen(true)}
               />
             ) : (
-              <SimpleGrid minChildWidth="md" gap={6}>
+              <SimpleGrid minChildWidth="sm" gap={6}>
                 {assignmentsQuery.isLoading
                   ? [...Array(15)].map(() => (
                       <Box key={createId()} layerStyle="surface" borderRadius="md" p={4}>
@@ -153,7 +154,7 @@ function WorkflowsPage() {
         defaultTask={selectedTask}
       />
       <WorkflowImportDialog isOpen={importOpen} onOpenChange={({ open }) => setImportOpen(open)} />
-    </Container>
+    </PageContainer>
   );
 }
 

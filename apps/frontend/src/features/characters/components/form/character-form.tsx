@@ -127,7 +127,7 @@ export function CharacterForm({
         }}
       >
         <Flex
-          p={6}
+          p={{ base: 2, md: 6 }}
           pb={4}
           justify="space-between"
           align="end"
@@ -178,7 +178,7 @@ export function CharacterForm({
               )}
             </Tabs.List>
 
-            <Tabs.Content value="basic" p={6}>
+            <Tabs.Content value="basic" p={{ base: 2, md: 6 }} pt={6}>
               <Stack gap={4}>
                 <form.AppField name="name">
                   {(field) => (

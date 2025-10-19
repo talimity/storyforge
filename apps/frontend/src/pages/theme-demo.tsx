@@ -2,7 +2,6 @@
 import {
   Box,
   Card,
-  Container,
   chakra,
   createListCollection,
   Fieldset,
@@ -29,6 +28,7 @@ import {
   SelectValueText,
   Switch,
 } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader, SimplePageHeader } from "@/components/ui/page-header";
 import {
   CharacterMultiSelect,
@@ -37,7 +37,7 @@ import {
 
 function ThemeDemoPage() {
   return (
-    <Container>
+    <PageContainer>
       <SimplePageHeader
         title="Design System Demo"
         tagline="A demonstration of the StoryForge theme's materials, colors, and
@@ -51,7 +51,7 @@ function ThemeDemoPage() {
       <PageHeaderExamples />
       <InlineFormExample />
       <FormExample />
-    </Container>
+    </PageContainer>
   );
 }
 

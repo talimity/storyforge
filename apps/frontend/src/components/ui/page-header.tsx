@@ -18,12 +18,17 @@ import {
 import {
   Children,
   cloneElement,
+  createContext,
   isValidElement,
   type PropsWithChildren,
   type ReactElement,
   type ReactNode,
+  useCallback,
+  useContext,
   useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import { LuArrowUpDown } from "react-icons/lu";
 import {
@@ -33,6 +38,99 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui";
+
+interface PageHeaderRegistrationData {
+  title: string;
+  tagline?: string;
+}
+
+interface PageHeaderContextValue {
+  register: (id: symbol, data: PageHeaderRegistrationData) => void;
+  unregister: (id: symbol) => void;
+  current: PageHeaderRegistrationData | null;
+}
+
+const PageHeaderContext = createContext<PageHeaderContextValue | null>(null);
+
+export function PageHeaderProvider({ children }: PropsWithChildren) {
+  const [registry, setRegistry] = useState<Map<symbol, PageHeaderRegistrationData>>(new Map());
+
+  const register = useCallback((id: symbol, data: PageHeaderRegistrationData) => {
+    setRegistry((previous) => {
+      const current = previous.get(id);
+      if (current && current.title === data.title && current.tagline === data.tagline) {
+        return previous;
+      }
+      const next = new Map(previous);
+      next.set(id, data);
+      return next;
+    });
+  }, []);
+
+  const unregister = useCallback((id: symbol) => {
+    setRegistry((previous) => {
+      if (!previous.has(id)) {
+        return previous;
+      }
+      const next = new Map(previous);
+      next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const current = useMemo(() => {
+    let active: PageHeaderRegistrationData | null = null;
+    registry.forEach((value) => {
+      active = value;
+    });
+    return active;
+  }, [registry]);
+
+  const value = useMemo<PageHeaderContextValue>(
+    () => ({
+      register,
+      unregister,
+      current,
+    }),
+    [current, register, unregister]
+  );
+
+  return <PageHeaderContext.Provider value={value}>{children}</PageHeaderContext.Provider>;
+}
+
+export function useCurrentPageHeader() {
+  const context = useContext(PageHeaderContext);
+  return context?.current ?? null;
+}
+
+function usePageHeaderRegistration() {
+  return useContext(PageHeaderContext);
+}
+
+function extractTextFromNode(node: ReactNode): string | undefined {
+  if (node === null || node === undefined || typeof node === "boolean") {
+    return undefined;
+  }
+
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+
+  if (Array.isArray(node)) {
+    const combined = node
+      .map((child) => extractTextFromNode(child))
+      .filter((value): value is string => value !== undefined)
+      .join("");
+    return combined.length > 0 ? combined : undefined;
+  }
+
+  if (isValidElement(node)) {
+    const element = node as ReactElement<{ children?: ReactNode }>;
+    return extractTextFromNode(element.props.children);
+  }
+
+  return undefined;
+}
 
 // Root component that manages layout
 interface PageHeaderRootProps extends PropsWithChildren {
@@ -72,6 +170,43 @@ function PageHeaderRoot({ children, containerProps }: PageHeaderRootProps) {
           child.type === PageHeaderTabs)
       )
   );
+
+  const registerContext = usePageHeaderRegistration();
+  const registrationIdRef = useRef<symbol | null>(null);
+
+  const titleText = extractTextFromNode(title?.props.children);
+  const taglineText = extractTextFromNode(tagline?.props.children);
+
+  const register = registerContext?.register;
+  const unregister = registerContext?.unregister;
+
+  useEffect(() => {
+    if (!register || !unregister) {
+      return;
+    }
+
+    if (!registrationIdRef.current) {
+      registrationIdRef.current = Symbol("page-header");
+    }
+
+    const id = registrationIdRef.current;
+    if (!id) {
+      return;
+    }
+
+    if (titleText && titleText.trim().length > 0) {
+      register(id, {
+        title: titleText,
+        tagline: taglineText?.trim().length ? taglineText : undefined,
+      });
+    } else {
+      unregister(id);
+    }
+
+    return () => {
+      unregister(id);
+    };
+  }, [register, unregister, taglineText, titleText]);
 
   useEffect(() => {
     if (title) {
@@ -124,7 +259,7 @@ function PageHeaderRoot({ children, containerProps }: PageHeaderRootProps) {
   }
   // Standard layout without controls
   return (
-    <Box {...containerProps} mb={8} data-testid="page-header">
+    <Box {...containerProps} mb={{ base: 0, md: 4, lg: 8 }} data-testid="page-header">
       {children}
     </Box>
   );
@@ -137,7 +272,7 @@ interface PageHeaderTitleProps extends HeadingProps {
 
 function PageHeaderTitle({ children, size = "3xl", py = "6", ...props }: PageHeaderTitleProps) {
   return (
-    <Heading size={size} py={py} {...props}>
+    <Heading display={{ base: "none", md: "block" }} size={size} py={py} {...props}>
       {children}
     </Heading>
   );
@@ -254,8 +389,14 @@ interface PageHeaderControlsProps extends StackProps {
 }
 
 function PageHeaderControls({ children, ...props }: PageHeaderControlsProps) {
+  const {
+    justify = { base: "flex-start", md: "flex-end" },
+    w = { base: "full", md: "auto" },
+    ...rest
+  } = props;
+
   return (
-    <HStack gap={4} flexShrink={0} {...props}>
+    <HStack gap={4} flexShrink={0} flexWrap="wrap" justify={justify} w={w} {...rest}>
       {children}
     </HStack>
   );
@@ -341,12 +482,10 @@ export const SimplePageHeader = ({
   tagline?: PageHeaderTaglineProps["children"];
   actions?: ReactNode;
 }>) => (
-  <>
-    <PageHeader.Root>
-      <PageHeader.Title>{title}</PageHeader.Title>
-      {tagline && <PageHeader.Tagline>{tagline}</PageHeader.Tagline>}
-      {actions && <PageHeader.Controls>{actions}</PageHeader.Controls>}
-      {children}
-    </PageHeader.Root>
-  </>
+  <PageHeader.Root>
+    <PageHeader.Title>{title}</PageHeader.Title>
+    {tagline && <PageHeader.Tagline>{tagline}</PageHeader.Tagline>}
+    {actions && <PageHeader.Controls>{actions}</PageHeader.Controls>}
+    {children}
+  </PageHeader.Root>
 );

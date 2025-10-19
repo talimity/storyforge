@@ -1,7 +1,7 @@
-import { Container } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import {
   CharacterForm,
   type CharacterFormData,
@@ -44,14 +44,14 @@ function CharacterCreatePage() {
   };
 
   return (
-    <Container>
+    <PageContainer>
       <SimplePageHeader title="New Character" />
       <CharacterForm
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         submitLabel="Create Character"
       />
-    </Container>
+    </PageContainer>
   );
 }
 

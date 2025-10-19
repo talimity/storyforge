@@ -46,7 +46,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
     onStarterSelect,
   } = props;
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-
+  const isMobile = useBreakpointValue({ base: true, md: false });
   const pinnedTurnIds = useTurnUiStore((state) => state.pinnedTurnIds);
   const uiCutoffAfterTurnId = useTurnUiStore((state) => state.uiCutoffAfterTurnId);
   // If the active run is generating a new branch, we want to temporarily hide
@@ -75,7 +75,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
     // https://github.com/TanStack/react-virtual/issues/884
     estimateSize: () => 50,
     scrollPaddingEnd: 80,
-    paddingEnd: 300,
+    paddingEnd: isMobile ? 100 : 300,
     overscan: 5,
     // rangeExtractor lets selectively disable virtualization for certain items.
     // we do this to avoid unmounting the turn being edited so we don't lose

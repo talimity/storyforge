@@ -1,7 +1,7 @@
-import { Container } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { WorkflowForm } from "@/features/workflows/components/builder/workflow-form";
 import { useTRPC } from "@/lib/trpc";
 
@@ -19,14 +19,14 @@ function WorkflowCreatePage() {
   );
 
   return (
-    <Container>
+    <PageContainer>
       <SimplePageHeader title="Create Workflow" />
       <WorkflowForm
         submitLabel="Create Workflow"
         onCancel={() => navigate("/workflows")}
         onSubmit={(data) => create.mutateAsync(data)}
       />
-    </Container>
+    </PageContainer>
   );
 }
 

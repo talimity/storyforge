@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { SimplePageHeader } from "@/components/ui/page-header";
 import { ScenarioDeleteDialog } from "@/features/scenarios/components/scenario-delete-dialog";
 import {
@@ -105,7 +106,7 @@ function ScenarioEditPage() {
 
   return (
     <>
-      <Container>
+      <PageContainer>
         <SimplePageHeader
           title={`Edit Scenario: ${scenario.name}`}
           actions={
@@ -142,7 +143,7 @@ function ScenarioEditPage() {
           onCancel={() => navigate("/scenarios")}
           submitLabel="Update Scenario"
         />
-      </Container>
+      </PageContainer>
 
       <ScenarioDeleteDialog
         isOpen={showDeleteDialog}

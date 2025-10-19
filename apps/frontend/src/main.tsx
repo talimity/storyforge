@@ -20,7 +20,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <ReactRoot>
     <TRPCReactProvider>
       <ChakraProvider value={system}>
-        <Box colorPalette="neutral">
+        <Box colorPalette="neutral" asChild>
           <ThemeProvider attribute="class">
             <RouterProvider router={router} />
             <Toaster />

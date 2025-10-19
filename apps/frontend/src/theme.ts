@@ -690,8 +690,16 @@ const tintConstants = {
 export const appTheme = defineConfig({
   globalCss: {
     ...tintConstants,
-    // Mainly only needed for dialogs as they are outside the app root
+    html: {
+      overscrollBehavior: "none",
+      // prevent safari doing dumb shit when keyboard is dismissed
+      overflow: "hidden",
+      height: "100%",
+    },
     body: {
+      overflowY: "auto",
+      height: "100%",
+      // Mainly only needed for dialogs as they are outside the app root
       fontFamily: "var(--chakra-fonts-body)",
       color: "var(--chakra-colors-content)",
     },

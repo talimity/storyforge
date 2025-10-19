@@ -1,9 +1,10 @@
-import { Box, Card, Container, Grid, Heading, HStack, Text, VStack } from "@chakra-ui/react";
+import { Box, Card, Grid, Heading, HStack, Text, VStack } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import type React from "react";
 import { LuBookOpenText, LuFoldVertical, LuPenTool } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, SimplePageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 
 interface TaskOption {
   value: TaskKind;
@@ -37,7 +38,7 @@ function TemplateTaskSelectPage() {
   const navigate = useNavigate();
 
   return (
-    <Container maxW="6xl">
+    <PageContainer maxW="6xl">
       <SimplePageHeader title="Create Prompt Template" />
       <VStack gap={6} align="stretch">
         <VStack gap={2} align="center" textAlign="center">
@@ -88,7 +89,7 @@ function TemplateTaskSelectPage() {
           </Button>
         </HStack>
       </VStack>
-    </Container>
+    </PageContainer>
   );
 }
 

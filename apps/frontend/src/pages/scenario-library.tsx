@@ -1,9 +1,10 @@
-import { Container, Grid, HStack, Input, InputGroup, Stack } from "@chakra-ui/react";
+import { Grid, HStack, Input, InputGroup, Stack } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuBookOpen, LuImport, LuPlus, LuSearch } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, CloseButton, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { ChatImportDialog } from "@/features/scenario-import/components/chat-import-dialog";
 import { ScenarioCard, ScenarioCardSkeleton } from "@/features/scenarios/components/scenario-card";
 import { ScenarioFilterPopover } from "@/features/scenarios/components/scenario-filters";
@@ -48,7 +49,7 @@ function ScenarioLibraryPage() {
   const scenarios = scenariosQuery.data?.scenarios ?? [];
 
   return (
-    <Container>
+    <PageContainer>
       <PageHeader.Root>
         <PageHeader.Title>Scenario Library</PageHeader.Title>
         <PageHeader.Controls>
@@ -135,7 +136,7 @@ function ScenarioLibraryPage() {
           navigate(`/play/${scenarioId}`);
         }}
       />
-    </Container>
+    </PageContainer>
   );
 }
 

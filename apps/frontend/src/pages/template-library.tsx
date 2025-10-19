@@ -1,5 +1,4 @@
 import {
-  Container,
   createListCollection,
   HStack,
   Input,
@@ -24,6 +23,7 @@ import {
   SelectValueText,
   SimplePageHeader,
 } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { TemplateCard, TemplateCardSkeleton } from "@/features/templates/components/template-card";
 import { TemplateImportDialog } from "@/features/templates/components/template-import-dialog";
 import { useTRPC } from "@/lib/trpc";
@@ -55,7 +55,7 @@ function TemplatesPage() {
   const handleImportTemplate = () => setIsImportDialogOpen(true);
 
   return (
-    <Container>
+    <PageContainer>
       <SimplePageHeader
         title="Prompt Templates"
         tagline="Manage prompt templates for generating content."
@@ -167,7 +167,7 @@ function TemplatesPage() {
         isOpen={isImportDialogOpen}
         onOpenChange={({ open }) => setIsImportDialogOpen(open)}
       />
-    </Container>
+    </PageContainer>
   );
 }
 

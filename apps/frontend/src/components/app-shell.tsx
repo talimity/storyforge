@@ -1,30 +1,38 @@
 import {
   Box,
-  ClientOnly,
-  Container,
   Drawer,
   Flex,
+  Grid,
+  Heading,
+  IconButton,
   Portal,
-  Skeleton,
   useBreakpointValue,
+  VisuallyHidden,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { LuMenu } from "react-icons/lu";
 import { Outlet } from "react-router-dom";
-import { ColorModeToggle } from "@/components/color-mode-toggle";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { Logo } from "@/components/logo";
 import { RouteProgress } from "@/components/route-progress";
 import { Sidebar } from "@/components/sidebar";
-import { Button } from "@/components/ui";
+import { PageHeaderProvider, useCurrentPageHeader } from "@/components/ui/page-header";
 
 export function AppShell() {
+  return (
+    <PageHeaderProvider>
+      <AppShellInner />
+    </PageHeaderProvider>
+  );
+}
+
+function AppShellInner() {
   const [sidebarExpanded, setSidebarExpanded] = useState(() => {
     const saved = localStorage.getItem("sidebar-expanded");
     return saved !== null ? JSON.parse(saved) : true;
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useBreakpointValue({ base: true, md: false });
+  const currentHeader = useCurrentPageHeader();
 
   useEffect(() => {
     localStorage.setItem("sidebar-expanded", JSON.stringify(sidebarExpanded));
@@ -33,41 +41,61 @@ export function AppShell() {
   const toggleSidebar = () => setSidebarExpanded(!sidebarExpanded);
 
   return (
-    <Box minH="100dvh" data-testid="app-shell">
+    <Flex direction="column" h="100dvh" data-testid="app-shell">
       {/* Mobile Header + Drawer: mounted always, visible only on mobile */}
-      <Drawer.Root open={drawerOpen} onOpenChange={(e) => setDrawerOpen(e.open)}>
-        <Flex
+      <Drawer.Root open={drawerOpen} onOpenChange={(e) => setDrawerOpen(e.open)} placement="start">
+        <Grid
           as="header"
-          p={4}
-          borderBottomWidth="1px"
-          justify="space-between"
-          align="center"
-          bg="bg.surface"
+          display={{ base: "grid", md: "none" }}
+          h="12"
+          px={2}
+          bg="surface"
+          gridTemplateColumns="1fr auto 1fr"
+          alignItems="center"
+          gap={1}
           data-testid="mobile-header"
-          display={{ base: "flex", md: "none" }}
+          borderBottomWidth="1px"
+          borderBottomColor="border"
         >
-          <Drawer.Trigger asChild>
-            <Button variant="ghost" size="sm" data-testid="mobile-menu-button">
-              <LuMenu />
-            </Button>
-          </Drawer.Trigger>
-          <Logo collapsed />
-          <ClientOnly fallback={<Skeleton w="10" h="10" rounded="md" />}>
-            <ColorModeToggle />
-          </ClientOnly>
-        </Flex>
+          <Flex justifySelf="start" gap={0.5} alignItems="center">
+            <Drawer.Trigger asChild>
+              <IconButton
+                variant="ghost"
+                size="sm"
+                data-testid="mobile-menu-button"
+                aria-label="Open Menu"
+              >
+                <LuMenu />
+              </IconButton>
+            </Drawer.Trigger>
+          </Flex>
+          <Flex
+            justifySelf="center"
+            alignItems="center"
+            overflow="hidden"
+            gridColumn="2"
+            minW={0}
+            maxW="100%"
+          >
+            {currentHeader?.title ? (
+              <Heading size="md" truncate as="h1">
+                {currentHeader.title}
+              </Heading>
+            ) : null}
+          </Flex>
+          <Flex justifySelf="end">
+            {/* Placeholder for right-aligned items if needed in future */}
+          </Flex>
+        </Grid>
+        <Drawer.Backdrop />
         <Portal>
-          <Drawer.Backdrop />
           <Drawer.Positioner>
-            <Drawer.Content data-testid="mobile-drawer">
-              <Drawer.Header>
-                <Drawer.Title>Navigation</Drawer.Title>
+            <Drawer.Content data-testid="mobile-drawer" w="min-content">
+              <VisuallyHidden>
                 <Drawer.CloseTrigger />
-              </Drawer.Header>
-              <Drawer.Body p="0">
-                <Box onClick={() => setDrawerOpen(false)}>
-                  <Sidebar collapsed={false} onToggleCollapse={() => {}} />
-                </Box>
+              </VisuallyHidden>
+              <Drawer.Body p="0" asChild>
+                <Sidebar collapsed={false} />
               </Drawer.Body>
             </Drawer.Content>
           </Drawer.Positioner>
@@ -75,7 +103,7 @@ export function AppShell() {
       </Drawer.Root>
 
       {/* Unified Layout: sidebar + main. Sidebar is hidden on mobile via wrapper */}
-      <Flex h="100dvh" data-testid={isMobile ? undefined : "desktop-layout"}>
+      <Flex flex="1" overflow="hidden" data-testid={isMobile ? undefined : "desktop-layout"}>
         {/* Sidebar (desktop only) */}
         <Box display={{ base: "none", md: "block" }}>
           <Sidebar collapsed={!sidebarExpanded} onToggleCollapse={toggleSidebar} />
@@ -86,12 +114,13 @@ export function AppShell() {
           as="main"
           direction="column"
           flex="1"
-          overflow="auto"
-          data-testid={isMobile ? "mobile-main-content" : "desktop-main-content"}
+          overflowY="auto"
+          overflowX="hidden"
+          data-testid="main-content"
         >
           <RouteProgress />
-          <Container
-            p={{ base: 4, md: 6 }}
+          <Box
+            p={{ base: 0, md: 4 }}
             pb={24} // Provide space for action bars/sticky footers
             maxW={{ base: "100%", md: "container.xl" }}
             data-testid="main-container"
@@ -99,9 +128,9 @@ export function AppShell() {
             <ErrorBoundary fallbackTitle="Application Error">
               <Outlet />
             </ErrorBoundary>
-          </Container>
+          </Box>
         </Flex>
       </Flex>
-    </Box>
+    </Flex>
   );
 }

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { SimplePageHeader } from "@/components/ui/page-header";
 import { CharacterDeleteDialog } from "@/features/characters/components/character-delete-dialog";
 import {
@@ -105,7 +106,7 @@ function CharacterEditPage() {
 
   return (
     <>
-      <Container>
+      <PageContainer>
         <SimplePageHeader
           title={`Edit Character: ${character.name}`}
           actions={
@@ -134,7 +135,7 @@ function CharacterEditPage() {
           submitLabel="Update Character"
           currentCharacter={character}
         />
-      </Container>
+      </PageContainer>
 
       <CharacterDeleteDialog
         isOpen={showDeleteDialog}

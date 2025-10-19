@@ -7,15 +7,7 @@ interface LogoProps {
 
 export function Logo({ collapsed = false }: LogoProps) {
   return (
-    <Flex
-      as="header"
-      align="center"
-      gap="1"
-      px={collapsed ? "3" : "5"}
-      py="3"
-      borderBottomWidth="1px"
-      data-testid="logo"
-    >
+    <Flex as="header" align="center" gap="1" px={collapsed ? "3" : "5"} py="3" data-testid="logo">
       <Center color="content" flexShrink={0} boxSize="10" transition="all 0.2s">
         <RiQuillPenAiFill size={collapsed ? 20 : 20} />
       </Center>
@@ -31,5 +23,13 @@ export function Logo({ collapsed = false }: LogoProps) {
         </Text>
       )}
     </Flex>
+  );
+}
+
+export function LogoMobile() {
+  return (
+    <Center as="header" boxSize="10" color="content" data-testid="logo-mobile">
+      <RiQuillPenAiFill size={20} />
+    </Center>
   );
 }

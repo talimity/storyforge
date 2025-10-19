@@ -23,6 +23,7 @@ import {
   PageHeader,
   SplitButton,
 } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import {
   CharacterCard,
   CharacterCardSkeleton,
@@ -114,7 +115,7 @@ function CharacterLibraryPage() {
 
   return (
     <>
-      <Container>
+      <PageContainer>
         <PageHeader.Root>
           <PageHeader.Title>Character Library</PageHeader.Title>
           <PageHeader.Controls>
@@ -212,7 +213,7 @@ function CharacterLibraryPage() {
                 ))}
           </Grid>
         )}
-      </Container>
+      </PageContainer>
 
       <CharacterImportDialog
         isOpen={isImportModalOpen}

@@ -197,7 +197,6 @@ const ParticipantCard = withFieldGroup({
             <CharacterPaletteEditor
               characterId={characterId}
               label="Dialogue Color"
-              helperText="Affects dialogue color in the scenario."
               form={group}
               fields={{ selectedColor: "colorOverride" }}
               allowReset

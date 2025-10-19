@@ -3,6 +3,7 @@ import type { TaskKind } from "@storyforge/gentasks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, SimplePageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { TemplateForm } from "@/features/template-builder/components/template-form";
 import { compileDraft } from "@/features/template-builder/services/compile-draft";
 import { templateToDraft } from "@/features/template-builder/services/template-conversion";
@@ -111,7 +112,7 @@ function TemplateEditPage() {
   const initialDraft = templateToDraft(template);
 
   return (
-    <Container maxW="6xl">
+    <PageContainer maxW="6xl">
       <TemplateForm
         initialDraft={initialDraft}
         onSubmit={handleSubmit}
@@ -119,7 +120,7 @@ function TemplateEditPage() {
         pageTitle={template.name}
         isEditMode={true}
       />
-    </Container>
+    </PageContainer>
   );
 }
 

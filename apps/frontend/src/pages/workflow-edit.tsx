@@ -2,6 +2,7 @@ import { Container, Skeleton } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import { WorkflowForm } from "@/features/workflows/components/builder/workflow-form";
 import { useTRPC } from "@/lib/trpc";
 
@@ -47,7 +48,7 @@ function WorkflowEditPage() {
     );
 
   return (
-    <Container>
+    <PageContainer>
       <SimplePageHeader title={`Edit Workflow: ${data.name}`} />
       <WorkflowForm
         initialData={{
@@ -61,7 +62,7 @@ function WorkflowEditPage() {
         onCancel={() => navigate("/workflows")}
         onSubmit={(vals) => update.mutateAsync({ id: String(id), data: vals })}
       />
-    </Container>
+    </PageContainer>
   );
 }
 

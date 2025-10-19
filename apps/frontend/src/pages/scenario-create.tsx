@@ -1,7 +1,7 @@
-import { Container } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
+import { PageContainer } from "@/components/ui/page-container";
 import {
   ScenarioForm,
   serializeLorebookAssignments,
@@ -33,7 +33,7 @@ function ScenarioCreatePage() {
   );
 
   return (
-    <Container>
+    <PageContainer>
       <SimplePageHeader title="New Scenario" />
       <ScenarioForm
         onSubmit={async (vals) => {
@@ -55,7 +55,7 @@ function ScenarioCreatePage() {
         submitLabel="Create Scenario"
         initialCharacterIds={selectedCharacterIds}
       />
-    </Container>
+    </PageContainer>
   );
 }
 

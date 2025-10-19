@@ -1,9 +1,16 @@
-import { Box, Flex, HStack, IconButton, Skeleton, useBreakpointValue } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Grid,
+  HStack,
+  IconButton,
+  Skeleton,
+  useBreakpointValue,
+} from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
 import { LuArrowLeft, LuBookOpen, LuSettings } from "react-icons/lu";
 import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { Button } from "@/components/ui";
 import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { ScenarioNavigation } from "@/features/scenario-player/components/scenario-navigation";
 import {
@@ -45,20 +52,18 @@ function PlayerShellInner() {
   return (
     <Flex direction="column" h="100dvh" colorPalette="neutral" data-testid="player-shell">
       {/* Top Scenario Title Bar */}
-      <Flex
+      <Grid
         as="header"
         h="12"
         px={2}
         bg="surface"
-        align="center"
-        justify="space-between"
-        flexShrink={0}
+        gridTemplateColumns="1fr auto 1fr"
+        alignItems="center"
         data-testid="player-shell-header"
       >
         {/* Left Section */}
-        <HStack gap={3}>
+        <HStack gap={0.5} justifySelf="start" alignItems="center">
           <IconButton
-            position="fixed"
             variant="ghost"
             size="sm"
             aria-label="Exit scenario"
@@ -72,23 +77,29 @@ function PlayerShellInner() {
         </HStack>
 
         {/* Center Section - Story Nav */}
-        <Box flex="1" textAlign="center" px={4}>
+        <Box
+          textAlign="center"
+          justifySelf="center"
+          alignItems="center"
+          overflow="hidden"
+          gridColumn="2"
+          minW={0}
+          maxW="100%"
+          asChild
+        >
           <ScenarioNavigation />
         </Box>
 
         {/* Right Section - Meta Toolbar */}
-        <HStack gap={2}>
-          <Button variant="ghost" size="sm" onClick={() => setShowPreview(true)}>
-            <HStack gap={2}>
-              <LuBookOpen />
-              <span>Lore Preview</span>
-            </HStack>
-          </Button>
-          <IconButton position="fixed" variant="ghost" size="sm">
+        <HStack gap={0.5} justifySelf="end" alignItems="center">
+          <IconButton variant="ghost" size="sm" onClick={() => setShowPreview(true)}>
+            <LuBookOpen />
+          </IconButton>
+          <IconButton variant="ghost" size="sm">
             <LuSettings />
           </IconButton>
         </HStack>
-      </Flex>
+      </Grid>
       <Flex flex="1" overflow="hidden" data-testid="player-shell-content">
         {/*Eventual toggleable side panel*/}
 

@@ -35,7 +35,7 @@ export function showErrorToast({
 export function showSuccessToast({
   title,
   description,
-  duration = 4000,
+  duration = 2500,
 }: {
   title: string;
   description?: string;
