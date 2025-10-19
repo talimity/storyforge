@@ -12,7 +12,7 @@ export type MessageBlock<S extends SourceSpec = SourceSpec> = {
   role: ChatCompletionMessageRole;
   content?: string;
   from?: DataRefOf<S>;
-  skipIfEmptyInterpolation?: boolean;
+  when?: ReadonlyArray<ConditionRef<S>>;
 };
 
 export type LayoutNode<S extends SourceSpec = SourceSpec> =
@@ -240,7 +240,7 @@ export type CompiledMessageBlock<S extends SourceSpec = SourceSpec> = Readonly<{
   role: ChatCompletionMessageRole;
   content?: CompiledLeafFunction;
   from?: DataRefOf<S>;
-  skipIfEmptyInterpolation?: boolean;
+  when?: readonly ConditionRef<S>[];
 }>;
 
 /** ---------- Unbound types for API/DB boundaries ---------- */

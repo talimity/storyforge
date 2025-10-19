@@ -26,7 +26,6 @@ interface TemplateFormProps {
     slotsDraft: TemplateDraft["slotsDraft"];
   }) => Promise<void> | void;
   onCancel: () => void;
-  submitLabel?: string;
   pageTitle: string;
   isEditMode?: boolean;
 }
@@ -37,7 +36,6 @@ export function TemplateForm({
   initialDraft,
   onSubmit,
   onCancel,
-  submitLabel = "Save Template",
   pageTitle,
   isEditMode = false,
 }: TemplateFormProps) {
@@ -166,6 +164,11 @@ export function TemplateForm({
     : metadataValidation.error.issues.length;
 
   const hasUnsavedChanges = (formIsDirty || builderIsDirty) && !formIsSubmitting;
+  const submitLabel = isEditMode
+    ? hasUnsavedChanges
+      ? "Save Changes"
+      : "Saved"
+    : "Create Template";
 
   const { showDialog, handleConfirmNavigation, handleCancelNavigation, confirmNavigation } =
     useUnsavedChangesProtection({

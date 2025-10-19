@@ -9,7 +9,7 @@ export const characters = sqliteTable("characters", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   cardType: text("card_type")
-    .$type<"character" | "group" | "persona" | "scenario">()
+    .$type<"character" | "narrator" | "group" | "persona">()
     .notNull()
     .default("character"),
   legacyPersonality: text("legacy_personality"),

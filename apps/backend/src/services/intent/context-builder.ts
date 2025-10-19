@@ -115,7 +115,7 @@ export class IntentContextBuilder {
     // TODO: Possibly make sorting configurable via recipe
     const charaTypeSort: [Character["cardType"], number][] = [
       ["character", 0],
-      ["scenario", 1],
+      ["narrator", 1],
       ["group", 2],
       ["persona", 3],
     ];
@@ -132,7 +132,7 @@ export class IntentContextBuilder {
         description: tCharacters.description,
         participantId: tScenarioParticipants.id,
         isUserProxy: tScenarioParticipants.isUserProxy,
-        charaType: tCharacters.cardType,
+        type: tCharacters.cardType,
         styleInstructions: tCharacters.styleInstructions,
       })
       .from(tCharacters)
@@ -151,38 +151,43 @@ export class IntentContextBuilder {
       // explicit user proxy first
       if (a.isUserProxy !== b.isUserProxy) return a.isUserProxy ? -1 : 1;
       // personas before others
-      const aPersona = a.charaType === "persona";
-      const bPersona = b.charaType === "persona";
+      const aPersona = a.type === "persona";
+      const bPersona = b.type === "persona";
       if (aPersona !== bPersona) return aPersona ? -1 : 1;
       // break ties by name
       return a.name.localeCompare(b.name);
     });
     const userProxyName = proxyCandidates.at(0)?.name;
 
-    // Narrator doesn't exist as a character, so they won't be in the list
+    // TODO: Handle characters with cardType "narrator" specially, which should replace
+    // the fake 'Narrator' character.
+
+    // Generic narrator doesn't exist as a character, so they won't be in the list
     const actorIsNarrator = !proxyCandidates.some(
       (chara) => chara.participantId === actorParticipantId
     );
 
-    // TODO: Make narrator name configurable
-    const actor = data.find((chara) => chara.participantId === actorParticipantId);
+    const actor = actorIsNarrator
+      ? { id: "narrator", name: "Narrator", description: "", type: "narrator" as const }
+      : data.find((chara) => chara.participantId === actorParticipantId);
     // DB constraints and invariants should ensure neither of these are null
     assertDefined(actor, "Actor participant not found in scenario");
     assertDefined(userProxyName, "No fallback player proxy character found");
 
-    const currentActorName = actorIsNarrator ? "Narrator" : actor.name;
-
-    // TODO: HACK - we replace `{{char}}` macros in character data here.
-    // normally the template engine would handle this, but it uses a single
-    // replacement (`currentActorName`) for the entire prompt. this is
-    // problematic because within a character's description, the `{{char}}`
-    // macro actually refers to the character the description is for, not the
-    // current actor.
-    const characters = data.map((chara) => ({
-      id: chara.id,
-      name: chara.name,
-      description: chara.description.replaceAll("{{char}}", currentActorName),
-    }));
+    // TODO: HACK - we replace `{{char}}` macros in character data here. This is
+    // because in the context of the prompt, {{char}} resolves to the currently
+    // acting character. But in the context of character descriptions, the same
+    // macro resolves to the character being described. This is how SillyTavern
+    // works so all cards in its ecosystem make this assumption.
+    const characters = data.map((chara) =>
+      stripNulls({
+        id: chara.id,
+        name: chara.name,
+        description: chara.description.replaceAll("{{char}}", chara.name),
+        type: chara.type,
+        styleInstructions: chara.styleInstructions,
+      })
+    );
 
     return { characters, actor: stripNulls(actor), userProxyName, actorIsNarrator };
   }

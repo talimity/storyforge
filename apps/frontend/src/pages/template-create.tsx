@@ -93,7 +93,6 @@ function TemplateCreatePage() {
         initialDraft={initialDraft}
         onSubmit={handleTemplateSubmit}
         onCancel={handleCancel}
-        submitLabel="Create Template"
         pageTitle="New Template"
         isEditMode={false}
       />

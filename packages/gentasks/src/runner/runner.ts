@@ -368,7 +368,8 @@ function attachModelContext<Ctx extends object>(
  */
 function deriveHints(messages: RenderedChatCompletionMessage[]): ChatCompletionRequestHints {
   const last = messages.at(-1);
-  if (last?.role === "assistant" && last?.prefix === true) {
+  // TODO: make templates provide an explicit hint instead of inferring from last message
+  if (last?.role === "assistant") {
     return { assistantPrefill: "require" };
   }
   return { assistantPrefill: "auto" };

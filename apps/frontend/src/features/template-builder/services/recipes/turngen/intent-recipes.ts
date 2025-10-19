@@ -37,11 +37,18 @@ export const nextTurnIntentRecipe: RecipeDefinition<
       plan: [
         {
           kind: "if",
-          when: { ref: { source: "$ctx", args: { path: "currentIntent.kind" } }, type: "nonEmpty" },
+          when: {
+            ref: { source: "$ctx", args: { path: "currentIntent.kind" } },
+            type: "nonEmpty",
+          },
           then: [
             {
               kind: "if",
-              when: makeIntentCase("manual_control"),
+              when: {
+                ref: { source: "$ctx", args: { path: "currentIntent.kind" } },
+                type: "eq",
+                value: "manual_control" satisfies IntentKind,
+              },
               then: [
                 // Don't output anything for manual control intent
               ],
@@ -50,7 +57,13 @@ export const nextTurnIntentRecipe: RecipeDefinition<
                   kind: "message",
                   role: "user",
                   content: params.currentIntentTemplate,
-                  skipIfEmptyInterpolation: true,
+                  // only include if prompt is non-empty
+                  when: [
+                    {
+                      ref: { source: "$ctx", args: { path: "currentIntent.prompt" } },
+                      type: "nonEmpty",
+                    },
+                  ],
                 },
               ],
             },
@@ -72,11 +85,3 @@ export const nextTurnIntentRecipe: RecipeDefinition<
     };
   },
 };
-
-function makeIntentCase(kind: IntentKind) {
-  return {
-    ref: { source: "$ctx", args: { path: "currentIntent.kind" } },
-    type: "eq",
-    value: kind,
-  } as const;
-}

@@ -15,11 +15,12 @@
     "typecheck:legacy": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "chevrotain": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:",
     "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   }
 }

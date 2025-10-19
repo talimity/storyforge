@@ -93,7 +93,7 @@ function compileLayoutNode<S extends SourceSpec = SourceSpec>(
         role: node.role,
         content: node.content ? compileLeaf(node.content) : undefined,
         from: node.from,
-        skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
+        when: node.when,
       });
 
     case "slot":
@@ -122,7 +122,7 @@ function compileMessageBlock<S extends SourceSpec = SourceSpec>(
     role: block.role,
     content: block.content ? compileLeaf(block.content) : undefined,
     from: block.from,
-    skipIfEmptyInterpolation: block.skipIfEmptyInterpolation,
+    when: block.when,
   });
 }
 
@@ -169,7 +169,7 @@ function compilePlanNode<S extends SourceSpec = SourceSpec>(
         role: node.role,
         content: node.content ? compileLeaf(node.content) : undefined,
         from: node.from,
-        skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
+        when: node.when,
         budget: node.budget,
       });
 

@@ -57,33 +57,18 @@ function PlayerShellInner() {
       >
         {/* Left Section */}
         <HStack gap={3}>
-          {isMobile ? (
-            <IconButton
-              position="fixed"
-              variant="ghost"
-              size="sm"
-              aria-label="Back to Library"
-              data-testid="scenario-back-button"
-              asChild
-            >
-              <Link to="/scenarios">
-                <LuArrowLeft />
-              </Link>
-            </IconButton>
-          ) : (
-            <Button
-              position="fixed"
-              variant="ghost"
-              size="sm"
-              data-testid="scenario-back-button"
-              asChild
-            >
-              <Link to="/scenarios">
-                <LuArrowLeft />
-                Library
-              </Link>
-            </Button>
-          )}
+          <IconButton
+            position="fixed"
+            variant="ghost"
+            size="sm"
+            aria-label="Exit scenario"
+            data-testid="scenario-back-button"
+            asChild
+          >
+            <Link to="/scenarios">
+              <LuArrowLeft />
+            </Link>
+          </IconButton>
         </HStack>
 
         {/* Center Section - Story Nav */}

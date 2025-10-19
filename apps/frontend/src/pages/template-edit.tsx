@@ -116,7 +116,6 @@ function TemplateEditPage() {
         initialDraft={initialDraft}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        submitLabel="Save Changes"
         pageTitle={template.name}
         isEditMode={true}
       />

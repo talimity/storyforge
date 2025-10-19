@@ -5,7 +5,6 @@ import {
   defineLayerStyles,
   defineSemanticTokens,
   defineTokens,
-  type SystemStyleObject,
 } from "@chakra-ui/react";
 
 // Base color tokens - abstract names instead of material names
@@ -631,7 +630,8 @@ const buttonRecipe = {
 
 const makeChakraSlotWrapper = (
   slot: string,
-  styles: Partial<Record<string, SystemStyleObject | undefined>>
+  // biome-ignore lint/suspicious/noExplicitAny: chakra shit
+  styles: any
 ) => ({
   slots: [],
   variants: {

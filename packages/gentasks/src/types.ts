@@ -55,6 +55,7 @@ export type CharacterCtxDTO = {
   id: string;
   name: string;
   description: string;
+  type: "character" | "narrator" | "group" | "persona";
   styleInstructions?: string;
 };
 

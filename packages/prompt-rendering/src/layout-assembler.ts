@@ -1,3 +1,4 @@
+import { evaluateCondition } from "./condition-evaluator.js";
 import { resolveDataRef } from "./data-ref-resolver.js";
 import { TemplateStructureError } from "./errors.js";
 import { type CtxWithGlobals, createScope } from "./plan-executor.js";
@@ -9,6 +10,7 @@ import type {
   CompiledLayoutNode,
   CompiledLeafFunction,
   CompiledMessageBlock,
+  ConditionRef,
   DataRefOf,
   SourceRegistry,
   SourceSpec,
@@ -53,9 +55,6 @@ export function assembleLayout<Ctx extends object, S extends SourceSpec>(
   return result;
 }
 
-/**
- * Result of attempting to emit a block
- */
 type EmitBlockResult = "emitted" | "skip" | "stop";
 
 /**
@@ -67,15 +66,21 @@ function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
     role: ChatCompletionMessageRole;
     content?: CompiledLeafFunction;
     from?: DataRefOf<S>;
-    skipIfEmptyInterpolation?: boolean;
+    when?: readonly ConditionRef<S>[];
   },
   ctx: Ctx,
   budget: BudgetManager,
   registry: SourceRegistry<Ctx, S>,
   result: ChatCompletionMessage[]
 ): EmitBlockResult {
-  // Early exit if no budget
   if (!budget.hasAny()) return "stop";
+
+  if (block.when && block.when.length > 0) {
+    const allTrue = block.when.every((cond) => evaluateCondition(cond, ctx, registry));
+    if (!allTrue) {
+      return "skip";
+    }
+  }
 
   // Create scope for leaf templating
   const scope = createScope(ctx);
@@ -86,43 +91,27 @@ function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
     // Resolve from registry
     const resolved = resolveDataRef(block.from, ctx, registry);
     if (resolved == null) {
-      return "skip"; // skip this block
+      return "skip";
     }
     content = typeof resolved === "string" ? resolved : JSON.stringify(resolved);
   } else if (block.content) {
-    // Use compiled leaf function
     content = block.content(scope);
-    // optionally skip blocks whose interpolations produced no substantive content
-    if (
-      block.skipIfEmptyInterpolation &&
-      block.content.hasVariables &&
-      !block.content.wasLastRenderContentful()
-    ) {
-      return "skip";
-    }
   } else {
     // No content source
-    return "skip"; // skip this block
+    return "skip";
   }
 
-  // Apply budget check
   if (!budget.canFitTokenEstimate(content)) {
-    return "stop"; // Stop processing if budget exhausted
+    return "stop";
   }
 
-  // Skip empty messages
   if (!content) {
     return "skip";
   }
 
   // Consume budget and emit message
   budget.consume(content);
-
-  const message: ChatCompletionMessage = {
-    role: block.role,
-    content,
-  };
-
+  const message: ChatCompletionMessage = { role: block.role, content };
   result.push(message);
   return "emitted";
 }

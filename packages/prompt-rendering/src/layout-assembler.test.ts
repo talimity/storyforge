@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "./budget-manager.js";
 import { assembleLayout } from "./layout-assembler.js";
 import { compileLeaf } from "./leaf-compiler.js";
+import { makeScopedRegistry } from "./scoped-registry.js";
 import type { SlotExecutionResult } from "./slot-executor.js";
 import { sampleTurnGenCtx } from "./test/fixtures/test-contexts.js";
 import { makeTurnGenTestRegistry } from "./test/fixtures/test-registries.js";
@@ -9,7 +10,7 @@ import type { CompiledLayoutNode, CompiledMessageBlock } from "./types.js";
 
 describe("Layout Assembler", () => {
   const ctx = sampleTurnGenCtx;
-  const registry = makeTurnGenTestRegistry();
+  const registry = makeScopedRegistry(makeTurnGenTestRegistry(), { frames: [] });
 
   function createBudget(maxTokens = 1000): DefaultBudgetManager {
     return new DefaultBudgetManager({ maxTokens });
@@ -89,26 +90,7 @@ describe("Layout Assembler", () => {
         expect(result).toHaveLength(0);
       });
 
-      it("should skip message when template placeholders resolve to empty", () => {
-        const budget = createBudget();
-        const layout: CompiledLayoutNode[] = [
-          {
-            kind: "message",
-            role: "system",
-            content: compileLeaf(
-              "<scenario_info>\n{{ctx.globals.missingScenario}}\n</scenario_info>"
-            ),
-            skipIfEmptyInterpolation: true,
-          },
-        ];
-        const slotBuffers: SlotExecutionResult = {};
-
-        const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
-
-        expect(result).toHaveLength(0);
-      });
-
-      it("should keep message when skipIfEmptyInterpolation is false", () => {
+      it("should retain message when template placeholders resolve to empty", () => {
         const budget = createBudget();
         const layout: CompiledLayoutNode[] = [
           {
@@ -128,6 +110,69 @@ describe("Layout Assembler", () => {
           role: "system",
           content: "<scenario_info>\n\n</scenario_info>",
         });
+      });
+
+      it("should skip message when conditions are not met", () => {
+        const budget = createBudget();
+        const conditionalCtx = {
+          ...ctx,
+          globals: {
+            ...ctx.globals,
+            featureFlags: { showSystem: false },
+          },
+        };
+        const layout: CompiledLayoutNode[] = [
+          {
+            kind: "message",
+            role: "system",
+            content: compileLeaf("Conditional message"),
+            when: [
+              { type: "exists", ref: { source: "$ctx", args: { path: "globals.featureFlags" } } },
+              {
+                type: "eq",
+                ref: { source: "$ctx", args: { path: "globals.featureFlags.showSystem" } },
+                value: true,
+              },
+            ],
+          },
+        ];
+        const slotBuffers: SlotExecutionResult = {};
+
+        const result = assembleLayout(layout, slotBuffers, conditionalCtx, budget, registry);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it("should emit message when all conditions pass", () => {
+        const budget = createBudget();
+        const conditionalCtx = {
+          ...ctx,
+          globals: {
+            ...ctx.globals,
+            featureFlags: { showSystem: true },
+          },
+        };
+        const layout: CompiledLayoutNode[] = [
+          {
+            kind: "message",
+            role: "system",
+            content: compileLeaf("Conditional message"),
+            when: [
+              { type: "exists", ref: { source: "$ctx", args: { path: "globals.featureFlags" } } },
+              {
+                type: "eq",
+                ref: { source: "$ctx", args: { path: "globals.featureFlags.showSystem" } },
+                value: true,
+              },
+            ],
+          },
+        ];
+        const slotBuffers: SlotExecutionResult = {};
+
+        const result = assembleLayout(layout, slotBuffers, conditionalCtx, budget, registry);
+
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual({ role: "system", content: "Conditional message" });
       });
 
       it("should stringify non-string from values", () => {
@@ -310,14 +355,13 @@ describe("Layout Assembler", () => {
         });
       });
 
-      it("should skip header blocks when placeholders resolve to empty", () => {
+      it("should retain header blocks when placeholders resolve to empty", () => {
         const budget = createBudget();
         const header: CompiledMessageBlock = {
           role: "system",
           content: compileLeaf(
             "<scenario_info>\n{{ctx.globals.missingScenario}}\n</scenario_info>"
           ),
-          skipIfEmptyInterpolation: true,
         };
         const layout: CompiledLayoutNode[] = [
           {
@@ -332,8 +376,12 @@ describe("Layout Assembler", () => {
 
         const result = assembleLayout(layout, slotBuffers, ctx, budget, registry);
 
-        expect(result).toHaveLength(1);
+        expect(result).toHaveLength(2);
         expect(result[0]).toEqual({
+          role: "system",
+          content: "<scenario_info>\n\n</scenario_info>",
+        });
+        expect(result[1]).toEqual({
           role: "assistant",
           content: "Slot content",
         });

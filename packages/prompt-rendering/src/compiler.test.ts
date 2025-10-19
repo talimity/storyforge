@@ -44,7 +44,7 @@ describe("compileTemplate", () => {
               {
                 kind: "message",
                 role: "user",
-                content: "Else: {{else.value}}",
+                content: "Else: {{fallback.value}}",
               },
             ],
           },
@@ -116,7 +116,7 @@ describe("compileTemplate", () => {
         const elseNode = ifNode.else![0];
         if (elseNode.kind === "message") {
           expect(typeof elseNode.content).toBe("function");
-          expect(elseNode.content!({ else: { value: "no" } })).toBe("Else: no");
+          expect(elseNode.content!({ fallback: { value: "no" } })).toBe("Else: no");
         }
       }
     });

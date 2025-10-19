@@ -77,6 +77,13 @@ export function executeMessageNode<Ctx extends CtxWithGlobals, S extends SourceS
   // Early exit if no budget is available
   if (!budget.hasAny()) return [];
 
+  if (node.when && node.when.length > 0) {
+    const allTrue = node.when.every((cond) => evaluateCondition(cond, ctx, registry));
+    if (!allTrue) {
+      return [];
+    }
+  }
+
   // Create scope for leaf templating
   const scope = createScope(ctx, itemScope);
 
@@ -91,14 +98,6 @@ export function executeMessageNode<Ctx extends CtxWithGlobals, S extends SourceS
     content = typeof resolved === "string" ? resolved : JSON.stringify(resolved);
   } else if (node.content) {
     content = node.content(scope);
-    // optionally skip blocks whose interpolations produced no substantive content
-    if (
-      node.skipIfEmptyInterpolation &&
-      node.content.hasVariables &&
-      !node.content.wasLastRenderContentful()
-    ) {
-      return [];
-    }
   } else {
     // No content source
     return []; // no source → no emission

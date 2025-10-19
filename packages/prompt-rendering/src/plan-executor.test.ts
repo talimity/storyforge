@@ -9,6 +9,7 @@ import {
   executePlanNode,
   executePlanNodes,
 } from "./plan-executor.js";
+import { makeScopedRegistry } from "./scoped-registry.js";
 import { sampleTurnGenCtx } from "./test/fixtures/test-contexts.js";
 import {
   makeConditionTestRegistry,
@@ -19,7 +20,7 @@ import type { Budget, CompiledPlanNode } from "./types.js";
 
 describe("Plan Executor", () => {
   const ctx = sampleTurnGenCtx;
-  const registry = makeTurnGenTestRegistry();
+  const registry = makeScopedRegistry(makeTurnGenTestRegistry(), { frames: [] });
 
   function createBudget(maxTokens = 1000): DefaultBudgetManager {
     return new DefaultBudgetManager({ maxTokens });
@@ -153,23 +154,7 @@ describe("Plan Executor", () => {
         expect(undefinedResult).toHaveLength(0);
       });
 
-      it("should skip message when template placeholders resolve to empty", () => {
-        const budget = createBudget();
-        const node: CompiledPlanNode<any> & { kind: "message" } = {
-          kind: "message",
-          role: "system",
-          content: compileLeaf(
-            "<scenario_info>\n{{ctx.globals.missingScenario}}\n</scenario_info>"
-          ),
-          skipIfEmptyInterpolation: true,
-        };
-
-        const result = executeMessageNode(node, ctx, budget, registry);
-
-        expect(result).toHaveLength(0);
-      });
-
-      it("should retain message when skipIfEmptyInterpolation not enabled", () => {
+      it("should retain message when template placeholders resolve to empty", () => {
         const budget = createBudget();
         const node: CompiledPlanNode<any> & { kind: "message" } = {
           kind: "message",
@@ -186,6 +171,63 @@ describe("Plan Executor", () => {
           role: "system",
           content: "<scenario_info>\n\n</scenario_info>",
         });
+      });
+
+      it("should skip message when any condition fails", () => {
+        const budget = createBudget();
+        const conditionalCtx = {
+          ...ctx,
+          globals: {
+            ...ctx.globals,
+            featureFlags: { enabled: false },
+          },
+        };
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
+          kind: "message",
+          role: "system",
+          content: compileLeaf("Should not appear"),
+          when: [
+            { type: "exists", ref: { source: "$ctx", args: { path: "globals.featureFlags" } } },
+            {
+              type: "eq",
+              ref: { source: "$ctx", args: { path: "globals.featureFlags.enabled" } },
+              value: true,
+            },
+          ],
+        };
+
+        const result = executeMessageNode(node, conditionalCtx, budget, registry);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it("should emit message when all conditions pass", () => {
+        const budget = createBudget();
+        const conditionalCtx = {
+          ...ctx,
+          globals: {
+            ...ctx.globals,
+            featureFlags: { enabled: true },
+          },
+        };
+        const node: CompiledPlanNode<any> & { kind: "message" } = {
+          kind: "message",
+          role: "system",
+          content: compileLeaf("Feature message"),
+          when: [
+            { type: "exists", ref: { source: "$ctx", args: { path: "globals.featureFlags" } } },
+            {
+              type: "eq",
+              ref: { source: "$ctx", args: { path: "globals.featureFlags.enabled" } },
+              value: true,
+            },
+          ],
+        };
+
+        const result = executeMessageNode(node, conditionalCtx, budget, registry);
+
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual({ role: "system", content: "Feature message" });
       });
     });
 

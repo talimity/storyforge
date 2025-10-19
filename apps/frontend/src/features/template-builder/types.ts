@@ -1,6 +1,7 @@
 import type { TaskKind, TaskSourcesMap } from "@storyforge/gentasks";
 import type {
   ChatCompletionMessageRole,
+  ConditionRef,
   SlotSpec,
   SourceSpec,
   UnboundDataRef,
@@ -134,8 +135,7 @@ export interface MessageLayoutDraft extends BaseLayoutNodeDraft {
   role: ChatCompletionMessageRole;
   content?: string;
   from?: UnboundDataRef;
-  prefix?: boolean;
-  skipIfEmptyInterpolation?: boolean;
+  when?: ConditionRef[];
 }
 
 export interface SlotLayoutDraft extends BaseLayoutNodeDraft {
@@ -154,8 +154,7 @@ export interface MessageBlockDraft {
   role: ChatCompletionMessageRole;
   content?: string;
   from?: UnboundDataRef;
-  prefix?: boolean;
-  skipIfEmptyInterpolation?: boolean;
+  when?: ConditionRef[];
 }
 
 // Slot configuration in UI

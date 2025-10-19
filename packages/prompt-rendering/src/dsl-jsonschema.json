@@ -132,10 +132,10 @@
           "$ref": "#/$defs/DataRef",
           "description": "If set, content is taken from this DataRef."
         },
-        "skipIfEmptyInterpolation": {
-          "type": "boolean",
-          "default": false,
-          "description": "Skip this message if the interpolated content is empty."
+        "when": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ConditionRef" },
+          "description": "Optional list of conditions; all must pass for the message to emit."
         }
       },
       "anyOf": [{ "required": ["content"] }, { "required": ["from"] }]
@@ -158,7 +158,11 @@
         "role": { "$ref": "#/$defs/Role" },
         "content": { "type": "string" },
         "from": { "$ref": "#/$defs/DataRef" },
-        "skipIfEmptyInterpolation": { "type": "boolean", "default": false }
+        "when": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ConditionRef" },
+          "description": "Optional list of conditions; all must pass for the message to emit."
+        }
       },
       "anyOf": [{ "required": ["content"] }, { "required": ["from"] }],
       "examples": [

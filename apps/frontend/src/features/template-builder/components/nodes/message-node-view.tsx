@@ -85,19 +85,12 @@ export const MessageNodeView = (props: MessageNodeViewProps) => {
             fontSize="sm"
             color="content.muted"
             w="full"
-            lineClamp={10}
+            lineClamp={30}
             whiteSpace="pre-wrap"
             wordBreak="break-word"
           >
             {node.content || `Data from: ${node.from?.source}`}
           </Text>
-        )}
-
-        {/* Message-specific info */}
-        {node.prefix && (
-          <Badge size="xs" colorPalette="orange">
-            Assistant Prefill
-          </Badge>
         )}
       </VStack>
     </NodeFrame>

@@ -41,7 +41,7 @@ export const messageBlockSchema = z.object({
   role: roleSchema,
   content: z.string().optional(),
   from: dataRefSchema.optional(),
-  skipIfEmptyInterpolation: z.boolean().optional(),
+  when: z.array(conditionRefSchema).optional(),
 });
 
 export const layoutNodeSchema: z.ZodType<UnboundLayoutNode> = z.discriminatedUnion("kind", [

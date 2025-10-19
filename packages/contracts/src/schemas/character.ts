@@ -7,7 +7,7 @@ export const hexColorSchema = z
   .regex(/^#[0-9a-fA-F]{6}$/)
   .describe("Hex RGB color string (e.g., #336699)");
 
-export const cardTypeSchema = z.enum(["character", "group", "persona", "scenario"]);
+export const cardTypeSchema = z.enum(["character", "group", "persona", "narrator"]);
 export type CardType = z.infer<typeof cardTypeSchema>;
 
 // Input schemas

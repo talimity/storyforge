@@ -44,7 +44,7 @@ const cardTypeOptions: Array<{
 }> = [
   { label: "Character", value: "character" },
   { label: "Persona", value: "persona" },
-  { label: "Narrator (not yet implemented)", value: "scenario" },
+  { label: "Narrator", value: "narrator" },
   { label: "Group (not yet implemented)", value: "group" },
 ];
 

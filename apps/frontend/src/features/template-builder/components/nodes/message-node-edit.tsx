@@ -38,7 +38,7 @@ export function MessageNodeEdit(props: MessageNodeEditProps) {
       role: node.role,
       name: node.name ?? "",
       content: node.content ?? "",
-      skipIfEmptyInterpolation: node.skipIfEmptyInterpolation ?? false,
+      when: node.when,
     },
   });
 
@@ -47,7 +47,7 @@ export function MessageNodeEdit(props: MessageNodeEditProps) {
       role: node.role,
       name: node.name ?? "",
       content: node.content ?? "",
-      skipIfEmptyInterpolation: node.skipIfEmptyInterpolation ?? false,
+      when: node.when,
     });
   }, [form, node]);
 
@@ -61,7 +61,7 @@ export function MessageNodeEdit(props: MessageNodeEditProps) {
       role: values.role,
       name: values.name ? values.name : undefined,
       content: values.content ? values.content : undefined,
-      skipIfEmptyInterpolation: Boolean(values.skipIfEmptyInterpolation),
+      when: values.when,
     };
     onSave?.(updatedNode);
   };
@@ -123,18 +123,13 @@ export function MessageNodeEdit(props: MessageNodeEditProps) {
               label="Content"
               helperText="The message content. Use {{variable}} syntax for templating."
               minRows={4}
+              maxRows={30}
               placeholder="Enter message content..."
             />
           )}
         </form.AppField>
 
-        <form.AppField name="skipIfEmptyInterpolation">
-          {(field) => (
-            <field.Switch helperText="If message content contains {{variables}} and none of them are filled, skip this message entirely.">
-              Skip if all variables are empty
-            </field.Switch>
-          )}
-        </form.AppField>
+        {/*  TODO: Condition editor for 'when' property */}
       </VStack>
     </NodeFrame>
   );

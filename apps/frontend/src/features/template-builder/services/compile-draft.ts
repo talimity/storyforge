@@ -54,9 +54,7 @@ function compileLayoutNode(node: LayoutNodeDraft): UnboundLayoutNode {
         role: node.role,
         ...(node.content && { content: node.content }),
         ...(node.from && { from: node.from }),
-        ...(node.skipIfEmptyInterpolation !== undefined && {
-          skipIfEmptyInterpolation: node.skipIfEmptyInterpolation,
-        }),
+        ...(node.when && { when: node.when }),
       };
 
     case "slot":
@@ -171,9 +169,7 @@ function compileMessageBlock(block: MessageBlockDraft): MessageBlock {
     role: block.role,
     ...(block.content && { content: block.content }),
     ...(block.from && { from: block.from }),
-    ...(block.skipIfEmptyInterpolation !== undefined && {
-      skipIfEmptyInterpolation: block.skipIfEmptyInterpolation,
-    }),
+    ...(block.when && { when: block.when }),
   };
 }
 

@@ -274,19 +274,19 @@ describe("compileLeaf", () => {
 
   describe("bracketed path resolution", () => {
     it("should resolve simple array access", () => {
-      const compiled = compileLeaf("{{items.[0]}}");
+      const compiled = compileLeaf("{{items[0]}}");
       const scope = { items: ["first", "second", "third"] };
       expect(compiled(scope)).toBe("first");
     });
 
     it("should resolve multiple array indices", () => {
-      const compiled = compileLeaf("{{items.[0]}}, {{items.[1]}}, {{items.[2]}}");
+      const compiled = compileLeaf("{{items[0]}}, {{items[1]}}, {{items[2]}}");
       const scope = { items: ["a", "b", "c"] };
       expect(compiled(scope)).toBe("a, b, c");
     });
 
     it("should resolve nested array access", () => {
-      const compiled = compileLeaf("{{matrix.[0].[1]}}");
+      const compiled = compileLeaf("{{matrix[0][1]}}");
       const scope = {
         matrix: [
           ["a", "b"],
@@ -296,14 +296,8 @@ describe("compileLeaf", () => {
       expect(compiled(scope)).toBe("b");
     });
 
-    it("should resolve object properties with bracketed keys", () => {
-      const compiled = compileLeaf("{{obj.[key]}}");
-      const scope = { obj: { key: "value", other: "different" }, key: "key" };
-      expect(compiled(scope)).toBe("value");
-    });
-
     it("should handle mixed dot and bracket notation", () => {
-      const compiled = compileLeaf("{{data.items.[0].name}}");
+      const compiled = compileLeaf("{{data.items[0].name}}");
       const scope = {
         data: {
           items: [
@@ -315,38 +309,26 @@ describe("compileLeaf", () => {
       expect(compiled(scope)).toBe("Item 1");
     });
 
-    it("should handle brackets at the beginning", () => {
-      const compiled = compileLeaf("{{[0].name}}");
-      const scope = [{ name: "First" }, { name: "Second" }];
-      expect(compiled(scope)).toBe("First");
-    });
-
     it("should handle numeric string indices", () => {
-      const compiled = compileLeaf("{{arr.[2]}}");
+      const compiled = compileLeaf("{{arr[2]}}");
       const scope = { arr: { "0": "zero", "1": "one", "2": "two" } };
       expect(compiled(scope)).toBe("two");
     });
 
     it("should return empty string for out-of-bounds array access", () => {
-      const compiled = compileLeaf("{{items.[10]}}");
+      const compiled = compileLeaf("{{items[10]}}");
       const scope = { items: ["a", "b", "c"] };
       expect(compiled(scope)).toBe("");
     });
 
     it("should handle malformed brackets gracefully", () => {
-      const compiled = compileLeaf("{{items.[missing}}");
+      const compiled = compileLeaf("{{items[missing}}");
       const scope = { items: ["a", "b", "c"] };
-      expect(compiled(scope)).toBe("");
-    });
-
-    it("should handle empty brackets", () => {
-      const compiled = compileLeaf("{{items.[]}}");
-      const scope = { items: { "": "empty key" } };
-      expect(compiled(scope)).toBe("empty key");
+      expect(compiled(scope)).toBe("{{items[missing}}");
     });
 
     it("should handle complex paths with brackets", () => {
-      const compiled = compileLeaf("{{examples.[0].content}} by {{examples.[0].author.name}}");
+      const compiled = compileLeaf("{{examples[0].content}} by {{examples[0].author.name}}");
       const scope = {
         examples: [
           {
@@ -391,7 +373,7 @@ describe("compileLeaf", () => {
     it("should handle malformed braces gracefully", () => {
       const compiled = compileLeaf("{{incomplete and {{name}}");
       const scope = { name: "Alice" };
-      expect(compiled(scope)).toBe("{{incomplete and Alice");
+      expect(compiled(scope)).toBe("{{incomplete and {{name}}");
     });
   });
 });
