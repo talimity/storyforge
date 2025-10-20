@@ -1,3 +1,5 @@
+export * from "@/components/ui/library-controls/sort-dropdown";
+export * from "@/components/ui/library-controls/view-modes";
 export * from "./action-bar";
 export * from "./alert";
 export * from "./autosize-textarea";

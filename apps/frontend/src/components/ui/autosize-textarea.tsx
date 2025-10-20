@@ -6,7 +6,7 @@ export type AutosizeTextareaProps = Omit<TextareaProps, "as"> &
 
 // replacement for Chakra's autosize prop as it has major issues when input gets long
 export const AutosizeTextarea = (props: AutosizeTextareaProps) => {
-  const { minRows = 1, maxRows = 12, minH, pb, ref, size, ...rest } = props;
+  const { minRows = 1, maxRows = 12, minH, pb, ref, size, variant, ...rest } = props;
 
   return (
     <Textarea
@@ -17,6 +17,7 @@ export const AutosizeTextarea = (props: AutosizeTextareaProps) => {
       maxH={`${maxRows}lh`}
       pb={pb}
       size={size}
+      variant={variant}
     >
       <TextareaAutosize {...rest} />
     </Textarea>

@@ -1,4 +1,4 @@
-import { SimpleGrid, Tabs } from "@chakra-ui/react";
+import { Badge, Flex, SimpleGrid, Tabs } from "@chakra-ui/react";
 import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -33,30 +33,35 @@ function ModelsPage() {
       <PageHeader.Root>
         <PageHeader.Title>Models</PageHeader.Title>
         <PageHeader.Tagline>Manage AI models and provider configurations</PageHeader.Tagline>
-        <PageHeader.Tabs
-          tabs={[
-            {
-              value: "models",
-              label: "Models",
-              icon: <TbCube />,
-              badge: modelList.length || undefined,
-            },
-            {
-              value: "providers",
-              label: "Providers",
-              icon: <LuPlugZap />,
-              badge: providerList.length || undefined,
-            },
-          ]}
-          defaultValue="models"
-          lazyMount
-          unmountOnExit
-        >
-          <PageHeader.Controls>
+      </PageHeader.Root>
+      <Tabs.Root size="lg" defaultValue="models" lazyMount unmountOnExit>
+        <Tabs.List flexWrap="wrap" gap={2}>
+          <Flex flex={1} gap={2}>
+            <Tabs.Trigger value="models" order={1}>
+              <TbCube />
+              Models
+              <Badge colorPalette="neutral" size="xs">
+                {modelList.length}
+              </Badge>
+            </Tabs.Trigger>
+            <Tabs.Trigger value="providers" order={2}>
+              <LuPlugZap />
+              Providers
+              <Badge colorPalette="neutral" size="xs">
+                {providerList.length}
+              </Badge>
+            </Tabs.Trigger>
+          </Flex>
+          <Flex
+            order={{ base: -1, sm: 5 }}
+            flexBasis={{ base: "100%", sm: "auto" }}
+            justifyContent="flex-end"
+          >
             <Tabs.Context>
               {(context) =>
                 context.value === "models" ? (
                   <Button
+                    width="full"
                     variant="solid"
                     colorPalette="primary"
                     onClick={() => setIsCreateModelDialogOpen(true)}
@@ -76,57 +81,57 @@ function ModelsPage() {
                 )
               }
             </Tabs.Context>
-          </PageHeader.Controls>
+          </Flex>
+        </Tabs.List>
 
-          <Tabs.Content value="models">
-            {modelProfilesQuery.error ? (
-              <ErrorEmptyState
-                title="Failed to load model profiles"
-                description={modelProfilesQuery.error.message}
-                onActionClick={modelProfilesQuery.refetch}
-              />
-            ) : modelList.length === 0 && !modelProfilesQuery.isLoading ? (
-              <EmptyState
-                icon={<TbCube />}
-                title="No model profiles yet"
-                description="Create a model profile to use for generating content."
-                actionLabel="Add Model"
-                onActionClick={() => setIsCreateModelDialogOpen(true)}
-              />
-            ) : (
-              <SimpleGrid minChildWidth="xs" gap={6}>
-                {modelProfilesQuery.isLoading
-                  ? [...Array(15)].map(() => <ModelProfileCardSkeleton key={createId()} />)
-                  : modelList.map((mp) => <ModelProfileCard key={mp.id} modelProfile={mp} />)}
-              </SimpleGrid>
-            )}
-          </Tabs.Content>
+        <Tabs.Content value="models">
+          {modelProfilesQuery.error ? (
+            <ErrorEmptyState
+              title="Failed to load model profiles"
+              description={modelProfilesQuery.error.message}
+              onActionClick={modelProfilesQuery.refetch}
+            />
+          ) : modelList.length === 0 && !modelProfilesQuery.isLoading ? (
+            <EmptyState
+              icon={<TbCube />}
+              title="No model profiles yet"
+              description="Create a model profile to use for generating content."
+              actionLabel="Add Model"
+              onActionClick={() => setIsCreateModelDialogOpen(true)}
+            />
+          ) : (
+            <SimpleGrid minChildWidth="xs" gap={6}>
+              {modelProfilesQuery.isLoading
+                ? [...Array(15)].map(() => <ModelProfileCardSkeleton key={createId()} />)
+                : modelList.map((mp) => <ModelProfileCard key={mp.id} modelProfile={mp} />)}
+            </SimpleGrid>
+          )}
+        </Tabs.Content>
 
-          <Tabs.Content value="providers">
-            {providersQuery.error ? (
-              <ErrorEmptyState
-                title="Failed to load providers"
-                description={providersQuery.error.message}
-                onActionClick={providersQuery.refetch}
-              />
-            ) : providerList.length === 0 && !providersQuery.isLoading ? (
-              <EmptyState
-                icon={<LuPlugZap />}
-                title="No providers yet"
-                description="Set up a provider to connect to AI models."
-                actionLabel="Add Provider"
-                onActionClick={() => setIsCreateProviderDialogOpen(true)}
-              />
-            ) : (
-              <SimpleGrid minChildWidth="xs" gap={6}>
-                {providersQuery.isLoading
-                  ? [...Array(15)].map(() => <ProviderCardSkeleton key={createId()} />)
-                  : providerList.map((p) => <ProviderCard key={p.id} provider={p} />)}
-              </SimpleGrid>
-            )}
-          </Tabs.Content>
-        </PageHeader.Tabs>
-      </PageHeader.Root>
+        <Tabs.Content value="providers">
+          {providersQuery.error ? (
+            <ErrorEmptyState
+              title="Failed to load providers"
+              description={providersQuery.error.message}
+              onActionClick={providersQuery.refetch}
+            />
+          ) : providerList.length === 0 && !providersQuery.isLoading ? (
+            <EmptyState
+              icon={<LuPlugZap />}
+              title="No providers yet"
+              description="Set up a provider to connect to AI models."
+              actionLabel="Add Provider"
+              onActionClick={() => setIsCreateProviderDialogOpen(true)}
+            />
+          ) : (
+            <SimpleGrid minChildWidth="xs" gap={6}>
+              {providersQuery.isLoading
+                ? [...Array(15)].map(() => <ProviderCardSkeleton key={createId()} />)
+                : providerList.map((p) => <ProviderCard key={p.id} provider={p} />)}
+            </SimpleGrid>
+          )}
+        </Tabs.Content>
+      </Tabs.Root>
 
       <CreateModelProfileDialog
         isOpen={isCreateModelDialogOpen}

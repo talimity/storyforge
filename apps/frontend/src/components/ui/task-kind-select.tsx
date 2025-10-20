@@ -1,4 +1,11 @@
-import { Badge, createListCollection, HStack, Stack, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  createListCollection,
+  HStack,
+  type SelectRootProps,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import { taskKindSchema } from "@storyforge/gentasks";
 import {
@@ -44,7 +51,7 @@ type BaseProps = {
   includeAll?: boolean;
   /** Label to use for the "All" option */
   allLabel?: string;
-};
+} & Omit<SelectRootProps, "collection" | "value" | "onChange" | "children" | "disabled">;
 
 export function TaskKindSelect({
   value,
@@ -54,6 +61,8 @@ export function TaskKindSelect({
   inDialog = false,
   includeAll = false,
   allLabel = "All Tasks",
+  minWidth = "250px",
+  ...selectProps
 }: BaseProps) {
   type AnyTaskItem = { value: TaskKind | ""; label: string; description?: string };
   const items: AnyTaskItem[] = includeAll
@@ -64,6 +73,8 @@ export function TaskKindSelect({
 
   return (
     <SelectRoot
+      minWidth={minWidth}
+      {...selectProps}
       collection={collection}
       value={value === undefined || value === null ? [] : [value]}
       onValueChange={(d) => {
@@ -75,8 +86,8 @@ export function TaskKindSelect({
       disabled={disabled}
     >
       <SelectTrigger>
-        <Stack direction="row" alignItems="center" gap={2}>
-          <SelectValueText placeholder={placeholder} w="full" />
+        <Stack direction="row" alignItems="center" gap={2} w="full">
+          <SelectValueText placeholder={placeholder} />
           {disabled && (
             <Badge size="sm" colorPalette="neutral">
               Read-only

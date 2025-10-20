@@ -75,6 +75,7 @@ export function ScenarioFilterPopover(props: ScenarioFilterPopoverProps) {
           variant={isDirty ? "solid" : "outline"}
           colorPalette={isDirty ? "accent" : "neutral"}
           size="sm"
+          boxSize="40px"
         >
           <LuFilter />
         </IconButton>

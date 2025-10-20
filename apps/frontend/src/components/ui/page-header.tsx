@@ -2,12 +2,10 @@ import {
   Badge,
   Box,
   type Container,
-  createListCollection,
   Flex,
   Heading,
   type HeadingProps,
   HStack,
-  SegmentGroup,
   Spacer,
   type StackProps,
   Tabs,
@@ -30,14 +28,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { LuArrowUpDown } from "react-icons/lu";
-import {
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValueText,
-} from "@/components/ui";
 
 interface PageHeaderRegistrationData {
   title: string;
@@ -237,19 +227,14 @@ function PageHeaderRoot({ children, containerProps }: PageHeaderRootProps) {
 
     return (
       <Box {...containerProps} data-testid="page-header">
-        <Flex wrap="wrap" align="flex-start" gap={4} mb={4}>
+        <Flex wrap="wrap" align="center" gap={4} mb={4}>
           {/* Group title and tagline together */}
           <Box flex="1 1 auto" minW="0">
             {titleWithAdjustedSpacing}
             {tagline}
           </Box>
           {/* Controls wrap when needed - no top padding when wrapped */}
-          <Box
-            flex="0 0 auto"
-            pt={{ base: 0, md: title.props.py || "6" }}
-            alignSelf={{ base: "stretch", md: "start" }}
-            w={{ base: "full", md: "auto" }}
-          >
+          <Box flex="1" h="100%">
             {controls}
           </Box>
         </Flex>
@@ -291,112 +276,23 @@ function PageHeaderTagline({ children, ...props }: PageHeaderTaglineProps) {
   );
 }
 
-// Sort selector component
-interface SortOption {
-  value: string;
-  label: string;
-}
-
-interface PageHeaderSortProps {
-  options: SortOption[];
-  value?: string;
-  onChange?: (value: string) => void;
-  label?: ReactNode;
-}
-
-function PageHeaderSort({
-  options,
-  value,
-  onChange,
-  label = <LuArrowUpDown />,
-}: PageHeaderSortProps) {
-  const collection = useMemo(() => createListCollection({ items: options }), [options]);
-  const currentValue = value ?? options[0]?.value ?? "";
-  const isDisabled = options.length === 0;
-
-  return (
-    <HStack>
-      <Text fontWeight="medium" fontSize="sm">
-        {label}
-      </Text>
-      <SelectRoot
-        width="40"
-        collection={collection}
-        value={currentValue ? [currentValue] : []}
-        onValueChange={(details) => {
-          const nextValue = details.value[0];
-          if (!nextValue) return;
-          onChange?.(nextValue);
-        }}
-        disabled={isDisabled}
-      >
-        <SelectTrigger>
-          <SelectValueText placeholder="Select sort" />
-        </SelectTrigger>
-        <SelectContent portalled>
-          {options.map((option) => (
-            <SelectItem key={option.value} item={option}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </SelectRoot>
-    </HStack>
-  );
-}
-
-// View mode selector component
-interface ViewModeOption {
-  value: string;
-  label: ReactNode;
-}
-
-interface PageHeaderViewModesProps {
-  options: ViewModeOption[];
-  value?: string;
-  onChange?: (value: string) => void;
-}
-
-function PageHeaderViewModes({ options, value, onChange }: PageHeaderViewModesProps) {
-  if (options.length === 0) {
-    return null;
-  }
-  const fallbackValue = value ?? options[0]?.value ?? "";
-
-  return (
-    <SegmentGroup.Root
-      value={fallbackValue}
-      onValueChange={
-        onChange
-          ? (details) => {
-              const nextValue = details.value;
-              if (nextValue) {
-                onChange(nextValue);
-              }
-            }
-          : undefined
-      }
-    >
-      <SegmentGroup.Indicator />
-      <SegmentGroup.Items items={options} />
-    </SegmentGroup.Root>
-  );
-}
-
 // Controls wrapper component
 interface PageHeaderControlsProps extends StackProps {
   children: ReactNode;
 }
 
 function PageHeaderControls({ children, ...props }: PageHeaderControlsProps) {
-  const {
-    justify = { base: "flex-start", md: "flex-end" },
-    w = { base: "full", md: "auto" },
-    ...rest
-  } = props;
+  const { justify = "flex-end", ...rest } = props;
 
   return (
-    <HStack gap={4} flexShrink={0} flexWrap="wrap" justify={justify} w={w} {...rest}>
+    <HStack
+      gap={4}
+      flexShrink={0}
+      flexWrap="wrap"
+      justify={justify}
+      {...rest}
+      data-testid="page-header-controls"
+    >
       {children}
     </HStack>
   );
@@ -467,8 +363,6 @@ export const PageHeader = {
   Title: PageHeaderTitle,
   Tagline: PageHeaderTagline,
   Controls: PageHeaderControls,
-  Sort: PageHeaderSort,
-  ViewModes: PageHeaderViewModes,
   Tabs: PageHeaderTabs,
 };
 

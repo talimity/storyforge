@@ -93,6 +93,7 @@ export function CharacterFilterPopover(props: CharacterFilterPopoverProps) {
           variant={isDirty ? "solid" : "outline"}
           colorPalette={isDirty ? "accent" : "neutral"}
           size="sm"
+          boxSize="40px"
         >
           <LuFilter />
         </IconButton>

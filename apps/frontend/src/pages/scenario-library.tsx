@@ -1,9 +1,16 @@
-import { Grid, HStack, Input, InputGroup, Stack } from "@chakra-ui/react";
+import { Box, Flex, Grid, HStack, Input, InputGroup } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuBookOpen, LuImport, LuPlus, LuSearch } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, CloseButton, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
+import {
+  Button,
+  CloseButton,
+  EmptyState,
+  ErrorEmptyState,
+  PageHeader,
+  SortDropdown,
+} from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
 import { ChatImportDialog } from "@/features/scenario-import/components/chat-import-dialog";
 import { ScenarioCard, ScenarioCardSkeleton } from "@/features/scenarios/components/scenario-card";
@@ -53,17 +60,6 @@ function ScenarioLibraryPage() {
       <PageHeader.Root>
         <PageHeader.Title>Scenario Library</PageHeader.Title>
         <PageHeader.Controls>
-          <HStack gap={2} align="center">
-            <PageHeader.Sort options={scenarioSortOptions} value={sort} onChange={setSort} />
-            <ScenarioFilterPopover
-              status={statusFilter}
-              onStatusChange={setStatusFilter}
-              starredOnly={starredOnly}
-              onStarredOnlyChange={setStarredOnly}
-              onClear={isFilterActive ? clearFilters : undefined}
-              isDirty={isFilterActive}
-            />
-          </HStack>
           <HStack gap={2}>
             <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
               <LuImport />
@@ -79,26 +75,33 @@ function ScenarioLibraryPage() {
         </PageHeader.Controls>
       </PageHeader.Root>
 
-      <Stack
-        direction={{ base: "column", md: "row" }}
-        gap={3}
-        align={{ base: "stretch", md: "center" }}
-        justify="space-between"
-        mb={4}
-      >
-        <InputGroup
-          startElement={<LuSearch />}
-          endElement={
-            searchInput ? <CloseButton size="sm" onClick={clearSearch} me="-2" /> : undefined
-          }
-        >
-          <Input
-            placeholder="Search scenarios..."
-            value={searchInput}
-            onChange={(event) => onSearchInputChange(event.target.value)}
+      <Flex wrap="wrap" gap={2} mb={4}>
+        <Box flex="999 1 240px" minW="240px">
+          <InputGroup
+            startElement={<LuSearch />}
+            endElement={
+              searchInput ? <CloseButton size="sm" onClick={clearSearch} me="-2" /> : undefined
+            }
+          >
+            <Input
+              placeholder="Search scenarios..."
+              value={searchInput}
+              onChange={(event) => onSearchInputChange(event.target.value)}
+            />
+          </InputGroup>
+        </Box>
+        <Flex flex="1" gap={2}>
+          <SortDropdown options={scenarioSortOptions} value={sort} onChange={setSort} />
+          <ScenarioFilterPopover
+            status={statusFilter}
+            onStatusChange={setStatusFilter}
+            starredOnly={starredOnly}
+            onStarredOnlyChange={setStarredOnly}
+            onClear={isFilterActive ? clearFilters : undefined}
+            isDirty={isFilterActive}
           />
-        </InputGroup>
-      </Stack>
+        </Flex>
+      </Flex>
 
       {scenariosQuery.error ? (
         <ErrorEmptyState

@@ -1,13 +1,4 @@
-import {
-  ActionBar,
-  Container,
-  Flex,
-  Grid,
-  HStack,
-  Input,
-  InputGroup,
-  Stack,
-} from "@chakra-ui/react";
+import { ActionBar, Box, Container, Flex, Grid, Input, InputGroup } from "@chakra-ui/react";
 import type { CharacterLibraryItem } from "@storyforge/contracts";
 import { createId } from "@storyforge/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,7 +12,9 @@ import {
   EmptyState,
   ErrorEmptyState,
   PageHeader,
+  SortDropdown,
   SplitButton,
+  ViewModes,
 } from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
 import {
@@ -119,22 +112,6 @@ function CharacterLibraryPage() {
         <PageHeader.Root>
           <PageHeader.Title>Character Library</PageHeader.Title>
           <PageHeader.Controls>
-            <HStack gap={2} align="center">
-              <PageHeader.Sort options={characterSortOptions} value={sort} onChange={setSort} />
-              <CharacterFilterPopover
-                actorTypes={actorTypes}
-                onActorTypesChange={setActorTypes}
-                starredOnly={starredOnly}
-                onStarredOnlyChange={setStarredOnly}
-                onClear={isFilterActive ? clearFilters : undefined}
-                isDirty={isFilterActive}
-              />
-              <PageHeader.ViewModes
-                options={viewModeOptions}
-                value={viewMode}
-                onChange={setViewMode}
-              />
-            </HStack>
             <SplitButton
               buttonLabel="Create Character"
               menuItems={[
@@ -152,26 +129,34 @@ function CharacterLibraryPage() {
           </PageHeader.Controls>
         </PageHeader.Root>
 
-        <Stack
-          direction={{ base: "column", md: "row" }}
-          justify="space-between"
-          align={{ base: "stretch", md: "center" }}
-          gap={3}
-          mb={4}
-        >
-          <InputGroup
-            startElement={<LuSearch />}
-            endElement={
-              searchInput ? <CloseButton size="xs" onClick={clearSearch} me="-2" /> : undefined
-            }
-          >
-            <Input
-              placeholder="Search characters..."
-              value={searchInput}
-              onChange={(event) => onSearchInputChange(event.target.value)}
+        <Flex wrap="wrap" gap={2} mb={4}>
+          <Box flex="999 1 240px" minW="240px">
+            <InputGroup
+              startElement={<LuSearch />}
+              endElement={
+                searchInput ? <CloseButton size="xs" onClick={clearSearch} me="-2" /> : undefined
+              }
+            >
+              <Input
+                placeholder="Search characters..."
+                value={searchInput}
+                onChange={(event) => onSearchInputChange(event.target.value)}
+              />
+            </InputGroup>
+          </Box>
+          <Flex flex="1" gap={2}>
+            <SortDropdown options={characterSortOptions} value={sort} onChange={setSort} />
+            <CharacterFilterPopover
+              actorTypes={actorTypes}
+              onActorTypesChange={setActorTypes}
+              starredOnly={starredOnly}
+              onStarredOnlyChange={setStarredOnly}
+              onClear={isFilterActive ? clearFilters : undefined}
+              isDirty={isFilterActive}
             />
-          </InputGroup>
-        </Stack>
+            <ViewModes options={viewModeOptions} value={viewMode} onChange={setViewMode} />
+          </Flex>
+        </Flex>
 
         {charaQuery.error ? (
           <ErrorEmptyState

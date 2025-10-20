@@ -26,7 +26,9 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValueText,
+  SortDropdown,
   Switch,
+  ViewModes,
 } from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader, SimplePageHeader } from "@/components/ui/page-header";
@@ -246,7 +248,7 @@ function PageHeaderExamples() {
           <PageHeader.Title>Campaign Assets</PageHeader.Title>
           <PageHeader.Tagline>Manage images, audio, and other media files</PageHeader.Tagline>
           <PageHeader.Controls>
-            <PageHeader.Sort
+            <SortDropdown
               options={[
                 { value: "name", label: "Name" },
                 { value: "date", label: "Date" },
@@ -258,7 +260,7 @@ function PageHeaderExamples() {
                 console.log("Sort changed:", value);
               }}
             />
-            <PageHeader.ViewModes
+            <ViewModes
               options={[
                 { value: "list", label: <LuLayoutList /> },
                 { value: "grid", label: <LuLayoutGrid /> },
@@ -294,7 +296,7 @@ function PageHeaderExamples() {
             onChange={(value) => console.log("Tab changed:", value)}
           >
             <PageHeader.Controls>
-              <PageHeader.Sort
+              <SortDropdown
                 options={[
                   { value: "name", label: "Name" },
                   { value: "date", label: "Date" },
@@ -337,7 +339,7 @@ function PageHeaderExamples() {
             onChange={(value) => console.log("Tab changed:", value)}
           >
             <PageHeader.Controls>
-              <PageHeader.Sort
+              <SortDropdown
                 options={[
                   { value: "name", label: "Name" },
                   { value: "date", label: "Date" },
@@ -349,7 +351,7 @@ function PageHeaderExamples() {
                   console.log("Sort changed:", value);
                 }}
               />
-              <PageHeader.ViewModes
+              <ViewModes
                 options={[
                   { value: "list", label: <LuLayoutList /> },
                   { value: "grid", label: <LuLayoutGrid /> },
