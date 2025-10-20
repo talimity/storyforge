@@ -1,6 +1,7 @@
 import { Badge, HStack, Icon, IconButton, Text, VStack } from "@chakra-ui/react";
 import { LuPencil, LuTrash2 } from "react-icons/lu";
 import { NodeFrame } from "@/features/template-builder/components/nodes/node-frame";
+import { TemplateStringPreview } from "@/features/template-builder/components/template-string-preview";
 import { getNodeIcon, getRoleLabel } from "@/features/template-builder/services/builder-utils";
 import type { MessageLayoutDraft } from "@/features/template-builder/types";
 
@@ -81,16 +82,13 @@ export const MessageNodeView = (props: MessageNodeViewProps) => {
 
         {/* Content Display */}
         {hasContent && (
-          <Text
-            fontSize="sm"
+          <TemplateStringPreview
+            value={node.content ?? ""}
+            fallback={node.from ? `Data from: ${node.from.source}` : undefined}
             color="content.muted"
-            w="full"
             lineClamp={30}
-            whiteSpace="pre-wrap"
-            wordBreak="break-word"
-          >
-            {node.content || `Data from: ${node.from?.source}`}
-          </Text>
+            width="full"
+          />
         )}
       </VStack>
     </NodeFrame>

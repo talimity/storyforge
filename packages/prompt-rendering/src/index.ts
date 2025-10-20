@@ -48,7 +48,8 @@ export type { SlotExecutionResult } from "./slot-executor.js";
 export { executeSlots } from "./slot-executor.js";
 export { extractAllSourceNames, lintSourceNames } from "./source-linter.js";
 export { makeRegistry } from "./source-registry.js";
-
+export type { TemplateSegment, TemplateTokenizeResult } from "./template-tokenizer.js";
+export { tokenizeTemplateString } from "./template-tokenizer.js";
 // Type exports
 export type {
   Budget,

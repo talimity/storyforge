@@ -20,8 +20,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <ReactRoot>
     <TRPCReactProvider>
       <ChakraProvider value={system}>
-        <Box colorPalette="neutral" asChild>
-          <ThemeProvider attribute="class">
+        <ThemeProvider attribute="class">
+          <Box colorPalette="neutral">
             <RouterProvider router={router} />
             <Toaster />
             {ENABLE_DEVTOOLS && (
@@ -36,8 +36,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 ]}
               />
             )}
-          </ThemeProvider>
-        </Box>
+          </Box>
+        </ThemeProvider>
       </ChakraProvider>
     </TRPCReactProvider>
   </ReactRoot>
