@@ -1,4 +1,4 @@
-import { Box, HStack } from "@chakra-ui/react";
+import { HStack } from "@chakra-ui/react";
 import { AutosizeTextarea } from "@/components/ui";
 import { CharacterMiniSelect } from "@/features/scenario-player/components/intent-panel/character-mini-select";
 import { GenerateOrCancelButton } from "@/features/scenario-player/components/intent-panel/generate-or-cancel-button";
@@ -46,7 +46,17 @@ export function PromptInput(props: PromptInputProps) {
   const { ref: textareaRef, isFocused: isInputFocused } = useIsInputFocused();
 
   return (
-    <Box position="relative" isolation="isolate">
+    <HStack position="relative" isolation="isolate" alignItems="flex-start">
+      {withCharacterSelect && (
+        <CharacterMiniSelect
+          characters={characters}
+          value={selectedCharacterId}
+          onChange={setSelectedCharacter}
+          disabled={isGenerating}
+          boxSize="40px"
+          layerStyle="contrast"
+        />
+      )}
       <AutosizeTextarea
         ref={textareaRef}
         placeholder={textareaPlaceholder}
@@ -55,35 +65,18 @@ export function PromptInput(props: PromptInputProps) {
         value={inputText}
         onChange={(e) => onInputChange(e.target.value)}
         disabled={textareaDisabled}
-        minRows={isInputFocused ? 3 : 1}
+        minH={isInputFocused ? undefined : "40px"}
+        minRows={isInputFocused ? 3 : undefined}
+        maxRows={isInputFocused ? 10 : 5}
         style={{ transition: "min-height 0.2s ease" }}
       />
-      <HStack
-        gap="1"
-        position="relative"
-        bottom="2"
-        insetStart="2"
-        insetEnd="2"
-        zIndex="1"
-        justify="space-between"
-      >
-        {withCharacterSelect && (
-          <CharacterMiniSelect
-            characters={characters}
-            value={selectedCharacterId}
-            onChange={setSelectedCharacter}
-            disabled={isGenerating}
-            py={0}
-          />
-        )}
-        <GenerateOrCancelButton
-          colorPalette="accent"
-          onGenerate={onGenerate}
-          onCancel={onCancel}
-          isGenerating={!!isGenerating}
-          disabled={disableGenerateButton}
-        />
-      </HStack>
-    </Box>
+      <GenerateOrCancelButton
+        colorPalette="accent"
+        onGenerate={onGenerate}
+        onCancel={onCancel}
+        isGenerating={!!isGenerating}
+        disabled={disableGenerateButton}
+      />
+    </HStack>
   );
 }

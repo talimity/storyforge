@@ -14,6 +14,7 @@ export function ColorModeToggle({ collapsed = false }: ColorModeToggleProps) {
 
   return (
     <Button
+      aria-label="Toggle color mode"
       colorPalette="grey"
       variant="ghost"
       w="full"

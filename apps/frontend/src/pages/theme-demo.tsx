@@ -37,6 +37,38 @@ import {
   CharacterSingleSelect,
 } from "@/features/characters/components/character-selector";
 
+function ColorScaleBox(props: { colorKey: string; label: string }) {
+  const { colorKey, label } = props;
+  const ramp = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map(
+    (shade) => `${colorKey}.${shade}`
+  );
+  return (
+    <Box p={8}>
+      <Heading size="lg" mb={4}>
+        {label}
+      </Heading>
+      <HStack gap={0}>
+        {ramp.map((color) => (
+          <VStack key={color} gap={0} flex={1}>
+            <Box
+              boxSize="80px"
+              bg={color}
+              border="1px solid"
+              borderColor="surface.border"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            />
+            <Text fontSize="xs" color="content.muted" textAlign="center" mt={1}>
+              {color}
+            </Text>
+          </VStack>
+        ))}
+      </HStack>
+    </Box>
+  );
+}
+
 function ThemeDemoPage() {
   return (
     <PageContainer>
@@ -45,6 +77,9 @@ function ThemeDemoPage() {
         tagline="A demonstration of the StoryForge theme's materials, colors, and
         typography."
       />
+      <ColorScaleBox colorKey="neutral" label="Neutral Scale" />
+      <ColorScaleBox colorKey="primary" label="Primary Scale" />
+      <ColorScaleBox colorKey="accent" label="Accent Scale" />
 
       <MaterialExample />
       <TypographyExample />
@@ -106,16 +141,6 @@ function TypographyExample() {
       {/* Or you can explicitly use text styles */}
       <Text textStyle="heading" fontSize="3xl" mt={4}>
         3xl Text component with heading style
-      </Text>
-
-      {/* Body text with text style */}
-      <Text textStyle="body" mt={4}>
-        This is body text using the body text style.
-      </Text>
-
-      {/* Muted body text */}
-      <Text textStyle="body-muted" mt={2}>
-        This is muted body text for secondary content.
       </Text>
     </Box>
   );

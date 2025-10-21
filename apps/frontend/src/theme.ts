@@ -250,7 +250,7 @@ const semanticTokens = defineSemanticTokens({
       border: {
         value: {
           _light: "{colors.accent.700}",
-          _dark: "{colors.accentDark.700}",
+          _dark: "{colors.accentDark.900}",
         },
       },
     },
@@ -566,8 +566,8 @@ export const inputRecipe = {
         },
         borderWidth: "1px",
         borderColor: {
-          _light: "{colors.surface.border}/20",
-          _dark: "{colors.neutralDark.500}/30",
+          _light: "{colors.surface.border}/10",
+          _dark: "{colors.neutralDark.400}",
         },
         focusVisibleRing: "outside",
         focusRingOffset: "0px",
@@ -630,7 +630,7 @@ const buttonRecipe = {
 
 const makeChakraSlotWrapper = (
   slot: string,
-  // biome-ignore lint/suspicious/noExplicitAny: chakra shit
+  // biome-ignore lint/suspicious/noExplicitAny: chakra shit idk
   styles: any
 ) => ({
   slots: [],
@@ -692,13 +692,15 @@ export const appTheme = defineConfig({
     ...tintConstants,
     html: {
       overscrollBehavior: "none",
-      // prevent safari doing dumb shit when keyboard is dismissed
+      // prevents safari from screwing with viewport when dismissing virtual keyboard
       overflow: "hidden",
       height: "100%",
     },
     body: {
+      // safari keyboard fix
       overflowY: "auto",
       height: "100%",
+
       // Mainly only needed for dialogs as they are outside the app root
       fontFamily: "var(--chakra-fonts-body)",
       color: "var(--chakra-colors-content)",
@@ -738,13 +740,6 @@ export const appTheme = defineConfig({
         value: {
           fontFamily: "body",
           color: "content",
-          lineHeight: "1.6",
-        },
-      },
-      "body-muted": {
-        value: {
-          fontFamily: "body",
-          color: "content.muted",
           lineHeight: "1.6",
         },
       },

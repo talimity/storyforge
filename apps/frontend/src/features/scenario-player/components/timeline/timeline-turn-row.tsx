@@ -36,7 +36,7 @@ function TimelineTurnRowImpl(props: TimelineTurnRowProps) {
   return (
     <Box width="100%" pb={4} data-testid="timeline-turn-row">
       <Flex align="stretch" gap={2} width="100%">
-        <Box flex="1">
+        <Box flex="1" maxW="100%">
           <Presence
             data-testid="turn-retry-presence"
             lazyMount

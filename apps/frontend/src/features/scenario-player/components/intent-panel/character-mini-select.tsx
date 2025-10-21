@@ -9,7 +9,7 @@ import {
 import type { CharacterSummary } from "@storyforge/contracts";
 import { useMemo } from "react";
 import { RiForbidLine } from "react-icons/ri";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, type AvatarProps } from "@/components/ui/avatar";
 import { SelectContent, SelectItem, SelectRoot } from "@/components/ui/select";
 import { CharacterListItem } from "@/features/characters/components/character-list-item";
 import { getApiUrl } from "@/lib/get-api-url";
@@ -25,16 +25,15 @@ interface CharacterOption {
   character: CharacterMiniSelectCharacter;
 }
 
-interface CharacterMiniSelectProps
-  extends Omit<SelectRootProps, "value" | "onChange" | "collection"> {
+type CharacterMiniSelectProps = {
   characters: CharacterMiniSelectCharacter[];
   value: string | null;
   onChange: (characterId: string | null) => void;
   disabled?: boolean;
   portalled?: boolean;
-}
+} & Omit<SelectRootProps & AvatarProps, "value" | "onChange" | "collection">;
 
-interface CharacterMiniSelectTriggerProps {
+interface CharacterMiniSelectTriggerProps extends AvatarProps {
   optionByValue: Map<string, CharacterOption>;
   disabled?: boolean;
 }
@@ -42,6 +41,9 @@ interface CharacterMiniSelectTriggerProps {
 const CharacterMiniSelectTrigger = ({
   optionByValue,
   disabled = false,
+  boxSize,
+  size,
+  ...rest
 }: CharacterMiniSelectTriggerProps) => {
   const select = useSelectContext();
   const selectedValue = select.value[0];
@@ -55,13 +57,18 @@ const CharacterMiniSelectTrigger = ({
       aria-label={label}
       title={label}
       variant="plain"
-      m={0}
-      size="xs"
       disabled={disabled}
       {...select.getTriggerProps()}
     >
       {option ? (
-        <Avatar shape="rounded" layerStyle="surface" name={avatarName} src={avatarUrl} size="2xs" />
+        <Avatar
+          shape="rounded"
+          name={avatarName}
+          src={avatarUrl}
+          size={size}
+          boxSize={boxSize}
+          {...rest}
+        />
       ) : (
         <RiForbidLine />
       )}
@@ -75,8 +82,10 @@ export function CharacterMiniSelect(props: CharacterMiniSelectProps) {
     value,
     onChange,
     disabled = false,
-    layerStyle,
+    layerStyle = "surface",
     portalled = true,
+    size,
+    boxSize = "40px",
     ...rest
   } = props;
   const items = useMemo<CharacterOption[]>(
@@ -97,15 +106,18 @@ export function CharacterMiniSelect(props: CharacterMiniSelectProps) {
       collection={collection}
       positioning={{ sameWidth: false }}
       value={value ? [value] : []}
-      onValueChange={(details) => {
-        const next = details.value[0];
-        onChange(next ?? null);
-      }}
+      onValueChange={(details) => onChange(details.value[0] ?? null)}
       disabled={disabled}
-      maxW={4}
+      maxW={boxSize}
       {...rest}
     >
-      <CharacterMiniSelectTrigger optionByValue={optionByValue} disabled={disabled} />
+      <CharacterMiniSelectTrigger
+        optionByValue={optionByValue}
+        disabled={disabled}
+        size={size}
+        boxSize={boxSize}
+        layerStyle={layerStyle}
+      />
       <SelectContent minW="40" portalled={portalled}>
         {items.map((item) => (
           <SelectItem key={item.value} item={item}>

@@ -1,6 +1,7 @@
+import { IconButton } from "@chakra-ui/react";
 import { LuSquare } from "react-icons/lu";
 import { RiQuillPenLine } from "react-icons/ri";
-import { Button } from "@/components/ui";
+import type { Button } from "@/components/ui";
 
 interface GenerateOrCancelButtonProps extends React.ComponentProps<typeof Button> {
   isGenerating: boolean;
@@ -15,16 +16,14 @@ export function GenerateOrCancelButton({
   children,
   ...buttonProps
 }: GenerateOrCancelButtonProps) {
-  if (isGenerating) {
-    return (
-      <Button size="xs" onClick={onCancel} {...buttonProps}>
-        <LuSquare />
-      </Button>
-    );
-  }
   return (
-    <Button size="xs" onClick={onGenerate} {...buttonProps}>
-      <RiQuillPenLine />
-    </Button>
+    <IconButton
+      size="xs"
+      boxSize="40px"
+      onClick={isGenerating ? onCancel : onGenerate}
+      {...buttonProps}
+    >
+      {isGenerating ? <LuSquare /> : <RiQuillPenLine />}
+    </IconButton>
   );
 }

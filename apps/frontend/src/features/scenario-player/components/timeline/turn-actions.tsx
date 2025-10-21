@@ -310,8 +310,8 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
   );
 
   const quickActions = !isMobile
-    ? actionDefinitions.filter((action) => action.kind === "item" && action.slots.includes("quick"))
-    : [];
+    ? actionDefinitions.filter((a) => a.kind === "item" && a.slots.includes("quick"))
+    : [actionDefinitions.filter((a) => a.id === "retry")[0]];
 
   const menuActions = actionDefinitions.filter((action) => action.slots.includes("menu"));
 

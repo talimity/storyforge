@@ -1,4 +1,4 @@
-import { Box, HStack, SegmentGroup, Stack, Text, VStack } from "@chakra-ui/react";
+import { Box, HStack, SegmentGroup, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { Button } from "@/components/ui";
 import { PromptInput } from "@/features/scenario-player/components/intent-panel/prompt-input";
@@ -49,9 +49,9 @@ export function IntentPanel(props: IntentPanelProps) {
   }
 
   return (
-    <Stack gap={0}>
+    <Box p={2}>
       {/* Input Mode Selector */}
-      <Box overflowX="auto" maxW="100%" pb={1}>
+      <Box overflowX="auto" maxW="100%" pb={2}>
         <SegmentGroup.Root
           value={inputMode}
           onValueChange={(e) => setInputMode(e.value as InputMode)}
@@ -98,6 +98,6 @@ export function IntentPanel(props: IntentPanelProps) {
       {inputMode === "quick" && (
         <QuickActionsPanel isGenerating={isGenerating} onContinue={onQuickContinue} />
       )}
-    </Stack>
+    </Box>
   );
 }

@@ -8,10 +8,11 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
-import { LuArrowLeft, LuBookOpen, LuSettings } from "react-icons/lu";
+import { LuArrowLeft, LuBookOpen } from "react-icons/lu";
 import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
+import { ScenarioMetaMenu } from "@/features/scenario-player/components/scenario-meta-menu";
 import { ScenarioNavigation } from "@/features/scenario-player/components/scenario-navigation";
 import {
   ScenarioProvider,
@@ -95,9 +96,7 @@ function PlayerShellInner() {
           <IconButton variant="ghost" size="sm" onClick={() => setShowPreview(true)}>
             <LuBookOpen />
           </IconButton>
-          <IconButton variant="ghost" size="sm">
-            <LuSettings />
-          </IconButton>
+          <ScenarioMetaMenu />
         </HStack>
       </Grid>
       <Flex flex="1" overflow="hidden" data-testid="player-shell-content">

@@ -1,5 +1,6 @@
 import {
   Box,
+  Flex,
   HStack,
   Icon,
   IconButton,
@@ -37,7 +38,6 @@ export function ScenarioNavigation() {
 
   const latestChapter = chapters.at(-1);
   const chapterLabel = latestChapter ? deriveChapterLabel(latestChapter) : null;
-  const headerLabel = chapterLabel ? `${scenario.title} – ${chapterLabel}` : scenario.title;
 
   const {
     insertChapterAtTurn,
@@ -74,8 +74,15 @@ export function ScenarioNavigation() {
     <>
       <Popover.Root positioning={{ placement: "bottom", gutter: 4 }} lazyMount unmountOnExit>
         <Popover.Trigger asChild>
-          <Button variant="ghost" position="relative" px="8">
-            <Text truncate>{headerLabel}</Text>
+          <Button variant="ghost" px="8" w="full" justifyContent="space-between">
+            <Flex direction="column" gap="0" lineHeight="1.25">
+              <Text truncate>{scenario.title}</Text>
+              {chapterLabel && (
+                <Text fontSize="2xs" color="content.muted" lineClamp={1}>
+                  {chapterLabel}
+                </Text>
+              )}
+            </Flex>
             {/* icon makes text off-center so use absolute positioning */}
             <Icon position="absolute" right="3" size="sm">
               <LuChevronDown />

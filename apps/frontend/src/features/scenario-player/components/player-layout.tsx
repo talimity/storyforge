@@ -1,4 +1,4 @@
-import { Box, Flex } from "@chakra-ui/react";
+import { Box, Flex, useToken } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 
 interface PlayerLayoutProps {
@@ -11,6 +11,8 @@ interface PlayerLayoutProps {
  * This component handles the vertical split between timeline and input panel.
  */
 export function PlayerLayout({ timeline, intentPanel }: PlayerLayoutProps) {
+  const [maxW] = useToken("sizes", ["3xl"]);
+  console.log(maxW);
   return (
     <Flex direction="column" h="100%" data-testid="player-layout">
       {/* Turn History Slot */}
@@ -18,22 +20,23 @@ export function PlayerLayout({ timeline, intentPanel }: PlayerLayoutProps) {
         {timeline}
       </Box>
 
-      {/* Input Panel - Fixed at bottom */}
+      {/* Prompt Slot */}
       <Box
-        position="sticky"
-        bottom="0"
-        left="0"
-        right="0"
         mb={{ base: 0, md: 2 }}
         mx={{ base: 0, md: 2 }}
-        layerStyle="contrast"
-        shadow="subtle"
-        zIndex="docked"
         data-testid="player-layout-intent"
         maxW="100%"
         minW="0"
       >
-        <Box maxW="100%" minW="0" mx="auto" data-testid="player-intent-panel">
+        <Box
+          maxW={`calc(${maxW} + 2rem)`}
+          layerStyle="contrast"
+          shadow="subtle"
+          zIndex="docked"
+          minW="0"
+          mx="auto"
+          data-testid="player-intent-panel"
+        >
           {intentPanel}
         </Box>
       </Box>

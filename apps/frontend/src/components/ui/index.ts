@@ -17,6 +17,7 @@ export * from "./radio";
 export * from "./select";
 export * from "./split-button";
 export * from "./streaming-markdown";
+export * from "./surface";
 export * from "./switch";
 export * from "./tag";
 export * from "./task-kind-select";
