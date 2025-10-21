@@ -1,569 +1,162 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "./budget-manager.js";
-import { compileLeaf } from "./leaf-compiler.js";
+import { compileTemplate } from "./compiler.js";
 import { executeSlots } from "./slot-executor.js";
 import { sampleTurnGenCtx } from "./test/fixtures/test-contexts.js";
-import {
-  makeConditionTestRegistry,
-  makeTurnGenTestRegistry,
-} from "./test/fixtures/test-registries.js";
-import type { CompiledSlotSpec } from "./types.js";
+import { makeTurnGenTestRegistry } from "./test/fixtures/test-registries.js";
+import type { LayoutNode, PromptTemplate, SlotSpec } from "./types.js";
 
-describe("Slot Executor", () => {
+const charEstimator = (text: string) => text.length;
+
+describe("slot executor", () => {
   const ctx = sampleTurnGenCtx;
   const registry = makeTurnGenTestRegistry();
-  const conditionRegistry = makeConditionTestRegistry();
 
-  function createBudget(maxTokens = 1000): DefaultBudgetManager {
-    return new DefaultBudgetManager({ maxTokens });
+  function createBudget(maxTokens = 500): DefaultBudgetManager {
+    return new DefaultBudgetManager({ maxTokens }, charEstimator);
   }
 
-  describe("executeSlots", () => {
-    describe("priority ordering", () => {
-      it("should execute slots in priority order (0 before 1 before 2)", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          slotC: {
-            priority: 2,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Priority 2 - executed third"),
-              },
-            ],
-          },
-          slotA: {
-            priority: 0,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Priority 0 - executed first"),
-              },
-            ],
-          },
-          slotB: {
-            priority: 1,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Priority 1 - executed second"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        // Check that all slots were executed
-        expect(result.slotA).toHaveLength(1);
-        expect(result.slotB).toHaveLength(1);
-        expect(result.slotC).toHaveLength(1);
-
-        // Verify content matches expected priority order
-        expect(result.slotA[0].content).toContain("Priority 0 - executed first");
-        expect(result.slotB[0].content).toContain("Priority 1 - executed second");
-        expect(result.slotC[0].content).toContain("Priority 2 - executed third");
-      });
-
-      it("should handle slots with same priority consistently", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          slotB: {
-            priority: 1,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Slot B"),
-              },
-            ],
-          },
-          slotA: {
-            priority: 1,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Slot A"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        // Both slots should execute
-        expect(result.slotA).toHaveLength(1);
-        expect(result.slotB).toHaveLength(1);
-        expect(result.slotA[0].content).toBe("Slot A");
-        expect(result.slotB[0].content).toBe("Slot B");
-      });
-    });
-
-    describe("conditional execution", () => {
-      it("should execute slot when condition is true", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          conditionalSlot: {
-            priority: 0,
-            when: { type: "exists", ref: { source: "existsValue" } },
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Condition was true"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, conditionRegistry);
-
-        expect(result.conditionalSlot).toHaveLength(1);
-        expect(result.conditionalSlot[0].content).toBe("Condition was true");
-      });
-
-      it("should skip slot when condition is false", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          skippedSlot: {
-            priority: 0,
-            when: { type: "exists", ref: { source: "nullValue" } },
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Should not execute"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, conditionRegistry);
-
-        expect(result.skippedSlot).toHaveLength(0);
-      });
-
-      it("should execute slot without condition", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          unconditionalSlot: {
-            priority: 0,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Always executes"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        expect(result.unconditionalSlot).toHaveLength(1);
-        expect(result.unconditionalSlot[0].content).toBe("Always executes");
-      });
-
-      it("should handle multiple condition types", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          existsSlot: {
-            priority: 0,
-            when: { type: "exists", ref: { source: "existsValue" } },
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Exists"),
-              },
-            ],
-          },
-          nonEmptySlot: {
-            priority: 1,
-            when: { type: "nonEmpty", ref: { source: "nonEmptyArray" } },
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Non-empty"),
-              },
-            ],
-          },
-          equalSlot: {
-            priority: 2,
-            when: { type: "eq", ref: { source: "number42" }, value: 42 },
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Equals 42"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, conditionRegistry);
-
-        expect(result.existsSlot).toHaveLength(1);
-        expect(result.nonEmptySlot).toHaveLength(1);
-        expect(result.equalSlot).toHaveLength(1);
-      });
-    });
-
-    describe("budget management", () => {
-      it("should respect per-slot budget limits", () => {
-        const budget = createBudget(1000); // Global budget
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          limitedSlot: {
-            priority: 0,
-            budget: { maxTokens: 1 }, // Very small slot budget
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("This message is longer than the slot budget allows"),
-              },
-            ],
-          },
-          normalSlot: {
-            priority: 1,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Short"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        // Limited slot should have no messages due to budget constraint
-        expect(result.limitedSlot).toHaveLength(0);
-        // Normal slot should work fine
-        expect(result.normalSlot).toHaveLength(1);
-        expect(result.normalSlot[0].content).toBe("Short");
-      });
-
-      it("should isolate slot budgets from each other", () => {
-        const budget = createBudget(1000);
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          slot1: {
-            priority: 0,
-            budget: { maxTokens: 10 },
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Slot 1 message"),
-              },
-            ],
-          },
-          slot2: {
-            priority: 1,
-            budget: { maxTokens: 10 },
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Slot 2 message"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        // Both slots should succeed because they have independent budgets
-        expect(result.slot1).toHaveLength(1);
-        expect(result.slot2).toHaveLength(1);
-        expect(result.slot1[0].content).toBe("Slot 1 message");
-        expect(result.slot2[0].content).toBe("Slot 2 message");
-      });
-
-      it("should work without slot-specific budgets", () => {
-        const budget = createBudget(1000);
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          unboundedSlot: {
-            priority: 0,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Uses global budget only"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        expect(result.unboundedSlot).toHaveLength(1);
-        expect(result.unboundedSlot[0].content).toBe("Uses global budget only");
-      });
-    });
-
-    describe("complex plan execution", () => {
-      it("should execute complex plans with multiple node types", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec<any>> = {
-          complexSlot: {
-            priority: 0,
-            plan: [
-              {
-                kind: "message",
-                role: "system",
-                content: compileLeaf("System message"),
-              },
-              {
-                kind: "forEach",
-                source: { source: "characters" },
-                limit: 2,
-                map: [
-                  {
-                    kind: "message",
-                    role: "user",
-                    content: compileLeaf("Character: {{item.name}}"),
-                  },
-                ],
-              },
-              {
-                kind: "if",
-                when: { type: "exists", ref: { source: "currentIntent" } },
-                then: [
-                  {
-                    kind: "message",
-                    role: "assistant",
-                    content: compileLeaf("Intent exists"),
-                  },
-                ],
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        expect(result.complexSlot).toHaveLength(4); // 1 system + 2 forEach + 1 if
-        expect(result.complexSlot[0].role).toBe("system");
-        expect(result.complexSlot[0].content).toBe("System message");
-        expect(result.complexSlot[1].content).toBe("Character: Alice");
-        expect(result.complexSlot[2].content).toBe("Character: Bob");
-        expect(result.complexSlot[3].content).toBe("Intent exists");
-      });
-
-      it("should handle empty plans", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec> = {
-          emptySlot: {
-            priority: 0,
-            plan: [],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        expect(result.emptySlot).toHaveLength(0);
-      });
-    });
-
-    describe("edge cases", () => {
-      it("should handle empty slots object", () => {
-        const budget = createBudget();
-        const slots: Record<string, CompiledSlotSpec> = {};
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        expect(result).toEqual({});
-      });
-
-      it("should handle sources that throw errors gracefully", () => {
-        const budget = createBudget();
-        const slots: Record<string, CompiledSlotSpec<any>> = {
-          errorSlot: {
-            priority: 0,
-            plan: [
-              {
-                kind: "forEach",
-                source: { source: "errorThrowingSource" }, // This source will throw an error
-                map: [
-                  {
-                    kind: "message",
-                    role: "user",
-                    content: compileLeaf("This should not execute"),
-                  },
-                ],
-              },
-            ],
-          },
-        };
-
-        const spy = vi.spyOn(console, "warn").mockReturnValue(undefined);
-        const result = executeSlots(slots, ctx, budget, registry);
-        expect(spy).toHaveBeenCalledWith(expect.stringContaining("Unresolvable DataRef"));
-        spy.mockRestore();
-
-        // Expect the slot to be empty due to error in source
-        expect(result.errorSlot).toHaveLength(0);
-      });
-
-      it("should handle slots with negative priorities", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec<any>> = {
-          negativePriority: {
-            priority: -1,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Negative priority"),
-              },
-            ],
-          },
-          positivePriority: {
-            priority: 1,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Positive priority"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        // Both should execute, negative priority should go first
-        expect(result.negativePriority).toHaveLength(1);
-        expect(result.positivePriority).toHaveLength(1);
-      });
-
-      it("should preserve slot names in result", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec<any>> = {
-          "custom-slot-name": {
-            priority: 0,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Custom slot"),
-              },
-            ],
-          },
-          another_slot_123: {
-            priority: 1,
-            plan: [
-              {
-                kind: "message",
-                role: "user",
-                content: compileLeaf("Another slot"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        expect(result["custom-slot-name"]).toHaveLength(1);
-        expect(result.another_slot_123).toHaveLength(1);
-        expect(result["custom-slot-name"][0].content).toBe("Custom slot");
-        expect(result.another_slot_123[0].content).toBe("Another slot");
-      });
-    });
-
-    describe("integration scenarios", () => {
-      it("should demonstrate complete slot orchestration", () => {
-        const budget = createBudget();
-
-        const slots: Record<string, CompiledSlotSpec<any>> = {
-          summary: {
-            priority: 0,
-            when: { type: "nonEmpty", ref: { source: "chapterSummaries" } },
-            budget: { maxTokens: 100 },
-            plan: [
-              {
-                kind: "message",
-                role: "system",
-                content: compileLeaf("Chapter summaries available"),
-              },
-              {
-                kind: "forEach",
-                source: { source: "chapterSummaries" },
-                limit: 2,
-                map: [
-                  {
-                    kind: "message",
-                    role: "user",
-                    content: compileLeaf("Chapter {{item.chapterNo}}: {{item.summary}}"),
-                  },
-                ],
-              },
-            ],
-          },
-          turns: {
-            priority: 1,
-            plan: [
-              {
-                kind: "forEach",
-                source: { source: "turns" },
-                limit: 2,
-                map: [
-                  {
-                    kind: "message",
-                    role: "user",
-                    content: compileLeaf("{{item.authorName}}: {{item.content}}"),
-                  },
-                ],
-              },
-            ],
-          },
-          examples: {
-            priority: 2,
-            when: { type: "eq", ref: { source: "turnCount" }, value: 0 },
-            plan: [
-              {
-                kind: "message",
-                role: "assistant",
-                content: compileLeaf("No turns yet, showing examples"),
-              },
-            ],
-          },
-        };
-
-        const result = executeSlots(slots, ctx, budget, registry);
-
-        // Summary slot should execute (chapterSummaries exist)
-        expect(result.summary.length).toBeGreaterThan(0);
-        expect(result.summary[0].content).toBe("Chapter summaries available");
-
-        // Turns slot should execute
-        expect(result.turns).toHaveLength(2);
-        expect(result.turns[0].content).toContain("Alice:");
-        expect(result.turns[1].content).toContain("Bob:");
-
-        // Examples slot should not execute (turnCount > 0)
-        expect(result.examples).toHaveLength(0);
-      });
-    });
+  it("executes slots by ascending priority and returns buffers", () => {
+    const compiled = compileTemplate(
+      makeTemplate({
+        earlier: {
+          priority: 0,
+          plan: [{ kind: "message", role: "user", content: "first" }],
+          meta: {},
+        },
+        later: {
+          priority: 1,
+          plan: [{ kind: "message", role: "user", content: "second" }],
+          meta: {},
+        },
+      })
+    );
+
+    const result = executeSlots(compiled.slots, ctx, createBudget(), registry);
+    expect(result.earlier.messages).toHaveLength(1);
+    expect(result.earlier.messages[0].content).toBe("first");
+    expect(result.later.messages[0].content).toBe("second");
+    expect(result.earlier.anchors).toHaveLength(0);
+  });
+
+  it("skips slots whose condition evaluates false", () => {
+    const compiled = compileTemplate(
+      makeTemplate({
+        active: {
+          priority: 0,
+          when: { type: "exists", ref: { source: "turns" } },
+          plan: [{ kind: "message", role: "user", content: "ok" }],
+          meta: {},
+        },
+        skipped: {
+          priority: 1,
+          when: { type: "nonEmpty", ref: { source: "emptyArray" } },
+          plan: [{ kind: "message", role: "user", content: "nope" }],
+          meta: {},
+        },
+      })
+    );
+
+    const result = executeSlots(compiled.slots, ctx, createBudget(), registry);
+    expect(result.active.messages).toHaveLength(1);
+    expect(result.skipped.messages).toHaveLength(0);
+    expect(result.skipped.anchors).toHaveLength(0);
+  });
+
+  it("collects anchors emitted within plan nodes", () => {
+    const compiled = compileTemplate(
+      makeTemplate({
+        timeline: {
+          priority: 0,
+          plan: [
+            {
+              kind: "forEach",
+              source: { source: "turns" },
+              map: [
+                { kind: "message", role: "user", content: "Turn {{ item.turnNo }}" },
+                { kind: "anchor", key: "turn_{{ item.turnNo }}" },
+              ],
+            },
+          ],
+          meta: {},
+        },
+      })
+    );
+
+    const result = executeSlots(compiled.slots, ctx, createBudget(), registry);
+
+    expect(result.timeline.messages).not.toHaveLength(0);
+    expect(result.timeline.anchors).not.toHaveLength(0);
+    const firstAnchor = result.timeline.anchors[0];
+    expect(firstAnchor.key).toBe(`turn_${ctx.turns[0].turnNo}`);
+    expect(firstAnchor.index).toBe(1);
+  });
+
+  it("retains anchors when items prepend", () => {
+    const compiled = compileTemplate(
+      makeTemplate({
+        reverse: {
+          priority: 0,
+          plan: [
+            {
+              kind: "forEach",
+              source: { source: "turns" },
+              fillDir: "prepend",
+              limit: 2,
+              map: [
+                { kind: "anchor", key: "rev_{{ item.turnNo }}" },
+                { kind: "message", role: "user", content: "R{{ item.turnNo }}" },
+              ],
+            },
+          ],
+          meta: {},
+        },
+      })
+    );
+
+    const result = executeSlots(compiled.slots, ctx, createBudget(), registry);
+    const expectedTurn = ctx.turns[1].turnNo;
+    expect(result.reverse.messages[0].content).toBe(`R${expectedTurn}`);
+    expect(result.reverse.anchors[0].key).toBe(`rev_${expectedTurn}`);
+    expect(result.reverse.anchors[0].index).toBe(0);
+  });
+
+  it("stops lower-priority slots when budget is exhausted", () => {
+    const compiled = compileTemplate(
+      makeTemplate({
+        greedy: {
+          priority: 0,
+          plan: [{ kind: "message", role: "user", content: "four" }],
+          meta: {},
+        },
+        deferred: {
+          priority: 1,
+          plan: [{ kind: "message", role: "user", content: "short" }],
+          meta: {},
+        },
+      })
+    );
+
+    const budget = createBudget(4);
+    const result = executeSlots(compiled.slots, ctx, budget, registry);
+    expect(result.greedy.messages).toHaveLength(1);
+    expect(result.deferred.messages).toHaveLength(0);
   });
 });
+
+function makeTemplate(slots: Record<string, SlotSpec<any>>): PromptTemplate<string, any> {
+  const layout: LayoutNode<any>[] = Object.keys(slots).map((name) => ({
+    kind: "slot",
+    name,
+    omitIfEmpty: true,
+  }));
+
+  return {
+    id: "slot-test",
+    task: "test",
+    name: "Slot Test",
+    version: 1,
+    layout,
+    slots,
+  };
+}

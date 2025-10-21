@@ -2,8 +2,8 @@ import { evaluateCondition } from "./condition-evaluator.js";
 import { executePlanNodes } from "./plan-executor.js";
 import type {
   BudgetManager,
-  ChatCompletionMessage,
   CompiledSlotSpec,
+  SlotBuffer,
   SourceRegistry,
   SourceSpec,
 } from "./types.js";
@@ -11,7 +11,7 @@ import type {
 /**
  * Result of executing slots - map of slot names to their generated messages
  */
-export type SlotExecutionResult = Record<string, ChatCompletionMessage[]>;
+export type SlotExecutionResult = Record<string, SlotBuffer>;
 
 /**
  * Execute all slots in priority order with budget management.
@@ -41,18 +41,18 @@ export function executeSlots<Ctx extends object, S extends SourceSpec>(
     if (slotSpec.when) {
       const shouldExecute = evaluateCondition(slotSpec.when, ctx, registry);
       if (!shouldExecute) {
-        result[slotName] = [];
+        result[slotName] = { messages: [], anchors: [] };
         continue;
       }
     }
 
     // Execute slot under its budget scope if specified
-    let slotMessages: ChatCompletionMessage[] = [];
+    let slotBuffer: SlotBuffer = { messages: [], anchors: [] };
     budget.withNodeBudget(slotSpec.budget, () => {
-      slotMessages = executePlanNodes(slotSpec.plan, ctx, budget, registry);
+      slotBuffer = executePlanNodes(slotSpec.plan, ctx, budget, registry);
     });
 
-    result[slotName] = slotMessages;
+    result[slotName] = slotBuffer;
   }
 
   return result;

@@ -18,7 +18,12 @@ export const sampleTurnsDTOFixture = [
     authorType: "narrator",
     content: "The wind picks up as the conversation continues.",
   },
-];
+] satisfies Array<{
+  turnNo: number;
+  authorName: string;
+  authorType: "character" | "narrator";
+  content: string;
+}>;
 
 /** Sample chapter summaries for testing */
 export const sampleChapterSummariesDTOFixture = [

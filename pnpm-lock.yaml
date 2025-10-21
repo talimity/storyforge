@@ -595,6 +595,9 @@ importers:
 
   packages/prompt-rendering:
     dependencies:
+      '@storyforge/utils':
+        specifier: 'workspace:'
+        version: link:../utils
       chevrotain:
         specifier: 'catalog:'
         version: 11.0.3

@@ -1,242 +1,197 @@
 import { describe, expect, it } from "vitest";
 import { DefaultBudgetManager } from "./budget-manager.js";
 import { compileTemplate } from "./compiler.js";
-import { RenderError } from "./errors.js";
 import { render } from "./renderer.js";
-import { parseTemplate } from "./schemas.js";
-import complexTemplateJson from "./test/fixtures/templates/complex-template.json" with {
-  type: "json",
-};
-import minimalTemplateJson from "./test/fixtures/templates/minimal-template.json" with {
-  type: "json",
-};
-import multiSlotTemplateJson from "./test/fixtures/templates/multi-slot-template.json" with {
-  type: "json",
-};
+import { sampleTurnGenCtx } from "./test/fixtures/test-contexts.js";
 import { makeTurnGenTestRegistry } from "./test/fixtures/test-registries.js";
-import type { BudgetManager } from "./types.js";
+import type { PromptTemplate } from "./types.js";
 
-describe("render function", () => {
-  const budget = new DefaultBudgetManager({ maxTokens: 10000 });
+const charEstimator = (text: string) => text.length;
+
+describe("renderer", () => {
   const registry = makeTurnGenTestRegistry();
+  const ctx = sampleTurnGenCtx;
 
-  const sampleContext = {
-    turns: [
-      {
-        turnNo: 1,
-        authorName: "Alice",
-        authorType: "character",
-        content: "Hello world!",
-      },
-      {
-        turnNo: 2,
-        authorName: "Bob",
-        authorType: "character",
-        content: "Hi there!",
-      },
-    ],
-    characters: [
-      {
-        id: "alice",
-        name: "Alice",
-        description: "A friendly character",
-      },
-      {
-        id: "bob",
-        name: "Bob",
-        description: "Another character",
-      },
-    ],
-    chapterSummaries: [],
-    currentIntent: {
-      description: "Test intent",
-    },
-    stepOutputs: {},
-  };
+  function compile(template: PromptTemplate<string, any>): ReturnType<typeof compileTemplate> {
+    return compileTemplate<string, any>(template);
+  }
 
-  describe("basic functionality", () => {
-    it("should render a minimal template with no slots", () => {
-      const template = parseTemplate(minimalTemplateJson);
-      const compiled = compileTemplate(template);
+  function createBudget(maxTokens: number): DefaultBudgetManager {
+    return new DefaultBudgetManager({ maxTokens }, charEstimator);
+  }
 
-      const messages = render(compiled, sampleContext, budget, registry);
-
-      expect(messages).toHaveLength(2);
-      expect(messages[0]).toEqual({
-        role: "system",
-        content: "You are a helpful assistant.",
-      });
-      expect(messages[1]).toEqual({
-        role: "user",
-        content: "Hello!",
-      });
-    });
-
-    it("should render a template with slots", () => {
-      const template = parseTemplate(multiSlotTemplateJson);
-      const compiled = compileTemplate(template);
-
-      const messages = render(compiled, sampleContext, budget, registry);
-
-      expect(messages[0]).toEqual({
-        role: "system",
-        content:
-          "You are a helpful assistant.\n" +
-          "Context:\n" +
-          "Current context information.\n" +
-          "Example interaction.",
-      });
-
-      // Should include final user message
-      expect(messages[messages.length - 1]).toEqual({
-        role: "user",
-        content: "Please respond...",
-      });
-    });
-
-    it("should handle empty slot results", () => {
-      const emptyContext = {
-        ...sampleContext,
-        characters: [], // Empty characters
-      };
-
-      const template = parseTemplate(complexTemplateJson);
-      const compiled = compileTemplate(template);
-
-      const messages = render(compiled, emptyContext, budget, registry);
-
-      // Should still render successfully even with empty data sources
-      expect(messages.length).toBeGreaterThan(0);
-      expect(messages[0]).toEqual({
-        role: "system",
-        content: "You are a helpful assistant.",
-      });
-    });
-  });
-
-  describe("complex template functionality", () => {
-    it("should render a complex template with conditions and forEach", () => {
-      const template = parseTemplate(complexTemplateJson);
-      const compiled = compileTemplate(template);
-
-      const messages = render(compiled, sampleContext, budget, registry);
-
-      expect(messages.length).toBeGreaterThan(0);
-
-      // Should include system message
-      expect(messages[0]).toEqual({
-        role: "system",
-        content:
-          "You are a helpful assistant.\n" +
-          "Characters:\n" +
-          "Alice: A friendly character\n" +
-          "Bob: Another character",
-      });
-
-      // Should include final user message
-      expect(messages[messages.length - 1]).toEqual({
-        role: "user",
-        content: "Turn: Hello world!\n" + "Turn: Hi there!\n" + "Continue the story.",
-      });
-    });
-
-    it("should handle conditions correctly", () => {
-      // Test with data that should trigger the 'then' branch
-      const contextWithTurns = {
-        ...sampleContext,
-        // Add recentTurns for the complex template
-        recentTurns: [{ turnNo: 1, content: "Recent turn content" }],
-      } as any; // Cast to bypass strict typing for test
-
-      const template = parseTemplate(complexTemplateJson);
-      const compiled = compileTemplate(template);
-
-      const messages = render(compiled, contextWithTurns, budget, registry);
-
-      expect(messages.length).toBeGreaterThan(0);
-      // The exact message content will depend on the template execution
-      // but it should complete without errors
-    });
-  });
-
-  describe("error handling", () => {
-    it("should wrap unexpected errors in RenderError", () => {
-      // Create a budget manager that will throw an error
-      const faultyBudget: BudgetManager = {
-        hasAny: () => true,
-        canFitTokenEstimate: () => true,
-        consume: () => {
-          throw new Error("Simulated budget error");
+  it("renders template with layout, slot, and anchors", () => {
+    const template = compile({
+      id: "test",
+      task: "turn",
+      name: "Test",
+      version: 1,
+      layout: [
+        { kind: "message", role: "system", content: "Intro" },
+        { kind: "slot", name: "timeline" },
+        { kind: "anchor", key: "after_timeline" },
+        { kind: "message", role: "user", content: "Good luck" },
+      ],
+      slots: {
+        timeline: {
+          priority: 0,
+          plan: [
+            {
+              kind: "forEach",
+              source: { source: "turns" },
+              map: [
+                { kind: "message", role: "user", content: "Turn" },
+                { kind: "anchor", key: "turn_anchor" },
+              ],
+            },
+          ],
+          meta: {},
         },
-        withNodeBudget: (_budget, thunk) => {
-          thunk();
+      },
+    });
+
+    const messages = render(template, ctx, createBudget(100), registry);
+
+    expect(messages[0].content).toBe("Intro");
+    expect(messages[messages.length - 1].content).toContain("Good luck");
+  });
+
+  it("keeps layout instructions even when slot fills nearly all budget", () => {
+    const template = compile({
+      id: "heavy",
+      task: "turn",
+      name: "Heavy",
+      version: 1,
+      layout: [
+        { kind: "slot", name: "timeline" },
+        { kind: "message", role: "system", content: "Do not drop" },
+      ],
+      slots: {
+        timeline: {
+          priority: 0,
+          plan: [
+            {
+              kind: "forEach",
+              source: { source: "turns" },
+              map: [{ kind: "message", role: "user", content: "Very long turn content" }],
+            },
+          ],
+          meta: {},
         },
-      };
-
-      const template = parseTemplate(minimalTemplateJson); // Use simpler template
-      const compiled = compileTemplate(template);
-
-      expect(() => {
-        render(compiled, sampleContext, faultyBudget, registry);
-      }).toThrow(RenderError);
-
-      expect(() => {
-        render(compiled, sampleContext, faultyBudget, registry);
-      }).toThrow(/Unexpected error during template rendering/);
+      },
     });
 
-    it("should re-throw known error types without wrapping", () => {
-      // This would require more complex setup to trigger specific errors
-      // For now, just verify the render completes normally with valid inputs
-      const template = parseTemplate(minimalTemplateJson);
-      const compiled = compileTemplate(template);
-
-      expect(() => {
-        render(compiled, sampleContext, budget, registry);
-      }).not.toThrow();
-    });
+    const messages = render(template, ctx, createBudget(80), registry);
+    expect(messages[messages.length - 1].content).toBe("Do not drop");
   });
 
-  describe("budget management", () => {
-    it("should respect budget limits during rendering", () => {
-      // Create a very restrictive budget
-      const restrictiveBudget = new DefaultBudgetManager({ maxTokens: 1 }); // Very small budget
-
-      const template = parseTemplate(complexTemplateJson);
-      const compiled = compileTemplate(template);
-
-      // Should still complete, but may have fewer messages due to budget
-      const messages = render(compiled, sampleContext, restrictiveBudget, registry);
-
-      expect(messages).toBeDefined();
-      expect(Array.isArray(messages)).toBe(true);
+  it("injects attachment content relative to anchors", () => {
+    const template = compile({
+      id: "attach",
+      task: "turn",
+      name: "Attach",
+      version: 1,
+      layout: [{ kind: "slot", name: "timeline" }],
+      slots: {
+        timeline: {
+          priority: 0,
+          plan: [
+            {
+              kind: "forEach",
+              source: { source: "turns" },
+              map: [
+                { kind: "message", role: "user", content: "Turn {{ item.turnNo }}" },
+                { kind: "anchor", key: "turn_{{ item.turnNo }}" },
+              ],
+            },
+          ],
+          meta: {},
+        },
+      },
+      attachments: [
+        {
+          id: "lore",
+          order: 1,
+          template: "Lore: {{ payload.text }}",
+          role: "system",
+          reserveTokens: 4,
+        },
+      ],
     });
+
+    const budget = createBudget(40);
+    const messages = render(template, ctx, budget, registry, {
+      attachments: [
+        { id: "lore", template: "Lore: {{ payload.text }}", role: "system", reserveTokens: 16 },
+      ],
+      injections: [
+        {
+          lane: "lore",
+          payload: { text: "Forest" },
+          target: { kind: "at", key: "turn_1", after: true },
+        },
+      ],
+    });
+
+    const loreIndex = messages.findIndex((msg) => msg.content.includes("Lore:"));
+    expect(loreIndex).toBeGreaterThan(-1);
+    if (loreIndex >= 0) {
+      expect(messages[loreIndex].content).toBe("Lore: Forest");
+    }
   });
 
-  describe("type safety", () => {
-    it("should maintain type constraints between template and context", () => {
-      // This is mostly enforced at compile time, but we can verify runtime behavior
-      const template = parseTemplate(minimalTemplateJson);
-      const compiled = compileTemplate(template);
-
-      // Should work with correct context type
-      expect(() => {
-        render(compiled, sampleContext, budget, registry);
-      }).not.toThrow();
-
-      // The TypeScript compiler will catch type mismatches at compile time
+  it("inserts injections at top when anchor is missing", () => {
+    const template = compile({
+      id: "fallback",
+      task: "turn",
+      name: "Fallback",
+      version: 1,
+      layout: [{ kind: "message", role: "system", content: "Static" }],
+      slots: {},
     });
+
+    const budget = createBudget(20);
+    const messages = render(template, ctx, budget, registry, {
+      injections: [
+        {
+          lane: "lore",
+          target: [
+            { kind: "at", key: "missing" },
+            { kind: "boundary", position: "top" },
+          ],
+          template: "Fallback",
+          role: "system",
+        },
+      ],
+      attachments: [{ id: "lore", order: 0, reserveTokens: 4 }],
+    });
+
+    expect(messages[0].content.startsWith("Fallback")).toBe(true);
   });
 
-  describe("determinism", () => {
-    it("should produce identical results for identical inputs", () => {
-      const template = parseTemplate(multiSlotTemplateJson);
-      const compiled = compileTemplate(template);
-
-      const messages1 = render(compiled, sampleContext, budget, registry);
-      const messages2 = render(compiled, sampleContext, budget, registry);
-
-      expect(messages1).toEqual(messages2);
+  it("ignores disabled attachment lanes", () => {
+    const template = compile({
+      id: "disabled",
+      task: "turn",
+      name: "Disabled",
+      version: 1,
+      layout: [{ kind: "slot", name: "timeline" }],
+      slots: {
+        timeline: {
+          priority: 0,
+          plan: [{ kind: "message", role: "user", content: "Original" }],
+          meta: {},
+        },
+      },
+      attachments: [{ id: "lore", reserveTokens: 4, enabled: false }],
     });
+
+    const messages = render(template, ctx, createBudget(20), registry, {
+      injections: [
+        { lane: "lore", target: { kind: "at", key: "turn_1" }, template: "Should not render" },
+      ],
+    });
+
+    expect(messages.some((msg) => msg.content.includes("Should not render"))).toBe(false);
   });
 });

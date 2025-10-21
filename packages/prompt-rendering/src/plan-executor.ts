@@ -1,3 +1,4 @@
+import { assertNever } from "@storyforge/utils";
 import { evaluateCondition } from "./condition-evaluator.js";
 import { resolveAsArray, resolveDataRef } from "./data-ref-resolver.js";
 import { withAdditionalFrame } from "./scoped-registry.js";
@@ -5,14 +6,45 @@ import type {
   BudgetManager,
   ChatCompletionMessage,
   CompiledPlanNode,
+  SlotAnchor,
   SourceRegistry,
   SourceSpec,
 } from "./types.js";
 
-/**
- * Execution result for plan nodes - array of messages to be included in output
- */
-export type PlanExecutionResult = ChatCompletionMessage[];
+// Plan nodes emit both messages and logical anchors. Anchors are not rendered
+// as messages, but indicate logical positions in the message stream such as
+// the boundary of each turn, allowing content to be injected at those points
+// later on.
+export type PlanExecutionBuffer = {
+  messages: ChatCompletionMessage[];
+  anchors: SlotAnchor[];
+};
+
+function createEmptyBuffer(): PlanExecutionBuffer {
+  return { messages: [], anchors: [] };
+}
+
+function appendBuffer(target: PlanExecutionBuffer, addition: PlanExecutionBuffer): void {
+  if (addition.messages.length === 0 && addition.anchors.length === 0) return;
+  const offset = target.messages.length;
+  for (const anchor of addition.anchors) {
+    // Anchors produced by child nodes are relative to the child buffer; adjust to the caller's length.
+    target.anchors.push({ key: anchor.key, index: anchor.index + offset });
+  }
+  target.messages.push(...addition.messages);
+}
+
+function prependBuffer(target: PlanExecutionBuffer, addition: PlanExecutionBuffer): void {
+  if (addition.messages.length === 0 && addition.anchors.length === 0) return;
+  const { messages, anchors } = target;
+  target.messages = [...addition.messages, ...messages];
+  const shift = addition.messages.length;
+  target.anchors = [
+    ...addition.anchors,
+    // Anchors already in the target shift forward by however many messages were prepended.
+    ...anchors.map((a) => ({ key: a.key, index: a.index + shift })),
+  ];
+}
 
 /**
  * Scope object for leaf templating that merges context, item, and globals
@@ -45,7 +77,7 @@ export function executePlanNode<Ctx extends object, S extends SourceSpec>(
   budget: BudgetManager,
   registry: SourceRegistry<Ctx, S>,
   itemScope?: unknown
-): PlanExecutionResult {
+): PlanExecutionBuffer {
   const nodeKind = node.kind;
   switch (nodeKind) {
     case "message":
@@ -54,11 +86,11 @@ export function executePlanNode<Ctx extends object, S extends SourceSpec>(
       return executeForEachNode(node, ctx, budget, registry, itemScope);
     case "if":
       return executeIfNode(node, ctx, budget, registry, itemScope);
+    case "anchor":
+      return executeAnchorNode(node, ctx, budget, registry, itemScope);
     default: {
-      // TypeScript should prevent this, but handle gracefully
-      const _badKind = nodeKind satisfies never;
-      console.warn(`prompt-rendering executor: Unsupported PlanNode '${_badKind}'.`);
-      return [];
+      // Not actually possible to fail here because we check during compilation
+      assertNever(nodeKind);
     }
   }
 }
@@ -73,14 +105,14 @@ export function executeMessageNode<Ctx extends CtxWithGlobals, S extends SourceS
   budget: BudgetManager,
   registry: SourceRegistry<Ctx, S>,
   itemScope?: unknown
-): PlanExecutionResult {
+): PlanExecutionBuffer {
   // Early exit if no budget is available
-  if (!budget.hasAny()) return [];
+  if (!budget.hasAny()) return createEmptyBuffer();
 
   if (node.when && node.when.length > 0) {
     const allTrue = node.when.every((cond) => evaluateCondition(cond, ctx, registry));
     if (!allTrue) {
-      return [];
+      return createEmptyBuffer();
     }
   }
 
@@ -88,24 +120,26 @@ export function executeMessageNode<Ctx extends CtxWithGlobals, S extends SourceS
   const scope = createScope(ctx, itemScope);
 
   // Determine message content: from DataRef or literal content
+  // We do not throw if a DataRef fails to resolve
   let content: string;
   if (node.from) {
     // Resolve from registry
     const resolved = resolveDataRef(node.from, ctx, registry);
     if (resolved == null) {
-      return []; // emit nothing per spec
+      return createEmptyBuffer();
     }
     content = typeof resolved === "string" ? resolved : JSON.stringify(resolved);
   } else if (node.content) {
     content = node.content(scope);
   } else {
     // No content source
-    return []; // no source → no emission
+    return createEmptyBuffer();
   }
 
   // Apply budget constraints
   if (node.budget) {
     budget.withNodeBudget(node.budget, () => {
+      // Node budgets are enforced before consuming the global pool.
       if (!budget.canFitTokenEstimate(content)) {
         content = ""; // Skip if doesn't fit
       } else {
@@ -113,28 +147,23 @@ export function executeMessageNode<Ctx extends CtxWithGlobals, S extends SourceS
       }
     });
   } else if (!budget.canFitTokenEstimate(content)) {
-    return []; // Skip if doesn't fit global budget
+    // No more budget available
+    return createEmptyBuffer();
   } else {
     budget.consume(content);
   }
 
-  // Skip empty messages
   if (!content) {
-    return [];
+    return createEmptyBuffer();
   }
 
-  // Create the message
-  const message: ChatCompletionMessage = {
-    role: node.role,
-    content,
-  };
-
-  return [message];
+  const message: ChatCompletionMessage = { role: node.role, content };
+  return { messages: [message], anchors: [] };
 }
 
 /**
  * Execute a forEach node to iterate over an array and apply child nodes.
- * Supports ordering, limits, interleaving, and budget controls.
+ * Supports ordering, limits, and budget controls.
  */
 export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
   node: CompiledPlanNode<S> & { kind: "forEach" },
@@ -142,16 +171,16 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
   budget: BudgetManager,
   registry: SourceRegistry<Ctx, S>,
   _itemScope?: unknown
-): PlanExecutionResult {
+): PlanExecutionBuffer {
   // Only check budget at the start if we have a specific node budget
   if (node.budget && !budget.hasAny()) {
-    return [];
+    return createEmptyBuffer();
   }
 
   // Resolve source to array
   const sourceArray = resolveAsArray(node.source, ctx, registry);
   if (!sourceArray || sourceArray.length === 0) {
-    return [];
+    return createEmptyBuffer();
   }
 
   // Apply ordering
@@ -192,7 +221,7 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
     orderedArray = orderedArray.slice(0, node.limit);
   }
 
-  const results: ChatCompletionMessage[] = [];
+  const results = createEmptyBuffer();
 
   // Apply node.budget once for the entire forEach
   budget.withNodeBudget(node.budget, () => {
@@ -206,20 +235,21 @@ export function executeForEachNode<Ctx extends object, S extends SourceSpec>(
 
       // Execute child nodes with item in scope and reserved sources via scoped registry
       const regWithScope = withAdditionalFrame(registry, { item, index: i });
-      const nodeResult = [];
+      const nodeResult = createEmptyBuffer();
       for (const childNode of node.map) {
         const childResults = executePlanNode(childNode, ctx, budget, regWithScope, item);
-        nodeResult.push(...childResults);
+        appendBuffer(nodeResult, childResults);
 
         // Check budget after each child
         if (!budget.hasAny()) {
           break;
         }
       }
+
       if (node.fillDir === "prepend") {
-        results.unshift(...nodeResult);
+        prependBuffer(results, nodeResult);
       } else {
-        results.push(...nodeResult);
+        appendBuffer(results, nodeResult);
       }
     }
   });
@@ -237,7 +267,7 @@ export function executeIfNode<Ctx extends object, S extends SourceSpec>(
   budget: BudgetManager,
   registry: SourceRegistry<Ctx, S>,
   itemScope?: unknown
-): PlanExecutionResult {
+): PlanExecutionBuffer {
   // Evaluate the condition
   const conditionResult = evaluateCondition(node.when, ctx, registry);
 
@@ -245,7 +275,7 @@ export function executeIfNode<Ctx extends object, S extends SourceSpec>(
   const branchNodes = conditionResult ? node.then : node.else;
 
   if (!branchNodes) {
-    return [];
+    return createEmptyBuffer();
   }
 
   // Execute all nodes in the chosen branch
@@ -261,13 +291,41 @@ export function executePlanNodes<Ctx extends object, S extends SourceSpec>(
   budget: BudgetManager,
   registry: SourceRegistry<Ctx, S>,
   itemScope?: unknown
-): PlanExecutionResult {
-  const results: ChatCompletionMessage[] = [];
+): PlanExecutionBuffer {
+  const results = createEmptyBuffer();
 
   for (const node of nodes) {
     const nodeResults = executePlanNode(node, ctx, budget, registry, itemScope);
-    results.push(...nodeResults);
+    appendBuffer(results, nodeResults);
   }
 
   return results;
+}
+
+/**
+ * Execute an anchor node to produce a logical anchor point. Anchors by
+ * themselves are inert and do not consume budget.
+ */
+export function executeAnchorNode<Ctx extends object, S extends SourceSpec>(
+  node: CompiledPlanNode<S> & { kind: "anchor" },
+  ctx: Ctx,
+  _budget: BudgetManager,
+  registry: SourceRegistry<Ctx, S>,
+  itemScope?: unknown
+): PlanExecutionBuffer {
+  if (node.when && node.when.length > 0) {
+    const allTrue = node.when.every((cond) => evaluateCondition(cond, ctx, registry));
+    if (!allTrue) {
+      return createEmptyBuffer();
+    }
+  }
+
+  const scope = createScope(ctx, itemScope);
+  const key = node.key(scope);
+  if (!key) {
+    return createEmptyBuffer();
+  }
+
+  // Anchors return a zero-length buffer whose sole purpose is to record the marker key.
+  return { messages: [], anchors: [{ key, index: 0 }] };
 }

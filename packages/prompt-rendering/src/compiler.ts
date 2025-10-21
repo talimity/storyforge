@@ -2,6 +2,8 @@ import { compileLeaf } from "./leaf-compiler.js";
 import { RESERVED_SOURCES } from "./reserved-sources.js";
 import { parseTemplate } from "./schemas.js";
 import type {
+  AttachmentLaneSpec,
+  CompiledAttachmentLaneSpec,
   CompiledLayoutNode,
   CompiledMessageBlock,
   CompiledPlanNode,
@@ -53,6 +55,9 @@ export function compileTemplate<K extends string, S extends SourceSpec>(
     version: parsedTemplate.version,
     layout: compileLayoutNodes(parsedTemplate.layout),
     slots: compileSlots(parsedTemplate.slots),
+    attachments: parsedTemplate.attachments
+      ? compileAttachmentLanes(parsedTemplate.attachments)
+      : undefined,
   };
 
   // 5: Deep freeze the result
@@ -103,6 +108,12 @@ function compileLayoutNode<S extends SourceSpec = SourceSpec>(
         header: toBlockArray(node.header),
         footer: toBlockArray(node.footer),
         omitIfEmpty: node.omitIfEmpty,
+      });
+    case "anchor":
+      return Object.freeze({
+        kind: "anchor",
+        key: compileLeaf(node.key),
+        when: node.when,
       });
 
     default: {
@@ -191,12 +202,39 @@ function compilePlanNode<S extends SourceSpec = SourceSpec>(
         then: compilePlanNodes(node.then),
         else: node.else ? compilePlanNodes(node.else) : undefined,
       });
+    case "anchor":
+      return Object.freeze({
+        kind: "anchor",
+        key: compileLeaf(node.key),
+        when: node.when,
+      });
 
     default: {
       const badKind = kind satisfies never;
       throw new Error(`Unknown plan node kind: ${badKind}`);
     }
   }
+}
+
+function compileAttachmentLanes(
+  lanes: ReadonlyArray<AttachmentLaneSpec>
+): readonly CompiledAttachmentLaneSpec[] {
+  const compiled: CompiledAttachmentLaneSpec[] = [];
+  for (const lane of lanes) {
+    compiled.push(
+      Object.freeze({
+        id: lane.id,
+        enabled: lane.enabled !== false,
+        role: lane.role,
+        template: lane.template ? compileLeaf(lane.template) : undefined,
+        order: lane.order ?? 0,
+        reserveTokens: lane.reserveTokens,
+        budget: lane.budget,
+        payload: lane.payload,
+      })
+    );
+  }
+  return Object.freeze(compiled);
 }
 
 /**

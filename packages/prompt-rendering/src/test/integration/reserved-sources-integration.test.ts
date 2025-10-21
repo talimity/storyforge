@@ -12,6 +12,10 @@ const budget: BudgetManager = {
   canFitTokenEstimate: () => true,
   consume: () => {},
   withNodeBudget: (_b, thunk) => thunk(),
+  estimateTokens: () => 0,
+  reserveFloor: () => {},
+  releaseFloor: () => {},
+  withLane: (_lane, thunk) => thunk(),
 };
 
 describe("reserved sources inside forEach", () => {

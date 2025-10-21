@@ -57,6 +57,11 @@ export const layoutNodeSchema: z.ZodType<UnboundLayoutNode> = z.discriminatedUni
     footer: z.union([messageBlockSchema, z.array(messageBlockSchema)]).optional(),
     omitIfEmpty: z.boolean().optional(),
   }),
+  z.object({
+    kind: z.literal("anchor"),
+    key: z.string(),
+    when: z.array(conditionRefSchema).optional(),
+  }),
 ]);
 
 /** ---------- Plan node schemas (recursive) ---------- */
@@ -83,8 +88,24 @@ export const planNodeSchema: z.ZodType<UnboundPlanNode> = z.lazy(() =>
       then: z.array(planNodeSchema),
       else: z.array(planNodeSchema).optional(),
     }),
+    z.object({
+      kind: z.literal("anchor"),
+      key: z.string(),
+      when: z.array(conditionRefSchema).optional(),
+    }),
   ])
 );
+
+const attachmentLaneSchema = z.object({
+  id: z.string(),
+  enabled: z.boolean().optional(),
+  role: roleSchema.optional(),
+  template: z.string().optional(),
+  order: z.number().int().optional(),
+  reserveTokens: z.number().int().nonnegative().optional(),
+  budget: budgetSchema.optional(),
+  payload: z.record(z.string(), z.unknown()).optional(),
+});
 
 /** ---------- Slot specification schema ---------- */
 
@@ -106,6 +127,7 @@ export const promptTemplateSchema = z.object({
   version: z.literal(1),
   layout: z.array(layoutNodeSchema),
   slots: z.record(z.string(), slotSpecSchema),
+  attachments: z.array(attachmentLaneSchema).optional(),
 }) satisfies z.ZodType<UnboundTemplate>;
 
 /** ---------- Parse function ---------- */

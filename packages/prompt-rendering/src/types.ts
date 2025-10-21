@@ -23,6 +23,11 @@ export type LayoutNode<S extends SourceSpec = SourceSpec> =
       header?: MessageBlock<S> | MessageBlock<S>[];
       footer?: MessageBlock<S> | MessageBlock<S>[];
       omitIfEmpty?: boolean;
+    }
+  | {
+      kind: "anchor";
+      key: string;
+      when?: ReadonlyArray<ConditionRef<S>>;
     };
 
 export type PromptTemplate<K extends string, S extends SourceSpec = SourceSpec> = {
@@ -33,6 +38,7 @@ export type PromptTemplate<K extends string, S extends SourceSpec = SourceSpec> 
   version: 1;
   layout: LayoutNode<S>[];
   slots: Record<string, SlotSpec<S>>;
+  attachments?: AttachmentLaneSpec<S>[];
 };
 
 /** ---------- DataRef via Source Registry ---------- */
@@ -104,6 +110,11 @@ export type PlanNode<S extends SourceSpec = SourceSpec> =
       when: ConditionRef<S>;
       then: PlanNode<S>[];
       else?: PlanNode<S>[];
+    }
+  | {
+      kind: "anchor";
+      key: string;
+      when?: ReadonlyArray<ConditionRef<S>>;
     };
 
 /** ---------- Conditions ---------- */
@@ -133,7 +144,102 @@ export interface BudgetManager {
   consume(text: string): void;
   /** Run a sub-budget (e.g., per-slot) while still decrementing the global counters. */
   withNodeBudget(budget: Budget | undefined, thunk: () => void): void;
+  /** Return the estimated token cost for a string (without consuming). */
+  estimateTokens(text: string): number;
+  /** Reserve a minimum number of tokens for a logical lane (does not immediately consume). */
+  reserveFloor(laneId: string, tokens: number): void;
+  /** Release previously reserved floor for a lane (safe to release more than remaining). */
+  releaseFloor(laneId: string, tokens: number): void;
+  /** Execute work attributed to a logical lane. */
+  withLane<T>(laneId: string | null, thunk: () => T): T;
 }
+
+/** ---------- Anchors & Slot Buffers ---------- */
+
+export type SlotAnchor = {
+  key: string;
+  /** Position in the slot buffer before which this anchor applies. */
+  index: number;
+};
+
+export type SlotBuffer = {
+  messages: ChatCompletionMessage[];
+  anchors: SlotAnchor[];
+};
+
+/** A named anchor point within the assembled message array. */
+export type GlobalAnchor = {
+  key: string;
+  /** Position within the assembled message array. */
+  index: number;
+  source: "slot" | "layout";
+  slotName?: string;
+};
+
+/** ---------- Attachments & Injections ---------- */
+
+/**
+ * Defines the specification for a source of content to be injected into the
+ * prompt at specified anchor points.
+ */
+export type AttachmentLaneSpec<_S extends SourceSpec = SourceSpec> = {
+  id: string;
+  enabled?: boolean;
+  role?: ChatCompletionMessageRole;
+  template?: string;
+  order?: number;
+  /** Minimum tokens to protect for this lane before other work. */
+  reserveTokens?: number;
+  /** Optional hard ceiling for content inserted via this lane. */
+  budget?: Budget;
+  /** Optional static payload merged into every request scope. */
+  payload?: Record<string, unknown>;
+};
+
+/**
+ * Runtime representation of an attachment lane after compilation.
+ */
+export type AttachmentLaneRuntime = {
+  id: string;
+  enabled: boolean;
+  role?: ChatCompletionMessageRole;
+  template?: CompiledLeafFunction;
+  order: number;
+  reserveTokens?: number;
+  budget?: Budget;
+  payload?: Record<string, unknown>;
+};
+
+/** Defines where and how to inject content into the assembled prompt. */
+export type InjectionTarget =
+  /**
+   * Insert relative to a specific anchor occurrence produced by the template.
+   * Defaults to last occurrence.
+   */
+  | { kind: "at"; key: string; occurrence?: "first" | "last" | number; after?: boolean }
+  /** Insert at an offset relative to the latest anchor occurrence. */
+  | { kind: "offset"; key: string; delta: number; after?: boolean }
+  /** Insert relative to the top or bottom of the assembled prompt. */
+  | { kind: "boundary"; position: "top" | "bottom"; delta?: number };
+
+/** A request to inject content into a specific lane at designated targets. */
+export type InjectionRequest = {
+  lane: string;
+  role?: ChatCompletionMessageRole;
+  /**
+   * Ordered list of candidate placements. The renderer tries each target in sequence and stops at the first
+   * resolvable location. Requests with no resolvable targets are skipped entirely.
+   */
+  target: InjectionTarget | InjectionTarget[];
+  template?: string;
+  payload?: Record<string, unknown>;
+  priority?: number;
+};
+
+export type RenderOptions = {
+  attachments?: readonly AttachmentLaneSpec[];
+  injections?: readonly InjectionRequest[];
+};
 
 /** ---------- Source Registry ---------- */
 
@@ -197,6 +303,7 @@ export type CompiledTemplate<
   version: number;
   layout: readonly CompiledLayoutNode<S>[];
   slots: Readonly<Record<string, CompiledSlotSpec<S>>>;
+  attachments?: readonly CompiledAttachmentLaneSpec[];
 }>;
 
 export type CompiledLayoutNode<S extends SourceSpec = SourceSpec> = Readonly<
@@ -208,6 +315,7 @@ export type CompiledLayoutNode<S extends SourceSpec = SourceSpec> = Readonly<
       footer?: readonly CompiledMessageBlock<S>[];
       omitIfEmpty?: boolean;
     }
+  | { kind: "anchor"; key: CompiledLeafFunction; when?: readonly ConditionRef<S>[] }
 >;
 
 export type CompiledSlotSpec<S extends SourceSpec = SourceSpec> = Readonly<{
@@ -234,6 +342,11 @@ export type CompiledPlanNode<S extends SourceSpec = SourceSpec> = Readonly<
       then: readonly CompiledPlanNode<S>[];
       else?: readonly CompiledPlanNode<S>[];
     }
+  | {
+      kind: "anchor";
+      key: CompiledLeafFunction;
+      when?: readonly ConditionRef<S>[];
+    }
 >;
 
 export type CompiledMessageBlock<S extends SourceSpec = SourceSpec> = Readonly<{
@@ -241,6 +354,17 @@ export type CompiledMessageBlock<S extends SourceSpec = SourceSpec> = Readonly<{
   content?: CompiledLeafFunction;
   from?: DataRefOf<S>;
   when?: readonly ConditionRef<S>[];
+}>;
+
+export type CompiledAttachmentLaneSpec = Readonly<{
+  id: string;
+  enabled: boolean;
+  role?: ChatCompletionMessageRole;
+  template?: CompiledLeafFunction;
+  order: number;
+  reserveTokens?: number;
+  budget?: Budget;
+  payload?: Record<string, unknown>;
 }>;
 
 /** ---------- Unbound types for API/DB boundaries ---------- */

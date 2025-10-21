@@ -20,9 +20,9 @@ export {
   RenderError,
   TemplateStructureError,
 } from "./errors.js";
-export { assembleLayout } from "./layout-assembler.js";
+export { assembleLayout, prepareLayout } from "./layout-assembler.js";
 export { compileLeaf } from "./leaf-compiler.js";
-export type { ExecutionScope, PlanExecutionResult } from "./plan-executor.js";
+export type { ExecutionScope, PlanExecutionBuffer } from "./plan-executor.js";
 export {
   createScope,
   executeForEachNode,
@@ -52,10 +52,13 @@ export type { TemplateSegment, TemplateTokenizeResult } from "./template-tokeniz
 export { tokenizeTemplateString } from "./template-tokenizer.js";
 // Type exports
 export type {
+  AttachmentLaneRuntime,
+  AttachmentLaneSpec,
   Budget,
   BudgetManager,
   ChatCompletionMessage,
   ChatCompletionMessageRole,
+  CompiledAttachmentLaneSpec,
   CompiledLayoutNode,
   CompiledLeafFunction,
   CompiledMessageBlock,
@@ -66,10 +69,15 @@ export type {
   ConditionRef,
   DataRef,
   DataRefOf,
+  GlobalAnchor,
+  InjectionRequest,
   LayoutNode,
   MessageBlock,
   PlanNode,
   PromptTemplate,
+  RenderOptions,
+  SlotAnchor,
+  SlotBuffer,
   SlotSpec,
   SourceHandler,
   SourceHandlerMap,

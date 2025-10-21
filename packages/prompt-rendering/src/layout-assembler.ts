@@ -1,17 +1,15 @@
+import { assertNever } from "@storyforge/utils";
 import { evaluateCondition } from "./condition-evaluator.js";
 import { resolveDataRef } from "./data-ref-resolver.js";
 import { TemplateStructureError } from "./errors.js";
-import { type CtxWithGlobals, createScope } from "./plan-executor.js";
+import { createScope } from "./plan-executor.js";
 import type { SlotExecutionResult } from "./slot-executor.js";
 import type {
   BudgetManager,
   ChatCompletionMessage,
-  ChatCompletionMessageRole,
   CompiledLayoutNode,
-  CompiledLeafFunction,
   CompiledMessageBlock,
-  ConditionRef,
-  DataRefOf,
+  GlobalAnchor,
   SourceRegistry,
   SourceSpec,
 } from "./types.js";
@@ -27,165 +25,224 @@ import type {
  * - Handles omitIfEmpty logic for slots
  * - Throws on missing slot references
  */
-export function assembleLayout<Ctx extends object, S extends SourceSpec>(
+export type PreparedBlock = {
+  role: ChatCompletionMessage["role"];
+  content: string;
+  tokens: number;
+  shouldEmit: boolean;
+};
+
+export type PreparedSlotBlocks = {
+  header?: PreparedBlock[];
+  footer?: PreparedBlock[];
+};
+
+export type PreparedLayoutNode =
+  | { kind: "message"; block: PreparedBlock }
+  | {
+      kind: "slot";
+      name: string;
+      omitIfEmpty?: boolean;
+      blocks: PreparedSlotBlocks;
+    }
+  | { kind: "anchor"; key?: string };
+
+export type PreparedLayout = {
+  nodes: readonly PreparedLayoutNode[];
+  floor: number;
+};
+
+export type LayoutAssemblyResult = {
+  messages: ChatCompletionMessage[];
+  anchors: GlobalAnchor[];
+};
+
+/**
+ * Prepare the layout by pre-evaluating static messages and reserving budget for
+ * slot wrappers.
+ */
+export function prepareLayout<Ctx extends object, S extends SourceSpec>(
   layout: readonly CompiledLayoutNode<S>[],
-  slotBuffers: SlotExecutionResult,
   ctx: Ctx,
-  budget: BudgetManager,
-  registry: SourceRegistry<Ctx, S>
-): ChatCompletionMessage[] {
-  const result: ChatCompletionMessage[] = [];
+  registry: SourceRegistry<Ctx, S>,
+  budget: BudgetManager
+): PreparedLayout {
+  const nodes: PreparedLayoutNode[] = [];
+  let floor = 0;
+  const scope = createScope(ctx);
 
   for (const node of layout) {
-    const nodeKind = node.kind;
-    switch (nodeKind) {
-      case "message":
-        processMessageNode(node, ctx, budget, registry, result);
+    switch (node.kind) {
+      case "message": {
+        // Pre-render literal layout messages so we can reserve their token cost before slots run.
+        const block = prepareBlock(node, ctx, scope, registry, budget);
+        if (block.shouldEmit) floor += block.tokens;
+        nodes.push({ kind: "message", block });
         break;
-      case "slot":
-        processSlotNode(node, slotBuffers, ctx, budget, registry, result);
-        break;
-      default: {
-        const badNode = nodeKind satisfies never;
-        console.warn(`prompt-rendering assembler: Unsupported LayoutNode '${badNode}'.`);
       }
+      case "slot": {
+        // Slot headers/footers are rendered up front so their token usage contributes to the layout floor.
+        const header = node.header?.map((b) => prepareBlock(b, ctx, scope, registry, budget));
+        const footer = node.footer?.map((b) => prepareBlock(b, ctx, scope, registry, budget));
+        for (const collection of [header, footer]) {
+          if (!collection) continue;
+          for (const block of collection) {
+            if (block.shouldEmit) floor += block.tokens;
+          }
+        }
+        nodes.push({
+          kind: "slot",
+          name: node.name,
+          omitIfEmpty: node.omitIfEmpty,
+          blocks: { header, footer },
+        });
+        break;
+      }
+      case "anchor": {
+        if (node.when && node.when.length > 0) {
+          const allTrue = node.when.every((cond) => evaluateCondition(cond, ctx, registry));
+          if (!allTrue) {
+            nodes.push({ kind: "anchor" });
+            continue;
+          }
+        }
+        // Anchors capture named positions in the prepared layout without consuming budget.
+        const key = node.key(scope);
+        nodes.push({ kind: "anchor", key: key || undefined });
+        break;
+      }
+      default:
+        assertNever(node);
     }
   }
 
-  return result;
+  return { nodes, floor };
 }
 
-type EmitBlockResult = "emitted" | "skip" | "stop";
+export function assembleLayout(
+  prepared: PreparedLayout,
+  slotBuffers: SlotExecutionResult,
+  budget: BudgetManager
+): LayoutAssemblyResult {
+  const messages: ChatCompletionMessage[] = [];
+  const anchors: GlobalAnchor[] = [];
 
-/**
- * Helper function to emit a message block with budget checking.
- * Handles the common pattern: resolve content → budget check → emit message.
- */
-function emitBlock<Ctx extends CtxWithGlobals, S extends SourceSpec>(
-  block: {
-    role: ChatCompletionMessageRole;
-    content?: CompiledLeafFunction;
-    from?: DataRefOf<S>;
-    when?: readonly ConditionRef<S>[];
-  },
-  ctx: Ctx,
+  for (const node of prepared.nodes) {
+    if (node.kind === "message") {
+      emitPreparedBlock(node.block, budget, messages);
+      continue;
+    }
+    if (node.kind === "slot") {
+      processPreparedSlot(node, slotBuffers, budget, messages, anchors);
+      continue;
+    }
+    // Anchors in the layout map directly to message indices so injections can target them later.
+    if (node.key) {
+      anchors.push({ key: node.key, index: messages.length, source: "layout" });
+    }
+  }
+
+  return { messages, anchors };
+}
+
+function processPreparedSlot(
+  node: Extract<PreparedLayoutNode, { kind: "slot" }>,
+  slotBuffers: SlotExecutionResult,
   budget: BudgetManager,
-  registry: SourceRegistry<Ctx, S>,
-  result: ChatCompletionMessage[]
-): EmitBlockResult {
-  if (!budget.hasAny()) return "stop";
+  messages: ChatCompletionMessage[],
+  anchors: GlobalAnchor[]
+): void {
+  const buffer = slotBuffers[node.name];
+  if (!buffer) {
+    throw new TemplateStructureError(`Layout references nonexistent slot '${node.name}'`);
+  }
 
+  const hasMessages = buffer.messages.length > 0;
+  const shouldInclude = hasMessages || node.omitIfEmpty === false;
+
+  const emitCollection = (collection: PreparedBlock[] | undefined, shouldEmit: boolean): void => {
+    if (!collection) return;
+    for (const block of collection) {
+      if (!block.shouldEmit) continue;
+      if (!shouldEmit) {
+        // Slot produced no content; release any reserved layout budget for these wrapper blocks.
+        budget.releaseFloor("layout", block.tokens);
+        continue;
+      }
+      const emitted = emitPreparedBlock(block, budget, messages);
+      if (!emitted) {
+        budget.releaseFloor("layout", block.tokens);
+      }
+    }
+  };
+
+  emitCollection(node.blocks.header, shouldInclude);
+
+  if (hasMessages) {
+    const baseIndex = messages.length;
+    for (const anchor of buffer.anchors) {
+      anchors.push({
+        key: anchor.key,
+        index: baseIndex + anchor.index,
+        source: "slot",
+        slotName: node.name,
+      });
+    }
+    messages.push(...buffer.messages);
+  }
+
+  emitCollection(node.blocks.footer, shouldInclude);
+}
+
+function emitPreparedBlock(
+  block: PreparedBlock,
+  budget: BudgetManager,
+  messages: ChatCompletionMessage[]
+): boolean {
+  if (!block.shouldEmit) return false;
+  let emitted = false;
+  budget.withLane("layout", () => {
+    // If the block cannot fit, we skip it rather than forcing the layout to exceed its reservation.
+    if (!budget.canFitTokenEstimate(block.content)) return;
+    budget.consume(block.content);
+    messages.push({ role: block.role, content: block.content });
+    emitted = true;
+  });
+  if (!emitted) {
+    budget.releaseFloor("layout", block.tokens);
+  }
+  return emitted;
+}
+
+function prepareBlock<Ctx extends object, S extends SourceSpec>(
+  block: CompiledMessageBlock<S>,
+  ctx: Ctx,
+  scope: ReturnType<typeof createScope<Ctx>>,
+  registry: SourceRegistry<Ctx, S>,
+  budget: BudgetManager
+): PreparedBlock {
   if (block.when && block.when.length > 0) {
     const allTrue = block.when.every((cond) => evaluateCondition(cond, ctx, registry));
     if (!allTrue) {
-      return "skip";
+      return { role: block.role, content: "", tokens: 0, shouldEmit: false };
     }
   }
 
-  // Create scope for leaf templating
-  const scope = createScope(ctx);
-
-  // Determine message content: from DataRef or literal content
-  let content: string;
+  let content: string | undefined;
   if (block.from) {
-    // Resolve from registry
     const resolved = resolveDataRef(block.from, ctx, registry);
     if (resolved == null) {
-      return "skip";
+      return { role: block.role, content: "", tokens: 0, shouldEmit: false };
     }
     content = typeof resolved === "string" ? resolved : JSON.stringify(resolved);
   } else if (block.content) {
     content = block.content(scope);
-  } else {
-    // No content source
-    return "skip";
-  }
-
-  if (!budget.canFitTokenEstimate(content)) {
-    return "stop";
   }
 
   if (!content) {
-    return "skip";
+    return { role: block.role, content: "", tokens: 0, shouldEmit: false };
   }
 
-  // Consume budget and emit message
-  budget.consume(content);
-  const message: ChatCompletionMessage = { role: block.role, content };
-  result.push(message);
-  return "emitted";
-}
-
-/**
- * Process a message node in the layout.
- * Resolves content from DataRef or uses literal content, applies budget checking.
- */
-function processMessageNode<Ctx extends object, S extends SourceSpec>(
-  node: CompiledLayoutNode<S> & { kind: "message" },
-  ctx: Ctx,
-  budget: BudgetManager,
-  registry: SourceRegistry<Ctx, S>,
-  result: ChatCompletionMessage[]
-): void {
-  emitBlock(node, ctx, budget, registry, result);
-}
-
-/**
- * Process a slot node in the layout.
- * Inserts slot buffer content with optional headers and footers.
- * Slot content is NOT re-budget-checked (already done in Phase A).
- */
-function processSlotNode<Ctx extends object, S extends SourceSpec>(
-  node: CompiledLayoutNode<S> & { kind: "slot" },
-  slotBuffers: SlotExecutionResult,
-  ctx: Ctx,
-  budget: BudgetManager,
-  registry: SourceRegistry<Ctx, S>,
-  result: ChatCompletionMessage[]
-): void {
-  // Check if slot exists in buffers
-  if (!(node.name in slotBuffers)) {
-    throw new TemplateStructureError(`Layout references nonexistent slot '${node.name}'`);
-  }
-
-  const slotMessages = slotBuffers[node.name];
-  const hasMessages = slotMessages && slotMessages.length > 0;
-
-  // Handle omitIfEmpty logic
-  if (!hasMessages && node.omitIfEmpty !== false) {
-    return; // Skip entirely if empty and omitIfEmpty is true (default)
-  }
-
-  // Emit headers if present and we have messages or omitIfEmpty is false
-  if (node.header && (hasMessages || node.omitIfEmpty === false)) {
-    processMessageBlocks(node.header, ctx, budget, registry, result);
-  }
-
-  // Emit slot content (NOT re-budget-checked)
-  if (hasMessages) {
-    result.push(...slotMessages);
-  }
-
-  // Emit footers if present and we have messages or omitIfEmpty is false
-  if (node.footer && (hasMessages || node.omitIfEmpty === false)) {
-    processMessageBlocks(node.footer, ctx, budget, registry, result);
-  }
-}
-
-/**
- * Process message blocks (headers/footers) with budget checking.
- * These are always budget-checked in Phase B.
- */
-function processMessageBlocks<Ctx extends object, S extends SourceSpec>(
-  blocks: readonly CompiledMessageBlock<S>[],
-  ctx: Ctx,
-  budget: BudgetManager,
-  registry: SourceRegistry<Ctx, S>,
-  result: ChatCompletionMessage[]
-): void {
-  for (const block of blocks) {
-    const emitResult = emitBlock(block, ctx, budget, registry, result);
-    if (emitResult === "stop") break;
-    // Continue on 'skip' or 'emitted'
-  }
+  const tokens = budget.estimateTokens(content);
+  return { role: block.role, content, tokens, shouldEmit: true };
 }

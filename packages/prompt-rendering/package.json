@@ -15,6 +15,7 @@
     "typecheck:legacy": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@storyforge/utils": "workspace:*",
     "chevrotain": "catalog:",
     "zod": "catalog:"
   },
