@@ -90,11 +90,13 @@ export class ChatImportService {
       }
 
       const participantPayload = args.mappings
-        .filter(
-          (mapping): mapping is typeof mapping & { targetType: "character" } =>
-            mapping.targetType === "character"
-        )
-        .map((mapping) => ({ characterId: mapping.characterId, isUserProxy: false }));
+        .filter((m): m is typeof m & { targetType: "character" } => m.targetType === "character")
+        .map((m) => ({ characterId: m.characterId, isUserProxy: false }));
+
+      // dedupe
+      const participantPayloadUnique = Array.from(
+        new Map(participantPayload.map((p) => [p.characterId, p])).values()
+      );
 
       const scenario = await this.scenarioService.createScenario(
         {
@@ -105,7 +107,7 @@ export class ChatImportService {
           status: "active",
           settings: {},
           metadata: {},
-          participants: participantPayload,
+          participants: participantPayloadUnique,
           lorebooks: [],
         },
         tx

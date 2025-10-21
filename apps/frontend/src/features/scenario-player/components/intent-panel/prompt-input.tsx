@@ -67,7 +67,7 @@ export function PromptInput(props: PromptInputProps) {
         disabled={textareaDisabled}
         minH={isInputFocused ? undefined : "40px"}
         minRows={isInputFocused ? 3 : undefined}
-        maxRows={isInputFocused ? 10 : 5}
+        maxRows={isInputFocused ? 20 : 6}
         style={{ transition: "min-height 0.2s ease" }}
       />
       <GenerateOrCancelButton
