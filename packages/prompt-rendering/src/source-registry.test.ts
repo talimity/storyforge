@@ -25,6 +25,7 @@ describe("makeRegistry", () => {
     currentIntent: { description: "Characters have a conversation" },
     stepOutputs: { planner: { plan: "Talk about the weather" } },
     globals: { worldName: "Fantasyland" },
+    lorebooks: [],
   };
 
   const mockWritingAssistantCtx = {

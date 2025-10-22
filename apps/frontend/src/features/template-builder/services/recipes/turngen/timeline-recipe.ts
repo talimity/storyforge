@@ -72,12 +72,17 @@ export const timelineBasicRecipe: RecipeDefinition<
       budget: { maxTokens: params.budget },
       meta: {},
       plan: [
+        { kind: "anchor", key: "timeline_start" },
         {
           kind: "forEach",
           source: { source: "turns", args: { order: "desc", limit: params.maxTurns } },
           fillDir: "prepend",
-          map: [{ kind: "message", role: "user", content: params.turnTemplate }],
+          map: [
+            { kind: "message", role: "user", content: params.turnTemplate },
+            { kind: "anchor", key: "turn_{{item.turnNo}}" },
+          ],
         },
+        { kind: "anchor", key: "timeline_end" },
       ],
     };
   },
@@ -139,6 +144,7 @@ export const timelineAdvancedRecipe: RecipeDefinition<
       budget: { maxTokens: params.budget },
       meta: {},
       plan: [
+        { kind: "anchor", key: "timeline_start" },
         {
           kind: "forEach",
           // Iterate turns array from newest to oldest (Turn# desc), but fill from bottom up (prepend)
@@ -185,8 +191,10 @@ export const timelineAdvancedRecipe: RecipeDefinition<
                     ] as const)),
               ],
             },
+            { kind: "anchor", key: "turn_{{item.turnNo}}" },
           ],
         },
+        { kind: "anchor", key: "timeline_end" },
       ],
     };
   },

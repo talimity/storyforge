@@ -1,7 +1,6 @@
 import type { TaskKind } from "@storyforge/gentasks";
 import { charactersRecipe } from "@/features/template-builder/services/recipes/turngen/characters-recipe";
 import { nextTurnIntentRecipe } from "@/features/template-builder/services/recipes/turngen/intent-recipes";
-import { loreEntriesRecipe } from "@/features/template-builder/services/recipes/turngen/lore-recipe";
 import {
   timelineAdvancedRecipe,
   timelineBasicRecipe,
@@ -25,7 +24,6 @@ export const TURN_GEN_RECIPES = {
   timeline_advanced: timelineAdvancedRecipe,
   intent_basic: nextTurnIntentRecipe,
   characters_basic: charactersRecipe,
-  lore_basic: loreEntriesRecipe,
 } as const satisfies Record<TurnGenRecipeId, TurnGenRecipe>;
 
 export const CHAPTER_SUMM_RECIPES = {

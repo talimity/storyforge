@@ -1,5 +1,6 @@
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import {
+  buildTurnGenRenderOptions,
   type ContextFor,
   chapterSummarizationRegistry,
   type ModelProfileResolved,
@@ -66,6 +67,24 @@ export class WorkflowRunnerManager {
     }
 
     const registry = getRegistryForTask(taskKind);
+    if (taskKind === "turn_generation") {
+      const runner = makeWorkflowRunner<"turn_generation">({
+        loadTemplate: (id) => this.loadTemplate(id),
+        loadModelProfile: (id) => this.loadModelProfile(id),
+        budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
+        makeAdapter: createAdapter,
+        // cast needed because registry is not a discriminated union
+        registry: registry as SourceRegistry<
+          ContextFor<"turn_generation">,
+          TaskSourcesMap["turn_generation"]
+        >,
+        resolveRenderOptions: ({ extendedContext }) => buildTurnGenRenderOptions(extendedContext),
+      });
+
+      this.runners.set(taskKind, runner as WorkflowRunner<TaskKind>);
+      return runner as WorkflowRunner<K>;
+    }
+
     const runner = makeWorkflowRunner<K>({
       loadTemplate: (id) => this.loadTemplate(id),
       loadModelProfile: (id) => this.loadModelProfile(id),

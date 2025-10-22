@@ -5,11 +5,15 @@ import { compileLeaf } from "./leaf-compiler.js";
 import { makeScopedRegistry } from "./scoped-registry.js";
 import { executeSlots } from "./slot-executor.js";
 import type {
+  AttachmentLaneGroupRuntime,
+  AttachmentLaneGroupSpec,
   AttachmentLaneRuntime,
   AttachmentLaneSpec,
   BudgetManager,
   ChatCompletionMessage,
+  CompiledAttachmentLaneGroupSpec,
   CompiledAttachmentLaneSpec,
+  CompiledLeafFunction,
   CompiledTemplate,
   GlobalAnchor,
   InjectionRequest,
@@ -113,6 +117,12 @@ type InjectionContext<Ctx> = {
   ctx: Ctx;
 };
 
+type LaneGroupState = {
+  runtime: AttachmentLaneGroupRuntime;
+  openInserted: boolean;
+  lastIndex?: number;
+};
+
 function runInjectionPass<Ctx>({
   budget,
   lanes,
@@ -148,6 +158,8 @@ function runInjectionPass<Ctx>({
       })
       .map((entry) => entry.req);
 
+    const groupStates = new Map<string, LaneGroupState>();
+
     let consumed = 0;
 
     // Process all requests for this lane within its budget context
@@ -155,24 +167,84 @@ function runInjectionPass<Ctx>({
       // Each lane can have its own sub-budget constraints
       budget.withNodeBudget(lane.budget, () => {
         for (const request of sortedRequests) {
-          const message = buildInjectionMessage(request, lane, ctx);
+          const groupRuntime = resolveLaneGroup(lane.groups, request.groupId);
+
+          let groupState: LaneGroupState | undefined;
+          if (groupRuntime && request.groupId) {
+            const existingState = groupStates.get(request.groupId);
+            if (existingState) {
+              existingState.runtime = groupRuntime;
+              groupState = existingState;
+            } else {
+              groupState = { runtime: groupRuntime, openInserted: false };
+              groupStates.set(request.groupId, groupState);
+            }
+          }
+
+          const message = buildInjectionMessage(request, lane, groupRuntime, ctx);
           if (!message) continue;
 
           const targetIndex = resolveInjectionIndex(request.target, anchorMap, messages.length);
           if (targetIndex === null) continue;
 
-          const estimate = budget.estimateTokens(message.content);
           if (!budget.canFitTokenEstimate(message.content)) {
             continue;
           }
 
+          // Insert main message first so we only add wrappers if content emitted.
           budget.consume(message.content);
-          consumed += estimate;
-          messages.splice(targetIndex, 0, message);
-          shiftAnchorMap(anchorMap, targetIndex); // Adjust anchors after insertion
+          const messageIndex = targetIndex;
+          consumed += budget.estimateTokens(message.content);
+          messages.splice(messageIndex, 0, message);
+          shiftAnchorMap(anchorMap, messageIndex);
+
+          let finalIndex = messageIndex;
+
+          if (groupState && !groupState.openInserted) {
+            const openMessage = buildGroupWrapperMessage(
+              groupState.runtime.openTemplate,
+              lane,
+              groupState.runtime,
+              ctx
+            );
+            if (openMessage && budget.canFitTokenEstimate(openMessage.content)) {
+              budget.consume(openMessage.content);
+              consumed += budget.estimateTokens(openMessage.content);
+              messages.splice(messageIndex, 0, openMessage);
+              shiftAnchorMap(anchorMap, messageIndex);
+              groupState.openInserted = true;
+              finalIndex += 1; // message shifted by one
+            }
+          }
+
+          if (groupState) {
+            groupState.lastIndex = finalIndex;
+          }
         }
       });
     });
+
+    // Insert closing wrappers (processed in reverse order so indices remain valid)
+    if (groupStates.size) {
+      const closers = [...groupStates.values()]
+        .filter(
+          (state) =>
+            state.openInserted && state.runtime.closeTemplate && state.lastIndex !== undefined
+        )
+        .sort((a, b) => (b.lastIndex ?? -1) - (a.lastIndex ?? -1));
+
+      for (const state of closers) {
+        const runtime = state.runtime;
+        const closeMessage = buildGroupWrapperMessage(runtime.closeTemplate, lane, runtime, ctx);
+        if (!closeMessage) continue;
+        if (!budget.canFitTokenEstimate(closeMessage.content)) continue;
+        const insertIndex = Math.min((state.lastIndex ?? 0) + 1, messages.length);
+        budget.consume(closeMessage.content);
+        consumed += budget.estimateTokens(closeMessage.content);
+        messages.splice(insertIndex, 0, closeMessage);
+        shiftAnchorMap(anchorMap, insertIndex);
+      }
+    }
 
     // Release any unspent reserved tokens for this lane
     if (lane.reserveTokens) {
@@ -185,15 +257,32 @@ function runInjectionPass<Ctx>({
 function buildInjectionMessage<Ctx>(
   request: InjectionRequest,
   lane: AttachmentLaneRuntime,
+  group: AttachmentLaneGroupRuntime | undefined,
   ctx: Ctx
 ): ChatCompletionMessage | undefined {
   const templateFn = request.template ? compileLeaf(request.template) : lane.template;
   if (!templateFn) return undefined;
-  const scope = { ctx, payload: { ...lane.payload, ...request.payload } };
+  const scope = { ctx, payload: { ...lane.payload, ...group?.payload, ...request.payload } };
   const content = templateFn(scope);
   if (!content) return undefined;
   return {
     role: request.role ?? lane.role ?? "system",
+    content,
+  };
+}
+
+function buildGroupWrapperMessage<Ctx>(
+  template: CompiledLeafFunction | undefined,
+  lane: AttachmentLaneRuntime,
+  group: AttachmentLaneGroupRuntime | undefined,
+  ctx: Ctx
+): ChatCompletionMessage | undefined {
+  if (!template) return undefined;
+  const scope = { ctx, payload: { ...lane.payload, ...group?.payload } };
+  const content = template(scope);
+  if (!content) return undefined;
+  return {
+    role: group?.role ?? lane.role ?? "system",
     content,
   };
 }
@@ -206,25 +295,47 @@ function buildLaneRuntime(
   overrides: readonly AttachmentLaneSpec[] | undefined
 ): Map<string, AttachmentLaneRuntime> {
   const lanes = new Map<string, AttachmentLaneRuntime>();
+
   if (compiled) {
     for (const lane of compiled) {
-      lanes.set(lane.id, { ...lane });
-    }
-  }
-  if (overrides) {
-    for (const lane of overrides) {
       lanes.set(lane.id, {
         id: lane.id,
-        enabled: lane.enabled !== false,
+        enabled: lane.enabled,
         role: lane.role,
-        template: lane.template ? compileLeaf(lane.template) : undefined,
-        order: lane.order ?? 0,
+        template: lane.template,
+        order: lane.order,
         reserveTokens: lane.reserveTokens,
         budget: lane.budget,
         payload: lane.payload,
+        groups: convertCompiledGroups(lane.id, lane.groups),
       });
     }
   }
+
+  if (overrides) {
+    for (const lane of overrides) {
+      const existing = lanes.get(lane.id);
+      const groups = lane.groups ? convertOverrideGroups(lane.id, lane.groups) : existing?.groups;
+
+      lanes.set(lane.id, {
+        id: lane.id,
+        enabled: lane.enabled !== false,
+        role: lane.role ?? existing?.role,
+        template:
+          lane.template === undefined
+            ? existing?.template
+            : lane.template
+              ? compileLeaf(lane.template)
+              : undefined,
+        order: lane.order ?? existing?.order ?? 0,
+        reserveTokens: lane.reserveTokens ?? existing?.reserveTokens,
+        budget: lane.budget ?? existing?.budget,
+        payload: lane.payload ?? existing?.payload,
+        groups,
+      });
+    }
+  }
+
   return lanes;
 }
 
@@ -238,6 +349,85 @@ function groupRequestsByLane(
     else map.set(request.lane, [request]);
   }
   return map;
+}
+
+function convertCompiledGroups(
+  laneId: string,
+  groups: readonly CompiledAttachmentLaneGroupSpec[] | undefined
+): readonly AttachmentLaneGroupRuntime[] | undefined {
+  if (!groups || groups.length === 0) return undefined;
+  const runtime = groups.map((group) => {
+    let regex: RegExp | undefined;
+    if (group.match) {
+      try {
+        regex = new RegExp(group.match);
+      } catch {
+        throw new TemplateStructureError(
+          `Invalid group match regex '${group.match}' in attachment lane '${laneId}'.`
+        );
+      }
+    }
+
+    return Object.freeze({
+      id: group.id,
+      regex,
+      openTemplate: group.openTemplate,
+      closeTemplate: group.closeTemplate,
+      role: group.role,
+      order: group.order ?? 0,
+      payload: group.payload,
+    });
+  });
+
+  runtime.sort((a, b) => a.order - b.order);
+  return Object.freeze(runtime);
+}
+
+function convertOverrideGroups(
+  laneId: string,
+  groups: readonly AttachmentLaneGroupSpec[] | undefined
+): readonly AttachmentLaneGroupRuntime[] | undefined {
+  if (!groups || groups.length === 0) return undefined;
+  const runtime = groups.map((group) => {
+    let regex: RegExp | undefined;
+    if (group.match) {
+      try {
+        regex = new RegExp(group.match);
+      } catch (error) {
+        throw new RenderError(
+          `Invalid group match regex '${group.match}' in attachment lane override '${laneId}'.`,
+          { cause: error instanceof Error ? error : undefined }
+        );
+      }
+    }
+
+    return Object.freeze({
+      id: group.id,
+      regex,
+      openTemplate: group.openTemplate ? compileLeaf(group.openTemplate) : undefined,
+      closeTemplate: group.closeTemplate ? compileLeaf(group.closeTemplate) : undefined,
+      role: group.role,
+      order: group.order ?? 0,
+      payload: group.payload,
+    });
+  });
+
+  runtime.sort((a, b) => a.order - b.order);
+  return Object.freeze(runtime);
+}
+
+function resolveLaneGroup(
+  groups: readonly AttachmentLaneGroupRuntime[] | undefined,
+  groupId: string | undefined
+): AttachmentLaneGroupRuntime | undefined {
+  if (!groups) return undefined;
+  if (groupId) {
+    const exact = groups.find((group) => group.id && group.id === groupId);
+    if (exact) return exact;
+    const regexMatch = groups.find((group) => group.regex?.test(groupId));
+    if (regexMatch) return regexMatch;
+  }
+  return groups.find((group) => !group.id && !group.regex);
 }
 
 function buildAnchorMap(anchors: readonly GlobalAnchor[]): Map<string, number[]> {

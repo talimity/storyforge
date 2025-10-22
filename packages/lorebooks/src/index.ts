@@ -27,6 +27,7 @@ export {
   type LorebookEntry,
   type LorebookEntryEvaluationTraceContract,
   type LorebookEvaluationTraceContract,
+  type LorebookRawPosition,
   lorebookActivationDebugResponseSchema,
   lorebookDataSchema,
   lorebookEntryEvaluationTraceSchema,

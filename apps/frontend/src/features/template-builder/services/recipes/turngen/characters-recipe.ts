@@ -78,6 +78,7 @@ export const charactersRecipe: RecipeDefinition<
       budget: { maxTokens: params.budget },
       meta: {},
       plan: [
+        { kind: "anchor", key: "character_definitions_start" },
         {
           kind: "forEach",
           source: {
@@ -98,6 +99,7 @@ export const charactersRecipe: RecipeDefinition<
             },
           ],
         },
+        { kind: "anchor", key: "character_definitions_end" },
       ],
     };
   },

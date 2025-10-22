@@ -13,6 +13,7 @@ export type FakeTurnGenCtx = {
   currentIntent: { description: string; constraint?: string };
   stepOutputs: Record<string, unknown>;
   globals?: Record<string, unknown>;
+  lorebooks: unknown[];
 };
 
 export type FakeTurnGenSourceSpec = {

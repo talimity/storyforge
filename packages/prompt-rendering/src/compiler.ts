@@ -221,6 +221,19 @@ function compileAttachmentLanes(
 ): readonly CompiledAttachmentLaneSpec[] {
   const compiled: CompiledAttachmentLaneSpec[] = [];
   for (const lane of lanes) {
+    const groups = lane.groups
+      ? lane.groups.map((group) =>
+          Object.freeze({
+            id: group.id,
+            match: group.match,
+            openTemplate: group.openTemplate ? compileLeaf(group.openTemplate) : undefined,
+            closeTemplate: group.closeTemplate ? compileLeaf(group.closeTemplate) : undefined,
+            role: group.role,
+            order: group.order ?? 0,
+            payload: group.payload,
+          })
+        )
+      : undefined;
     compiled.push(
       Object.freeze({
         id: lane.id,
@@ -231,6 +244,7 @@ function compileAttachmentLanes(
         reserveTokens: lane.reserveTokens,
         budget: lane.budget,
         payload: lane.payload,
+        groups: groups ? Object.freeze(groups) : undefined,
       })
     );
   }

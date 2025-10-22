@@ -14,7 +14,7 @@ import { ServiceError } from "../../../service-error.js";
  * Given an unknown database prompt template, parse and validate it into a
  * strongly typed PromptTemplate.
  */
-export function fromDbPromptTemplate(template: DbTemplate) {
+export function fromDbPromptTemplate(template: DbTemplate, lint = true) {
   const json = {
     id: template.id,
     task: template.kind,
@@ -30,19 +30,19 @@ export function fromDbPromptTemplate(template: DbTemplate) {
       return parseTemplate<"turn_generation", TurnGenSources>(
         json,
         "turn_generation",
-        TURN_GEN_SOURCE_NAMES
+        lint ? TURN_GEN_SOURCE_NAMES : undefined
       );
     case "chapter_summarization":
       return parseTemplate<"chapter_summarization", ChapterSummSources>(
         json,
         "chapter_summarization",
-        CHAPTER_SUMM_SOURCE_NAMES
+        lint ? CHAPTER_SUMM_SOURCE_NAMES : undefined
       );
     case "writing_assistant":
       return parseTemplate<"writing_assistant", WritingAssistantSources>(
         json,
         "writing_assistant",
-        WRITING_ASSIST_SOURCE_NAMES
+        lint ? WRITING_ASSIST_SOURCE_NAMES : undefined
       );
     default:
       throw new ServiceError("InvalidInput", {

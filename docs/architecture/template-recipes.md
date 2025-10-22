@@ -19,24 +19,23 @@ Template recipes give authors a guided way to configure prompt slots in the UI w
 ## Example Recipes (Turn Generation)
 1. **Timeline (Simple)** (`timelineBasicRecipe`):
    - Parameters: turn template string, max turns, token budget.
-   - Produces a single `forEach` plan over the `turns` source (newest first, `fillDir=prepend` so output is chronological). Each iteration emits a `user` message based on `turnTemplate`.
+   - Produces a single `forEach` plan over the `turns` source (newest first, `fillDir=prepend` so output is chronological). Each iteration emits a `user` message based on `turnTemplate` and appends an anchor keyed `turn_{{item.turnNo}}` so attachments can target specific turns.
+   - Emits top/bottom anchors (`timeline_start`, `timeline_end`) around the loop so injections have deterministic boundaries even when turns are truncated by budgets.
    - Variables advertised to the user (`item.turnNo`, `item.authorName`, etc.) map to properties the backend adds to timeline turn DTOs.
 
 2. **Timeline (Advanced)**:
    - Adds templates for intent guidance, assistant responses, manual turns, toggles for unguided turns, plus the simple parameters.
    - Emits nested `if` plan nodes: checks whether the turn has intent metadata, whether it was manual control, and selects user/assistant template pairs accordingly. Uses reserved sources (`$item`, `$ctx`, `$globals`) to access intent kinds and narrator flags.
+   - Adds the same anchor strategy as the simple variant (`timeline_start`, `turn_{{item.turnNo}}`, `timeline_end`) so lore/attachment lanes can place content relative to individual turns or the history boundary.
 
 3. **Character Descriptions**:
    - Parameters: max characters, message role, character template, per-slot budget.
    - Iterates the `characters` source, skipping entries without descriptions, and emits messages under the user-selected role with the template string.
+   - Declares anchors `character_definitions_start` / `character_definitions_end` around the loop, allowing attachments to inject lore before or after the roster without templates having to add bespoke slots.
 
 4. **Next Turn Intent**:
    - Parameters: intent template, narrator extra prompt.
    - Emits user-facing guidance only when `currentIntent` exists and is not manual control. Appends narrator-specific instruction when the global flag indicates a narrator turn.
-
-5. **Activated Lore Entries**:
-   - Parameters: lore context (A/B), message role, per-entry template, max entries, token budget.
-   - Iterates the `lore` source for the selected position and outputs one message per activated entry using the provided template. The lore scanner already applies filtering and ordering, so the recipe simply formats what was activated.
 
 ## Parameter Handling & Validation
 - Number controls automatically clamp to `[min, max]` and default if left blank.

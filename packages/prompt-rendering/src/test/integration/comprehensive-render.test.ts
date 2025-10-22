@@ -27,7 +27,11 @@ const template: PromptTemplate<"fake_turn_gen", FakeTurnGenSourceSpec> = {
       header: { role: "system", content: "=== Recent Turns ===" },
       footer: { role: "system", content: "=== End Turns ===" },
     },
-    { kind: "message", role: "system", content: "Instruction: Maintain mystery and reference the fountain." },
+    {
+      kind: "message",
+      role: "system",
+      content: "Instruction: Maintain mystery and reference the fountain.",
+    },
     { kind: "anchor", key: "after_instructions" },
     {
       kind: "slot",
@@ -127,7 +131,9 @@ const attachments: InjectionRequest[] = [
 describe("Comprehensive anchor and attachment rendering", () => {
   it("renders anchors, instructions, and attachments under generous budget", () => {
     const budget = new DefaultBudgetManager({ maxTokens: 2000 });
-    const result = render(compiled, standardTurnGenCtx, budget, registry, { injections: attachments });
+    const result = render(compiled, standardTurnGenCtx, budget, registry, {
+      injections: attachments,
+    });
 
     expect(result.some((msg) => msg.content.includes("[Author Note]"))).toBe(true);
     expect(result.some((msg) => msg.content.includes("[Lore]"))).toBe(true);
@@ -166,4 +172,141 @@ describe("Comprehensive anchor and attachment rendering", () => {
 
     expect(result.some((msg) => msg.content.includes("Should not appear"))).toBe(false);
   });
+});
+
+it("renders grouped attachments for turn events and character sections", () => {
+  const template = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>({
+    id: "grouped-integrated",
+    task: "turn_generation",
+    name: "Grouped Attachments",
+    version: 1,
+    layout: [
+      {
+        kind: "slot",
+        name: "characters",
+        header: { role: "system", content: "<characters>" },
+        footer: { role: "system", content: "</characters>" },
+      },
+      {
+        kind: "slot",
+        name: "timeline",
+        header: { role: "system", content: "<timeline>" },
+        footer: { role: "system", content: "</timeline>" },
+      },
+    ],
+    slots: {
+      characters: {
+        priority: 0,
+        plan: [
+          { kind: "anchor", key: "character_definitions_start" },
+          {
+            kind: "forEach",
+            source: { source: "characters" },
+            map: [{ kind: "message", role: "system", content: "Character: {{ item.name }}" }],
+          },
+          { kind: "anchor", key: "character_definitions_end" },
+        ],
+        meta: {},
+      },
+      timeline: {
+        priority: 1,
+        plan: [
+          {
+            kind: "forEach",
+            source: { source: "turns" },
+            map: [
+              {
+                kind: "message",
+                role: "user",
+                content: "Turn {{ item.turnNo }}: {{ item.content }}",
+              },
+              { kind: "anchor", key: "turn_{{ item.turnNo }}" },
+            ],
+          },
+          { kind: "anchor", key: "timeline_start" },
+          { kind: "anchor", key: "timeline_end" },
+        ],
+        meta: {},
+      },
+    },
+    attachments: [
+      {
+        id: "lore",
+        reserveTokens: 200,
+        groups: [
+          {
+            id: "before_char",
+            openTemplate: "<beforeCharacters>",
+            closeTemplate: "</beforeCharacters>",
+          },
+          {
+            id: "after_char",
+            openTemplate: "<afterCharacters>",
+            closeTemplate: "</afterCharacters>",
+          },
+          { match: "^turn_", openTemplate: "<events>", closeTemplate: "</events>" },
+        ],
+      },
+    ],
+  });
+
+  const ctx = {
+    ...standardTurnGenCtx,
+    characters: standardTurnGenCtx.characters.slice(0, 2),
+    turns: standardTurnGenCtx.turns.slice(0, 3).map((turn, index) => ({
+      ...turn,
+      turnNo: index + 1,
+    })),
+  };
+
+  const budget = new DefaultBudgetManager({ maxTokens: 1000 }, (text) => text.length);
+  const messages = render(template, ctx, budget, registry, {
+    attachments: [
+      {
+        id: "lore",
+        reserveTokens: 200,
+        groups: [
+          {
+            id: "before_char",
+            openTemplate: "<beforeCharacters>",
+            closeTemplate: "</beforeCharacters>",
+          },
+          {
+            id: "after_char",
+            openTemplate: "<afterCharacters>",
+            closeTemplate: "</afterCharacters>",
+          },
+          { match: "^turn_", openTemplate: "<events>", closeTemplate: "</events>" },
+        ],
+      },
+    ],
+    injections: [
+      {
+        lane: "lore",
+        groupId: "before_char",
+        target: { kind: "at", key: "character_definitions_start" },
+        template: "Lore before characters",
+      },
+      {
+        lane: "lore",
+        groupId: "after_char",
+        target: { kind: "at", key: "character_definitions_end", after: true },
+        template: "Lore after characters",
+      },
+      {
+        lane: "lore",
+        groupId: "turn_1",
+        target: { kind: "at", key: "turn_1", after: true },
+        template: "Event A",
+      },
+      {
+        lane: "lore",
+        groupId: "turn_3",
+        target: { kind: "at", key: "turn_3", after: true },
+        template: "Event C",
+      },
+    ],
+  });
+
+  expect(messages).toMatchSnapshot();
 });

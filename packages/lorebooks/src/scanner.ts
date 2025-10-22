@@ -6,11 +6,13 @@ import type {
   LorebookEntry,
   LorebookEntryEvaluationTraceContract,
   LorebookEvaluationTraceContract,
+  LorebookRawPosition,
+  NormalizedLorebookPosition,
 } from "./schema.js";
 
-const DEFAULT_MAX_RECURSION_ROUNDS = 4;
+export type { NormalizedLorebookPosition } from "./schema.js";
 
-export type NormalizedLorebookPosition = "before_char" | "after_char";
+const DEFAULT_MAX_RECURSION_ROUNDS = 4;
 
 export type LorebookAssignment = {
   lorebookId: string;
@@ -496,6 +498,7 @@ function selectEntries(
       entryId: record.entry.id,
       content: record.entry.content,
       position: normalizePosition(record.entry.position),
+      rawPosition: resolveRawPosition(record.entry.position),
       name: record.entry.name,
       comment: record.entry.comment,
     }));
@@ -530,6 +533,22 @@ function normalizePosition(position: unknown): NormalizedLorebookPosition {
     return "after_char";
   }
   return "before_char";
+}
+
+function resolveRawPosition(position: unknown): LorebookRawPosition {
+  if (position === "before_char" || position === "after_char") {
+    return position;
+  }
+  if (typeof position === "number") {
+    if (Number.isFinite(position)) {
+      return position;
+    }
+    return undefined;
+  }
+  if (typeof position === "string") {
+    return position;
+  }
+  return undefined;
 }
 
 function buildTrace(

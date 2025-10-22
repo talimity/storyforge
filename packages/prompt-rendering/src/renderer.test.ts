@@ -194,4 +194,78 @@ describe("renderer", () => {
 
     expect(messages.some((msg) => msg.content.includes("Should not render"))).toBe(false);
   });
+
+  it("wraps grouped injections with lane group templates", () => {
+    const template = compile({
+      id: "grouped",
+      task: "turn",
+      name: "Grouped",
+      version: 1,
+      layout: [{ kind: "slot", name: "timeline" }],
+      slots: {
+        timeline: {
+          priority: 0,
+          plan: [
+            {
+              kind: "message",
+              role: "user",
+              content: "Base turn",
+            },
+            { kind: "anchor", key: "turn_1" },
+          ],
+          meta: {},
+        },
+      },
+      attachments: [
+        {
+          id: "lore",
+          reserveTokens: 20,
+          groups: [
+            {
+              match: "^turn_",
+              openTemplate: "<events>",
+              closeTemplate: "</events>",
+            },
+          ],
+        },
+      ],
+    });
+
+    const messages = render(template, ctx, createBudget(200), registry, {
+      attachments: [
+        {
+          id: "lore",
+          reserveTokens: 20,
+          groups: [
+            {
+              match: "^turn_",
+              openTemplate: "<events>",
+              closeTemplate: "</events>",
+            },
+          ],
+        },
+      ],
+      injections: [
+        {
+          lane: "lore",
+          groupId: "turn_1",
+          target: { kind: "at", key: "turn_1" },
+          template: "Lore entry 1",
+        },
+        {
+          lane: "lore",
+          groupId: "turn_1",
+          target: { kind: "at", key: "turn_1", after: true },
+          template: "Lore entry 2",
+        },
+      ],
+    });
+
+    const contents = messages.map((msg) => msg.content).join("\n");
+    expect(contents).toContain("<events>");
+    expect(contents).toContain("</events>");
+    expect(contents.indexOf("<events>")).toBeLessThan(contents.indexOf("Lore entry 1"));
+    expect(contents.indexOf("Lore entry 1")).toBeLessThan(contents.indexOf("Lore entry 2"));
+    expect(contents.indexOf("Lore entry 2")).toBeLessThan(contents.indexOf("</events>"));
+  });
 });

@@ -56,7 +56,7 @@ export async function getTemplateById(db: SqliteDatabase, id: string) {
   }
 
   return {
-    ...fromDbPromptTemplate(template),
+    ...fromDbPromptTemplate(template, false),
     updatedAt: template.updatedAt,
     createdAt: template.createdAt,
   };

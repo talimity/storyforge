@@ -61,6 +61,7 @@ export const sampleTurnGenCtx = {
   turns: sampleTurnsDTOFixture,
   chapterSummaries: sampleChapterSummariesDTOFixture,
   characters: sampleCharactersDTOFixture,
+  lorebooks: [],
   currentIntent: {
     description: "Continue the conversation between Alice and Bob",
     constraint: "Keep the tone light and friendly",
@@ -117,6 +118,7 @@ export const emptyTurnGenCtx = {
   chapterSummaries: [],
   characters: [],
   currentIntent: { description: "Start a new story" },
+  lorebooks: [],
 };
 
 export const minimalTurnGenCtx = {
@@ -124,4 +126,5 @@ export const minimalTurnGenCtx = {
   chapterSummaries: [],
   characters: [sampleCharactersDTOFixture[0]],
   currentIntent: { description: "Simple test" },
+  lorebooks: [],
 };

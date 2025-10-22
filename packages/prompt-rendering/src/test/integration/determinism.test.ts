@@ -88,6 +88,7 @@ describe("Determinism & Immutability", () => {
       currentIntent: deterministicTurnGenCtx.currentIntent,
       stepOutputs: deterministicTurnGenCtx.stepOutputs,
       globals: deterministicTurnGenCtx.globals,
+      lorebooks: deterministicTurnGenCtx.lorebooks,
     };
 
     // Multiple renders with slot interactions

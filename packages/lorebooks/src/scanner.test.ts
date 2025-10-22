@@ -135,6 +135,28 @@ describe("scanLorebooks", () => {
     expect(result.before_char[0].entryId).toBe("high");
   });
 
+  it("preserves raw position metadata", () => {
+    const assignment = makeAssignment({
+      name: "Position Lorebook",
+      entries: [
+        {
+          id: "pos",
+          enabled: true,
+          constant: true,
+          keys: ["any"],
+          content: "Positional lore",
+          extensions: {},
+          insertion_order: 0,
+          position: -2,
+        },
+      ],
+      extensions: {},
+    });
+
+    const result = scanLorebooks({ turns: [makeTurn("any")], lorebooks: [assignment] });
+    expect(result.before_char[0].rawPosition).toBe(-2);
+  });
+
   it("requires secondary keys when selective is true", () => {
     const assignment = makeAssignment({
       name: "Selective Lorebook",

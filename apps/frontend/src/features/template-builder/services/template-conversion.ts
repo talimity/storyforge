@@ -24,7 +24,9 @@ export function templateToDraft(template: UnboundTemplate): TemplateDraft {
     name: template.name,
     task: taskKindSchema.parse(template.task),
     description: template.description || "",
-    layoutDraft: template.layout.map(convertLayoutNodeToDraft),
+    layoutDraft: template.layout
+      .map(convertLayoutNodeToDraft)
+      .filter((node): node is LayoutNodeDraft => node !== null),
     slotsDraft: convertSlotsToDraft(template.slots),
   };
 }
@@ -32,7 +34,7 @@ export function templateToDraft(template: UnboundTemplate): TemplateDraft {
 /**
  * Convert layout nodes from engine format to draft format
  */
-function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
+function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft | null {
   const id = createId();
 
   switch (node.kind) {
@@ -66,6 +68,10 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft {
           omitIfEmpty: node.omitIfEmpty,
         }),
       };
+
+    case "anchor":
+      // Anchors are currently not editable in the layout builder; skip them when converting.
+      return null;
 
     default: {
       assertNever(node);

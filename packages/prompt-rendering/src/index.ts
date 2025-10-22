@@ -52,12 +52,15 @@ export type { TemplateSegment, TemplateTokenizeResult } from "./template-tokeniz
 export { tokenizeTemplateString } from "./template-tokenizer.js";
 // Type exports
 export type {
+  AttachmentLaneGroupRuntime,
+  AttachmentLaneGroupSpec,
   AttachmentLaneRuntime,
   AttachmentLaneSpec,
   Budget,
   BudgetManager,
   ChatCompletionMessage,
   ChatCompletionMessageRole,
+  CompiledAttachmentLaneGroupSpec,
   CompiledAttachmentLaneSpec,
   CompiledLayoutNode,
   CompiledLeafFunction,
@@ -71,6 +74,7 @@ export type {
   DataRefOf,
   GlobalAnchor,
   InjectionRequest,
+  InjectionTarget,
   LayoutNode,
   MessageBlock,
   PlanNode,

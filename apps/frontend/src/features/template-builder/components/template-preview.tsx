@@ -3,6 +3,7 @@ import type { UnboundTemplate } from "@storyforge/prompt-rendering";
 import { LuTriangleAlert } from "react-icons/lu";
 import { Alert } from "@/components/ui/index";
 import { compileDraft, validateDraft } from "@/features/template-builder/services/compile-draft";
+import { lintTemplate } from "@/features/template-builder/services/template-lint";
 import type { TemplateDraft } from "@/features/template-builder/types";
 
 interface TemplatePreviewProps {
@@ -52,8 +53,24 @@ export function TemplatePreview({ draft }: TemplatePreviewProps) {
     );
   }
 
+  const lintWarnings = lintTemplate(compiledTemplate);
+
   return (
     <VStack align="stretch" gap={6}>
+      {lintWarnings.length > 0 && (
+        <Alert
+          icon={<LuTriangleAlert />}
+          title={`Template warnings (${lintWarnings.length})`}
+          status="warning"
+        >
+          <List.Root>
+            {lintWarnings.map((lint) => (
+              <List.Item key={lint.code}>{lint.message}</List.Item>
+            ))}
+          </List.Root>
+        </Alert>
+      )}
+
       {/* Template Info */}
       <Card.Root layerStyle="surface">
         <Card.Body>

@@ -194,6 +194,8 @@ export type AttachmentLaneSpec<_S extends SourceSpec = SourceSpec> = {
   budget?: Budget;
   /** Optional static payload merged into every request scope. */
   payload?: Record<string, unknown>;
+  /** Optional grouping metadata for wrapping related injections. */
+  groups?: AttachmentLaneGroupSpec[];
 };
 
 /**
@@ -207,6 +209,36 @@ export type AttachmentLaneRuntime = {
   order: number;
   reserveTokens?: number;
   budget?: Budget;
+  payload?: Record<string, unknown>;
+  groups?: readonly AttachmentLaneGroupRuntime[];
+};
+
+/**
+ * Defines a grouping of related injections within an attachment lane,
+ * allowing for open/close wrappers around the group.
+ */
+export type AttachmentLaneGroupSpec = {
+  /** Explicit group identifier match (e.g., "before_char"). */
+  id?: string;
+  /** Regular expression string to match dynamic group ids (e.g., "^turn_"). */
+  match?: string;
+  openTemplate?: string;
+  closeTemplate?: string;
+  role?: ChatCompletionMessageRole;
+  order?: number;
+  payload?: Record<string, unknown>;
+};
+
+/**
+ * Runtime representation of an attachment lane group after compilation.
+ */
+export type AttachmentLaneGroupRuntime = {
+  id?: string;
+  regex?: RegExp;
+  openTemplate?: CompiledLeafFunction;
+  closeTemplate?: CompiledLeafFunction;
+  role?: ChatCompletionMessageRole;
+  order: number;
   payload?: Record<string, unknown>;
 };
 
@@ -234,6 +266,7 @@ export type InjectionRequest = {
   template?: string;
   payload?: Record<string, unknown>;
   priority?: number;
+  groupId?: string;
 };
 
 export type RenderOptions = {
@@ -364,6 +397,17 @@ export type CompiledAttachmentLaneSpec = Readonly<{
   order: number;
   reserveTokens?: number;
   budget?: Budget;
+  payload?: Record<string, unknown>;
+  groups?: readonly CompiledAttachmentLaneGroupSpec[];
+}>;
+
+export type CompiledAttachmentLaneGroupSpec = Readonly<{
+  id?: string;
+  match?: string;
+  openTemplate?: CompiledLeafFunction;
+  closeTemplate?: CompiledLeafFunction;
+  role?: ChatCompletionMessageRole;
+  order?: number;
   payload?: Record<string, unknown>;
 }>;
 

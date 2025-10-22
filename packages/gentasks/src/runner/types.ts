@@ -9,11 +9,12 @@ import type {
 import type {
   BudgetManager,
   ChatCompletionMessage,
+  RenderOptions,
   SourceRegistry,
   UnboundTemplate,
 } from "@storyforge/prompt-rendering";
 import type { z } from "zod";
-import type { ContextFor, TaskKind, TaskSourcesMap } from "../types.js";
+import type { ContextFor, RunnerModelContext, TaskKind, TaskSourcesMap } from "../types.js";
 import type { outputCaptureSchema, transformSpecSchema } from "./schemas.js";
 
 export type TransformSpec = z.infer<typeof transformSpecSchema>;
@@ -27,6 +28,11 @@ export type GenWorkflow<K extends TaskKind = TaskKind> = {
   task: K;
   version: 1;
   steps: GenStep[];
+};
+
+type ResolverContext<K extends TaskKind> = ContextFor<K> & {
+  stepOutputs: Record<string, unknown>;
+  model?: RunnerModelContext;
 };
 
 // Individual workflow step
@@ -59,13 +65,42 @@ export type ModelProfileResolved = {
 
 export type { RunnerModelContext } from "../types.js";
 
-// Runner dependencies with proper typing
+/**
+ * Dependencies required to run a workflow.
+ */
 export type WorkflowDeps<K extends TaskKind> = {
+  /** Function to load a prompt template by ID */
   loadTemplate: (id: string) => Promise<UnboundTemplate>;
+  /** Function to load a model profile by ID */
   loadModelProfile: (id: string) => Promise<ModelProfileResolved>;
+  /**
+   * Function to create an inference provider adapter from the loaded model
+   * profile's provider config
+   */
   makeAdapter: (cfg: ProviderConfig) => ProviderAdapter;
+  /**
+   * Source registry for resolving data sources; used by prompt rendering to
+   * fetch dynamic data
+   */
   registry: SourceRegistry<ContextFor<K>, TaskSourcesMap[K]>;
+  /**
+   * Factory function to create a budget manager for token usage tracking and
+   * enforcement
+   */
   budgetFactory: (maxTokens?: number) => BudgetManager;
+  /**
+   * Optional factory to resolve prompt rendering options for a given step.
+   * These options can use the step and context to provide additional data to
+   * the prompt renderer, such as to declare Attachments and request content
+   * injections at relative positions.  See AttachmentLaneSpec in the prompt-
+   * rendering package for more details.
+   */
+  resolveRenderOptions?: (args: {
+    workflow: GenWorkflow<K>;
+    step: GenStep;
+    baseContext: ContextFor<K>;
+    extendedContext: ResolverContext<K>;
+  }) => Promise<RenderOptions | undefined> | RenderOptions | undefined;
 };
 
 // Run identification

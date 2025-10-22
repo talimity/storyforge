@@ -81,6 +81,7 @@ describe("Workflow Runner", () => {
       budgetFactory: vi.fn(
         (maxTokens?: number) => new DefaultBudgetManager({ maxTokens: maxTokens ?? 8192 })
       ),
+      resolveRenderOptions: vi.fn(() => undefined),
     };
   });
 
@@ -122,7 +123,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -159,6 +160,50 @@ describe("Workflow Runner", () => {
     expect(result).toHaveProperty("finalOutputs");
     expect(result).toHaveProperty("stepResponses");
     expect(result.finalOutputs).toHaveProperty("generated_turn");
+  });
+
+  it("invokes resolveRenderOptions with extended context", async () => {
+    const resolver = vi.fn().mockReturnValue({ attachments: [], injections: [] });
+    mockDeps.resolveRenderOptions = resolver;
+    const runner = makeWorkflowRunner(mockDeps);
+
+    const workflow: GenWorkflow<"turn_generation"> = {
+      id: "workflow",
+      name: "Workflow",
+      task: "turn_generation",
+      version: 1,
+      steps: [
+        {
+          id: "step",
+          stop: [],
+          modelProfileId: "model1",
+          promptTemplateId: "template1",
+          outputs: [],
+        },
+      ],
+    };
+
+    const context: TurnGenCtx = {
+      turns: [],
+      characters: [],
+      nextTurnNumber: 1,
+      actor: { id: "char1", name: "Alice", description: "", type: "character" },
+      globals: {
+        isNarratorTurn: false,
+        char: "Alice",
+        user: "Bob",
+        scenario: "Test scenario",
+      },
+      lorebooks: [],
+    };
+
+    const handle = await runner.startRun(workflow, context, {});
+    await handle.result;
+
+    expect(resolver).toHaveBeenCalledTimes(1);
+    const args = resolver.mock.calls[0][0];
+    expect(args.workflow.id).toBe("workflow");
+    expect(args.extendedContext.stepOutputs).toBeDefined();
   });
 
   it("should handle multi-step workflows with step outputs", async () => {
@@ -214,7 +259,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -279,7 +324,7 @@ describe("Workflow Runner", () => {
         char: "Alice",
         user: "Bob",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -351,7 +396,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -444,7 +489,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -527,7 +572,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -576,7 +621,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -646,7 +691,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});
@@ -700,7 +745,7 @@ describe("Workflow Runner", () => {
         user: "Bob",
         scenario: "Test scenario",
       },
-      loreEntriesByPosition: { before_char: [], after_char: [] },
+      lorebooks: [],
     };
 
     const handle = await runner.startRun(workflow, context, {});

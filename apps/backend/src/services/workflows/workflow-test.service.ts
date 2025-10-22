@@ -1,6 +1,11 @@
 import type { WorkflowTestRunInput, WorkflowTestRunOutput } from "@storyforge/contracts";
 import type { SqliteDatabase } from "@storyforge/db";
-import { type GenWorkflow, makeWorkflowRunner, turnGenRegistry } from "@storyforge/gentasks";
+import {
+  buildTurnGenRenderOptions,
+  type GenWorkflow,
+  makeWorkflowRunner,
+  turnGenRegistry,
+} from "@storyforge/gentasks";
 import { MockAdapter } from "@storyforge/inference";
 import { DefaultBudgetManager, type UnboundTemplate } from "@storyforge/prompt-rendering";
 import { createId } from "@storyforge/utils";
@@ -116,6 +121,7 @@ export class WorkflowTestService {
       // TODO: fallback token budget should come from the step's real model profile
       budgetFactory: (maxTokens?: number) =>
         new DefaultBudgetManager({ maxTokens: maxTokens ?? 8192 }),
+      resolveRenderOptions: ({ extendedContext }) => buildTurnGenRenderOptions(extendedContext),
     });
 
     // Run inline and collect results

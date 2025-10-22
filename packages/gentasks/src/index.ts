@@ -1,3 +1,8 @@
+export {
+  buildTurnGenRenderOptions,
+  LORE_LANE_ID,
+  TURN_GEN_REQUIRED_ANCHORS,
+} from "./attachments/turn-generation.js";
 export * from "./runner/index.js";
 export { taskKindSchema } from "./schemas.js";
 export {

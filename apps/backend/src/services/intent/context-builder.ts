@@ -7,7 +7,6 @@ import {
   scenarios as tScenarios,
 } from "@storyforge/db";
 import type { CharacterCtxDTO, TurnGenCtx } from "@storyforge/gentasks";
-import { scanLorebooks } from "@storyforge/lorebooks";
 import { assertDefined, stripNulls } from "@storyforge/utils";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.queries.js";
@@ -70,13 +69,6 @@ export class IntentContextBuilder {
         })?.prompt
       : undefined;
 
-    const loreEntries = scanLorebooks({
-      turns: enrichedTurns,
-      lorebooks,
-      // user input should be able to trigger lorebook entries
-      options: { extraSegments: [intentPrompt ?? ""] },
-    });
-
     return {
       turns: enrichedTurns,
       characters,
@@ -97,7 +89,7 @@ export class IntentContextBuilder {
         scenario: scenario.description,
         isNarratorTurn: actorIsNarrator,
       },
-      loreEntriesByPosition: loreEntries,
+      lorebooks,
     };
   }
 

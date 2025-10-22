@@ -63,7 +63,9 @@ export class TemplateService {
         });
       }
 
-      const existingUnboundTemplate = fromDbPromptTemplate(existing);
+      // don't lint existing template again, assume it's valid (or if it's not,
+      // that the update will fix it)
+      const existingUnboundTemplate = fromDbPromptTemplate(existing, false);
 
       // Create updated template for validation (convert database types to prompt-rendering types)
       const newUnboundTemplate: UnboundTemplate = {

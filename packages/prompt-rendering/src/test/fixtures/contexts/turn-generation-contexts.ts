@@ -117,6 +117,7 @@ export const standardTurnGenCtx: FakeTurnGenCtx = {
   turns: richTurnsDTOFixture,
   chapterSummaries: richChapterSummariesDTOFixture,
   characters: richCharactersDTOFixture,
+  lorebooks: [],
   currentIntent: {
     description:
       "Continue the conversation between Alice and Bob while Charlie observes from the shadows",
@@ -171,6 +172,7 @@ export const largeTurnGenCtx: FakeTurnGenCtx = {
   ],
   stepOutputs: {},
   characters: richCharactersDTOFixture,
+  lorebooks: [],
   currentIntent: {
     description: "Test budget limits with large context",
   },
@@ -213,6 +215,7 @@ export const emptyTurnGenCtx = {
   turns: [],
   chapterSummaries: [],
   characters: [],
+  lorebooks: [],
   currentIntent: {
     description: "Test conditional rendering with empty arrays",
   },
@@ -227,6 +230,7 @@ export const noTurnsCtx = {
   turns: [],
   chapterSummaries: richChapterSummariesDTOFixture.slice(0, 2),
   characters: richCharactersDTOFixture.slice(0, 3),
+  lorebooks: [],
   currentIntent: {
     description: "Test scenario where examples should render due to no current turns",
   },
@@ -274,6 +278,7 @@ export const deterministicTurnGenCtx: FakeTurnGenCtx = {
       description: "Deterministic character B",
     },
   ],
+  lorebooks: [],
   currentIntent: {
     description: "Deterministic test intent",
   },

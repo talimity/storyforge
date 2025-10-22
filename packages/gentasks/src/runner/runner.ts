@@ -137,7 +137,7 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
           });
 
           // Execute the step
-          const result = await executeStep(step, baseCtx, stepOutputs, {
+          const result = await executeStep(step, baseCtx, stepOutputs, validatedWorkflow, {
             runId,
             emit,
             now,
@@ -204,6 +204,7 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
     step: GenStep,
     baseCtx: ContextFor<K>,
     stepOutputs: Record<string, unknown>,
+    workflow: GenWorkflow<K>,
     helpers: {
       runId: string;
       emit: (event: WorkflowEvent) => void;
@@ -228,7 +229,16 @@ export function makeWorkflowRunner<K extends TaskKind>(deps: WorkflowDeps<K>): W
     const ctxWithModel = attachModelContext(ctx, profile);
 
     const budget = deps.budgetFactory(step.maxContextTokens);
-    const messages = render(compiled, ctxWithModel, budget, extendedRegistry);
+    const renderOptions = deps.resolveRenderOptions
+      ? await deps.resolveRenderOptions({
+          workflow,
+          step,
+          baseContext: baseCtx,
+          extendedContext: ctxWithModel,
+        })
+      : undefined;
+
+    const messages = render(compiled, ctxWithModel, budget, extendedRegistry, renderOptions);
 
     emit({
       type: "prompt_rendered",

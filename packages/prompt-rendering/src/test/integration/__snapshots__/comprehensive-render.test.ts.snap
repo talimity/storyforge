@@ -68,3 +68,44 @@ Instruction: Maintain mystery and reference the fountain.
   },
 ]
 `;
+
+exports[`renders grouped attachments for turn events and character sections 1`] = `
+[
+  {
+    "content": "<characters>
+<beforeCharacters>
+Lore before characters
+</beforeCharacters>
+Character: Alice
+Character: Bob
+</characters>
+<afterCharacters>
+Lore after characters
+</afterCharacters>
+<timeline>",
+    "role": "system",
+  },
+  {
+    "content": "Turn 1: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.
+Turn 2: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
+    "role": "user",
+  },
+  {
+    "content": "<events>
+Event A
+</events>",
+    "role": "system",
+  },
+  {
+    "content": "Turn 3: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
+    "role": "user",
+  },
+  {
+    "content": "</timeline>
+<events>
+Event C
+</events>",
+    "role": "system",
+  },
+]
+`;

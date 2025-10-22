@@ -31,11 +31,18 @@ export const lorebookDataSchema = z.object({
   entries: z.array(lorebookEntrySchema),
 });
 
+const normalizedLorePositionSchema = z.union([z.literal("before_char"), z.literal("after_char")]);
+
+const rawLorePositionSchema = z
+  .union([normalizedLorePositionSchema, z.number(), z.string()])
+  .optional();
+
 export const activatedLoreEntrySchema = z.object({
   lorebookId: z.string(),
   entryId: z.union([z.string(), z.number()]),
   content: z.string(),
-  position: z.union([z.literal("before_char"), z.literal("after_char")]),
+  position: normalizedLorePositionSchema,
+  rawPosition: rawLorePositionSchema,
   name: z.string().optional(),
   comment: z.string().optional(),
 });
@@ -79,3 +86,5 @@ export type LorebookEntryEvaluationTraceContract = z.infer<
 >;
 export type LorebookEvaluationTraceContract = z.infer<typeof lorebookEvaluationTraceSchema>;
 export type LorebookActivationDebugResponse = z.infer<typeof lorebookActivationDebugResponseSchema>;
+export type NormalizedLorebookPosition = z.infer<typeof normalizedLorePositionSchema>;
+export type LorebookRawPosition = z.infer<typeof rawLorePositionSchema>;

@@ -14,7 +14,7 @@ This guide traces how a single turn is produced, starting from the player UI and
 3. **Workflow runner prepares prompt context**
    - `generateTurn` uses `IntentContextBuilder` to assemble the `TurnGenCtx`: full timeline, character roster, current intent metadata, step outputs (initially empty), and globals. This context satisfies the `TurnGenSources` contract.
    - During execution, the workflow runner enriches the context with the active model profile: `ctx.model` carries provider/model identifiers plus any model-specific instruction so templates can branch on them without the task needing to thread that data.
-   - While building the context, the lorebook scanner evaluates every enabled lorebook assigned to the scenario. Activated entries are stored on `TurnGenCtx.loreEntriesByPosition` and exposed to templates via the `lore` source so slots can iterate them in insertion order without bespoke sorting.
+   - While building the context, we attach every enabled lorebook assignment to `TurnGenCtx.lorebooks`. The turn-generation attachment orchestrator (`buildTurnGenRenderOptions`) runs the lorebook scanner, then reserves prompt budget for matched entries and emits injection requests targeting anchor keys such as `turn_{n}` or `character_definitions_start`, according to each entry's `position` setting.
    - Ghost turns (deactivated timeline nodes) are filtered from the prompt context, so the model never sees them, but their turn numbers still influence the `nextTurnNumber` that the workflow receives.
    - The workflow runner (from `@storyforge/gentasks`) loads the configured turn-generation workflow, template, and model profile. It compiles the prompt template with the turn-generation source registry and renders chat messages under budget control.
 
