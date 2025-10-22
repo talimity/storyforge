@@ -1,8 +1,10 @@
 import type { TaskKind } from "@storyforge/gentasks";
-import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
+import type { AttachmentLaneSpec, ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
 import { createId } from "@storyforge/utils";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { cloneLoreAttachmentValues } from "@/features/template-builder/services/attachments/lore";
+import type { LoreAttachmentLaneDraft } from "@/features/template-builder/services/attachments/types";
 import {
   generateSlotName,
   getDefaultMessageContent,
@@ -11,14 +13,54 @@ import { validateDraft } from "@/features/template-builder/services/compile-draf
 import { getRecipeById } from "@/features/template-builder/services/recipe-registry";
 import type {
   AnyRecipeId,
+  AttachmentLaneDraft,
   LayoutNodeDraft,
   SlotDraft,
   TemplateDraft,
 } from "@/features/template-builder/types";
 
+function cloneAttachmentDrafts(
+  source: Record<string, AttachmentLaneDraft>
+): Record<string, AttachmentLaneDraft> {
+  const clone: Record<string, AttachmentLaneDraft> = {};
+  for (const [laneId, draft] of Object.entries(source)) {
+    clone[laneId] = cloneAttachmentDraft(draft);
+  }
+  return clone;
+}
+
+function cloneAttachmentDraft(draft: AttachmentLaneDraft): AttachmentLaneDraft {
+  if (draft.type === "lore") {
+    return cloneLoreAttachmentDraft(draft);
+  }
+  return draft;
+}
+
+function cloneLoreAttachmentDraft(draft: LoreAttachmentLaneDraft): LoreAttachmentLaneDraft {
+  return {
+    laneId: draft.laneId,
+    type: draft.type,
+    values: cloneLoreAttachmentValues(draft.values),
+    spec: cloneAttachmentSpec(draft.spec),
+  };
+}
+
+function cloneAttachmentSpec(spec: AttachmentLaneSpec): AttachmentLaneSpec {
+  return {
+    ...spec,
+    budget: spec.budget ? { ...spec.budget } : undefined,
+    payload: spec.payload ? { ...spec.payload } : undefined,
+    groups: spec.groups?.map((group) => ({
+      ...group,
+      payload: group.payload ? { ...group.payload } : undefined,
+    })),
+  };
+}
+
 export interface TemplateBuilderState {
   layoutDraft: LayoutNodeDraft[];
   slotsDraft: Record<string, SlotDraft>;
+  attachmentDrafts: Record<string, AttachmentLaneDraft>;
   editingNodeId: string | null;
   isDirty: boolean;
 
@@ -48,18 +90,27 @@ export interface TemplateBuilderState {
   ) => string; // Returns the slot name
   updateSlot: (slotName: string, updates: Partial<SlotDraft>) => void;
 
+  // Attachment Actions
+  setAttachmentDraft: (draft: AttachmentLaneDraft) => void;
+
   // Edit Mode Actions
   startEditingNode: (nodeId: string) => void;
   saveNodeEdit: (nodeId: string, nodeData: LayoutNodeDraft, slotData?: SlotDraft) => void;
   cancelNodeEdit: () => void;
 }
 
-const initialState = {
+const makeInitialState = (): Pick<
+  TemplateBuilderState,
+  "layoutDraft" | "slotsDraft" | "attachmentDrafts" | "editingNodeId" | "isDirty"
+> => ({
   layoutDraft: [],
   slotsDraft: {},
+  attachmentDrafts: {},
   editingNodeId: null,
   isDirty: false,
-};
+});
+
+const initialState = makeInitialState();
 
 export const useTemplateBuilderStore = create<TemplateBuilderState>()(
   immer((set, _get) => ({
@@ -69,13 +120,19 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
       set((state) => {
         state.layoutDraft = draft.layoutDraft;
         state.slotsDraft = draft.slotsDraft;
+        state.attachmentDrafts = cloneAttachmentDrafts(draft.attachmentDrafts);
         state.editingNodeId = null;
         state.isDirty = false;
       }),
 
     reset: () =>
       set((state) => {
-        Object.assign(state, initialState);
+        const fresh = makeInitialState();
+        state.layoutDraft = fresh.layoutDraft;
+        state.slotsDraft = fresh.slotsDraft;
+        state.attachmentDrafts = fresh.attachmentDrafts;
+        state.editingNodeId = fresh.editingNodeId;
+        state.isDirty = fresh.isDirty;
       }),
 
     markClean: () =>
@@ -217,6 +274,12 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
         }
       }),
 
+    setAttachmentDraft: (draft) =>
+      set((state) => {
+        state.attachmentDrafts[draft.laneId] = cloneAttachmentDraft(draft);
+        state.isDirty = true;
+      }),
+
     // Edit Mode Actions
     startEditingNode: (nodeId) =>
       set((state) => {
@@ -295,5 +358,6 @@ export const getValidationErrors = (state: TemplateBuilderState, task: TaskKind)
     task: task,
     layoutDraft: state.layoutDraft,
     slotsDraft: state.slotsDraft,
+    attachmentDrafts: state.attachmentDrafts,
   });
 };

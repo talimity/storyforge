@@ -9,6 +9,7 @@ import {
 import { coerceRecipeParams } from "@/features/template-builder/services/param-coercion";
 import { getRecipeById } from "@/features/template-builder/services/recipe-registry";
 import type {
+  AttachmentLaneDraft,
   LayoutNodeDraft,
   MessageBlockDraft,
   SlotDraft,
@@ -19,6 +20,7 @@ import type {
  * Compile a UI template draft into an engine-compatible PromptTemplate
  */
 export function compileDraft(draft: TemplateDraft): UnboundTemplate {
+  const attachments = compileAttachments(draft.attachmentDrafts);
   return {
     id: draft.id,
     task: draft.task,
@@ -27,6 +29,7 @@ export function compileDraft(draft: TemplateDraft): UnboundTemplate {
     version: PROMPT_TEMPLATE_SPEC_VERSION,
     layout: compileLayout(draft.layoutDraft),
     slots: compileSlots(draft.slotsDraft),
+    ...(attachments.length > 0 ? { attachments } : {}),
   };
 }
 
@@ -86,6 +89,10 @@ function compileSlots(slotsDraft: Record<string, SlotDraft>): Record<string, Unb
   }
 
   return slots;
+}
+
+function compileAttachments(attachmentDrafts: Record<string, AttachmentLaneDraft>) {
+  return Object.values(attachmentDrafts).map((draft) => draft.spec);
 }
 
 function compileSlot(slotDraft: SlotDraft): UnboundSlotSpec {
@@ -189,8 +196,9 @@ export class DraftCompilationError extends Error {
 export function validateDraft({
   layoutDraft,
   slotsDraft,
+  attachmentDrafts,
   task,
-}: Pick<TemplateDraft, "layoutDraft" | "slotsDraft" | "task">): string[] {
+}: Pick<TemplateDraft, "layoutDraft" | "slotsDraft" | "attachmentDrafts" | "task">): string[] {
   const errors: string[] = [];
 
   if (layoutDraft.length === 0) {

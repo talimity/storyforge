@@ -14,13 +14,13 @@ The vision is something akin a turn-based/text-based version of The Sims, which 
 - Branching as a first-class concept; rewinding or switching timelines to explore alternative paths should be as low-friction as possible
 - Player can interact directly or indirectly; interactions are modeled as "Intent" to influence the story in some way, with each Intent kind generating a different set of "Effects"
 - An Intent can be a story constraint, a vague request for a character to do something, or direct control over a character's actions
-- LLM interface happens via "generative tasks", such as Turn Generation or Chapter Summarization, for which the player can define custom workflows and prompt templates; a workflow can trigger multiple LLM calls, such as using a more strong logical model for a reasoning-focused "Draft" step chained to a simpler but more creative model for a "Prose" step. 
+- LLM interface happens via "generative tasks", such as Turn Generation or Chapter Summarization, for which the player can define custom workflows and prompt templates
+- Woorkflows can trigger multiple LLM calls, such as using a more strong logical model for a reasoning-focused "Draft" step chained to a simpler but more creative model for a "Prose" step 
 
 ### Build & Test Commands
 
 ```bash
-# ⚠️ IMPORTANT: DO NOT pass `-w` after any of these commands. They should be run as-is from the workspace root.
-# To scope a command to a specific package, use `pnpm --filter=package [script]` instead.
+# ⚠️ IMPORTANT: DO NOT pass `-w` after any of these commands. To scope a command to a specific package, use `pnpm --filter=package [script]` instead.
 
 # Rebuild type declarations with after changing shared packages
 pnpm build
@@ -45,7 +45,7 @@ pnpm --filter=db db:generate --name=descriptive-name # Drizzle migration generat
 
 ## Stack
 
-- **Backend**: Fastify/tRPC
+- **Backend**: Fastify/tRPC, ESM
 - **Frontend**: React 19/Vite
 - **Database**: SQLite/Drizzle ORM
 - **Schemas**: Zod v4
@@ -78,7 +78,7 @@ storyforge
     - Use a type guard: `function isSomeType(value: unknown): value is SomeType`, or...
     - Use an `asserts` guard: `function assertSomeType(value: unknown): asserts value is SomeType`, or...
     - Use Zod.
-    - (Note that `as const` is not casting, it *narrows* inferred types so it is fine to use)
+    - (Note that `as const` *narrows* inferred types so it is fine to use)
   - 🚫 Non-null assertions (`!`) are FORBIDDEN
     - Use Zod, `assertDefined` from the utils package, or an `asserts` guard.
 - **Classes and Interfaces**:
@@ -88,10 +88,8 @@ storyforge
 - **Naming conventions**:
   - Files: kebab-case
   - Identifiers: camelCase for functions/variables, PascalCase for classes/components
-- **Comments**:
-  - Only leave inline comments to note edge cases or to explain why a non-obvious implementation strategy was chosen 
-  - Do leave JSDoc comments for a module's public API
 - **General**:
+  - Keep modules small, split up large modules
   - Minimize nested structures
     - Return early to avoid deep nesting in functions
   - Look for patterns in existing code and follow them 
@@ -105,14 +103,16 @@ storyforge
 
 ### DURING work on a task
 - You MUST `pnpm build` any time you are making changes across packages
-  - Don't try to scope this to a single package or you will miss dependencies, just run `pnpm build` from the root and let pnpm topologically build what needs to be built
+  - Don't try to scope this to a single package; just run `pnpm build` from the root and use pnpm's topological build order
+  - Incremental builds are enabled by default, so this should be fast
 - You MUST follow existing conventions and patterns as much as possible
-- You MUST run `pnpm lint` and address diagnostics incrementally; it will be easier than fixing dozens of errors at the end
-- You MUST NOT use `any` casts (the linter will outright fail them)
-- You MUST run build/check commands before a task can be considered finished
+- You MUST NOT use `any` casts (the linter will raise errors if you do, except within unit tests)
+- You MUST run `build`/`lint`/`test` commands before a task can be considered finished
 
 ### At ALL TIMES
 - You MUST NOT run any blocking commands. 
   - That includes watch mode! DO NOT add `-w` flags to any of the build or code quality commands.
   - If you think you want `-w` to filter the pnpm workspace, you actually want `pnpm --filter=package [script]` instead
-- You MUST NEVER stage, unstage, reset, commit, push, stash, or make any changes whatsoever to the git worktree under any circumstances. 
+- 🚨 You are FORBIDDEN from running any git command other than `git status`. 
+  - You MUST NOT restore, checkout, stash, pop, commit, or revert any changes.
+  - If there are "unexpected" changes in the staging area, leave them alone. Never revert them.

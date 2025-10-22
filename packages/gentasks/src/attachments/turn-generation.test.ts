@@ -2,7 +2,11 @@ import type { LorebookAssignment } from "@storyforge/lorebooks";
 import type { InjectionTarget } from "@storyforge/prompt-rendering";
 import { describe, expect, it } from "vitest";
 import type { TurnGenCtx } from "../tasks/turn-generation.js";
-import { buildTurnGenRenderOptions, TURN_GEN_REQUIRED_ANCHORS } from "./turn-generation.js";
+import {
+  buildDefaultLoreLaneSpec,
+  buildTurnGenRenderOptions,
+  TURN_GEN_REQUIRED_ANCHORS,
+} from "./turn-generation.js";
 
 const baseContext: TurnGenCtx = {
   turns: [],
@@ -37,9 +41,11 @@ describe("buildTurnGenRenderOptions", () => {
   it("returns default lore lane even when no assignments are enabled", () => {
     const options = buildTurnGenRenderOptions(baseContext);
     expect(options.attachments).toHaveLength(1);
-    expect(options.attachments?.[0].id).toBe("lore");
-    expect(options.attachments?.[0].reserveTokens).toBeUndefined();
-    expect(options.attachments?.[0].groups).toEqual([{ id: "before_char" }, { id: "after_char" }]);
+    const defaults = buildDefaultLoreLaneSpec();
+    const lane = options.attachments?.[0];
+    expect(lane?.id).toBe("lore");
+    expect(lane?.reserveTokens).toBeUndefined();
+    expect(lane).toMatchObject(defaults);
     expect(options.injections).toHaveLength(0);
   });
 
@@ -138,7 +144,7 @@ describe("buildTurnGenRenderOptions", () => {
     const target = injection?.target;
     expect(Array.isArray(target)).toBe(true);
     const targets = target as InjectionTarget[];
-    expect(targets[0]).toEqual({ kind: "at", key: "turn_2", after: true });
+    expect(targets[0]).toEqual({ kind: "at", key: "turn_2" });
     expect(targets.some((t) => t.kind === "boundary" && t.position === "bottom")).toBe(true);
   });
 

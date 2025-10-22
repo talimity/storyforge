@@ -12,6 +12,7 @@ import { fromDbPromptTemplate, tryCompileUnboundTemplate } from "./utils/marshal
 type CreateTemplateData = Omit<UnboundTemplate, "id" | "version">;
 type UpdateTemplateData = Partial<Omit<UnboundTemplate, "id" | "version">>;
 
+// TODO: this module is kind of shit
 export class TemplateService {
   constructor(private db: SqliteDatabase) {}
 
@@ -24,6 +25,7 @@ export class TemplateService {
       version: 1,
       layout: data.layout,
       slots: data.slots,
+      attachments: data.attachments,
     };
 
     tryCompileUnboundTemplate(templateForValidation);
@@ -37,6 +39,7 @@ export class TemplateService {
         version: 1,
         layout: data.layout,
         slots: data.slots,
+        attachments: data.attachments,
       };
 
       const [dbTemplate] = await tx.insert(schema.promptTemplates).values(dbData).returning().all();
@@ -76,6 +79,7 @@ export class TemplateService {
         version: existingUnboundTemplate.version,
         layout: data.layout ?? existingUnboundTemplate.layout,
         slots: data.slots ?? existingUnboundTemplate.slots,
+        attachments: existingUnboundTemplate.attachments,
       };
 
       // Validate the updated template structure
@@ -91,6 +95,7 @@ export class TemplateService {
       if (data.description !== undefined) updateData.description = data.description;
       if (data.layout !== undefined) updateData.layout = data.layout;
       if (data.slots !== undefined) updateData.slots = data.slots;
+      if (data.attachments !== undefined) updateData.attachments = data.attachments;
 
       const [dbTemplate] = await tx
         .update(schema.promptTemplates)
@@ -150,6 +155,7 @@ export class TemplateService {
           version: existing.version,
           layout: existing.layout,
           slots: existing.slots,
+          attachments: existing.attachments,
         })
         .returning()
         .all();

@@ -27,6 +27,29 @@ export const TURN_GEN_REQUIRED_ANCHORS = {
   },
 };
 
+/**
+ * Default attachment lane definition used whenever a template does not supply
+ * its own lore lane. Shared with the authoring UI so defaults remain
+ * consistent.
+ */
+export function buildDefaultLoreLaneSpec(): AttachmentLaneSpec {
+  return {
+    id: LORE_LANE_ID,
+    enabled: true,
+    role: "system",
+    template: "• {{payload.content}}",
+    order: 50,
+    // TODO: the template strings are illustrative; these are merely defaults for prompt templates which
+    // have not set up their own attachment lanes, so they must be unopinionated.
+    groups: [
+      { id: "before_char", openTemplate: "## Setting Lore\n", closeTemplate: "\n" },
+      { id: "after_char", openTemplate: "## Character Lore\n", closeTemplate: "\n" },
+      // Apply this group rule to any injections targeting a specific turn.
+      { match: "^turn_", openTemplate: "<relevant_lore>\n", closeTemplate: "</relevant_lore>\n" },
+    ],
+  };
+}
+
 type BuildOptions = {
   /** Optional override for the default lore attachment lane definition. */
   attachmentOverride?: Partial<AttachmentLaneSpec>;
@@ -43,10 +66,12 @@ export function buildTurnGenRenderOptions(
   const attachments = [createLoreLane(assignments, options.attachmentOverride)];
   const injections = assignments.length ? buildLoreInjections(ctx, assignments) : [];
 
-  return {
+  console.log("Built turn generation render options:", {
     attachments,
     injections,
-  };
+  });
+
+  return { attachments, injections };
 }
 
 function createLoreLane(
@@ -58,24 +83,12 @@ function createLoreLane(
     return total + Math.max(budget, 0);
   }, 0);
 
-  const lane: AttachmentLaneSpec = {
-    id: LORE_LANE_ID,
-    enabled: true,
-    role: "system",
-    template: "• {{payload.content}}",
-    order: 50,
+  return {
+    ...buildDefaultLoreLaneSpec(),
     reserveTokens: reserveTokens > 0 ? reserveTokens : undefined,
-    // TODO: the template strings are illustrative; these are merely defaults for prompt templates which
-    // have not set up their own attachment lanes, so they must be unopinionated.
-    groups: [
-      { id: "before_char", openTemplate: "## Setting Lore\n", closeTemplate: "\n" },
-      { id: "after_char", openTemplate: "## Character Lore\n", closeTemplate: "\n" },
-      // Apply this group rule to any injections targeting a specific turn.
-      { match: "^turn_", openTemplate: "<relevant_lore>\n", closeTemplate: "</relevant_lore>\n" },
-    ],
+    ...override,
+    id: LORE_LANE_ID,
   };
-
-  return { ...lane, ...override, id: LORE_LANE_ID };
 }
 
 function buildLoreInjections(
@@ -138,17 +151,13 @@ function makeEntryKey(lorebookId: string, entryId: string | number): string {
 }
 
 function flattenActivatedEntries(index: ActivatedLoreIndex): ActivatedLoreEntry[] {
-  const buckets = Object.values(index);
-  return buckets.flat();
+  return Object.values(index).flat();
 }
 
 function buildTargets(
   position: unknown,
   turns: readonly TurnCtxDTO[]
-): {
-  targets: InjectionTarget[];
-  groupId?: string;
-} {
+): { targets: InjectionTarget[]; groupId?: string } {
   if (position === "before_char") {
     return {
       groupId: "before_char",
@@ -174,22 +183,25 @@ function buildTargets(
   }
 
   if (typeof position === "number" && Number.isFinite(position)) {
-    return buildDepthTargets(position, turns);
+    return buildLoreDepthTargets(position, turns);
   }
 
   return { targets: [] };
 }
 
-function buildDepthTargets(
+/**
+ * Given a numeric depth, returns injection targets for that depth within the
+ * turn history. A fallback target for the timeline start/end boundary is always
+ * included.
+ */
+function buildLoreDepthTargets(
   depth: number,
   turns: readonly TurnCtxDTO[]
-): {
-  targets: InjectionTarget[];
-  groupId?: string;
-} {
+): { targets: InjectionTarget[]; groupId?: string } {
+  // No turns: target the timeline boundary directly.
   if (turns.length === 0) {
     return {
-      groupId: depth <= 0 ? "boundary:bottom" : "boundary:top",
+      groupId: "turn_0", // Ensures this receives formatting for turn-based lore.
       targets: [{ kind: "boundary", position: depth <= 0 ? "bottom" : "top", delta: 0 }],
     };
   }
@@ -200,16 +212,16 @@ function buildDepthTargets(
   const targets: InjectionTarget[] = [];
   let groupId: string | undefined;
 
+  // Target the specific turn if possible.
   if (turn?.turnNo !== undefined) {
-    targets.push({
-      kind: "at",
-      key: `turn_${turn.turnNo}`,
-      after: depth <= 0,
-    });
+    targets.push({ kind: "at", key: `turn_${turn.turnNo}` });
     groupId = `turn_${turn.turnNo}`;
+  } else {
+    // Fallback: approximate via offset from timeline end.
+    targets.push({ kind: "offset", key: TURN_GEN_REQUIRED_ANCHORS.timeline.start, delta: -1 });
   }
 
-  targets.push({ kind: "offset", key: TURN_GEN_REQUIRED_ANCHORS.timeline.start, delta: -1 });
+  // Always include a boundary fallback.
   targets.push({ kind: "boundary", position: depth <= 0 ? "bottom" : "top", delta: 0 });
 
   return { groupId, targets: dedupeTargets(targets) };

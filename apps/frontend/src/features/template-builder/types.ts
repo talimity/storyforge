@@ -6,6 +6,11 @@ import type {
   SourceSpec,
   UnboundDataRef,
 } from "@storyforge/prompt-rendering";
+import type {
+  AttachmentLaneDraftBase,
+  LoreAttachmentFormValues,
+  LoreAttachmentLaneDraft,
+} from "@/features/template-builder/services/attachments/types";
 
 // Per-task recipe IDs
 export type TurnGenRecipeId =
@@ -121,6 +126,7 @@ export interface TemplateDraft<K extends TaskKind = TaskKind> {
   task: K;
   layoutDraft: LayoutNodeDraft[];
   slotsDraft: Record<string, SlotDraft>;
+  attachmentDrafts: Record<string, AttachmentLaneDraft>;
 }
 
 // Base interface for layout nodes with UI tracking
@@ -165,3 +171,7 @@ export interface SlotDraft<K extends TaskKind = TaskKind> {
   budget?: number; // Simplified to just maxTokens for UI
   customSpec?: string; // For custom slots, this is a JSON string of its SlotSpec
 }
+
+export type AttachmentLaneDraft = LoreAttachmentLaneDraft;
+
+export type { LoreAttachmentFormValues, AttachmentLaneDraftBase };

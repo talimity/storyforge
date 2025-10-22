@@ -7,7 +7,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { TemplateForm } from "@/features/template-builder/components/template-form";
 import { compileDraft } from "@/features/template-builder/services/compile-draft";
 import { templateToDraft } from "@/features/template-builder/services/template-conversion";
-import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/types";
+import type { LayoutNodeDraft, SlotDraft, TemplateDraft } from "@/features/template-builder/types";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
@@ -41,6 +41,7 @@ function TemplateEditPage() {
     metadata: { name: string; task: TaskKind; description?: string };
     layoutDraft: LayoutNodeDraft[];
     slotsDraft: Record<string, SlotDraft>;
+    attachmentDrafts: TemplateDraft["attachmentDrafts"];
   }) => {
     if (!templateQuery.data) return;
 
@@ -52,6 +53,7 @@ function TemplateEditPage() {
         task: templateQuery.data.task, // Task cannot change in edit mode
         layoutDraft: data.layoutDraft,
         slotsDraft: data.slotsDraft,
+        attachmentDrafts: data.attachmentDrafts,
       };
 
       const compiledTemplate = compileDraft(draft);
@@ -63,6 +65,7 @@ function TemplateEditPage() {
           description: data.metadata.description,
           layout: compiledTemplate.layout,
           slots: compiledTemplate.slots,
+          attachments: compiledTemplate.attachments,
         },
       });
     } catch (error) {

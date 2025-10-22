@@ -1,5 +1,6 @@
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import type {
+  AttachmentLaneSpec,
   LayoutNode,
   MessageBlock,
   SlotSpec,
@@ -7,8 +8,13 @@ import type {
 } from "@storyforge/prompt-rendering";
 import { assertNever, createId } from "@storyforge/utils";
 import { z } from "zod";
+import {
+  createLoreAttachmentDraftFromSpec,
+  ensureLoreAttachmentDraft,
+} from "@/features/template-builder/services/attachments/lore";
 import { isValidRecipeId } from "@/features/template-builder/services/recipe-registry";
 import type {
+  AttachmentLaneDraft,
   LayoutNodeDraft,
   MessageBlockDraft,
   SlotDraft,
@@ -19,15 +25,17 @@ import type {
  * Convert a PromptTemplate from the API into a TemplateDraft for editing
  */
 export function templateToDraft(template: UnboundTemplate): TemplateDraft {
+  const task = taskKindSchema.parse(template.task);
   return {
     id: template.id,
     name: template.name,
-    task: taskKindSchema.parse(template.task),
+    task,
     description: template.description || "",
     layoutDraft: template.layout
       .map(convertLayoutNodeToDraft)
       .filter((node): node is LayoutNodeDraft => node !== null),
     slotsDraft: convertSlotsToDraft(template.slots),
+    attachmentDrafts: convertAttachmentsToDraft(template.attachments, task),
   };
 }
 
@@ -130,10 +138,29 @@ function convertSlotsToDraft(slots: Record<string, SlotSpec>): Record<string, Sl
   return slotsDraft;
 }
 
+function convertAttachmentsToDraft(
+  attachments: readonly AttachmentLaneSpec[] | undefined,
+  task: TaskKind
+): Record<string, AttachmentLaneDraft> {
+  if (task !== "turn_generation") {
+    return {};
+  }
+
+  const loreSpec = attachments?.find((lane) => lane.id === "lore");
+  const loreDraft = createLoreAttachmentDraftFromSpec(loreSpec);
+  console.log("Converted lore attachment to draft:", loreDraft, loreSpec);
+
+  return {
+    [loreDraft.laneId]: loreDraft,
+  } satisfies Record<string, AttachmentLaneDraft>;
+}
+
 /**
  * Create a new blank template draft
  */
 export function createBlankTemplate(task: TaskKind): TemplateDraft {
+  const defaultLoreDraft = ensureLoreAttachmentDraft();
+
   return {
     id: createId(),
     name: "",
@@ -148,5 +175,11 @@ export function createBlankTemplate(task: TaskKind): TemplateDraft {
       },
     ],
     slotsDraft: {},
+    attachmentDrafts:
+      task === "turn_generation"
+        ? {
+            [defaultLoreDraft.laneId]: defaultLoreDraft,
+          }
+        : {},
   };
 }

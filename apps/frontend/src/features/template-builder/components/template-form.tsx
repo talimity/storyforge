@@ -1,10 +1,11 @@
 import { List, Tabs, VStack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
 import { useEffect, useRef, useState } from "react";
-import { LuEye, LuInfo, LuRows3, LuTriangleAlert } from "react-icons/lu";
+import { LuEye, LuInfo, LuPaperclip, LuRows3, LuTriangleAlert } from "react-icons/lu";
 import { useShallow } from "zustand/react/shallow";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
 import { Alert, Button, PageHeader } from "@/components/ui";
+import { AttachmentsPanel } from "@/features/template-builder/components/attachments/attachments-panel";
 import { LayoutBuilder } from "@/features/template-builder/components/layout-builder";
 import { TemplateMetadata } from "@/features/template-builder/components/template-metadata";
 import { TemplatePreview } from "@/features/template-builder/components/template-preview";
@@ -24,6 +25,7 @@ interface TemplateFormProps {
     metadata: TemplateFormData;
     layoutDraft: TemplateDraft["layoutDraft"];
     slotsDraft: TemplateDraft["slotsDraft"];
+    attachmentDrafts: TemplateDraft["attachmentDrafts"];
   }) => Promise<void> | void;
   onCancel: () => void;
   pageTitle: string;
@@ -41,11 +43,12 @@ export function TemplateForm({
 }: TemplateFormProps) {
   const [activeTab, setActiveTab] = useState("metadata");
 
-  const { layoutDraft, slotsDraft, builderIsDirty, initialize, markClean } =
+  const { layoutDraft, slotsDraft, attachmentDrafts, builderIsDirty, initialize, markClean } =
     useTemplateBuilderStore(
       useShallow((state) => ({
         layoutDraft: state.layoutDraft,
         slotsDraft: state.slotsDraft,
+        attachmentDrafts: state.attachmentDrafts,
         builderIsDirty: state.isDirty,
         initialize: state.initialize,
         markClean: state.markClean,
@@ -86,6 +89,7 @@ export function TemplateForm({
         task: value.task,
         layoutDraft,
         slotsDraft,
+        attachmentDrafts,
       });
 
       if (structureIssues.length > 0) {
@@ -100,7 +104,7 @@ export function TemplateForm({
         description: value.description || undefined,
       };
 
-      await onSubmit({ metadata, layoutDraft, slotsDraft });
+      await onSubmit({ metadata, layoutDraft, slotsDraft, attachmentDrafts });
 
       form.reset({
         name: metadata.name,
@@ -144,12 +148,14 @@ export function TemplateForm({
     task: metadataValues.task,
     layoutDraft,
     slotsDraft,
+    attachmentDrafts,
   };
 
   const structureErrors = validateDraft({
     task: metadataValues.task,
     layoutDraft,
     slotsDraft,
+    attachmentDrafts,
   });
   const hasStructureErrors = structureErrors.length > 0;
   const structureErrorCount = structureErrors.length;
@@ -190,6 +196,11 @@ export function TemplateForm({
       icon: <LuRows3 />,
       badge: structureErrorCount > 0 ? structureErrorCount : undefined,
       badgeColorPalette: structureErrorCount > 0 ? ("red" as const) : undefined,
+    },
+    {
+      value: "attachments",
+      label: "Injections",
+      icon: <LuPaperclip />,
     },
     {
       value: "preview",
@@ -257,6 +268,10 @@ export function TemplateForm({
 
               <LayoutBuilder task={metadataValues.task} />
             </VStack>
+          </Tabs.Content>
+
+          <Tabs.Content value="attachments">
+            <AttachmentsPanel task={metadataValues.task} />
           </Tabs.Content>
 
           <Tabs.Content value="preview">

@@ -44,7 +44,9 @@ export const templatesRouter = router({
     .input(templateIdSchema)
     .output(templateDetailResponseSchema)
     .query(async ({ input, ctx }) => {
-      return await getTemplateById(ctx.db, input.id);
+      const t = await getTemplateById(ctx.db, input.id);
+      console.log("template", t);
+      return t;
     }),
 
   create: publicProcedure

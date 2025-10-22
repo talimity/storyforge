@@ -15,6 +15,9 @@ export const promptTemplates = sqliteTable("prompt_templates", {
   // version of the template.
   layout: text("layout", { mode: "json" }).$type<Record<string, unknown>[]>().notNull(),
   slots: text("slots", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
+  attachments: text("attachments", { mode: "json" })
+    .$type<Record<string, unknown>[] | null>()
+    .default(null),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),

@@ -8,21 +8,24 @@ import {
   type WritingAssistantSources,
 } from "@storyforge/gentasks";
 import { compileTemplate, parseTemplate, type UnboundTemplate } from "@storyforge/prompt-rendering";
+import { stripNulls } from "@storyforge/utils";
 import { ServiceError } from "../../../service-error.js";
 
 /**
  * Given an unknown database prompt template, parse and validate it into a
  * strongly typed PromptTemplate.
  */
-export function fromDbPromptTemplate(template: DbTemplate, lint = true) {
+export function fromDbPromptTemplate(raw: DbTemplate, lint = true) {
+  const template = stripNulls(raw);
   const json = {
     id: template.id,
     task: template.kind,
     name: template.name,
-    description: template.description ?? undefined,
+    description: template.description,
     version: template.version,
     layout: template.layout,
     slots: template.slots,
+    attachments: template.attachments,
   };
 
   switch (template.kind) {

@@ -6,7 +6,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { TemplateForm } from "@/features/template-builder/components/template-form";
 import { compileDraft } from "@/features/template-builder/services/compile-draft";
 import { createBlankTemplate } from "@/features/template-builder/services/template-conversion";
-import type { LayoutNodeDraft, SlotDraft } from "@/features/template-builder/types";
+import type { LayoutNodeDraft, SlotDraft, TemplateDraft } from "@/features/template-builder/types";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
@@ -45,6 +45,7 @@ function TemplateCreatePage() {
     };
     layoutDraft: LayoutNodeDraft[];
     slotsDraft: Record<string, SlotDraft>;
+    attachmentDrafts: TemplateDraft["attachmentDrafts"];
   }) => {
     if (!taskType) return;
 
@@ -56,6 +57,7 @@ function TemplateCreatePage() {
         task: taskType,
         layoutDraft: data.layoutDraft,
         slotsDraft: data.slotsDraft,
+        attachmentDrafts: data.attachmentDrafts,
       };
 
       const compiledTemplate = compileDraft(draft);

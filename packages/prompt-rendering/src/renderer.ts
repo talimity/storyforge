@@ -287,9 +287,6 @@ function buildGroupWrapperMessage<Ctx>(
   };
 }
 
-// Combine compiled lane specs with runtime overrides to produce the final lane
-// runtime map. We do this so we can add new lane definitions without all old
-// templates needing to be re-authored to include them.
 function buildLaneRuntime(
   compiled: readonly CompiledAttachmentLaneSpec[] | undefined,
   overrides: readonly AttachmentLaneSpec[] | undefined
@@ -335,6 +332,8 @@ function buildLaneRuntime(
       });
     }
   }
+
+  console.log("Built attachment lanes:", Array.from(lanes.values()));
 
   return lanes;
 }

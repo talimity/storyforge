@@ -1,10 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { ensureLoreAttachmentDraft } from "@/features/template-builder/services/attachments/lore";
 import {
   compileDraft,
   DraftCompilationError,
   validateDraft,
 } from "@/features/template-builder/services/compile-draft";
 import type { TemplateDraft } from "@/features/template-builder/types";
+
+function createLoreAttachmentDrafts(): TemplateDraft["attachmentDrafts"] {
+  const base = ensureLoreAttachmentDraft();
+  return {
+    [base.laneId]: base,
+  };
+}
 
 describe("compileDraft", () => {
   it("should compile a simple template draft with timeline recipe", () => {
@@ -40,6 +48,7 @@ describe("compileDraft", () => {
           budget: 2000,
         },
       },
+      attachmentDrafts: createLoreAttachmentDrafts(),
     };
 
     const compiled = compileDraft(draft);
@@ -86,6 +95,7 @@ describe("validateDraft", () => {
           priority: 0,
         },
       },
+      attachmentDrafts: createLoreAttachmentDrafts(),
     };
 
     const errors = validateDraft(draft);
@@ -113,6 +123,7 @@ describe("validateDraft", () => {
           priority: 0,
         },
       },
+      attachmentDrafts: createLoreAttachmentDrafts(),
     };
 
     const errors = validateDraft(draft);
@@ -134,6 +145,7 @@ describe("validateDraft", () => {
           priority: 0,
         },
       },
+      attachmentDrafts: createLoreAttachmentDrafts(),
     };
 
     const errors = validateDraft(draft);
@@ -167,6 +179,7 @@ describe("validateDraft", () => {
           priority: 1,
         },
       },
+      attachmentDrafts: createLoreAttachmentDrafts(),
     };
 
     const errors = validateDraft(draft);
@@ -191,6 +204,7 @@ describe("content vs from mutual exclusivity", () => {
         },
       ],
       slotsDraft: {},
+      attachmentDrafts: createLoreAttachmentDrafts(),
     };
 
     expect(() => compileDraft(draft)).toThrow(DraftCompilationError);
@@ -225,6 +239,7 @@ describe("content vs from mutual exclusivity", () => {
           priority: 0,
         },
       },
+      attachmentDrafts: createLoreAttachmentDrafts(),
     };
 
     expect(() => compileDraft(draft)).toThrow(DraftCompilationError);

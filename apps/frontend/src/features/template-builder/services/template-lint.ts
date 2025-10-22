@@ -1,4 +1,4 @@
-import { TURN_GEN_REQUIRED_ANCHORS } from "@storyforge/gentasks";
+import { LORE_LANE_ID, TURN_GEN_REQUIRED_ANCHORS } from "@storyforge/gentasks";
 import type {
   LayoutNode,
   PlanNode,
@@ -24,6 +24,16 @@ export function lintTemplate(template: UnboundTemplate | PromptTemplate<string>)
 function lintTurnGenerationTemplate(template: PromptTemplate<"turn_generation">): TemplateLint[] {
   const anchors = collectAnchors(template);
   const warnings: TemplateLint[] = [];
+
+  const loreLane = template.attachments?.find((lane) => lane.id === LORE_LANE_ID);
+  if (!loreLane || loreLane.enabled === false) {
+    warnings.push({
+      level: "warning",
+      code: "lore_lane_disabled",
+      message:
+        "Lore attachment lane is disabled or missing. Matched lore entries will not appear in prompts.",
+    });
+  }
 
   if (!anchors.has(TURN_GEN_REQUIRED_ANCHORS.timeline.start)) {
     warnings.push({

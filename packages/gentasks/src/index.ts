@@ -1,4 +1,5 @@
 export {
+  buildDefaultLoreLaneSpec,
   buildTurnGenRenderOptions,
   LORE_LANE_ID,
   TURN_GEN_REQUIRED_ANCHORS,
