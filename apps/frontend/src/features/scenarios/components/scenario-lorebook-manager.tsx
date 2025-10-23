@@ -1,4 +1,4 @@
-import { Card, HStack, IconButton, Stack, Text, VStack } from "@chakra-ui/react";
+import { Card, Heading, HStack, IconButton, Stack, Text, VStack } from "@chakra-ui/react";
 import { sortScenarioLorebooks } from "@storyforge/lorebooks";
 import { useStore } from "@tanstack/react-form";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -155,7 +155,9 @@ export const ScenarioLorebookManager = withForm({
 
               {manualEntries.length > 0 && (
                 <Stack gap={3}>
-                  <Text fontWeight="bold">Manual assignments</Text>
+                  <Heading as="h4" size="sm">
+                    Manual assignments
+                  </Heading>
                   <Stack gap={3}>
                     {manualEntries.map((lorebook) => {
                       const display = manualDisplay[lorebook.lorebookId];
@@ -181,7 +183,9 @@ export const ScenarioLorebookManager = withForm({
 
               {inheritedEntries.length > 0 && (
                 <Stack gap={3}>
-                  <Text fontWeight="bold">Inherited assignments</Text>
+                  <Heading as="h4" size="sm">
+                    Inherited assignments
+                  </Heading>
                   <Stack gap={3}>
                     {inheritedEntries.map((lorebook) => {
                       const display = findInheritedDisplayInfo(lorebook, characterLorebooks);

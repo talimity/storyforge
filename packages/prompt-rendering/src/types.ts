@@ -144,21 +144,40 @@ export type ChatCompletionMessage = {
 };
 
 export interface BudgetManager {
-  /** Returns true if any tokens remain globally. */
+  /** Returns true if any tokens remain in this budget. */
   hasAny(): boolean;
-  /** Estimate whether the given text would fit (implementation-defined estimator). */
-  canFitTokenEstimate(text: string): boolean;
-  /** Consume tokens for text (implementation-defined estimator). */
+  /**
+   * Consume tokens from all active budget scopes. Measurement is based on the
+   * implementation's tokenizer.
+   */
   consume(text: string): void;
-  /** Run a sub-budget (e.g., per-slot) while still decrementing the global counters. */
+  /**
+   * Estimate whether the given text can fit within the remaining global budget.
+   */
+  canFitTokenEstimate(text: string): boolean;
+  /**
+   * Run a thunk within the context of another local budget scope, while still
+   * respecting the global budget.
+   */
   withNodeBudget(budget: Budget | undefined, thunk: () => void): void;
-  /** Return the estimated token cost for a string (without consuming). */
+  /**
+   * Estimate the number of tokens in a given text. Doesn't affect budget state.
+   */
   estimateTokens(text: string): number;
-  /** Reserve a minimum number of tokens for a logical lane (does not immediately consume). */
+  /**
+   * Reserve a minimum number of tokens for a logical lane so that other work
+   * can't consume them.
+   */
   reserveFloor(laneId: string, tokens: number): void;
-  /** Release previously reserved floor for a lane (safe to release more than remaining). */
+  /**
+   * Release previously reserved tokens for a logical lane, allowing them to be
+   * used by other work.
+   */
   releaseFloor(laneId: string, tokens: number): void;
-  /** Execute work attributed to a logical lane. */
+  /**
+   * Run a thunk within the context of a specific logical lane, so that its
+   * consumption can be tracked separately.
+   */
   withLane<T>(laneId: string | null, thunk: () => T): T;
 }
 

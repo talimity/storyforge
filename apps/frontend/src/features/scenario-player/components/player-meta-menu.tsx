@@ -14,7 +14,7 @@ import { LuSettings } from "react-icons/lu";
 import { ColorModeToggle } from "@/components/color-mode-toggle";
 import { Field } from "@/components/ui/index";
 
-export function ScenarioMetaMenu() {
+export function PlayerMetaMenu() {
   return (
     <Popover.Root positioning={{ placement: "bottom", gutter: 4 }} lazyMount unmountOnExit>
       <Popover.Trigger asChild>

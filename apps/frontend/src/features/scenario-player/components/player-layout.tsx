@@ -12,7 +12,7 @@ interface PlayerLayoutProps {
  */
 export function PlayerLayout({ timeline, intentPanel }: PlayerLayoutProps) {
   const [maxW] = useToken("sizes", ["3xl"]);
-  console.log(maxW);
+
   return (
     <Flex direction="column" h="100%" data-testid="player-layout">
       {/* Turn History Slot */}

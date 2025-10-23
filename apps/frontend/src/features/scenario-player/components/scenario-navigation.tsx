@@ -5,6 +5,7 @@ import {
   Icon,
   IconButton,
   Input,
+  Link,
   Menu,
   Popover,
   Portal,
@@ -165,7 +166,7 @@ function ChapterList({
 
   return (
     <Stack>
-      <Stack gap="0" py="2">
+      <Stack gap="1" py="2">
         {chapters.length === 0 && (
           <EmptyState
             icon={<LuTableOfContents />}
@@ -217,55 +218,52 @@ function ChapterRow({
   label: string;
 }) {
   return (
-    <Button
-      asChild
-      size="sm"
-      variant="ghost"
-      colorPalette="neutral"
-      justifyContent="space-between"
-      alignItems="center"
-      w="full"
-      onClick={() => onSelect(chapter)}
-    >
-      <HStack>
-        <Text fontSize="sm" fontWeight="medium" lineClamp={1}>
+    <HStack colorPalette="neutral">
+      <Button
+        asChild
+        size="xs"
+        justifyContent="start"
+        variant="plain"
+        flex="1"
+        onClick={() => onSelect(chapter)}
+      >
+        <Link fontSize="sm" truncate>
           {label}
-        </Text>
-
-        <Menu.Root positioning={{ placement: "bottom-end" }}>
-          <Menu.Trigger asChild>
-            <IconButton
-              variant="ghost"
-              size="xs"
-              onClick={(event) => event.stopPropagation()}
-              aria-label="Chapter actions"
-            >
-              <LuEllipsisVertical />
-            </IconButton>
-          </Menu.Trigger>
-          <Portal>
-            {/* additional z-index hack needed because of apparent chakra bug with popover/menu nesting */}
-            <Menu.Positioner zIndex="popover !important">
-              <Menu.Content>
-                <Menu.Item value="rename" onSelect={() => onRename(chapter)}>
-                  <LuPencilLine />
-                  <Box flex="1">Rename</Box>
-                </Menu.Item>
-                <Menu.Item
-                  value="delete"
-                  color="fg.error"
-                  _hover={{ bg: "bg.error", color: "fg.error" }}
-                  onSelect={() => onDelete(chapter)}
-                >
-                  <LuTrash />
-                  <Box flex="1">Delete</Box>
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
-          </Portal>
-        </Menu.Root>
-      </HStack>
-    </Button>
+        </Link>
+      </Button>
+      <Menu.Root positioning={{ placement: "bottom-end" }}>
+        <Menu.Trigger asChild>
+          <IconButton
+            variant="ghost"
+            size="xs"
+            onClick={(event) => event.stopPropagation()}
+            aria-label="Chapter actions"
+          >
+            <LuEllipsisVertical />
+          </IconButton>
+        </Menu.Trigger>
+        <Portal>
+          {/* additional z-index hack needed because of apparent chakra bug with popover/menu nesting */}
+          <Menu.Positioner zIndex="popover !important">
+            <Menu.Content>
+              <Menu.Item value="rename" onSelect={() => onRename(chapter)}>
+                <LuPencilLine />
+                <Box flex="1">Rename</Box>
+              </Menu.Item>
+              <Menu.Item
+                value="delete"
+                color="fg.error"
+                _hover={{ bg: "bg.error", color: "fg.error" }}
+                onSelect={() => onDelete(chapter)}
+              >
+                <LuTrash />
+                <Box flex="1">Delete</Box>
+              </Menu.Item>
+            </Menu.Content>
+          </Menu.Positioner>
+        </Portal>
+      </Menu.Root>
+    </HStack>
   );
 }
 

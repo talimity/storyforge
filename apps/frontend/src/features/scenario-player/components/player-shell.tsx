@@ -12,7 +12,7 @@ import { LuArrowLeft, LuBookOpen } from "react-icons/lu";
 import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
-import { ScenarioMetaMenu } from "@/features/scenario-player/components/scenario-meta-menu";
+import { PlayerMetaMenu } from "@/features/scenario-player/components/player-meta-menu";
 import { ScenarioNavigation } from "@/features/scenario-player/components/scenario-navigation";
 import {
   ScenarioProvider,
@@ -96,12 +96,15 @@ function PlayerShellInner() {
           <IconButton variant="ghost" size="sm" onClick={() => setShowPreview(true)}>
             <LuBookOpen />
           </IconButton>
-          <ScenarioMetaMenu />
+          <PlayerMetaMenu />
         </HStack>
       </Grid>
-      <Flex flex="1" overflow="hidden" data-testid="player-shell-content">
-        {/*Eventual toggleable side panel*/}
-
+      <Flex
+        flex="1"
+        overflow="hidden"
+        data-testid="player-shell-content"
+        direction={{ base: "column-reverse", lg: "row" }}
+      >
         {/* Content Area Layout */}
         <Box
           as="main"
@@ -110,11 +113,16 @@ function PlayerShellInner() {
           minW="0"
           layerStyle="surface"
           borderRadius="0"
-          borderTopLeftRadius={isMobile ? "0" : "sm"}
+          borderTopRightRadius={isMobile ? "0" : "sm"}
           boxShadow="inset 0 0 8px rgba(0, 0, 0, 0.1)"
           data-testid="player-shell-main"
         >
           <Outlet />
+        </Box>
+
+        {/* Eventual Side Panel Area */}
+        <Box width="96" minH="36">
+          Testing
         </Box>
       </Flex>
 
