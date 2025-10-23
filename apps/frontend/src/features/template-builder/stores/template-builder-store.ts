@@ -1,61 +1,23 @@
 import type { TaskKind } from "@storyforge/gentasks";
-import type { AttachmentLaneSpec, ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
+import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
 import { createId } from "@storyforge/utils";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { cloneLoreAttachmentValues } from "@/features/template-builder/services/attachments/lore";
-import type { LoreAttachmentLaneDraft } from "@/features/template-builder/services/attachments/types";
 import {
   generateSlotName,
   getDefaultMessageContent,
 } from "@/features/template-builder/services/builder-utils";
 import { validateDraft } from "@/features/template-builder/services/compile-draft";
 import { getRecipeById } from "@/features/template-builder/services/recipe-registry";
+import { syncSlotLayoutWithRecipe } from "@/features/template-builder/services/recipe-slot-layout";
 import type {
   AnyRecipeId,
   AttachmentLaneDraft,
   LayoutNodeDraft,
   SlotDraft,
+  SlotLayoutDraft,
   TemplateDraft,
 } from "@/features/template-builder/types";
-
-function cloneAttachmentDrafts(
-  source: Record<string, AttachmentLaneDraft>
-): Record<string, AttachmentLaneDraft> {
-  const clone: Record<string, AttachmentLaneDraft> = {};
-  for (const [laneId, draft] of Object.entries(source)) {
-    clone[laneId] = cloneAttachmentDraft(draft);
-  }
-  return clone;
-}
-
-function cloneAttachmentDraft(draft: AttachmentLaneDraft): AttachmentLaneDraft {
-  if (draft.type === "lore") {
-    return cloneLoreAttachmentDraft(draft);
-  }
-  return draft;
-}
-
-function cloneLoreAttachmentDraft(draft: LoreAttachmentLaneDraft): LoreAttachmentLaneDraft {
-  return {
-    laneId: draft.laneId,
-    type: draft.type,
-    values: cloneLoreAttachmentValues(draft.values),
-    spec: cloneAttachmentSpec(draft.spec),
-  };
-}
-
-function cloneAttachmentSpec(spec: AttachmentLaneSpec): AttachmentLaneSpec {
-  return {
-    ...spec,
-    budget: spec.budget ? { ...spec.budget } : undefined,
-    payload: spec.payload ? { ...spec.payload } : undefined,
-    groups: spec.groups?.map((group) => ({
-      ...group,
-      payload: group.payload ? { ...group.payload } : undefined,
-    })),
-  };
-}
 
 export interface TemplateBuilderState {
   layoutDraft: LayoutNodeDraft[];
@@ -120,7 +82,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
       set((state) => {
         state.layoutDraft = draft.layoutDraft;
         state.slotsDraft = draft.slotsDraft;
-        state.attachmentDrafts = cloneAttachmentDrafts(draft.attachmentDrafts);
+        state.attachmentDrafts = draft.attachmentDrafts;
         state.editingNodeId = null;
         state.isDirty = false;
       }),
@@ -236,20 +198,28 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
         const baseName = recipe?.name || "custom_content";
         slotName = generateSlotName(state.slotsDraft, baseName);
 
-        // Create the slot
-        state.slotsDraft[slotName] = {
-          recipeId: recipe?.id || "custom",
-          name: slotName,
-          priority: Object.keys(state.slotsDraft).length,
-          params,
-        };
-
-        // Add a reference to the layout
-        const newNode: LayoutNodeDraft = {
+        // Prepare the slot layout node
+        const newNode: SlotLayoutDraft = {
           id: createId(),
           kind: "slot",
           name: slotName,
           omitIfEmpty: true,
+        };
+
+        const syncResult = recipe
+          ? syncSlotLayoutWithRecipe({
+              recipe,
+              params,
+              layoutDraft: newNode,
+              mode: "overwrite",
+            })
+          : undefined;
+
+        state.slotsDraft[slotName] = {
+          recipeId: recipe?.id || "custom",
+          name: slotName,
+          priority: Object.keys(state.slotsDraft).length,
+          params: syncResult?.coercedParams ?? params,
         };
 
         if (typeof index === "number" && index >= 0) {
@@ -276,7 +246,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
 
     setAttachmentDraft: (draft) =>
       set((state) => {
-        state.attachmentDrafts[draft.laneId] = cloneAttachmentDraft(draft);
+        state.attachmentDrafts[draft.laneId] = structuredClone(draft);
         state.isDirty = true;
       }),
 
@@ -312,8 +282,28 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
             });
           }
 
+          const recipe =
+            slotData.recipeId !== "custom" ? getRecipeById(slotData.recipeId) : undefined;
+          let resolvedParams = slotData.params;
+
+          const updatedNode = state.layoutDraft[nodeIndex];
+          if (recipe && updatedNode?.kind === "slot") {
+            const result = syncSlotLayoutWithRecipe({
+              recipe,
+              params: slotData.params,
+              layoutDraft: updatedNode,
+              mode: "preserveMessages",
+            });
+            if (result) {
+              resolvedParams = result.coercedParams;
+            }
+          }
+
           // Add/update the slot under the (possibly new) name
-          state.slotsDraft[slotData.name] = slotData;
+          state.slotsDraft[slotData.name] = {
+            ...slotData,
+            params: resolvedParams,
+          };
         }
 
         state.editingNodeId = null;

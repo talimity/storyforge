@@ -4,6 +4,7 @@ import type {
   MessageBlock,
   PlanNode,
   PromptTemplate,
+  SlotFrameNode,
   SourceSpec,
 } from "./types.js";
 
@@ -13,11 +14,11 @@ export type NodePath = string;
 type PathSeg = string;
 const join = (segs: PathSeg[]) => segs.join(".");
 
-function normalizeBlocks<S extends SourceSpec>(
-  b?: MessageBlock<S> | MessageBlock<S>[]
-): MessageBlock<S>[] {
-  if (!b) return [];
-  return Array.isArray(b) ? b : [b];
+function normalizeBlocks<S extends SourceSpec>(nodes?: SlotFrameNode<S>[]): MessageBlock<S>[] {
+  if (!nodes) return [];
+  return nodes.filter(
+    (node): node is MessageBlock<S> => !("kind" in node && node.kind === "anchor")
+  );
 }
 
 function toMessageBlock<S extends SourceSpec>(

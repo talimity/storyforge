@@ -67,12 +67,18 @@ export const timelineBasicRecipe: RecipeDefinition<
     },
   ],
 
+  buildSlotLayout() {
+    return {
+      header: [{ kind: "anchor", key: "timeline_start" }],
+      footer: [{ kind: "anchor", key: "timeline_end" }],
+    };
+  },
+
   toSlotSpec(params) {
     return {
       budget: { maxTokens: params.budget },
       meta: {},
       plan: [
-        { kind: "anchor", key: "timeline_start" },
         {
           kind: "forEach",
           source: { source: "turns", args: { order: "desc", limit: params.maxTurns } },
@@ -82,7 +88,6 @@ export const timelineBasicRecipe: RecipeDefinition<
             { kind: "anchor", key: "turn_{{item.turnNo}}" },
           ],
         },
-        { kind: "anchor", key: "timeline_end" },
       ],
     };
   },
@@ -139,12 +144,18 @@ export const timelineAdvancedRecipe: RecipeDefinition<
     "Lists turns from the scenario's timeline in chronological order. The player's narrative guidance is included before each turn.",
   parameters: advancedParameters,
 
+  buildSlotLayout() {
+    return {
+      header: [{ kind: "anchor", key: "timeline_start" }],
+      footer: [{ kind: "anchor", key: "timeline_end" }],
+    };
+  },
+
   toSlotSpec(params: InferRecipeParams<typeof advancedParameters>) {
     return {
       budget: { maxTokens: params.budget },
       meta: {},
       plan: [
-        { kind: "anchor", key: "timeline_start" },
         {
           kind: "forEach",
           // Iterate turns array from newest to oldest (Turn# desc), but fill from bottom up (prepend)
@@ -194,7 +205,6 @@ export const timelineAdvancedRecipe: RecipeDefinition<
             { kind: "anchor", key: "turn_{{item.turnNo}}" },
           ],
         },
-        { kind: "anchor", key: "timeline_end" },
       ],
     };
   },

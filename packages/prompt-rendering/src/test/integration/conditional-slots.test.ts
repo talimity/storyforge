@@ -123,7 +123,7 @@ describe("Conditional Slot Omission", () => {
         {
           kind: "slot",
           name: "testSlot",
-          header: { role: "user", content: "Test header" },
+          header: [{ role: "user", content: "Test header" }],
           omitIfEmpty: true,
         },
       ],

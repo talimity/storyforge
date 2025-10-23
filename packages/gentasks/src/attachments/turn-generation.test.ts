@@ -40,9 +40,9 @@ function makeAssignment(
 describe("buildTurnGenRenderOptions", () => {
   it("returns default lore lane even when no assignments are enabled", () => {
     const options = buildTurnGenRenderOptions(baseContext);
-    expect(options.attachments).toHaveLength(1);
+    expect(options.attachmentDefaults).toHaveLength(1);
     const defaults = buildDefaultLoreLaneSpec();
-    const lane = options.attachments?.[0];
+    const lane = options.attachmentDefaults?.[0];
     expect(lane?.id).toBe("lore");
     expect(lane?.reserveTokens).toBeUndefined();
     expect(lane).toMatchObject(defaults);
@@ -196,6 +196,6 @@ describe("buildTurnGenRenderOptions", () => {
     };
 
     const options = buildTurnGenRenderOptions(ctx);
-    expect(options.attachments?.[0]?.reserveTokens).toBe(70);
+    expect(options.attachmentDefaults?.[0]?.reserveTokens).toBe(70);
   });
 });

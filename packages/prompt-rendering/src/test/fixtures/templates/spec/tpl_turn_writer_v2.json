@@ -18,24 +18,21 @@
     {
       "kind": "slot",
       "name": "summaries",
-      "header": { "role": "user", "content": "Earlier events:" },
+      "header": [{ "role": "user", "content": "Earlier events:" }],
       "omitIfEmpty": true
     },
 
     {
       "kind": "slot",
       "name": "turns",
-      "header": {
-        "role": "user",
-        "content": "Recent scene turns (newest first):"
-      },
+      "header": [{ "role": "user", "content": "Recent scene turns (newest first):" }],
       "omitIfEmpty": true
     },
 
     {
       "kind": "slot",
       "name": "examples",
-      "header": { "role": "user", "content": "Character writing examples:" },
+      "header": [{ "role": "user", "content": "Character writing examples:" }],
       "omitIfEmpty": true
     },
 

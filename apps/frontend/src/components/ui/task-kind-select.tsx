@@ -61,7 +61,7 @@ export function TaskKindSelect({
   inDialog = false,
   includeAll = false,
   allLabel = "All Tasks",
-  minWidth = "250px",
+  minWidth = "20rem",
   ...selectProps
 }: BaseProps) {
   type AnyTaskItem = { value: TaskKind | ""; label: string; description?: string };

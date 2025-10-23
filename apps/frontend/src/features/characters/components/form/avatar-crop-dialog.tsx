@@ -78,7 +78,7 @@ export function AvatarCropDialog({
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange} placement="center">
-      <Dialog.Content maxW="800px">
+      <Dialog.Content maxW="55rem">
         <Dialog.Header>
           <Dialog.Title>Adjust Avatar Crop</Dialog.Title>
         </Dialog.Header>

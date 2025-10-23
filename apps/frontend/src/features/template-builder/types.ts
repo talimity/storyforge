@@ -97,6 +97,11 @@ export interface RecipeDefinition<
   task: K;
   description?: string;
   parameters: P;
+  buildSlotLayout?: (params: InferRecipeParams<P>) => {
+    header?: SlotFrameNodeDraft[];
+    footer?: SlotFrameNodeDraft[];
+    omitIfEmpty?: boolean;
+  };
 
   /**
    * Transform the user's parameter values into a complete SlotSpec
@@ -143,11 +148,19 @@ export interface MessageLayoutDraft extends BaseLayoutNodeDraft {
   when?: ConditionRef[];
 }
 
+export type SlotFrameAnchorDraft = {
+  kind: "anchor";
+  key: string;
+  when?: ConditionRef[];
+};
+
+export type SlotFrameNodeDraft = MessageBlockDraft | SlotFrameAnchorDraft;
+
 export interface SlotLayoutDraft extends BaseLayoutNodeDraft {
   kind: "slot";
   name: string;
-  header?: MessageBlockDraft;
-  footer?: MessageBlockDraft;
+  header?: SlotFrameNodeDraft[];
+  footer?: SlotFrameNodeDraft[];
   omitIfEmpty?: boolean;
 }
 

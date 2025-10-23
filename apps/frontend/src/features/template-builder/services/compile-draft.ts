@@ -1,6 +1,7 @@
 import {
   type MessageBlock,
   PROMPT_TEMPLATE_SPEC_VERSION,
+  type SlotFrameNode,
   slotSpecSchema,
   type UnboundLayoutNode,
   type UnboundSlotSpec,
@@ -13,6 +14,8 @@ import type {
   LayoutNodeDraft,
   MessageBlockDraft,
   SlotDraft,
+  SlotFrameAnchorDraft,
+  SlotFrameNodeDraft,
   TemplateDraft,
 } from "@/features/template-builder/types";
 
@@ -60,16 +63,19 @@ function compileLayoutNode(node: LayoutNodeDraft): UnboundLayoutNode {
         ...(node.when && { when: node.when }),
       };
 
-    case "slot":
+    case "slot": {
+      const compiledHeader = compileFrameNodes(node.header);
+      const compiledFooter = compileFrameNodes(node.footer);
       return {
         kind: "slot",
         name: node.name,
-        ...(node.header && { header: compileMessageBlocks(node.header) }),
-        ...(node.footer && { footer: compileMessageBlocks(node.footer) }),
+        ...(compiledHeader && { header: compiledHeader }),
+        ...(compiledFooter && { footer: compiledFooter }),
         ...(node.omitIfEmpty !== undefined && {
           omitIfEmpty: node.omitIfEmpty,
         }),
       };
+    }
 
     default: {
       const badNodeKind = nodeKind satisfies never;
@@ -151,17 +157,27 @@ function compileSlot(slotDraft: SlotDraft): UnboundSlotSpec {
   });
 }
 
-/**
- * Normalize message blocks to arrays and compile them
- */
-function compileMessageBlocks(
-  blocks: MessageBlockDraft | MessageBlockDraft[]
-): MessageBlock | MessageBlock[] {
-  if (Array.isArray(blocks)) {
-    return blocks.map(compileMessageBlock);
-  } else {
-    return compileMessageBlock(blocks);
+const isSlotFrameAnchorDraft = (node: SlotFrameNodeDraft): node is SlotFrameAnchorDraft =>
+  "kind" in node && node.kind === "anchor";
+
+function compileFrameNodes(nodes: SlotFrameNodeDraft[] | undefined): SlotFrameNode[] | undefined {
+  if (!nodes || nodes.length === 0) {
+    return undefined;
   }
+
+  const compiled: SlotFrameNode[] = nodes.map((node) => {
+    if (isSlotFrameAnchorDraft(node)) {
+      return {
+        kind: "anchor" as const,
+        key: node.key,
+        ...(node.when?.length ? { when: node.when } : {}),
+      } satisfies SlotFrameNode;
+    }
+
+    return compileMessageBlock(node);
+  });
+
+  return compiled;
 }
 
 function compileMessageBlock(block: MessageBlockDraft): MessageBlock {

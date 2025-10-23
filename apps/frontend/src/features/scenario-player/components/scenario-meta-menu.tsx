@@ -31,13 +31,13 @@ export function ScenarioMetaMenu() {
                 <Heading size="md" textStyle="heading">
                   Preferences
                 </Heading>
-                <Box maxW="40px" ml="auto">
+                <Box maxW="10" ml="auto">
                   <ColorModeToggle collapsed />
                 </Box>
               </HStack>
             </Popover.Header>
             <Popover.Body>
-              <Stack gap={4} minW="240px">
+              <Stack gap={4}>
                 <FontSizeSelector />
 
                 <TurnHistoryWidthSelector />

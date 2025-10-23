@@ -37,56 +37,38 @@ export function buildDefaultLoreLaneSpec(): AttachmentLaneSpec {
     id: LORE_LANE_ID,
     enabled: true,
     role: "system",
-    template: "• {{payload.content}}",
+    template: "• {{payload.content}}\n",
     order: 50,
-    // TODO: the template strings are illustrative; these are merely defaults for prompt templates which
-    // have not set up their own attachment lanes, so they must be unopinionated.
     groups: [
-      { id: "before_char", openTemplate: "## Setting Lore\n", closeTemplate: "\n" },
-      { id: "after_char", openTemplate: "## Character Lore\n", closeTemplate: "\n" },
       // Apply this group rule to any injections targeting a specific turn.
       { match: "^turn_", openTemplate: "<relevant_lore>\n", closeTemplate: "</relevant_lore>\n" },
+      { id: "before_char", openTemplate: "## Setting Lore\n", closeTemplate: "\n" },
+      { id: "after_char", openTemplate: "## Character Lore\n", closeTemplate: "\n" },
     ],
   };
 }
 
-type BuildOptions = {
-  /** Optional override for the default lore attachment lane definition. */
-  attachmentOverride?: Partial<AttachmentLaneSpec>;
-};
-
 /**
  * Build renderer runtime options (attachments + injections) for turn generation prompts.
  */
-export function buildTurnGenRenderOptions(
-  ctx: TurnGenCtx,
-  options: BuildOptions = {}
-): RenderOptions {
+export function buildTurnGenRenderOptions(ctx: TurnGenCtx): RenderOptions {
   const assignments = (ctx.lorebooks ?? []).filter((assignment) => assignment.enabled);
-  const attachments = [createLoreLane(assignments, options.attachmentOverride)];
+  const attachmentDefaults = [createLoreLane(assignments)];
   const injections = assignments.length ? buildLoreInjections(ctx, assignments) : [];
 
-  console.log("Built turn generation render options:", {
-    attachments,
-    injections,
-  });
-
-  return { attachments, injections };
+  return { attachmentDefaults, injections };
 }
 
-function createLoreLane(
-  assignments: readonly LorebookAssignment[],
-  override?: Partial<AttachmentLaneSpec>
-): AttachmentLaneSpec {
+function createLoreLane(assignments: readonly LorebookAssignment[]): AttachmentLaneSpec {
   const reserveTokens = assignments.reduce((total, assignment) => {
     const budget = assignment.data.token_budget ?? 0;
     return total + Math.max(budget, 0);
   }, 0);
 
+  const baseSpec = buildDefaultLoreLaneSpec();
   return {
-    ...buildDefaultLoreLaneSpec(),
+    ...baseSpec,
     reserveTokens: reserveTokens > 0 ? reserveTokens : undefined,
-    ...override,
     id: LORE_LANE_ID,
   };
 }

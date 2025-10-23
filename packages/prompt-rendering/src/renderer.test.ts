@@ -121,8 +121,13 @@ describe("renderer", () => {
 
     const budget = createBudget(40);
     const messages = render(template, ctx, budget, registry, {
-      attachments: [
-        { id: "lore", template: "Lore: {{ payload.text }}", role: "system", reserveTokens: 16 },
+      attachmentDefaults: [
+        {
+          id: "lore",
+          template: "Default: {{ payload.text }}",
+          role: "assistant",
+          reserveTokens: 16,
+        },
       ],
       injections: [
         {
@@ -137,6 +142,7 @@ describe("renderer", () => {
     expect(loreIndex).toBeGreaterThan(-1);
     if (loreIndex >= 0) {
       expect(messages[loreIndex].content).toBe("Lore: Forest");
+      expect(messages[loreIndex].role).toBe("system");
     }
   });
 
@@ -163,7 +169,7 @@ describe("renderer", () => {
           role: "system",
         },
       ],
-      attachments: [{ id: "lore", order: 0, reserveTokens: 4 }],
+      attachmentDefaults: [{ id: "lore", order: 0, reserveTokens: 4 }],
     });
 
     expect(messages[0].content.startsWith("Fallback")).toBe(true);
@@ -216,23 +222,11 @@ describe("renderer", () => {
           meta: {},
         },
       },
-      attachments: [
-        {
-          id: "lore",
-          reserveTokens: 20,
-          groups: [
-            {
-              match: "^turn_",
-              openTemplate: "<events>",
-              closeTemplate: "</events>",
-            },
-          ],
-        },
-      ],
+      attachments: [{ id: "lore", reserveTokens: 20 }],
     });
 
     const messages = render(template, ctx, createBudget(200), registry, {
-      attachments: [
+      attachmentDefaults: [
         {
           id: "lore",
           reserveTokens: 20,

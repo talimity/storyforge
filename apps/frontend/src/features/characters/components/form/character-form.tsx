@@ -118,7 +118,7 @@ export function CharacterForm({
   }, [baselineFocal, currentCharacter, portraitFocalPoint]);
 
   return (
-    <Card.Root layerStyle="surface" maxW="900px" mx="auto">
+    <Card.Root layerStyle="surface" maxW="60rem" mx="auto">
       <form
         id={formId}
         onSubmit={(event) => {

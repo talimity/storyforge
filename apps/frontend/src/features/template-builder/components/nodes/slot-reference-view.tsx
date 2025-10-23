@@ -98,7 +98,9 @@ export const SlotReferenceView = (props: SlotReferenceViewProps) => {
 
         {/* Reference-specific info */}
         <HStack gap={2} fontSize="xs" color="content.subtle">
-          {node.header && <Text>Has header</Text>}
+          {node.header?.some((frame) => !("kind" in frame && frame.kind === "anchor")) && (
+            <Text>Has header</Text>
+          )}
           {node.footer && <Text>Has footer</Text>}
           {node.omitIfEmpty && <Text>Hidden when empty</Text>}
         </HStack>

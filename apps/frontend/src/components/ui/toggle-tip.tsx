@@ -46,7 +46,15 @@ export interface InfoTipProps extends Partial<ToggleTipProps> {
 export const InfoTip = React.forwardRef<HTMLDivElement, InfoTipProps>(function InfoTip(props, ref) {
   const { children, buttonProps, ...rest } = props;
   return (
-    <ToggleTip content={<Stack maxW="360px">{children}</Stack>} {...rest} ref={ref}>
+    <ToggleTip
+      content={
+        <Stack w="md" maxW="80dvw">
+          {children}
+        </Stack>
+      }
+      {...rest}
+      ref={ref}
+    >
       <IconButton
         variant="ghost"
         aria-label="info"

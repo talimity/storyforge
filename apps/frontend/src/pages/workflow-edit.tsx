@@ -33,17 +33,17 @@ function WorkflowEditPage() {
 
   if (isLoading)
     return (
-      <Container maxW="800px">
+      <Container maxW="60rem">
         <SimplePageHeader title="Edit Workflow" />
-        <Skeleton height="400px" borderRadius="md" />
+        <Skeleton height="30rem" borderRadius="md" />
       </Container>
     );
 
   if (error || !data)
     return (
-      <Container maxW="800px">
+      <Container maxW="60rem">
         <SimplePageHeader title="Edit Workflow" />
-        <Skeleton height="400px" borderRadius="md" />
+        <Skeleton height="30rem" borderRadius="md" />
       </Container>
     );
 

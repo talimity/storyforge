@@ -228,20 +228,20 @@ function ParticipantCardSkeleton() {
         <Stack gap={3}>
           <HStack justify="space-between">
             <HStack gap={2}>
-              <Skeleton boxSize="40px" borderRadius="md" />
+              <Skeleton boxSize="12" borderRadius="md" />
               <VStack gap={0} align="start">
-                <Skeleton height="16px" width="100px" />
-                <Skeleton height="12px" width="60px" />
+                <Skeleton height="5" width="24" />
+                <Skeleton height="4" width="16" />
               </VStack>
             </HStack>
-            <Skeleton boxSize="24px" borderRadius="md" />
+            <Skeleton boxSize="8" borderRadius="md" />
           </HStack>
 
-          <Skeleton height="32px" width="100%" />
+          <Skeleton height="5" width="100%" />
 
-          <Skeleton height="80px" width="100%" />
+          <Skeleton height="8" width="100%" />
 
-          <Skeleton height="32px" width="100%" />
+          <Skeleton height="8" width="100%" />
         </Stack>
       </Card.Body>
     </Card.Root>

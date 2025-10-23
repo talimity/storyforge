@@ -13,7 +13,7 @@ import { CloseButton } from "@/components/ui/close-button";
 
 export const toaster: CreateToasterReturn = createToaster({
   placement: "top",
-  offsets: "16px",
+  offsets: "3rem",
   pauseOnPageIdle: true,
 });
 

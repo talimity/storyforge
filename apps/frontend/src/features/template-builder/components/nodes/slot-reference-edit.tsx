@@ -32,7 +32,12 @@ import {
   slotPrioritySchema,
 } from "@/features/template-builder/services/slot-validation";
 import { useTemplateBuilderStore } from "@/features/template-builder/stores/template-builder-store";
-import type { SlotDraft, SlotLayoutDraft } from "@/features/template-builder/types";
+import type {
+  MessageBlockDraft,
+  SlotDraft,
+  SlotFrameNodeDraft,
+  SlotLayoutDraft,
+} from "@/features/template-builder/types";
 import { useAppForm } from "@/lib/app-form";
 import { jsonText } from "@/lib/form/json-text-zod";
 
@@ -45,6 +50,41 @@ interface SlotReferenceEditProps {
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
   containerRef?: React.Ref<HTMLDivElement>;
+}
+
+const isAnchorNode = (
+  node: SlotFrameNodeDraft
+): node is Extract<SlotFrameNodeDraft, { kind: "anchor" }> =>
+  "kind" in node && node.kind === "anchor";
+
+const isMessageNode = (node: SlotFrameNodeDraft): node is MessageBlockDraft => !isAnchorNode(node);
+
+function firstMessageNode(frames?: SlotFrameNodeDraft[]): MessageBlockDraft | undefined {
+  return frames?.find(isMessageNode);
+}
+
+function updateFrameCollection(
+  frames: SlotFrameNodeDraft[] | undefined,
+  message: MessageBlockDraft | undefined
+): SlotFrameNodeDraft[] | undefined {
+  if (!frames || frames.length === 0) {
+    return message ? [message] : undefined;
+  }
+
+  const next = [...frames];
+  const messageIndex = next.findIndex(isMessageNode);
+
+  if (!message) {
+    if (messageIndex !== -1) {
+      next.splice(messageIndex, 1);
+    }
+  } else if (messageIndex === -1) {
+    next.push(message);
+  } else {
+    next[messageIndex] = message;
+  }
+
+  return next.length > 0 ? next : undefined;
 }
 
 type SlotEditFormValues = {
@@ -101,10 +141,10 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
     budget: slot.budget,
     params: slot.params,
     omitIfEmpty: node.omitIfEmpty ?? true,
-    headerContent: node.header?.content || "",
-    headerRole: node.header?.role ?? "user",
-    footerContent: node.footer?.content || "",
-    footerRole: node.footer?.role ?? "user",
+    headerContent: firstMessageNode(node.header)?.content || "",
+    headerRole: firstMessageNode(node.header)?.role ?? "user",
+    footerContent: firstMessageNode(node.footer)?.content || "",
+    footerRole: firstMessageNode(node.footer)?.role ?? "user",
     customSpec: slot.customSpec ?? "{}",
   } satisfies SlotEditFormValues;
 
@@ -128,16 +168,19 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
       },
     },
     onSubmit: ({ value }) => {
+      const headerMessage = value.headerContent
+        ? ({ role: value.headerRole, content: value.headerContent } satisfies MessageBlockDraft)
+        : undefined;
+      const footerMessage = value.footerContent
+        ? ({ role: value.footerRole, content: value.footerContent } satisfies MessageBlockDraft)
+        : undefined;
+
       const updatedNode: SlotLayoutDraft = {
         ...node,
         name: value.name,
         omitIfEmpty: value.omitIfEmpty,
-        header: value.headerContent
-          ? { role: value.headerRole, content: value.headerContent }
-          : undefined,
-        footer: value.footerContent
-          ? { role: value.footerRole, content: value.footerContent }
-          : undefined,
+        header: updateFrameCollection(node.header, headerMessage),
+        footer: updateFrameCollection(node.footer, footerMessage),
       };
 
       const isCustomRecipe = (slot.recipeId ?? "custom") === "custom";
@@ -161,10 +204,10 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
       budget: slot.budget,
       params: slot.params,
       omitIfEmpty: node.omitIfEmpty ?? true,
-      headerContent: node.header?.content || "",
-      headerRole: node.header?.role ?? "user",
-      footerContent: node.footer?.content || "",
-      footerRole: node.footer?.role ?? "user",
+      headerContent: firstMessageNode(node.header)?.content || "",
+      headerRole: firstMessageNode(node.header)?.role ?? "user",
+      footerContent: firstMessageNode(node.footer)?.content || "",
+      footerRole: firstMessageNode(node.footer)?.role ?? "user",
       customSpec: slot.customSpec ?? "{}",
     } satisfies SlotEditFormValues);
   }, [form, node, slot]);

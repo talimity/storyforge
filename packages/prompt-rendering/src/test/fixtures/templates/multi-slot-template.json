@@ -13,10 +13,7 @@
     {
       "kind": "slot",
       "name": "context",
-      "header": {
-        "role": "system",
-        "content": "Context:"
-      }
+      "header": [{ "role": "system", "content": "Context:" }]
     },
     {
       "kind": "slot",

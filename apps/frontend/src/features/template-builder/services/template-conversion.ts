@@ -3,6 +3,8 @@ import type {
   AttachmentLaneSpec,
   LayoutNode,
   MessageBlock,
+  SlotFrameAnchor,
+  SlotFrameNode,
   SlotSpec,
   UnboundTemplate,
 } from "@storyforge/prompt-rendering";
@@ -18,6 +20,7 @@ import type {
   LayoutNodeDraft,
   MessageBlockDraft,
   SlotDraft,
+  SlotFrameNodeDraft,
   TemplateDraft,
 } from "@/features/template-builder/types";
 
@@ -57,25 +60,20 @@ function convertLayoutNodeToDraft(node: LayoutNode): LayoutNodeDraft | null {
         ...(node.when?.length && { when: node.when.slice() }),
       };
 
-    case "slot":
+    case "slot": {
+      const header = node.header?.map(convertSlotFrameNodeToDraft);
+      const footer = node.footer?.map(convertSlotFrameNodeToDraft);
       return {
         id,
         kind: "slot",
         name: node.name,
-        ...(node.header && {
-          header: convertMessageBlockToDraft(
-            Array.isArray(node.header) ? node.header[0] : node.header
-          ),
-        }),
-        ...(node.footer && {
-          footer: convertMessageBlockToDraft(
-            Array.isArray(node.footer) ? node.footer[0] : node.footer
-          ),
-        }),
+        ...(header && header.length > 0 && { header }),
+        ...(footer && footer.length > 0 && { footer }),
         ...(node.omitIfEmpty !== undefined && {
           omitIfEmpty: node.omitIfEmpty,
         }),
       };
+    }
 
     case "anchor":
       // Anchors are currently not editable in the layout builder; skip them when converting.
@@ -94,6 +92,21 @@ function convertMessageBlockToDraft(block: MessageBlock): MessageBlockDraft {
     ...(block.from && { from: block.from }),
     ...(block.when?.length && { when: block.when.slice() }),
   };
+}
+
+const isSlotFrameAnchor = (node: SlotFrameNode): node is SlotFrameAnchor =>
+  "kind" in node && node.kind === "anchor";
+
+function convertSlotFrameNodeToDraft(node: SlotFrameNode): SlotFrameNodeDraft {
+  if (isSlotFrameAnchor(node)) {
+    return {
+      kind: "anchor",
+      key: node.key,
+      ...(node.when?.length ? { when: node.when.slice() } : {}),
+    } satisfies SlotFrameNodeDraft;
+  }
+
+  return convertMessageBlockToDraft(node);
 }
 
 const recipeMetaSchema = z

@@ -20,7 +20,7 @@ Template recipes give authors a guided way to configure prompt slots in the UI w
 1. **Timeline (Simple)** (`timelineBasicRecipe`):
    - Parameters: turn template string, max turns, token budget.
    - Produces a single `forEach` plan over the `turns` source (newest first, `fillDir=prepend` so output is chronological). Each iteration emits a `user` message based on `turnTemplate` and appends an anchor keyed `turn_{{item.turnNo}}` so attachments can target specific turns.
-   - Emits top/bottom anchors (`timeline_start`, `timeline_end`) around the loop so injections have deterministic boundaries even when turns are truncated by budgets.
+   - Emits top/bottom anchors (`timeline_start`, `timeline_end`) around the loop so injections have deterministic boundaries even when turns are truncated by budgets. Additional header/footer anchors exposed by slot wrappers make it easy to inject guidance before or after the recipe's structural framing.
    - Variables advertised to the user (`item.turnNo`, `item.authorName`, etc.) map to properties the backend adds to timeline turn DTOs.
 
 2. **Timeline (Advanced)**:

@@ -33,7 +33,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     <Stack
       as="nav"
       h="100dvh"
-      w={collapsed ? "64px" : "230px"}
+      w={collapsed ? "16" : "60"}
       bg="bg.panel"
       boxShadow={collapsed ? "1px 0 0 0 var(--chakra-colors-border)" : "xl"}
       borderRightWidth={collapsed ? "0" : "1px"}

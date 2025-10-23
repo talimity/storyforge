@@ -224,11 +224,13 @@ describe("content vs from mutual exclusivity", () => {
           id: "slot_1",
           kind: "slot",
           name: "timeline",
-          header: {
-            role: "user",
-            content: "Header text",
-            from: { source: "intent" },
-          },
+          header: [
+            {
+              role: "user",
+              content: "Header text",
+              from: { source: "intent" },
+            },
+          ],
         },
       ],
       slotsDraft: {

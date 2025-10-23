@@ -13,10 +13,7 @@
     {
       "kind": "slot",
       "name": "characters",
-      "header": {
-        "role": "system",
-        "content": "Characters:"
-      },
+      "header": [{ "role": "system", "content": "Characters:" }],
       "omitIfEmpty": true
     },
     {

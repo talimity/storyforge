@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   override render() {
     if (this.state.hasError) {
       return (
-        <Box p={8} maxW="800px" mx="auto" colorPalette="neutral">
+        <Box p={8} maxW="60rem" mx="auto" colorPalette="neutral">
           <VStack gap={4} align="start">
             <Heading size="lg" color="fg.error">
               {this.props.fallbackTitle || "Something went wrong"}

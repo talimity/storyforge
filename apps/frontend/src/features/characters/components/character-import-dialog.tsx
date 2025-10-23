@@ -235,7 +235,7 @@ export function CharacterImportDialog({ isOpen, onClose, onImportSuccess }: Char
                         <Image
                           src={filePreviews[file.name]}
                           alt={file.name}
-                          boxSize="40px"
+                          boxSize="10"
                           borderRadius="md"
                           fit="cover"
                         />

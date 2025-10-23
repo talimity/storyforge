@@ -103,7 +103,16 @@ function collectAnchorsFromLayout(node: LayoutNode, anchors: Set<string>): void 
     return;
   }
   if (node.kind === "slot") {
-    // slot headers/footers are message blocks; no anchors.
+    for (const frame of node.header ?? []) {
+      if ("kind" in frame && frame.kind === "anchor") {
+        anchors.add(frame.key);
+      }
+    }
+    for (const frame of node.footer ?? []) {
+      if ("kind" in frame && frame.kind === "anchor") {
+        anchors.add(frame.key);
+      }
+    }
     return;
   }
 }

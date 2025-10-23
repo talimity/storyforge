@@ -150,7 +150,7 @@ export class GenerationRunRecorder {
         const runState = this.runs.get(event.runId);
         if (!runState) return;
         const finishedAt = new Date(ts);
-        const finalOutputs = this.cloneJson(event.output ?? {});
+        const finalOutputs = structuredClone(event.output ?? {});
         this.completedRuns.set(runState.generationRunId, {
           finishedAt,
           finalOutputs,
@@ -287,13 +287,5 @@ export class GenerationRunRecorder {
       response: cleaned,
       apiPayload: _prompt,
     };
-  }
-
-  private cloneJson<T>(value: T): T {
-    try {
-      return JSON.parse(JSON.stringify(value)) as T;
-    } catch {
-      return value;
-    }
   }
 }

@@ -416,7 +416,7 @@ function PageHeaderExamples() {
 function FormExample() {
   return (
     <Box p={8} bg="surface" minH="100vh">
-      <VStack gap={8} maxW="800px" mx="auto">
+      <VStack gap={8} maxW="60rem" mx="auto">
         {/* Header */}
         <Box textAlign="center">
           <Heading size="2xl" mb={2}>

@@ -7,6 +7,7 @@ import type {
   CompiledLayoutNode,
   CompiledMessageBlock,
   CompiledPlanNode,
+  CompiledSlotFrameNode,
   CompiledSlotSpec,
   CompiledTemplate,
   CompileOptions,
@@ -14,6 +15,8 @@ import type {
   MessageBlock,
   PlanNode,
   PromptTemplate,
+  SlotFrameAnchor,
+  SlotFrameNode,
   SlotSpec,
   SourceSpec,
 } from "./types.js";
@@ -73,15 +76,29 @@ function compileLayoutNodes<S extends SourceSpec = SourceSpec>(
   return Object.freeze(nodes.map(compileLayoutNode));
 }
 
-/**
- * Converts a MessageBlock or array of MessageBlocks to an immutable array of compiled message blocks.
- */
-function toBlockArray<S extends SourceSpec = SourceSpec>(
-  b: MessageBlock<S> | MessageBlock<S>[] | undefined
-): readonly CompiledMessageBlock<S>[] | undefined {
-  if (!b) return undefined;
-  const arr = Array.isArray(b) ? b : [b];
-  return Object.freeze(arr.map(compileMessageBlock));
+function isSlotFrameAnchor<S extends SourceSpec>(
+  node: SlotFrameNode<S>
+): node is SlotFrameAnchor<S> {
+  return (node as SlotFrameAnchor<S>).kind === "anchor";
+}
+
+function compileSlotFrameNodes<S extends SourceSpec = SourceSpec>(
+  nodes: SlotFrameNode<S>[] | undefined
+): readonly CompiledSlotFrameNode<S>[] | undefined {
+  if (!nodes) return undefined;
+  const compiled = nodes.map((node) => {
+    if (isSlotFrameAnchor(node)) {
+      return Object.freeze({
+        kind: "anchor" as const,
+        key: compileLeaf(node.key),
+        when: node.when,
+      });
+    }
+
+    return compileMessageBlock(node);
+  });
+
+  return Object.freeze(compiled);
 }
 
 /**
@@ -105,8 +122,8 @@ function compileLayoutNode<S extends SourceSpec = SourceSpec>(
       return Object.freeze({
         kind: "slot",
         name: node.name,
-        header: toBlockArray(node.header),
-        footer: toBlockArray(node.footer),
+        header: compileSlotFrameNodes(node.header),
+        footer: compileSlotFrameNodes(node.footer),
         omitIfEmpty: node.omitIfEmpty,
       });
     case "anchor":
@@ -226,6 +243,7 @@ function compileAttachmentLanes(
           Object.freeze({
             id: group.id,
             match: group.match,
+            template: group.template ? compileLeaf(group.template) : undefined,
             openTemplate: group.openTemplate ? compileLeaf(group.openTemplate) : undefined,
             closeTemplate: group.closeTemplate ? compileLeaf(group.closeTemplate) : undefined,
             role: group.role,

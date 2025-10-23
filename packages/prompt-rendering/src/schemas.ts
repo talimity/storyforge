@@ -44,6 +44,17 @@ export const messageBlockSchema = z.object({
   when: z.array(conditionRefSchema).optional(),
 });
 
+const slotFrameAnchorSchema = z.object({
+  kind: z.literal("anchor"),
+  key: z.string(),
+  when: z.array(conditionRefSchema).optional(),
+});
+
+const toArray = <T extends z.ZodTypeAny>(item: T) =>
+  z.preprocess((v) => (v === undefined ? v : Array.isArray(v) ? v : [v]), z.array(item));
+// handles old format where slot frame nodes could be a single item or an array
+const slotFrameNodeSchema = toArray(z.union([messageBlockSchema, slotFrameAnchorSchema]));
+
 export const layoutNodeSchema: z.ZodType<UnboundLayoutNode> = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("message"),
@@ -53,8 +64,8 @@ export const layoutNodeSchema: z.ZodType<UnboundLayoutNode> = z.discriminatedUni
   z.object({
     kind: z.literal("slot"),
     name: z.string(),
-    header: z.union([messageBlockSchema, z.array(messageBlockSchema)]).optional(),
-    footer: z.union([messageBlockSchema, z.array(messageBlockSchema)]).optional(),
+    header: slotFrameNodeSchema.optional(),
+    footer: slotFrameNodeSchema.optional(),
     omitIfEmpty: z.boolean().optional(),
   }),
   z.object({
@@ -96,6 +107,17 @@ export const planNodeSchema: z.ZodType<UnboundPlanNode> = z.lazy(() =>
   ])
 );
 
+const attachmentLaneGroupSchema = z.object({
+  id: z.string().optional(),
+  match: z.string().optional(),
+  template: z.string().optional(),
+  openTemplate: z.string().optional(),
+  closeTemplate: z.string().optional(),
+  role: roleSchema.optional(),
+  order: z.number().int().optional(),
+  payload: z.record(z.string(), z.unknown()).optional(),
+});
+
 const attachmentLaneSchema = z.object({
   id: z.string(),
   enabled: z.boolean().optional(),
@@ -105,6 +127,7 @@ const attachmentLaneSchema = z.object({
   reserveTokens: z.number().int().nonnegative().optional(),
   budget: budgetSchema.optional(),
   payload: z.record(z.string(), z.unknown()).optional(),
+  groups: z.array(attachmentLaneGroupSchema).optional(),
 });
 
 /** ---------- Slot specification schema ---------- */

@@ -163,7 +163,7 @@ describe("Workflow Runner", () => {
   });
 
   it("invokes resolveRenderOptions with extended context", async () => {
-    const resolver = vi.fn().mockReturnValue({ attachments: [], injections: [] });
+    const resolver = vi.fn().mockReturnValue({ attachmentDefaults: [], injections: [] });
     mockDeps.resolveRenderOptions = resolver;
     const runner = makeWorkflowRunner(mockDeps);
 

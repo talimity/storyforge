@@ -73,12 +73,18 @@ export const charactersRecipe: RecipeDefinition<
     },
   ],
 
+  buildSlotLayout() {
+    return {
+      header: [{ kind: "anchor", key: "character_definitions_start" }],
+      footer: [{ kind: "anchor", key: "character_definitions_end" }],
+    };
+  },
+
   toSlotSpec(params) {
     return {
       budget: { maxTokens: params.budget },
       meta: {},
       plan: [
-        { kind: "anchor", key: "character_definitions_start" },
         {
           kind: "forEach",
           source: {
@@ -99,7 +105,6 @@ export const charactersRecipe: RecipeDefinition<
             },
           ],
         },
-        { kind: "anchor", key: "character_definitions_end" },
       ],
     };
   },

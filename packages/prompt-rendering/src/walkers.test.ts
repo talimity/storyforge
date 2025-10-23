@@ -62,7 +62,7 @@ describe("walkers", () => {
           {
             kind: "slot",
             name: "content",
-            header: { role: "system", content: "Header message" },
+            header: [{ role: "system", content: "Header message" }],
             footer: [
               { role: "user", content: "Footer 1" },
               { role: "assistant", content: "Footer 2" },
@@ -379,7 +379,7 @@ describe("walkers", () => {
           {
             kind: "slot",
             name: "content",
-            header: { role: "system", from: { source: "headerData" } },
+            header: [{ role: "system", from: { source: "headerData" } }],
             footer: [
               { role: "user", content: "Static footer" },
               { role: "assistant", from: { source: "footerData" } },

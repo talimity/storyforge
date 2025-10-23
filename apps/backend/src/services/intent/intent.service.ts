@@ -217,7 +217,7 @@ export class IntentService {
     const seededOutputs: Record<string, unknown> = {};
     for (const step of orderedSteps.slice(0, resumeIdx)) {
       if (step.capturedOutputs && Object.keys(step.capturedOutputs).length > 0) {
-        Object.assign(seededOutputs, structuredCloneJson(step.capturedOutputs));
+        Object.assign(seededOutputs, structuredClone(step.capturedOutputs));
       }
     }
 
@@ -274,8 +274,4 @@ export class IntentService {
       resume,
     };
   }
-}
-
-function structuredCloneJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
 }

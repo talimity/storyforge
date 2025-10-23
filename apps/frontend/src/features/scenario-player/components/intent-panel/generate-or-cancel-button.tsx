@@ -19,7 +19,7 @@ export function GenerateOrCancelButton({
   return (
     <IconButton
       size="xs"
-      boxSize="40px"
+      boxSize="10"
       onClick={isGenerating ? onCancel : onGenerate}
       {...buttonProps}
     >

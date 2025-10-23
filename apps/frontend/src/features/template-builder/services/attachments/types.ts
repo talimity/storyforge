@@ -15,23 +15,19 @@ export interface AttachmentWarning {
   message: string;
 }
 
-export interface LoreAttachmentFormValues {
-  enabled: boolean;
+export interface LoreAttachmentGroupFormValues {
   role: ChatCompletionMessageRole;
   template: string;
+  open: string;
+  close: string;
+}
+
+export interface LoreAttachmentFormValues {
+  enabled: boolean;
   groups: {
-    beforeCharacters: {
-      open: string;
-      close: string;
-    };
-    afterCharacters: {
-      open: string;
-      close: string;
-    };
-    perTurn: {
-      open: string;
-      close: string;
-    };
+    beforeCharacters: LoreAttachmentGroupFormValues;
+    afterCharacters: LoreAttachmentGroupFormValues;
+    perTurn: LoreAttachmentGroupFormValues;
   };
 }
 

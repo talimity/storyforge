@@ -3,26 +3,20 @@
 exports[`Comprehensive anchor and attachment rendering > preserves layout instructions and attachments with constrained budget > comprehensive-tight-budget 1`] = `
 [
   {
-    "content": "[Author Note] Focus on sensory detail and tension between Alice and Bob.
-=== Scenario Setup ===
+    "content": "=== Scenario Setup ===
+[Author Note] Focus on sensory detail and tension between Alice and Bob.
 === Recent Turns ===",
     "role": "system",
   },
   {
-    "content": "[Turn 1] Alice: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.",
+    "content": "[Turn 1] Alice: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.
+[Turn 2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
     "role": "user",
   },
   {
-    "content": "[Lore] The breeze carries a scent tied to ancient rituals.",
-    "role": "system",
-  },
-  {
-    "content": "[Turn 2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
-    "role": "user",
-  },
-  {
-    "content": "=== End Turns ===
+    "content": "[Lore] The breeze carries a scent tied to ancient rituals.
 [Lore] A fountain here predates the Academy and grants visions under moonlight.
+=== End Turns ===
 Instruction: Maintain mystery and reference the fountain.
 === Cast Overview ===
 [Lore] Global reminder: mention the guardian spirits at least once.",
@@ -34,20 +28,26 @@ Instruction: Maintain mystery and reference the fountain.
 exports[`Comprehensive anchor and attachment rendering > renders anchors, instructions, and attachments under generous budget > comprehensive-standard 1`] = `
 [
   {
-    "content": "[Author Note] Focus on sensory detail and tension between Alice and Bob.
-=== Scenario Setup ===
+    "content": "=== Scenario Setup ===
+[Author Note] Focus on sensory detail and tension between Alice and Bob.
 === Recent Turns ===",
     "role": "system",
   },
   {
     "content": "[Turn 1] Alice: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.
-[Turn 2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.
-[Turn 3] Narrator: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
+[Turn 2] Bob: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
     "role": "user",
   },
   {
-    "content": "[Lore] A fountain here predates the Academy and grants visions under moonlight.
-[Lore] The breeze carries a scent tied to ancient rituals.",
+    "content": "[Lore] A fountain here predates the Academy and grants visions under moonlight.",
+    "role": "system",
+  },
+  {
+    "content": "[Turn 3] Narrator: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
+    "role": "user",
+  },
+  {
+    "content": "[Lore] The breeze carries a scent tied to ancient rituals.",
     "role": "system",
   },
   {
@@ -72,40 +72,43 @@ Instruction: Maintain mystery and reference the fountain.
 exports[`renders grouped attachments for turn events and character sections 1`] = `
 [
   {
-    "content": "<characters>
-<beforeCharacters>
-Lore before characters
+    "content": "<beforeCharacters>
+Deep lore: Lore before characters
 </beforeCharacters>
+<characters>
 Character: Alice
 Character: Bob
 </characters>
 <afterCharacters>
-Lore after characters
-</afterCharacters>
-<timeline>",
+[Default Lore] Lore after characters
+</afterCharacters>",
     "role": "system",
   },
   {
-    "content": "Turn 1: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.
-Turn 2: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.",
+    "content": "<timeline>
+Turn 1: The morning sun cast long shadows across the courtyard as Alice approached the ancient fountain.",
     "role": "user",
   },
   {
     "content": "<events>
-Event A
+[Turn Lore] Event A
 </events>",
     "role": "system",
   },
   {
-    "content": "Turn 3: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
+    "content": "Turn 2: Bob looked up from his book, startled by the sound of footsteps on the cobblestones.
+Turn 3: A gentle breeze carried the scent of jasmine through the air, creating an almost magical atmosphere.",
     "role": "user",
   },
   {
-    "content": "</timeline>
-<events>
-Event C
+    "content": "<events>
+[Turn Lore] Event C
 </events>",
     "role": "system",
+  },
+  {
+    "content": "</timeline>",
+    "role": "user",
   },
 ]
 `;

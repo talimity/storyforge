@@ -53,7 +53,7 @@ export function PromptInput(props: PromptInputProps) {
           value={selectedCharacterId}
           onChange={setSelectedCharacter}
           disabled={isGenerating}
-          boxSize="40px"
+          boxSize="10"
           layerStyle="contrast"
         />
       )}
@@ -65,7 +65,7 @@ export function PromptInput(props: PromptInputProps) {
         value={inputText}
         onChange={(e) => onInputChange(e.target.value)}
         disabled={textareaDisabled}
-        minH={isInputFocused ? undefined : "40px"}
+        minH={isInputFocused ? undefined : "10"}
         minRows={isInputFocused ? 3 : undefined}
         maxRows={isInputFocused ? 20 : 6}
         style={{ transition: "min-height 0.2s ease" }}

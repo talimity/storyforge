@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { compileTemplate } from "./compiler.js";
 import { AuthoringValidationError, TemplateStructureError } from "./errors.js";
-import type { CompiledMessageBlock } from "./types.js";
+import type { CompiledMessageBlock, CompiledSlotFrameNode } from "./types.js";
 
 describe("compileTemplate", () => {
+  const isCompiledFrameMessage = (node: CompiledSlotFrameNode): node is CompiledMessageBlock =>
+    !("kind" in node && node.kind === "anchor");
+
   const sampleTemplate = {
     id: "test_template",
     name: "Test Template",
@@ -64,7 +67,7 @@ describe("compileTemplate", () => {
     });
 
     it("should parse JSON input", () => {
-      const compiled = compileTemplate(JSON.parse(JSON.stringify(sampleTemplate)));
+      const compiled = compileTemplate(structuredClone(sampleTemplate));
       expect(compiled.id).toBe("test_template");
     });
 
@@ -291,7 +294,7 @@ describe("compileTemplate", () => {
           {
             kind: "slot",
             name: "content",
-            header: { role: "system", content: "Header: {{title}}" }, // will be normalized to an array
+            header: [{ role: "system", content: "Header: {{title}}" }],
             footer: [
               { role: "user", content: "Footer 1: {{footer1}}" },
               { role: "user", content: "Footer 2: {{footer2}}" },
@@ -316,18 +319,21 @@ describe("compileTemplate", () => {
         if (header) {
           expect(Array.isArray(header)).toBe(true);
           expect(header).toHaveLength(1);
-          expect(typeof header[0].content).toBe("function");
-          expect(header[0].content!({ title: "Test" })).toBe("Header: Test");
+          const headerMessage = header.find(isCompiledFrameMessage);
+          expect(headerMessage).toBeDefined();
+          expect(typeof headerMessage?.content).toBe("function");
+          expect(headerMessage?.content?.({ title: "Test" })).toBe("Header: Test");
         }
 
         // Check footer array
         const footer = slot.footer;
         if (footer && Array.isArray(footer)) {
-          const footerArray = footer as readonly CompiledMessageBlock[];
-          expect(typeof footerArray[0].content).toBe("function");
-          expect(footerArray[0].content!({ footer1: "F1" })).toBe("Footer 1: F1");
-          expect(typeof footerArray[1].content).toBe("function");
-          expect(footerArray[1].content!({ footer2: "F2" })).toBe("Footer 2: F2");
+          const footerMessages = footer.filter(isCompiledFrameMessage);
+          expect(footerMessages).toHaveLength(2);
+          expect(typeof footerMessages[0].content).toBe("function");
+          expect(footerMessages[0].content!({ footer1: "F1" })).toBe("Footer 1: F1");
+          expect(typeof footerMessages[1].content).toBe("function");
+          expect(footerMessages[1].content!({ footer2: "F2" })).toBe("Footer 2: F2");
         }
       }
     });

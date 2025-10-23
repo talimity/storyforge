@@ -1,7 +1,7 @@
 import { List, Tabs, VStack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
 import { useEffect, useRef, useState } from "react";
-import { LuEye, LuInfo, LuPaperclip, LuRows3, LuTriangleAlert } from "react-icons/lu";
+import { LuEye, LuInfo, LuRows3, LuSyringe, LuTriangleAlert } from "react-icons/lu";
 import { useShallow } from "zustand/react/shallow";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
 import { Alert, Button, PageHeader } from "@/components/ui";
@@ -192,7 +192,7 @@ export function TemplateForm({
     },
     {
       value: "structure",
-      label: "Prompt Layout",
+      label: "Layout",
       icon: <LuRows3 />,
       badge: structureErrorCount > 0 ? structureErrorCount : undefined,
       badgeColorPalette: structureErrorCount > 0 ? ("red" as const) : undefined,
@@ -200,7 +200,7 @@ export function TemplateForm({
     {
       value: "attachments",
       label: "Injections",
-      icon: <LuPaperclip />,
+      icon: <LuSyringe />,
     },
     {
       value: "preview",

@@ -162,7 +162,7 @@ export function CharacterStarterSelector({
             <Box
               bg="surface.muted"
               p={4}
-              minH="200px"
+              minH="xs"
               maxH="50dvh"
               overflowY="auto"
               borderTop="1px solid"

@@ -85,7 +85,7 @@ export function CharacterMiniSelect(props: CharacterMiniSelectProps) {
     layerStyle = "surface",
     portalled = true,
     size,
-    boxSize = "40px",
+    boxSize = "10",
     ...rest
   } = props;
   const items = useMemo<CharacterOption[]>(

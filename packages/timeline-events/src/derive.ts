@@ -83,12 +83,12 @@ export class TimelineStateDeriver {
       if (collectEvents) {
         derivedEvents.push({
           ...ev,
-          state: cloneState(stateByConcern),
+          state: structuredClone(stateByConcern),
         });
       }
     }
 
-    const finalState = collectEvents ? cloneState(stateByConcern) : stateByConcern;
+    const finalState = collectEvents ? structuredClone(stateByConcern) : stateByConcern;
 
     if (collectEvents) {
       return { final: finalState, events: derivedEvents };
@@ -96,11 +96,4 @@ export class TimelineStateDeriver {
 
     return { final: finalState, events: [] };
   }
-}
-
-function cloneState(state: TimelineState): TimelineState {
-  if (typeof globalThis.structuredClone === "function") {
-    return globalThis.structuredClone(state);
-  }
-  return JSON.parse(JSON.stringify(state));
 }

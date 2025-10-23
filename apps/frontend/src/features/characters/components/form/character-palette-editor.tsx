@@ -104,7 +104,7 @@ export const CharacterPaletteEditor = withFieldGroup({
                         </HStack>
                       ) : (
                         <ColorPicker.Control width="full">
-                          <ColorPicker.Input />
+                          <ColorPicker.Input flexBasis="8rem" />
                           <ColorPicker.Trigger />
                           {allowReset && changed ? (
                             <IconButton

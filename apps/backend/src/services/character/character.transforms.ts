@@ -28,9 +28,7 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
     styleInstructions: dbCharacter.styleInstructions ?? null,
     tags: dbCharacter.tags || [],
     revision: dbCharacter.revision,
-    tavernCardData: dbCharacter.tavernCardData
-      ? JSON.parse(JSON.stringify(dbCharacter.tavernCardData))
-      : null,
+    tavernCardData: dbCharacter.tavernCardData ? structuredClone(dbCharacter.tavernCardData) : null,
     ...getCharaAssetPaths(dbCharacter),
     defaultColor: dbCharacter.defaultColor,
     portraitFocalPoint: dbCharacter.portraitFocalPoint,

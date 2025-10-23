@@ -62,7 +62,7 @@ export const CharacterCard = memo(function CharacterCard({
   return (
     <>
       <Card.Root
-        maxW="300px"
+        maxW="20rem"
         layerStyle="surface"
         className={readOnly ? undefined : "group"}
         cursor={readOnly ? "default" : "pointer"}
@@ -163,7 +163,7 @@ export const CharacterCard = memo(function CharacterCard({
                 <VisuallyHidden>Selected</VisuallyHidden>
               </Box>
             )}
-            {character.isStarred && <Icon as={LuStar} color="accent.500" boxSize={4} />}
+            {character.isStarred && <Icon as={LuStar} color="gold" fill={"gold"} boxSize={4} />}
             <Heading as="h3" size="sm" fontWeight="bold" truncate>
               {character.name}
             </Heading>
@@ -187,7 +187,7 @@ export const CharacterCard = memo(function CharacterCard({
 
 export function CharacterCardSkeleton() {
   return (
-    <Card.Root maxW="300px" variant="outline" overflow="hidden">
+    <Card.Root maxW="20rem" variant="outline" overflow="hidden">
       <Skeleton aspectRatio={2 / 3} />
       <Card.Body p={3}>
         <SkeletonText h="5" noOfLines={1} width="70%" />

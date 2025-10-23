@@ -15,13 +15,21 @@ export type MessageBlock<S extends SourceSpec = SourceSpec> = {
   when?: ReadonlyArray<ConditionRef<S>>;
 };
 
+export type SlotFrameAnchor<S extends SourceSpec = SourceSpec> = {
+  kind: "anchor";
+  key: string;
+  when?: ReadonlyArray<ConditionRef<S>>;
+};
+
+export type SlotFrameNode<S extends SourceSpec = SourceSpec> = MessageBlock<S> | SlotFrameAnchor<S>;
+
 export type LayoutNode<S extends SourceSpec = SourceSpec> =
   | ({ kind: "message"; name?: string } & MessageBlock<S>)
   | {
       kind: "slot";
       name: string;
-      header?: MessageBlock<S> | MessageBlock<S>[];
-      footer?: MessageBlock<S> | MessageBlock<S>[];
+      header?: SlotFrameNode<S>[];
+      footer?: SlotFrameNode<S>[];
       omitIfEmpty?: boolean;
     }
   | {
@@ -222,6 +230,8 @@ export type AttachmentLaneGroupSpec = {
   id?: string;
   /** Regular expression string to match dynamic group ids (e.g., "^turn_"). */
   match?: string;
+  /** Optional per-item template override for requests routed to this group. */
+  template?: string;
   openTemplate?: string;
   closeTemplate?: string;
   role?: ChatCompletionMessageRole;
@@ -235,6 +245,8 @@ export type AttachmentLaneGroupSpec = {
 export type AttachmentLaneGroupRuntime = {
   id?: string;
   regex?: RegExp;
+  /** Per-item template override compiled from the authored string. */
+  template?: CompiledLeafFunction;
   openTemplate?: CompiledLeafFunction;
   closeTemplate?: CompiledLeafFunction;
   role?: ChatCompletionMessageRole;
@@ -270,7 +282,7 @@ export type InjectionRequest = {
 };
 
 export type RenderOptions = {
-  attachments?: readonly AttachmentLaneSpec[];
+  attachmentDefaults?: readonly AttachmentLaneSpec[];
   injections?: readonly InjectionRequest[];
 };
 
@@ -339,13 +351,23 @@ export type CompiledTemplate<
   attachments?: readonly CompiledAttachmentLaneSpec[];
 }>;
 
+export type CompiledSlotFrameAnchor<S extends SourceSpec = SourceSpec> = Readonly<{
+  kind: "anchor";
+  key: CompiledLeafFunction;
+  when?: readonly ConditionRef<S>[];
+}>;
+
+export type CompiledSlotFrameNode<S extends SourceSpec = SourceSpec> =
+  | CompiledMessageBlock<S>
+  | CompiledSlotFrameAnchor<S>;
+
 export type CompiledLayoutNode<S extends SourceSpec = SourceSpec> = Readonly<
   | ({ kind: "message"; name?: string } & CompiledMessageBlock<S>)
   | {
       kind: "slot";
       name: string;
-      header?: readonly CompiledMessageBlock<S>[];
-      footer?: readonly CompiledMessageBlock<S>[];
+      header?: readonly CompiledSlotFrameNode<S>[];
+      footer?: readonly CompiledSlotFrameNode<S>[];
       omitIfEmpty?: boolean;
     }
   | { kind: "anchor"; key: CompiledLeafFunction; when?: readonly ConditionRef<S>[] }
@@ -404,6 +426,7 @@ export type CompiledAttachmentLaneSpec = Readonly<{
 export type CompiledAttachmentLaneGroupSpec = Readonly<{
   id?: string;
   match?: string;
+  template?: CompiledLeafFunction;
   openTemplate?: CompiledLeafFunction;
   closeTemplate?: CompiledLeafFunction;
   role?: ChatCompletionMessageRole;

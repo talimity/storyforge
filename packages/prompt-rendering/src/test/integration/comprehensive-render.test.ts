@@ -24,8 +24,14 @@ const template: PromptTemplate<"fake_turn_gen", FakeTurnGenSourceSpec> = {
     {
       kind: "slot",
       name: "timeline",
-      header: { role: "system", content: "=== Recent Turns ===" },
-      footer: { role: "system", content: "=== End Turns ===" },
+      header: [
+        { kind: "anchor", key: "timeline_start" },
+        { role: "system", content: "=== Recent Turns ===" },
+      ],
+      footer: [
+        { role: "system", content: "=== End Turns ===" },
+        { kind: "anchor", key: "timeline_end" },
+      ],
     },
     {
       kind: "message",
@@ -36,7 +42,7 @@ const template: PromptTemplate<"fake_turn_gen", FakeTurnGenSourceSpec> = {
     {
       kind: "slot",
       name: "cast",
-      header: { role: "system", content: "=== Cast Overview ===" },
+      header: [{ role: "system", content: "=== Cast Overview ===" }],
       omitIfEmpty: false,
     },
   ],
@@ -105,12 +111,12 @@ const compiled = compileTemplate<"fake_turn_gen", FakeTurnGenSourceSpec>(templat
 const attachments: InjectionRequest[] = [
   {
     lane: "author_note",
-    target: { kind: "boundary", position: "top", delta: 0 },
+    target: { kind: "at", key: "timeline_start" },
     payload: { note: "Focus on sensory detail and tension between Alice and Bob." },
   },
   {
     lane: "lore",
-    target: { kind: "at", key: "turn_2", after: true },
+    target: { kind: "at", key: "turn_2" },
     payload: { text: "A fountain here predates the Academy and grants visions under moonlight." },
   },
   {
@@ -184,33 +190,38 @@ it("renders grouped attachments for turn events and character sections", () => {
       {
         kind: "slot",
         name: "characters",
-        header: { role: "system", content: "<characters>" },
-        footer: { role: "system", content: "</characters>" },
+        header: [
+          { kind: "anchor", key: "character_definitions_start" },
+          { role: "system", content: "<characters>" },
+        ],
+        footer: [
+          { role: "system", content: "</characters>" },
+          { kind: "anchor", key: "character_definitions_end" },
+        ],
       },
       {
         kind: "slot",
         name: "timeline",
-        header: { role: "system", content: "<timeline>" },
-        footer: { role: "system", content: "</timeline>" },
+        header: [{ role: "user", content: "<timeline>" }],
+        footer: [{ role: "user", content: "</timeline>" }],
       },
     ],
     slots: {
       characters: {
         priority: 0,
         plan: [
-          { kind: "anchor", key: "character_definitions_start" },
           {
             kind: "forEach",
             source: { source: "characters" },
             map: [{ kind: "message", role: "system", content: "Character: {{ item.name }}" }],
           },
-          { kind: "anchor", key: "character_definitions_end" },
         ],
         meta: {},
       },
       timeline: {
         priority: 1,
         plan: [
+          { kind: "anchor", key: "timeline_start" },
           {
             kind: "forEach",
             source: { source: "turns" },
@@ -223,7 +234,6 @@ it("renders grouped attachments for turn events and character sections", () => {
               { kind: "anchor", key: "turn_{{ item.turnNo }}" },
             ],
           },
-          { kind: "anchor", key: "timeline_start" },
           { kind: "anchor", key: "timeline_end" },
         ],
         meta: {},
@@ -232,19 +242,30 @@ it("renders grouped attachments for turn events and character sections", () => {
     attachments: [
       {
         id: "lore",
+        role: "assistant",
+        template: "[Default Lore] {{ payload.content }}",
         reserveTokens: 200,
         groups: [
           {
             id: "before_char",
+            role: "system",
+            template: "Deep lore: {{ payload.content }}",
             openTemplate: "<beforeCharacters>",
             closeTemplate: "</beforeCharacters>",
           },
           {
             id: "after_char",
+            role: "system",
             openTemplate: "<afterCharacters>",
             closeTemplate: "</afterCharacters>",
           },
-          { match: "^turn_", openTemplate: "<events>", closeTemplate: "</events>" },
+          {
+            match: "^turn_",
+            role: "system",
+            template: "[Turn Lore] {{ payload.content }}",
+            openTemplate: "<events>",
+            closeTemplate: "</events>",
+          },
         ],
       },
     ],
@@ -261,49 +282,30 @@ it("renders grouped attachments for turn events and character sections", () => {
 
   const budget = new DefaultBudgetManager({ maxTokens: 1000 }, (text) => text.length);
   const messages = render(template, ctx, budget, registry, {
-    attachments: [
-      {
-        id: "lore",
-        reserveTokens: 200,
-        groups: [
-          {
-            id: "before_char",
-            openTemplate: "<beforeCharacters>",
-            closeTemplate: "</beforeCharacters>",
-          },
-          {
-            id: "after_char",
-            openTemplate: "<afterCharacters>",
-            closeTemplate: "</afterCharacters>",
-          },
-          { match: "^turn_", openTemplate: "<events>", closeTemplate: "</events>" },
-        ],
-      },
-    ],
     injections: [
       {
         lane: "lore",
         groupId: "before_char",
         target: { kind: "at", key: "character_definitions_start" },
-        template: "Lore before characters",
+        payload: { content: "Lore before characters" },
       },
       {
         lane: "lore",
         groupId: "after_char",
-        target: { kind: "at", key: "character_definitions_end", after: true },
-        template: "Lore after characters",
+        target: { kind: "at", key: "character_definitions_end" },
+        payload: { content: "Lore after characters" },
       },
       {
         lane: "lore",
         groupId: "turn_1",
-        target: { kind: "at", key: "turn_1", after: true },
-        template: "Event A",
+        target: { kind: "at", key: "turn_1" },
+        payload: { content: "Event A" },
       },
       {
         lane: "lore",
         groupId: "turn_3",
-        target: { kind: "at", key: "turn_3", after: true },
-        template: "Event C",
+        target: { kind: "at", key: "turn_3" },
+        payload: { content: "Event C" },
       },
     ],
   });

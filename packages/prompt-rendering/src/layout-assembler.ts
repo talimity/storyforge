@@ -9,6 +9,8 @@ import type {
   ChatCompletionMessage,
   CompiledLayoutNode,
   CompiledMessageBlock,
+  CompiledSlotFrameAnchor,
+  CompiledSlotFrameNode,
   GlobalAnchor,
   SourceRegistry,
   SourceSpec,
@@ -32,9 +34,13 @@ export type PreparedBlock = {
   shouldEmit: boolean;
 };
 
+export type PreparedFrameNode =
+  | { kind: "message"; block: PreparedBlock }
+  | { kind: "anchor"; key?: string };
+
 export type PreparedSlotBlocks = {
-  header?: PreparedBlock[];
-  footer?: PreparedBlock[];
+  header?: PreparedFrameNode[];
+  footer?: PreparedFrameNode[];
 };
 
 export type PreparedLayoutNode =
@@ -82,12 +88,14 @@ export function prepareLayout<Ctx extends object, S extends SourceSpec>(
       }
       case "slot": {
         // Slot headers/footers are rendered up front so their token usage contributes to the layout floor.
-        const header = node.header?.map((b) => prepareBlock(b, ctx, scope, registry, budget));
-        const footer = node.footer?.map((b) => prepareBlock(b, ctx, scope, registry, budget));
+        const header = prepareFrameNodes(node.header, ctx, scope, registry, budget);
+        const footer = prepareFrameNodes(node.footer, ctx, scope, registry, budget);
         for (const collection of [header, footer]) {
           if (!collection) continue;
-          for (const block of collection) {
-            if (block.shouldEmit) floor += block.tokens;
+          for (const entry of collection) {
+            if (entry.kind === "message" && entry.block.shouldEmit) {
+              floor += entry.block.tokens;
+            }
           }
         }
         nodes.push({
@@ -160,9 +168,25 @@ function processPreparedSlot(
   const hasMessages = buffer.messages.length > 0;
   const shouldInclude = hasMessages || node.omitIfEmpty === false;
 
-  const emitCollection = (collection: PreparedBlock[] | undefined, shouldEmit: boolean): void => {
+  const emitCollection = (
+    collection: PreparedFrameNode[] | undefined,
+    shouldEmit: boolean
+  ): void => {
     if (!collection) return;
-    for (const block of collection) {
+    for (const entry of collection) {
+      if (entry.kind === "anchor") {
+        if (!shouldEmit) continue;
+        if (!entry.key) continue;
+        anchors.push({
+          key: entry.key,
+          index: messages.length,
+          source: "layout",
+          slotName: node.name,
+        });
+        continue;
+      }
+
+      const block = entry.block;
       if (!block.shouldEmit) continue;
       if (!shouldEmit) {
         // Slot produced no content; release any reserved layout budget for these wrapper blocks.
@@ -212,6 +236,43 @@ function emitPreparedBlock(
     budget.releaseFloor("layout", block.tokens);
   }
   return emitted;
+}
+
+function isCompiledSlotFrameAnchor<S extends SourceSpec>(
+  node: CompiledSlotFrameNode<S>
+): node is CompiledSlotFrameAnchor<S> {
+  return (node as CompiledSlotFrameAnchor<S>).kind === "anchor";
+}
+
+function prepareFrameNodes<Ctx extends object, S extends SourceSpec>(
+  nodes: readonly CompiledSlotFrameNode<S>[] | undefined,
+  ctx: Ctx,
+  scope: ReturnType<typeof createScope<Ctx>>,
+  registry: SourceRegistry<Ctx, S>,
+  budget: BudgetManager
+): PreparedFrameNode[] | undefined {
+  if (!nodes) return undefined;
+  const prepared: PreparedFrameNode[] = [];
+
+  for (const node of nodes) {
+    if (isCompiledSlotFrameAnchor(node)) {
+      if (node.when && node.when.length > 0) {
+        const allTrue = node.when.every((cond) => evaluateCondition(cond, ctx, registry));
+        if (!allTrue) {
+          prepared.push({ kind: "anchor" });
+          continue;
+        }
+      }
+      const key = node.key(scope);
+      prepared.push({ kind: "anchor", key: key || undefined });
+      continue;
+    }
+
+    const block = prepareBlock(node, ctx, scope, registry, budget);
+    prepared.push({ kind: "message", block });
+  }
+
+  return prepared;
 }
 
 function prepareBlock<Ctx extends object, S extends SourceSpec>(

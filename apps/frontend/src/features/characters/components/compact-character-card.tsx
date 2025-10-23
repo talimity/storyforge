@@ -171,7 +171,7 @@ export function CompactCharacterCard({ character, isSelected = false }: CompactC
 export function CompactCharacterCardSkeleton() {
   return (
     <HStack gap={4} p={3} borderRadius="md" layerStyle="surface" cursor="default" opacity={0.6}>
-      <Skeleton width="40px" height="40px" borderRadius="md" />
+      <Skeleton width="10" height="10" borderRadius="md" />
       <Stack gap={0} flex={1} minWidth={0}>
         <Skeleton width="100px" height="16px" borderRadius="md" />
         <Skeleton width="80px" height="14px" borderRadius="md" />

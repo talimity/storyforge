@@ -13,7 +13,7 @@ The prompt system keeps authoring concerns, task-provided data, and runtime orch
 
 ## Template Model
 Templates follow a versioned JSON schema stored in the database. Key constructs:
-- **Layout nodes** describe the final conversation order. They can be literal messages, references to named **slots**, or declarative **anchors** used as injection markers. Layout nodes support optional headers and footers around slot content and can omit empty slots entirely.
+- **Layout nodes** describe the final conversation order. They can be literal messages, references to named **slots**, or declarative **anchors** used as injection markers. Layout nodes support optional headers and footers around slot content, each expressed as an array of frame nodes (message blocks or additional anchors), and can omit empty slots entirely.
 - **Slots** are filled during rendering. Each slot has:
   - A **priority** (lower runs first) so high-importance content consumes the budget before optional sections.
   - An optional **condition** gate evaluated against the render context.
@@ -26,7 +26,7 @@ Templates follow a versioned JSON schema stored in the database. Key constructs:
   - `anchor` records a zero-width marker that downstream injections can target without emitting a message.
 - **DataRefs** reference named sources defined by the task. They may include arguments (e.g., filters or slicing instructions). Templates also gain access to reserved helper sources like `$item`, `$index`, `$parent`, `$globals`, and `$ctx`, which expose loop state, globals, and the raw context without polluting the formal source registry.
 - **Budgets** describe token ceilings. A global budget governs the overall render, and nested budgets can be applied per slot or plan node. Consumption uses a simple estimator (~4 chars per token) by default but is centralised so alternative estimators can be injected later.
-- **Attachments** are optional lane specifications that describe default roles, templates, ordering, and reserved capacity for late-stage injections. Templates can omit attachments and rely on task-provided defaults.
+- **Attachments** are optional lane specifications that describe default roles, templates, ordering, and reserved capacity for late-stage injections. Templates can omit attachments and rely on task-provided defaults. Lane groups may override the base lane with their own item template and message role, letting wrappers and injected messages share a group-specific voice while falling back to lane defaults when omitted.
 
 ## Authoring Contracts & Validation
 Templates are authored against specific task kinds. The pipeline enforces several contracts when ingesting user-authored JSON:

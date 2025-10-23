@@ -26,7 +26,7 @@ describe("layout assembler", () => {
           {
             kind: "slot",
             name: "timeline",
-            header: { role: "system", content: "Header" },
+            header: [{ role: "system", content: "Header" }],
           },
           { kind: "anchor", key: "bottom" },
         ],
@@ -50,8 +50,8 @@ describe("layout assembler", () => {
           {
             kind: "slot",
             name: "timeline",
-            header: { role: "system", content: "Header" },
-            footer: { role: "system", content: "Footer" },
+            header: [{ role: "system", content: "Header" }],
+            footer: [{ role: "system", content: "Footer" }],
           },
           { kind: "anchor", key: "bottom" },
         ],
@@ -94,6 +94,47 @@ describe("layout assembler", () => {
     ]);
   });
 
+  it("emits anchors declared in slot headers and footers", () => {
+    const compiled = compileTemplate(
+      makeTemplate(
+        [
+          {
+            kind: "slot",
+            name: "timeline",
+            header: [
+              { kind: "anchor", key: "timeline_start" },
+              { role: "system", content: "Header" },
+            ],
+            footer: [
+              { role: "system", content: "Footer" },
+              { kind: "anchor", key: "timeline_end" },
+            ],
+          },
+        ],
+        {
+          timeline: { priority: 0, plan: [], meta: {} },
+        }
+      )
+    );
+
+    const prepared = prepareLayout(compiled.layout, ctx, baseRegistry, createBudget());
+    const slotBuffers: SlotExecutionResult = {
+      timeline: {
+        messages: [{ role: "user", content: "Turn" }],
+        anchors: [],
+      },
+    };
+
+    const budget = createBudget();
+    budget.reserveFloor("layout", prepared.floor);
+    const assembled = assembleLayout(prepared, slotBuffers, budget);
+
+    expect(assembled.anchors).toEqual([
+      { key: "timeline_start", index: 0, source: "layout", slotName: "timeline" },
+      { key: "timeline_end", index: 3, source: "layout", slotName: "timeline" },
+    ]);
+  });
+
   it("omits headers when slot empty and omitIfEmpty not disabled", () => {
     const compiled = compileTemplate(
       makeTemplate(
@@ -101,7 +142,7 @@ describe("layout assembler", () => {
           {
             kind: "slot",
             name: "empty",
-            header: { role: "system", content: "Header" },
+            header: [{ role: "system", content: "Header" }],
           },
         ],
         {
@@ -129,7 +170,7 @@ describe("layout assembler", () => {
           {
             kind: "slot",
             name: "empty",
-            header: { role: "system", content: "Header" },
+            header: [{ role: "system", content: "Header" }],
           },
         ],
         {
@@ -162,7 +203,7 @@ describe("layout assembler", () => {
             kind: "slot",
             name: "empty",
             omitIfEmpty: false,
-            header: { role: "system", content: "Header" },
+            header: [{ role: "system", content: "Header" }],
           },
         ],
         {

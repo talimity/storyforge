@@ -155,7 +155,7 @@ describe("compileLeaf", () => {
     it("does not mutate the provided scope during expansion", () => {
       const compiled = compileLeaf("{{greeting}} {{name}}");
       const scope = { greeting: "Hi {{name}}", name: "Lisa" };
-      const before = JSON.parse(JSON.stringify(scope));
+      const before = structuredClone(scope);
       const out = compiled(scope);
       expect(out).toBe("Hi Lisa Lisa"); // greeting expands using same scope
       expect(scope).toEqual(before); // scope unchanged
