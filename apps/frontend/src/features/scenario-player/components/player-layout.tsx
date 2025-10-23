@@ -1,5 +1,10 @@
 import { Box, Flex, useToken } from "@chakra-ui/react";
 import type { ReactNode } from "react";
+import {
+  PREF_WIDTH_TO_TOKEN,
+  selectTimelineWidth,
+  usePlayerPreferencesStore,
+} from "@/features/scenario-player/stores/player-preferences-store";
 
 interface PlayerLayoutProps {
   timeline: ReactNode;
@@ -11,7 +16,8 @@ interface PlayerLayoutProps {
  * This component handles the vertical split between timeline and input panel.
  */
 export function PlayerLayout({ timeline, intentPanel }: PlayerLayoutProps) {
-  const [maxW] = useToken("sizes", ["3xl"]);
+  const timelineWidth = PREF_WIDTH_TO_TOKEN[usePlayerPreferencesStore(selectTimelineWidth)];
+  const [maxW] = useToken("sizes", [timelineWidth]);
 
   return (
     <Flex direction="column" h="100%" data-testid="player-layout">

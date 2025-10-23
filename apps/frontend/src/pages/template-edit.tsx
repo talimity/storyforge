@@ -121,7 +121,7 @@ function TemplateEditPage() {
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         pageTitle={template.name}
-        isEditMode={true}
+        isEditMode
       />
     </PageContainer>
   );

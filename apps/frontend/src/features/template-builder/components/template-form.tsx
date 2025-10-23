@@ -213,7 +213,9 @@ export function TemplateForm({
     <>
       {/* Todo: move page wrapper out of form */}
       <PageHeader.Root>
-        <PageHeader.Title>Edit Template: {pageTitle}</PageHeader.Title>
+        <PageHeader.Title>
+          {isEditMode ? `Edit Template: ${pageTitle}` : pageTitle}
+        </PageHeader.Title>
 
         <PageHeader.Tabs tabs={tabs} defaultValue={activeTab} onChange={setActiveTab}>
           <PageHeader.Controls>

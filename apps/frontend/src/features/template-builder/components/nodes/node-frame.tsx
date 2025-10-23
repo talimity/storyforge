@@ -41,6 +41,8 @@ export const NodeFrame = (props: NodeFrameProps) => {
           alignItems="center"
           justifyContent="center"
           transition="all 0.2s"
+          userSelect="none"
+          touchAction="none"
           _hover={{ bg: "surface.emphasized" }}
           aria-label="Drag to reorder"
         >

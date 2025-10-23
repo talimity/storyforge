@@ -77,12 +77,7 @@ export function DraftTurn() {
         />
         {shouldShowText ? (
           previewText ? (
-            <StreamingMarkdown
-              text={previewText}
-              dialogueAuthorId={author?.id ?? null}
-              maxW="85ch"
-              size="lg"
-            />
+            <StreamingMarkdown text={previewText} dialogueAuthorId={author?.id ?? null} />
           ) : (
             <Text fontSize="md" color="content.muted">
               Thinking…

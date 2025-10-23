@@ -121,9 +121,9 @@ function PlayerShellInner() {
         </Box>
 
         {/* Eventual Side Panel Area */}
-        <Box width="96" minH="36">
-          Testing
-        </Box>
+        {/*<Box width="96" minH="36">*/}
+        {/*  Testing*/}
+        {/*</Box>*/}
       </Flex>
 
       <LoreActivationPreviewDialog

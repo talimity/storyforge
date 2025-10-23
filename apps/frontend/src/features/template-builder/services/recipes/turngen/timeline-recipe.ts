@@ -41,7 +41,7 @@ export const timelineBasicRecipe: RecipeDefinition<
   id: "timeline_basic",
   name: "Timeline (Simple)",
   task: "turn_generation",
-  description: "Lists turns from the scenario's timeline in chronological order.",
+  description: "Lists turns in chronological order.",
   parameters: basicParameters,
 
   availableVariables: [
@@ -126,7 +126,7 @@ const advancedParameters = [
     label: "Use Assistant Template for Unguided Turns",
     type: "toggle",
     defaultValue: false,
-    help: "For turns that do not have any intent guidance, use the Turn Result Format (Assistant) instead of Player Turn.",
+    help: "For turns that do not have any guidance, use the Turn Result Format (Assistant) instead of Player Turn.",
   },
   MAX_TURNS_PARAM,
   TOKEN_BUDGET_PARAM,
@@ -141,7 +141,7 @@ export const timelineAdvancedRecipe: RecipeDefinition<
   name: "Timeline (Advanced)",
   task: "turn_generation",
   description:
-    "Lists turns from the scenario's timeline in chronological order. The player's narrative guidance is included before each turn.",
+    "Lists turns in chronological order, and includes the player's guidance prompt before each turn.",
   parameters: advancedParameters,
 
   buildSlotLayout() {

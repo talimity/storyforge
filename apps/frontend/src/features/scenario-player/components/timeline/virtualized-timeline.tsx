@@ -15,6 +15,11 @@ import {
   selectCurrentRun,
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
+import {
+  PREF_WIDTH_TO_TOKEN,
+  selectTimelineWidth,
+  usePlayerPreferencesStore,
+} from "@/features/scenario-player/stores/player-preferences-store";
 import { useTurnUiStore } from "@/features/scenario-player/stores/turn-ui-store";
 
 const LIST_PADDING_Y_BREAKPOINTS = { base: 4, md: 6 };
@@ -133,7 +138,8 @@ export function VirtualizedTimeline(props: TimelineProps) {
   // do that we need to pull the Chakra theme tokens to apply correct spacing.
   const pyKey = useBreakpointValue(LIST_PADDING_Y_BREAKPOINTS) ?? 0;
   const [py] = useToken("space", [String(pyKey)]);
-  const [maxW] = useToken("sizes", ["3xl"]);
+  const timelineWidth = PREF_WIDTH_TO_TOKEN[usePlayerPreferencesStore(selectTimelineWidth)];
+  const [maxW] = useToken("sizes", [timelineWidth]);
   const virtualListStyles = useMemo(
     () =>
       ({

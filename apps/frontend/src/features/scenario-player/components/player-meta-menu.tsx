@@ -1,5 +1,7 @@
 import {
   Box,
+  Checkbox,
+  Fieldset,
   Flex,
   Heading,
   HStack,
@@ -8,11 +10,26 @@ import {
   Portal,
   SegmentGroup,
   Stack,
+  Text,
 } from "@chakra-ui/react";
-import { useState } from "react";
 import { LuSettings } from "react-icons/lu";
 import { ColorModeToggle } from "@/components/color-mode-toggle";
 import { Field } from "@/components/ui/index";
+import {
+  FONT_SIZE_OPTIONS,
+  isFontSizeOption,
+  isTimelineWidthOption,
+  PINNABLE_TURN_ACTIONS,
+  type PinnableTurnAction,
+  selectFontSize,
+  selectPinnedQuickActions,
+  selectSetFontSize,
+  selectSetTimelineWidth,
+  selectTimelineWidth,
+  selectTogglePinnedQuickAction,
+  TIMELINE_WIDTH_OPTIONS,
+  usePlayerPreferencesStore,
+} from "@/features/scenario-player/stores/player-preferences-store";
 
 export function PlayerMetaMenu() {
   return (
@@ -24,7 +41,7 @@ export function PlayerMetaMenu() {
       </Popover.Trigger>
       <Portal>
         <Popover.Positioner>
-          <Popover.Content>
+          <Popover.Content width="auto">
             <Popover.Arrow />
             <Popover.Header>
               <HStack>
@@ -41,6 +58,8 @@ export function PlayerMetaMenu() {
                 <FontSizeSelector />
 
                 <TurnHistoryWidthSelector />
+
+                <QuickActionSelector />
               </Stack>
             </Popover.Body>
             <Popover.CloseTrigger />
@@ -51,19 +70,24 @@ export function PlayerMetaMenu() {
   );
 }
 
-type FontSizeOption = "sm" | "md" | "lg";
 function FontSizeSelector() {
-  const [fontSize, setFontSize] = useLocalStorageState<FontSizeOption>("scenario-font-size", "md");
+  const fontSize = usePlayerPreferencesStore(selectFontSize);
+  const setFontSize = usePlayerPreferencesStore(selectSetFontSize);
 
   return (
-    <Field label="Text Size" helperText="Adjust the size of the scenario text.">
-      <Flex w="100%" justify="center" gap={4}>
+    <Field label="Timeline Text Size" helperText="Adjust the text size of turns in the timeline.">
+      <Flex w="100%" justify="start" gap={4}>
         <SegmentGroup.Root
           size="sm"
           value={fontSize}
-          onValueChange={(e) => setFontSize(e.value as FontSizeOption)}
+          onValueChange={(event) => {
+            const { value } = event;
+            if (value !== null && isFontSizeOption(value)) {
+              setFontSize(value);
+            }
+          }}
         >
-          <SegmentGroup.Items items={["sm", "md", "lg"]} />
+          <SegmentGroup.Items items={Array.from(FONT_SIZE_OPTIONS)} />
           <SegmentGroup.Indicator />
         </SegmentGroup.Root>
       </Flex>
@@ -71,22 +95,28 @@ function FontSizeSelector() {
   );
 }
 
-type TurnHistoryWidthOption = "sm" | "md" | "lg" | "xl" | "full";
 function TurnHistoryWidthSelector() {
-  const [width, setWidth] = useLocalStorageState<TurnHistoryWidthOption>(
-    "scenario-turn-history-width",
-    "lg"
-  );
+  const timelineWidth = usePlayerPreferencesStore(selectTimelineWidth);
+  const setTimelineWidth = usePlayerPreferencesStore(selectSetTimelineWidth);
 
   return (
-    <Field label="Timeline Width" helperText="Adjust the width of the scenario timeline.">
-      <Flex w="100%" justify="center" gap={4}>
+    <Field
+      label="Timeline Width"
+      helperText="Adjust the display width of the timeline."
+      hideBelow="sm"
+    >
+      <Flex w="100%" justify="start" gap={4}>
         <SegmentGroup.Root
           size="sm"
-          value={width}
-          onValueChange={(e) => setWidth(e.value as TurnHistoryWidthOption)}
+          value={timelineWidth}
+          onValueChange={(event) => {
+            const { value } = event;
+            if (value !== null && isTimelineWidthOption(value)) {
+              setTimelineWidth(value);
+            }
+          }}
         >
-          <SegmentGroup.Items items={["sm", "md", "lg", "xl", "full"]} />
+          <SegmentGroup.Items items={Array.from(TIMELINE_WIDTH_OPTIONS)} />
           <SegmentGroup.Indicator />
         </SegmentGroup.Root>
       </Flex>
@@ -94,16 +124,58 @@ function TurnHistoryWidthSelector() {
   );
 }
 
-function useLocalStorageState<T>(key: string, defaultValue: T): [T, (value: T) => void] {
-  const [state, setState] = useState<T>(() => {
-    const storedValue = localStorage.getItem(key);
-    return storedValue ? (JSON.parse(storedValue) as T) : defaultValue;
-  });
+interface QuickActionOption {
+  value: PinnableTurnAction;
+  label: string;
+}
 
-  const setLocalStorageState = (value: T) => {
-    setState(value);
-    localStorage.setItem(key, JSON.stringify(value));
-  };
+const QUICK_ACTION_DETAILS: Record<PinnableTurnAction, { label: string }> = {
+  edit: { label: "Edit turn" },
+  retry: { label: "Retry turn" },
+  delete: { label: "Delete turn" },
+  "generation-info": { label: "Generation info" },
+};
 
-  return [state, setLocalStorageState];
+const QUICK_ACTION_OPTIONS: QuickActionOption[] = PINNABLE_TURN_ACTIONS.map((value) => ({
+  value,
+  label: QUICK_ACTION_DETAILS[value].label,
+}));
+
+function QuickActionSelector() {
+  const pinnedQuickActions = usePlayerPreferencesStore(selectPinnedQuickActions);
+  const togglePinnedQuickAction = usePlayerPreferencesStore(selectTogglePinnedQuickAction);
+
+  return (
+    <Fieldset.Root>
+      <Fieldset.Legend>
+        <Text>Quick Turn Actions</Text>
+        <Text fontSize="xs" color="content.muted">
+          Choose which actions stay visible next to each turn.
+        </Text>
+      </Fieldset.Legend>
+      <Fieldset.Content mt={1}>
+        <Stack align="flex-start">
+          {QUICK_ACTION_OPTIONS.map((option) => {
+            const isChecked = pinnedQuickActions.includes(option.value);
+            return (
+              <Checkbox.Root
+                key={option.value}
+                checked={isChecked}
+                onCheckedChange={(event) => {
+                  console.log(option.value, event.checked);
+                  togglePinnedQuickAction(option.value, Boolean(event.checked));
+                }}
+                colorPalette="neutral"
+                size="sm"
+              >
+                <Checkbox.HiddenInput />
+                <Checkbox.Control />
+                <Checkbox.Label>{option.label}</Checkbox.Label>
+              </Checkbox.Root>
+            );
+          })}
+        </Stack>
+      </Fieldset.Content>
+    </Fieldset.Root>
+  );
 }

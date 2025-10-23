@@ -27,7 +27,6 @@
               "@chakra-ui/react": {
                 "importNames": [
                   "Button",
-                  "Checkbox",
                   "Dialog",
                   "EmptyState",
                   "Field",

@@ -20,10 +20,10 @@ import type {
 
 /** Per-task registries */
 export const TURN_GEN_RECIPES = {
+  characters_basic: charactersRecipe,
   timeline_basic: timelineBasicRecipe,
   timeline_advanced: timelineAdvancedRecipe,
   intent_basic: nextTurnIntentRecipe,
-  characters_basic: charactersRecipe,
 } as const satisfies Record<TurnGenRecipeId, TurnGenRecipe>;
 
 export const CHAPTER_SUMM_RECIPES = {

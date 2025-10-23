@@ -48,8 +48,7 @@ export const charactersRecipe: RecipeDefinition<
   id: "characters_basic",
   name: "Character Descriptions",
   task: "turn_generation",
-  description:
-    "Lists each active character in the scenario, their description, and optionally their writing examples.",
+  description: "Lists each active character and their description/personality.",
   parameters,
 
   // TODO: Can we get runtime type information for the referenced datasource so

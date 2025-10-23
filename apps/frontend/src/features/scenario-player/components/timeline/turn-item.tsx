@@ -101,6 +101,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
 
   return (
     <Box
+      as="article"
       position="relative"
       layerStyle="surface"
       p={4}
@@ -140,8 +141,6 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
             text={turn.content.text}
             dialogueAuthorId={authorChar?.id ?? null}
             dialogueTintColor={dialogueColor}
-            maxW="85ch"
-            size="lg"
             data-testid="turn-content"
           />
         )}

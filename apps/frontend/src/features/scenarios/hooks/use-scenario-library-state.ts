@@ -1,63 +1,24 @@
 import type { ScenarioLibrarySort, ScenariosListQueryInput } from "@storyforge/contracts";
 import { scenarioLibrarySortSchema } from "@storyforge/contracts";
-import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
-import { useHydratedSearchParams } from "@/features/library/hooks/use-hydrated-search-params";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLibraryUrlSync } from "@/features/library/hooks/use-library-url-sync";
 import type { ScenarioStatusFilter } from "@/features/scenarios/components/scenario-filters";
+import {
+  scenarioLibraryUrlDescriptors,
+  selectScenarioClearFilters,
+  selectScenarioClearSearch,
+  selectScenarioSearchTerm,
+  selectScenarioSetSearchTerm,
+  selectScenarioSetSort,
+  selectScenarioSetStarredOnly,
+  selectScenarioSetStatus,
+  selectScenarioSort,
+  selectScenarioStarredOnly,
+  selectScenarioStatus,
+  useScenarioLibraryStore,
+} from "@/features/scenarios/stores/scenario-library-store";
 
-const SCENARIO_LIBRARY_PERSIST_KEY = "scenario-library-preferences";
-
-const scenarioLibraryPersistSchema = z.object({
-  sort: scenarioLibrarySortSchema.optional(),
-  status: z.enum(["all", "active", "archived"]).optional(),
-  starred: z.boolean().optional(),
-});
-
-type ScenarioLibraryPersistedState = z.infer<typeof scenarioLibraryPersistSchema>;
-
-function parseScenarioSort(value: string | null): ScenarioLibrarySort {
-  if (!value) {
-    return "default";
-  }
-  const parsed = scenarioLibrarySortSchema.safeParse(value);
-  return parsed.success ? parsed.data : "default";
-}
-
-function parseScenarioStatus(value: string | null): ScenarioStatusFilter {
-  if (value === "active" || value === "archived") {
-    return value;
-  }
-  return "all";
-}
-
-function hasScenarioQueryParams(params: URLSearchParams): boolean {
-  if (params.has("sort")) return true;
-  if (params.has("status")) return true;
-  if (params.has("starred")) return true;
-  return false;
-}
-
-function applyScenarioStoredState(params: URLSearchParams, stored: ScenarioLibraryPersistedState) {
-  if (stored.sort && stored.sort !== "default") {
-    params.set("sort", stored.sort);
-  } else {
-    params.delete("sort");
-  }
-
-  if (stored.status && stored.status !== "all") {
-    params.set("status", stored.status);
-  } else {
-    params.delete("status");
-  }
-
-  if (typeof stored.starred === "boolean") {
-    if (stored.starred) {
-      params.set("starred", "true");
-    } else {
-      params.delete("starred");
-    }
-  }
-}
+const SEARCH_DEBOUNCE_MS = 300;
 
 interface ScenarioLibraryState {
   sort: ScenarioLibrarySort;
@@ -65,7 +26,7 @@ interface ScenarioLibraryState {
   statusFilter: ScenarioStatusFilter;
   setStatusFilter: (value: ScenarioStatusFilter) => void;
   starredOnly: boolean;
-  setStarredOnly: (next: boolean) => void;
+  setStarredOnly: (value: boolean) => void;
   isFilterActive: boolean;
   clearFilters: () => void;
   searchInput: string;
@@ -75,34 +36,22 @@ interface ScenarioLibraryState {
 }
 
 export function useScenarioLibraryState(): ScenarioLibraryState {
-  const hydrationOptions = useMemo(
-    () => ({
-      storageKey: SCENARIO_LIBRARY_PERSIST_KEY,
-      hasRelevantParams: hasScenarioQueryParams,
-      parseStoredState: (raw: unknown) => {
-        const result = scenarioLibraryPersistSchema.safeParse(raw);
-        return result.success ? result.data : null;
-      },
-      applyStoredState: applyScenarioStoredState,
-    }),
-    []
-  );
+  useLibraryUrlSync({
+    store: useScenarioLibraryStore,
+    descriptors: scenarioLibraryUrlDescriptors,
+  });
 
-  const { searchParams, setSearchParams, isHydrated, storedState } =
-    useHydratedSearchParams<ScenarioLibraryPersistedState>(hydrationOptions);
+  const sort = useScenarioLibraryStore(selectScenarioSort);
+  const setSortAction = useScenarioLibraryStore(selectScenarioSetSort);
+  const statusFilter = useScenarioLibraryStore(selectScenarioStatus);
+  const setStatusAction = useScenarioLibraryStore(selectScenarioSetStatus);
+  const starredOnly = useScenarioLibraryStore(selectScenarioStarredOnly);
+  const setStarredOnly = useScenarioLibraryStore(selectScenarioSetStarredOnly);
+  const clearFilters = useScenarioLibraryStore(selectScenarioClearFilters);
+  const searchTerm = useScenarioLibraryStore(selectScenarioSearchTerm);
+  const setSearchTerm = useScenarioLibraryStore(selectScenarioSetSearchTerm);
+  const clearSearchAction = useScenarioLibraryStore(selectScenarioClearSearch);
 
-  const sortParam = searchParams.get("sort");
-  const sort = sortParam !== null ? parseScenarioSort(sortParam) : (storedState?.sort ?? "default");
-
-  const statusParam = searchParams.get("status");
-  const statusFilter =
-    statusParam !== null ? parseScenarioStatus(statusParam) : (storedState?.status ?? "all");
-
-  const starredParam = searchParams.get("starred");
-  const starredOnly = starredParam === "true" ? true : storedState?.starred === true;
-
-  const searchParam = searchParams.get("search");
-  const searchTerm = searchParam !== null ? searchParam : "";
   const [searchInput, setSearchInput] = useState(searchTerm);
 
   useEffect(() => {
@@ -110,126 +59,59 @@ export function useScenarioLibraryState(): ScenarioLibraryState {
   }, [searchTerm]);
 
   useEffect(() => {
-    const trimmedInput = searchInput.trim();
-    if (trimmedInput === searchTerm) {
+    const trimmed = searchInput.trim();
+    if (trimmed === searchTerm) {
       return;
     }
-
     const handle = window.setTimeout(() => {
-      const next = new URLSearchParams(searchParams);
-      if (trimmedInput.length === 0) {
-        next.delete("search");
-      } else {
-        next.set("search", trimmedInput);
-      }
-      setSearchParams(next, { replace: true });
-    }, 300);
-
+      setSearchTerm(trimmed);
+    }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(handle);
-  }, [searchInput, searchTerm, searchParams, setSearchParams]);
+  }, [searchInput, searchTerm, setSearchTerm]);
 
-  useEffect(() => {
-    if (!isHydrated) {
-      return;
-    }
-    if (typeof window === "undefined") {
-      return;
-    }
+  const handleSortChange = useCallback(
+    (value: string) => {
+      const result = scenarioLibrarySortSchema.safeParse(value);
+      const nextValue = result.success ? result.data : "default";
+      setSortAction(nextValue);
+    },
+    [setSortAction]
+  );
 
-    const payload: ScenarioLibraryPersistedState = {
-      sort,
-      status: statusFilter,
-      starred: starredOnly,
-    };
-
-    try {
-      window.localStorage.setItem(SCENARIO_LIBRARY_PERSIST_KEY, JSON.stringify(payload));
-    } catch (error) {
-      console.error(error);
-    }
-  }, [isHydrated, sort, starredOnly, statusFilter]);
-
-  const updateParams = (mutator: (params: URLSearchParams) => void) => {
-    const next = new URLSearchParams(searchParams);
-    mutator(next);
-    setSearchParams(next, { replace: true });
-  };
-
-  const setSort = (value: string) => {
-    const parsed = scenarioLibrarySortSchema.safeParse(value);
-    if (!parsed.success) {
-      return;
-    }
-
-    updateParams((params) => {
-      if (parsed.data === "default") {
-        params.delete("sort");
-      } else {
-        params.set("sort", parsed.data);
-      }
-    });
-  };
-
-  const setStatusFilter = (value: ScenarioStatusFilter) => {
-    updateParams((params) => {
-      if (value === "all") {
-        params.delete("status");
-      } else {
-        params.set("status", value);
-      }
-    });
-  };
-
-  const setStarredOnly = (next: boolean) => {
-    updateParams((params) => {
-      if (next) {
-        params.set("starred", "true");
-      } else {
-        params.delete("starred");
-      }
-    });
-  };
-
-  const clearFilters = () => {
-    updateParams((params) => {
-      params.delete("status");
-      params.delete("starred");
-    });
-  };
-
-  const onSearchInputChange = (value: string) => {
+  const handleSearchChange = useCallback((value: string) => {
     setSearchInput(value);
-  };
+  }, []);
 
-  const clearSearch = () => {
+  const handleClearSearch = useCallback(() => {
+    clearSearchAction();
     setSearchInput("");
-    updateParams((params) => {
-      params.delete("search");
-    });
-  };
+  }, [clearSearchAction]);
 
   const isFilterActive = starredOnly || statusFilter !== "all";
   const trimmedSearch = searchTerm.trim();
 
-  const queryInput: ScenariosListQueryInput = {
-    search: trimmedSearch.length > 0 ? trimmedSearch : undefined,
-    sort,
-    status: statusFilter === "all" ? undefined : statusFilter,
-    starred: starredOnly ? true : undefined,
-  };
+  const queryInput: ScenariosListQueryInput = useMemo(
+    () => ({
+      search: trimmedSearch.length > 0 ? trimmedSearch : undefined,
+      sort,
+      status: statusFilter === "all" ? undefined : statusFilter,
+      starred: starredOnly ? true : undefined,
+    }),
+    [sort, statusFilter, starredOnly, trimmedSearch]
+  );
 
   return {
     sort,
-    setSort,
+    setSort: handleSortChange,
     statusFilter,
-    setStatusFilter,
+    setStatusFilter: setStatusAction,
     starredOnly,
     setStarredOnly,
     isFilterActive,
     clearFilters,
     searchInput,
-    onSearchInputChange,
-    clearSearch,
+    onSearchInputChange: handleSearchChange,
+    clearSearch: handleClearSearch,
     queryInput,
   };
 }

@@ -44,9 +44,8 @@ function TemplateTaskSelectPage() {
         <VStack gap={2} align="center" textAlign="center">
           <Heading size="lg">Choose a Task Type</Heading>
           <Text color="content.muted" maxW="2xl">
-            Prompts are designed around specific generation tasks. Select the type of task this
-            prompt will perform to get started. This affects the available content that can be
-            inserted into the template.
+            Prompts are designed around specific generation tasks. The task you select affects what
+            content blocks and variables are available when building your template.
           </Text>
         </VStack>
 

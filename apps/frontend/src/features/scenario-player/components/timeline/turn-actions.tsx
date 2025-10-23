@@ -8,6 +8,7 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
+import { isDefined } from "@storyforge/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import {
@@ -32,6 +33,11 @@ import { InsertTurnDialog } from "@/features/scenario-player/components/timeline
 import { useChapterActions } from "@/features/scenario-player/hooks/use-chapter-actions";
 import { useScenarioIntentActions } from "@/features/scenario-player/hooks/use-scenario-intent-actions";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
+import {
+  isPinnableTurnAction,
+  selectPinnedQuickActions,
+  usePlayerPreferencesStore,
+} from "@/features/scenario-player/stores/player-preferences-store";
 import {
   selectEditedContentForTurn,
   useTurnUiStore,
@@ -274,7 +280,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
         id: "delete",
         label: "Delete…",
         icon: <LuTrash />,
-        slots: ["menu"],
+        slots: ["quick", "menu"],
         kind: "item",
         color: "fg.error",
         onSelect: () => openDeleteOverlay(turn.id),
@@ -284,7 +290,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
         id: "generation-info",
         label: "Gen Info",
         icon: <LuInfo />,
-        slots: ["menu"],
+        slots: ["quick", "menu"],
         kind: "item",
         disabled: !turn.provenance,
         onSelect: () => setShowGenerationInfo(true),
@@ -309,11 +315,54 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
     ]
   );
 
-  const quickActions = !isMobile
-    ? actionDefinitions.filter((a) => a.kind === "item" && a.slots.includes("quick"))
-    : [actionDefinitions.filter((a) => a.id === "retry")[0]];
+  const pinnedQuickActions = usePlayerPreferencesStore(selectPinnedQuickActions);
+  const quickActions = pinnedQuickActions
+    .map((actionId) =>
+      actionDefinitions.find((action) => action.kind === "item" && action.id === actionId)
+    )
+    .filter(isDefined);
 
-  const menuActions = actionDefinitions.filter((action) => action.slots.includes("menu"));
+  const quickActionIds = new Set(pinnedQuickActions);
+  const isPinnedQuickAction = (actionId: string) =>
+    isPinnableTurnAction(actionId) && quickActionIds.has(actionId);
+
+  const rawMenuActions = actionDefinitions.filter((action) => {
+    if (!action.slots.includes("menu")) return false;
+    return !(action.kind === "item" && isPinnedQuickAction(action.id));
+  });
+
+  const menuActions: ActionDefinition[] = [];
+  let pendingSeparator: ActionDefinition | null = null;
+
+  for (const action of rawMenuActions) {
+    if (action.kind === "separator") {
+      pendingSeparator = action;
+      continue;
+    }
+
+    if (pendingSeparator) {
+      if (menuActions.length > 0) {
+        menuActions.push(pendingSeparator);
+      }
+      pendingSeparator = null;
+    }
+
+    if (action.kind === "submenu") {
+      const submenuChildren = action.children?.filter((child) => {
+        if (!child.slots.includes("menu")) return false;
+        return !(child.kind === "item" && isPinnedQuickAction(child.id));
+      });
+
+      if (submenuChildren === undefined || submenuChildren.length === 0) {
+        continue;
+      }
+
+      menuActions.push({ ...action, children: submenuChildren });
+      continue;
+    }
+
+    menuActions.push(action);
+  }
 
   if (isEditing) {
     return (
@@ -378,29 +427,31 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
             {action.icon}
           </IconButton>
         ))}
-        <Menu.Root
-          onFocusOutside={(details) => {
-            details.preventDefault();
-            details.stopPropagation();
-          }}
-        >
-          <Menu.Trigger asChild>
-            <IconButton
-              size={buttonSize}
-              variant="ghost"
-              layerStyle="tinted.subtle"
-              aria-label="More actions"
-              disabled={isPreviewing}
-            >
-              <LuEllipsisVertical />
-            </IconButton>
-          </Menu.Trigger>
-          <Portal>
-            <Menu.Positioner>
-              <Menu.Content>{renderMenuActions(menuActions, isPreviewing)}</Menu.Content>
-            </Menu.Positioner>
-          </Portal>
-        </Menu.Root>
+        {menuActions.length > 0 ? (
+          <Menu.Root
+            onFocusOutside={(details) => {
+              details.preventDefault();
+              details.stopPropagation();
+            }}
+          >
+            <Menu.Trigger asChild>
+              <IconButton
+                size={buttonSize}
+                variant="ghost"
+                layerStyle="tinted.subtle"
+                aria-label="More actions"
+                disabled={isPreviewing}
+              >
+                <LuEllipsisVertical />
+              </IconButton>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content>{renderMenuActions(menuActions, isPreviewing)}</Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
+        ) : null}
       </HStack>
       <DiscardChangesDialog
         isOpen={showDiscardDialog}

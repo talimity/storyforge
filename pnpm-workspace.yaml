@@ -17,6 +17,7 @@ catalog:
   drizzle-kit: beta
   drizzle-orm: 1.0.0-beta.1-ac4ce44
   json-schema: ^0.4.0
+  qs: ^6.14.0
   sharp: ^0.34.3
   superjson: ^2.2.3
   trpc-to-openapi: ^3.1.0

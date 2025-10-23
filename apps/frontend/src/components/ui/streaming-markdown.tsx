@@ -6,6 +6,10 @@ import rehypeSanitize from "rehype-sanitize";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import type { PluggableList } from "unified";
+import {
+  selectFontSize,
+  usePlayerPreferencesStore,
+} from "@/features/scenario-player/stores/player-preferences-store";
 import { closeIncompleteMarkdown } from "@/lib/markdown/close-incomplete-markdown";
 import { rehypeDialogue } from "@/lib/markdown/rehype-dialogue";
 import { rehypeSoftBreakParagraphs } from "@/lib/markdown/rehype-soft-break-paragraphs";
@@ -41,8 +45,6 @@ export const StreamingMarkdown = memo(function StreamingMarkdown({
   dialogueTintColor = null,
   allowBasicHtml = true,
   paragraphizeSoftBreaks = true,
-  maxW = "85ch",
-  size = "lg",
   ...rest
 }: StreamingMarkdownProps) {
   const stableText = useMemo(() => closeIncompleteMarkdown(text), [text]);
@@ -67,9 +69,10 @@ export const StreamingMarkdown = memo(function StreamingMarkdown({
   // This fixes models that use single line breaks for new lines
   // instead of double line breaks for new paragraphs
   const remarkPlugins = useMemo(() => [remarkGfm, remarkBreaks], []);
+  const fontSize = usePlayerPreferencesStore(selectFontSize);
 
   return (
-    <Prose maxW={maxW} size={size} {...rest}>
+    <Prose maxW="fit-content" fontSize={fontSize} {...rest}>
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}

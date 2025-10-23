@@ -26,10 +26,10 @@ export const nextTurnIntentRecipe: RecipeDefinition<
   typeof params
 > = {
   id: "intent_basic",
-  name: "Next Turn Intent",
+  name: "Next Turn Guidance",
   task: "turn_generation",
   description:
-    "Tells the model how to generate the next turn based on the player's intent input. Skipped if the player has not provided any input.",
+    "Instructs the model how to continue the scenario, based on the player's guidance prompt. Skipped if player didn't provide any guidance.",
   parameters: params,
   toSlotSpec(params) {
     return {
