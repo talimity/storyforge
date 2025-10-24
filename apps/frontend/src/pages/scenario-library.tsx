@@ -12,10 +12,22 @@ import {
   SortDropdown,
 } from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
+import { usePersistedLibraryFilters } from "@/features/library/use-persisted-library-filters";
 import { ChatImportDialog } from "@/features/scenario-import/components/chat-import-dialog";
 import { ScenarioCard, ScenarioCardSkeleton } from "@/features/scenarios/components/scenario-card";
-import { ScenarioFilterPopover } from "@/features/scenarios/components/scenario-filters";
-import { useScenarioLibraryState } from "@/features/scenarios/hooks/use-scenario-library-state";
+import {
+  ScenarioFilterPopover,
+  type ScenarioStatusFilter,
+} from "@/features/scenarios/components/scenario-filters";
+import {
+  createScenarioQueryInput,
+  parseScenarioSort,
+  scenarioFilterParams,
+  scenarioFilterStorageKey,
+  scenarioFilterVersion,
+  scenarioLibraryFilterDefaults,
+  scenarioLibraryFilterSchema,
+} from "@/features/scenarios/library/filters";
 import { useTRPC } from "@/lib/trpc";
 
 const scenarioSortOptions = [
@@ -36,24 +48,57 @@ function ScenarioLibraryPage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-
-  const {
-    sort,
-    setSort,
-    statusFilter,
-    setStatusFilter,
-    starredOnly,
-    setStarredOnly,
-    isFilterActive,
-    clearFilters,
-    searchInput,
-    onSearchInputChange,
-    clearSearch,
-    queryInput,
-  } = useScenarioLibraryState();
-
-  const scenariosQuery = useQuery(trpc.scenarios.list.queryOptions(queryInput));
+  const { filters, setFilter, updateFilters } = usePersistedLibraryFilters({
+    schema: scenarioLibraryFilterSchema,
+    defaults: scenarioLibraryFilterDefaults,
+    params: scenarioFilterParams,
+    storageKey: scenarioFilterStorageKey,
+    version: scenarioFilterVersion,
+  });
+  const scenariosQueryInput = createScenarioQueryInput(filters);
+  const scenariosQuery = useQuery(trpc.scenarios.list.queryOptions(scenariosQueryInput));
   const scenarios = scenariosQuery.data?.scenarios ?? [];
+  const isFilterActive = filters.status !== "all" || filters.starredOnly;
+
+  const clearSearch = () => {
+    setFilter("search", "");
+  };
+
+  const handleSearchChange = (next: string) => {
+    setFilter("search", next);
+  };
+
+  const handleSortChange = (next: string) => {
+    const parsed = parseScenarioSort(next);
+    if (!parsed.success) {
+      return;
+    }
+    setFilter("sort", parsed.data);
+  };
+
+  const handleStatusChange = (next: ScenarioStatusFilter) => {
+    setFilter("status", next);
+  };
+
+  const handleStarredOnlyChange = (next: boolean) => {
+    setFilter("starredOnly", next);
+  };
+
+  const clearFilterSelections = () => {
+    updateFilters((previous) => {
+      const raw: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(previous)) {
+        if (key === "status") {
+          raw[key] = "all";
+        } else if (key === "starredOnly") {
+          raw[key] = false;
+        } else {
+          raw[key] = value;
+        }
+      }
+      return scenarioLibraryFilterSchema.parse(raw);
+    });
+  };
 
   return (
     <PageContainer>
@@ -80,24 +125,28 @@ function ScenarioLibraryPage() {
           <InputGroup
             startElement={<LuSearch />}
             endElement={
-              searchInput ? <CloseButton size="sm" onClick={clearSearch} me="-2" /> : undefined
+              filters.search ? <CloseButton size="sm" onClick={clearSearch} me="-2" /> : undefined
             }
           >
             <Input
               placeholder="Search scenarios..."
-              value={searchInput}
-              onChange={(event) => onSearchInputChange(event.target.value)}
+              value={filters.search}
+              onChange={(event) => handleSearchChange(event.target.value)}
             />
           </InputGroup>
         </Box>
         <Flex flex="1" gap={2}>
-          <SortDropdown options={scenarioSortOptions} value={sort} onChange={setSort} />
+          <SortDropdown
+            options={scenarioSortOptions}
+            value={filters.sort}
+            onChange={handleSortChange}
+          />
           <ScenarioFilterPopover
-            status={statusFilter}
-            onStatusChange={setStatusFilter}
-            starredOnly={starredOnly}
-            onStarredOnlyChange={setStarredOnly}
-            onClear={isFilterActive ? clearFilters : undefined}
+            status={filters.status}
+            onStatusChange={handleStatusChange}
+            starredOnly={filters.starredOnly}
+            onStarredOnlyChange={handleStarredOnlyChange}
+            onClear={isFilterActive ? clearFilterSelections : undefined}
             isDirty={isFilterActive}
           />
         </Flex>

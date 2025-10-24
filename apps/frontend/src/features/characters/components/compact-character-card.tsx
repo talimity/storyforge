@@ -20,6 +20,7 @@ import {
   LuStar,
   LuTrash,
 } from "react-icons/lu";
+import { useInView } from "react-intersection-observer";
 import { Link } from "react-router-dom";
 import { Avatar } from "@/components/ui";
 import { cardTypeLabels } from "@/features/characters/character-enums";
@@ -48,6 +49,8 @@ export function CompactCharacterCard({ character, isSelected = false }: CompactC
     closeDeleteDialog,
   } = useCharacterActions(character.id);
   const { toggleStar, isPendingFor } = useCharacterStar();
+  // defer mounting heavy chakra menu/dialog components until in view
+  const { ref, inView } = useInView({ triggerOnce: true });
 
   return (
     <>
@@ -64,16 +67,21 @@ export function CompactCharacterCard({ character, isSelected = false }: CompactC
         width="100%"
         minWidth={0}
         overflow="hidden"
+        ref={ref}
       >
         <Bleed inlineStart={2} block={2}>
           <Box borderRightWidth={1}>
-            <Avatar
-              size="2xl"
-              shape="square"
-              name={character.name}
-              src={character.avatarPath ? getApiUrl(character.avatarPath) : undefined}
-              icon={<LuSquareUserRound size={20} />}
-            />
+            {inView ? (
+              <Avatar
+                size="2xl"
+                shape="square"
+                name={character.name}
+                src={character.avatarPath ? getApiUrl(character.avatarPath) : undefined}
+                icon={<LuSquareUserRound size={20} />}
+              />
+            ) : (
+              <Skeleton boxSize={16} borderRadius="md" variant="shine" />
+            )}
           </Box>
         </Bleed>
 
@@ -102,68 +110,74 @@ export function CompactCharacterCard({ character, isSelected = false }: CompactC
           </Text>
         </Stack>
 
-        <IconButton
-          aria-label={character.isStarred ? "Unstar character" : "Star character"}
-          size="xs"
-          variant={character.isStarred ? "solid" : "ghost"}
-          colorPalette={character.isStarred ? "accent" : "neutral"}
-          onClick={(event) => {
-            event.stopPropagation();
-            toggleStar(character.id, !character.isStarred);
-          }}
-          loading={isPendingFor(character.id)}
-        >
-          <LuStar fill={character.isStarred ? "currentColor" : "none"} stroke="currentColor" />
-        </IconButton>
-
-        <Menu.Root positioning={{ placement: "bottom-end" }}>
-          <Box display="flex" alignItems="center">
-            <Menu.Trigger asChild>
-              <IconButton
-                aria-label="Character options"
-                variant="plain"
-                size="xs"
-                opacity={0}
-                _groupHover={{ opacity: 1 }}
-                _focus={{ opacity: 1 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <LuEllipsisVertical />
-              </IconButton>
-            </Menu.Trigger>
-          </Box>
-          <Portal>
-            <Menu.Positioner>
-              <Menu.Content>
-                <Menu.Item value="edit" asChild>
-                  <Link to={`/characters/${character.id}/edit`}>
-                    <LuPencilLine />
-                    <Box flex="1">Edit</Box>
-                  </Link>
-                </Menu.Item>
-                <Menu.Item
-                  value="delete"
-                  color="fg.error"
-                  _hover={{ bg: "bg.error", color: "fg.error" }}
-                  onSelect={openDeleteDialog}
-                  disabled={deleteCharacterMutation.isPending}
-                >
-                  <LuTrash />
-                  <Box flex="1">Delete</Box>
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
-          </Portal>
-        </Menu.Root>
+        {inView && (
+          <>
+            {" "}
+            <IconButton
+              aria-label={character.isStarred ? "Unstar character" : "Star character"}
+              size="xs"
+              variant={character.isStarred ? "solid" : "ghost"}
+              colorPalette={character.isStarred ? "accent" : "neutral"}
+              onClick={(event) => {
+                event.stopPropagation();
+                toggleStar(character.id, !character.isStarred);
+              }}
+              loading={isPendingFor(character.id)}
+            >
+              <LuStar fill={character.isStarred ? "currentColor" : "none"} stroke="currentColor" />
+            </IconButton>
+            <Menu.Root positioning={{ placement: "bottom-end" }}>
+              <Box display="flex" alignItems="center">
+                <Menu.Trigger asChild>
+                  <IconButton
+                    aria-label="Character options"
+                    variant="plain"
+                    size="xs"
+                    opacity={0}
+                    _groupHover={{ opacity: 1 }}
+                    _focus={{ opacity: 1 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <LuEllipsisVertical />
+                  </IconButton>
+                </Menu.Trigger>
+              </Box>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="edit" asChild>
+                      <Link to={`/characters/${character.id}/edit`}>
+                        <LuPencilLine />
+                        <Box flex="1">Edit</Box>
+                      </Link>
+                    </Menu.Item>
+                    <Menu.Item
+                      value="delete"
+                      color="fg.error"
+                      _hover={{ bg: "bg.error", color: "fg.error" }}
+                      onSelect={openDeleteDialog}
+                      disabled={deleteCharacterMutation.isPending}
+                    >
+                      <LuTrash />
+                      <Box flex="1">Delete</Box>
+                    </Menu.Item>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
+          </>
+        )}
       </HStack>
 
-      <CharacterDeleteDialog
-        isOpen={isDeleteDialogOpen}
-        onOpenChange={(_e) => closeDeleteDialog()}
-        characterName={character.name}
-        onConfirmDelete={handleDelete}
-        isDeleting={deleteCharacterMutation.isPending}
-      />
+      {inView && (
+        <CharacterDeleteDialog
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={(_e) => closeDeleteDialog()}
+          characterName={character.name}
+          onConfirmDelete={handleDelete}
+          isDeleting={deleteCharacterMutation.isPending}
+        />
+      )}
     </>
   );
 }

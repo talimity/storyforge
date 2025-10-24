@@ -1,5 +1,5 @@
 import { ActionBar, Box, Container, Flex, Grid, Input, InputGroup } from "@chakra-ui/react";
-import type { CharacterLibraryItem } from "@storyforge/contracts";
+import type { CardType, CharacterLibraryItem } from "@storyforge/contracts";
 import { createId } from "@storyforge/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type MouseEventHandler, useState } from "react";
@@ -28,7 +28,17 @@ import {
   CompactCharacterCard,
   CompactCharacterCardSkeleton,
 } from "@/features/characters/components/compact-character-card";
-import { useCharacterLibraryState } from "@/features/characters/hooks/use-character-library-state";
+import {
+  characterFilterParams,
+  characterFilterStorageKey,
+  characterFilterVersion,
+  characterLibraryFilterDefaults,
+  characterLibraryFilterSchema,
+  createCharacterQueryInput,
+  parseCharacterSort,
+  parseCharacterViewMode,
+} from "@/features/characters/library/filters";
+import { usePersistedLibraryFilters } from "@/features/library/use-persisted-library-filters";
 import { useTRPC } from "@/lib/trpc";
 
 const viewModeOptions = [
@@ -52,26 +62,66 @@ function CharacterLibraryPage() {
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([]);
-
-  const {
-    sort,
-    setSort,
-    viewMode,
-    setViewMode,
-    actorTypes,
-    setActorTypes,
-    starredOnly,
-    setStarredOnly,
-    isFilterActive,
-    clearFilters,
-    searchInput,
-    onSearchInputChange,
-    clearSearch,
-    queryInput,
-  } = useCharacterLibraryState();
-
-  const charaQuery = useQuery(trpc.characters.list.queryOptions(queryInput));
+  const { filters, setFilter, updateFilters } = usePersistedLibraryFilters({
+    schema: characterLibraryFilterSchema,
+    defaults: characterLibraryFilterDefaults,
+    params: characterFilterParams,
+    storageKey: characterFilterStorageKey,
+    version: characterFilterVersion,
+  });
+  const charaQueryInput = createCharacterQueryInput(filters);
+  const charaQuery = useQuery(trpc.characters.list.queryOptions(charaQueryInput));
   const charas = charaQuery.data?.characters ?? [];
+
+  const clearSearch = () => {
+    setFilter("search", "");
+  };
+
+  const handleSearchChange = (next: string) => {
+    setFilter("search", next);
+  };
+
+  const handleSortChange = (next: string) => {
+    const parsed = parseCharacterSort(next);
+    if (!parsed.success) {
+      return;
+    }
+    setFilter("sort", parsed.data);
+  };
+
+  const handleViewModeChange = (next: string) => {
+    const parsed = parseCharacterViewMode(next);
+    if (!parsed.success) {
+      return;
+    }
+    setFilter("viewMode", parsed.data);
+  };
+
+  const handleActorTypesChange = (next: CardType[]) => {
+    setFilter("actorTypes", next);
+  };
+
+  const handleStarredOnlyChange = (next: boolean) => {
+    setFilter("starredOnly", next);
+  };
+
+  const clearFilterSelections = () => {
+    updateFilters((previous) => {
+      const raw: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(previous)) {
+        if (key === "actorTypes") {
+          raw[key] = [];
+        } else if (key === "starredOnly") {
+          raw[key] = false;
+        } else {
+          raw[key] = value;
+        }
+      }
+      return characterLibraryFilterSchema.parse(raw);
+    });
+  };
+
+  const isFilterActive = filters.actorTypes.length > 0 || filters.starredOnly;
 
   const toggleCharacterSelection = (characterId: string) => {
     setSelectedCharacterIds((previous) => {
@@ -134,27 +184,35 @@ function CharacterLibraryPage() {
             <InputGroup
               startElement={<LuSearch />}
               endElement={
-                searchInput ? <CloseButton size="xs" onClick={clearSearch} me="-2" /> : undefined
+                filters.search ? <CloseButton size="xs" onClick={clearSearch} me="-2" /> : undefined
               }
             >
               <Input
                 placeholder="Search characters..."
-                value={searchInput}
-                onChange={(event) => onSearchInputChange(event.target.value)}
+                value={filters.search}
+                onChange={(event) => handleSearchChange(event.target.value)}
               />
             </InputGroup>
           </Box>
           <Flex flex="1" gap={2}>
-            <SortDropdown options={characterSortOptions} value={sort} onChange={setSort} />
+            <SortDropdown
+              options={characterSortOptions}
+              value={filters.sort}
+              onChange={handleSortChange}
+            />
             <CharacterFilterPopover
-              actorTypes={actorTypes}
-              onActorTypesChange={setActorTypes}
-              starredOnly={starredOnly}
-              onStarredOnlyChange={setStarredOnly}
-              onClear={isFilterActive ? clearFilters : undefined}
+              actorTypes={filters.actorTypes}
+              onActorTypesChange={handleActorTypesChange}
+              starredOnly={filters.starredOnly}
+              onStarredOnlyChange={handleStarredOnlyChange}
+              onClear={isFilterActive ? clearFilterSelections : undefined}
               isDirty={isFilterActive}
             />
-            <ViewModes options={viewModeOptions} value={viewMode} onChange={setViewMode} />
+            <ViewModes
+              options={viewModeOptions}
+              value={filters.viewMode}
+              onChange={handleViewModeChange}
+            />
           </Flex>
         </Flex>
 
@@ -172,7 +230,7 @@ function CharacterLibraryPage() {
             actionLabel="Import Character"
             onActionClick={() => setIsImportModalOpen(true)}
           />
-        ) : viewMode === "grid" ? (
+        ) : filters.viewMode === "grid" ? (
           <CharaGridView
             characters={charas}
             isLoading={charaQuery.isLoading}
