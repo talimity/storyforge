@@ -24,7 +24,7 @@ interface TurnGraphCanvasProps {
 
 const nodeTypes = { turn: TurnNode } as const;
 
-export function TurnGraphCanvas({
+export default function TurnGraphCanvas({
   graph,
   getParticipantLabel,
   getParticipantColor,

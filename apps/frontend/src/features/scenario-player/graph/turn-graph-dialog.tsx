@@ -1,15 +1,16 @@
 import { Box, Flex, HStack, IconButton, Spinner, Text, useBreakpointValue } from "@chakra-ui/react";
 import type { TimelineGraphOutput } from "@storyforge/contracts";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { LuRefreshCw } from "react-icons/lu";
 import { Alert, Dialog } from "@/components/ui";
 import { useTRPC } from "@/lib/trpc";
 import { useBranchPreview } from "../hooks/use-branch-preview";
 import { useScenarioContext } from "../providers/scenario-provider";
 import { useScenarioPlayerStore } from "../stores/scenario-player-store";
-import { TurnGraphCanvas } from "./turn-graph-canvas";
 import type { TurnNodeData } from "./turn-node";
+
+const TurnGraphCanvas = lazy(() => import("./turn-graph-canvas"));
 
 export interface TurnGraphDialogProps {
   scenarioId: string;
@@ -121,26 +122,34 @@ export function TurnGraphDialog({ scenarioId, isOpen, onOpenChange }: TurnGraphD
                 {graphQuery.error instanceof Error ? graphQuery.error.message : "Unexpected error"}
               </Alert>
             ) : graphData ? (
-              <TurnGraphCanvas
-                graph={graphData}
-                getParticipantLabel={getParticipantLabel}
-                getParticipantColor={getParticipantColor}
-                formatTimestamp={formatTimestamp}
-                focusTurnId={preferredFocusTurnId}
-                onNodeClick={async (turnId, data: TurnNodeData) => {
-                  setPendingScrollTarget({
-                    kind: "turn",
-                    turnId,
-                    edge: "center",
-                    skipIfVisible: true,
-                  });
-                  if (data.onActivePath) {
-                    exitPreview();
-                  } else {
-                    await previewTurn(turnId);
-                  }
-                }}
-              />
+              <Suspense
+                fallback={
+                  <Flex h="full" align="center" justify="center">
+                    <Spinner size="lg" />
+                  </Flex>
+                }
+              >
+                <TurnGraphCanvas
+                  graph={graphData}
+                  getParticipantLabel={getParticipantLabel}
+                  getParticipantColor={getParticipantColor}
+                  formatTimestamp={formatTimestamp}
+                  focusTurnId={preferredFocusTurnId}
+                  onNodeClick={async (turnId, data: TurnNodeData) => {
+                    setPendingScrollTarget({
+                      kind: "turn",
+                      turnId,
+                      edge: "center",
+                      skipIfVisible: true,
+                    });
+                    if (data.onActivePath) {
+                      exitPreview();
+                    } else {
+                      await previewTurn(turnId);
+                    }
+                  }}
+                />
+              </Suspense>
             ) : (
               <Flex h="full" align="center" justify="center">
                 <Spinner size="lg" />
