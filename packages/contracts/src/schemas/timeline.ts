@@ -105,6 +105,43 @@ export const switchTimelineOutputSchema = z.object({
   newAnchorTurnId: z.string(),
 });
 
+// Branch graph
+export const timelineGraphInputSchema = z.object({
+  scenarioId: z.string(),
+  focusTurnId: z.string().optional(),
+});
+
+export const timelineGraphNodeSchema = z.object({
+  id: z.string(),
+  parentId: z.string().nullable(),
+  authorParticipantId: z.string(),
+  isGhost: z.boolean(),
+  siblingOrder: z.string(),
+  childCount: z.number().int().nonnegative(),
+  branchingChildCount: z.number().int().nonnegative(),
+  collapsedLeafChildCount: z.number().int().nonnegative(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  onActivePath: z.boolean(),
+  depth: z.number().int().nonnegative(),
+  turnNumber: z.number().int().positive(),
+});
+
+export const timelineGraphEdgeSchema = z.object({
+  source: z.string(),
+  target: z.string(),
+  order: z.string(),
+});
+
+export const timelineGraphOutputSchema = z.object({
+  scenarioId: z.string(),
+  rootTurnId: z.string().nullable(),
+  anchorTurnId: z.string().nullable(),
+  pathToAnchor: z.array(z.string()),
+  nodes: z.array(timelineGraphNodeSchema),
+  edges: z.array(timelineGraphEdgeSchema),
+});
+
 // State
 export const timelineStateInputSchema = z.object({
   scenarioId: z.string(),
@@ -201,3 +238,7 @@ export type SwitchTimelineOutput = z.infer<typeof switchTimelineOutputSchema>;
 export type GenerationRunStatus = z.infer<typeof generationRunStatusSchema>;
 export type GenerationInfoInput = z.infer<typeof generationInfoInputSchema>;
 export type GenerationInfoOutput = z.infer<typeof generationInfoOutputSchema>;
+export type TimelineGraphInput = z.infer<typeof timelineGraphInputSchema>;
+export type TimelineGraphNode = z.infer<typeof timelineGraphNodeSchema>;
+export type TimelineGraphEdge = z.infer<typeof timelineGraphEdgeSchema>;
+export type TimelineGraphOutput = z.infer<typeof timelineGraphOutputSchema>;

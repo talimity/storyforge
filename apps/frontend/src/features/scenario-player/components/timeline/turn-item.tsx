@@ -1,6 +1,6 @@
 import { Box, HStack, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { type ReactNode, useCallback, useMemo } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo } from "react";
 import { LuGhost } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
 import { Avatar, Button, StreamingMarkdown, Tooltip } from "@/components/ui";
@@ -12,6 +12,7 @@ import {
   selectIsGenerating,
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import {
   selectOverlayForTurn,
   useTurnUiStore,
@@ -44,7 +45,25 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
 
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const { isPreviewing, previewSibling } = useBranchPreview();
-  const { ref, inView } = useInView({ triggerOnce: true });
+  // used to defer loading of heavy components until turn is in viewport
+  const { ref: initialRef, inView } = useInView({ triggerOnce: true });
+  // used to track which turn is most prominently visible for graph view syncing
+  const { ref: visibilityRef, inView: isGraphFocus } = useInView({ threshold: 0.75 });
+  const setLastVisibleTurn = useScenarioPlayerStore((s) => s.setLastVisibleTurn);
+
+  const mergedRef = useCallback(
+    (node: Element | null) => {
+      initialRef(node);
+      visibilityRef(node);
+    },
+    [initialRef, visibilityRef]
+  );
+
+  useEffect(() => {
+    if (isGraphFocus) {
+      setLastVisibleTurn(turn.id);
+    }
+  }, [isGraphFocus, setLastVisibleTurn, turn.id]);
 
   const provenanceDisplay = useMemo(
     () => getIntentProvenanceDisplay(turn, prevTurn, nextTurn),
@@ -59,6 +78,8 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
     },
     [isGenerating, previewSibling, turn.swipes, turn.id]
   );
+  const swipeLeft = useCallback(() => handleSwipe("left"), [handleSwipe]);
+  const swipeRight = useCallback(() => handleSwipe("right"), [handleSwipe]);
 
   const shouldRenderActions = isEditing || inView;
   const isDeleteOverlayActive = overlay?.mode === "delete";
@@ -109,7 +130,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
       data-turn-id={turn.id}
       data-testid="turn-item"
       opacity={turn.isGhost ? 0.5 : 1}
-      ref={ref}
+      ref={mergedRef}
       css={tintCss}
     >
       <Stack gap={2} pointerEvents={isDeleteOverlayActive ? "none" : undefined}>
@@ -150,7 +171,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
             <Button
               size="xs"
               variant="ghost"
-              onClick={() => handleSwipe("left")}
+              onClick={swipeLeft}
               disabled={isGenerating || !turn.swipes.leftTurnId}
               aria-label="View previous alternate"
             >
@@ -162,7 +183,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
             <Button
               size="xs"
               variant="ghost"
-              onClick={() => handleSwipe("right")}
+              onClick={swipeRight}
               disabled={isGenerating || !turn.swipes.rightTurnId}
               aria-label="View next alternate"
             >

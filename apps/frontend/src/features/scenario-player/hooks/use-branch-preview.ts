@@ -71,6 +71,34 @@ export function useBranchPreview() {
     ]
   );
 
+  const previewTurn = useCallback(
+    async (turnId: string) => {
+      if (isGenerating) return;
+
+      const { leafTurnId } = await resolveLeaf.mutateAsync({
+        scenarioId: scenario.id,
+        fromTurnId: turnId,
+      });
+
+      setPendingScrollTarget({ kind: "turn", turnId, edge: "center", skipIfVisible: true });
+
+      const anchor = scenario.anchorTurnId ?? null;
+      if (leafTurnId && anchor && leafTurnId === anchor) {
+        setPreviewLeaf(null);
+      } else {
+        setPreviewLeaf(leafTurnId ?? null);
+      }
+    },
+    [
+      isGenerating,
+      resolveLeaf,
+      scenario.id,
+      scenario.anchorTurnId,
+      setPendingScrollTarget,
+      setPreviewLeaf,
+    ]
+  );
+
   const commitPreview = useCallback(async () => {
     if (!previewLeafTurnId) return;
     await commitSwitch(previewLeafTurnId);
@@ -84,9 +112,10 @@ export function useBranchPreview() {
       isPreviewing: Boolean(previewLeafTurnId),
       previewLeafTurnId,
       previewSibling,
+      previewTurn,
       commitPreview,
       exitPreview,
     }),
-    [isGenerating, previewLeafTurnId, previewSibling, commitPreview, exitPreview]
+    [isGenerating, previewLeafTurnId, previewSibling, previewTurn, commitPreview, exitPreview]
   );
 }

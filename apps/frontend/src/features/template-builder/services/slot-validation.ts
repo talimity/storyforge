@@ -32,10 +32,7 @@ export const slotNameSchema = z
   .string()
   .min(1, "Slot name is required")
   .max(50, "Slot name must be 50 characters or less")
-  .regex(
-    /^[a-zA-Z][a-zA-Z0-9_]*$/,
-    "Slot name must start with a letter and contain only letters, numbers, and underscores"
-  );
+  .regex(/^(?!__).*$/, "Slot name cannot start with double underscores (__)");
 
 /**
  * Create a validation schema for a specific parameter

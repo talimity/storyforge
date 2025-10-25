@@ -18,6 +18,8 @@ export interface ScenarioPlayerState {
   selectedCharacterId: string | null;
   /** ID of the leaf turn we are previewing an alternate timeline, or null when not previewing */
   previewLeafTurnId: string | null;
+  /** Turn currently most visible in the timeline scroller */
+  lastVisibleTurnId: string | null;
 
   // Scroll management
   /** The target for the timeline's scroll controller, or null if no target is pending */
@@ -31,6 +33,7 @@ export interface ScenarioPlayerState {
   setShouldAutoFollow: (cb: () => boolean) => void;
   setSelectedCharacter: (characterId: string | null) => void;
   setPreviewLeaf: (leafTurnId: string | null) => void;
+  setLastVisibleTurn: (turnId: string | null) => void;
   reset: () => void;
 }
 
@@ -38,6 +41,7 @@ const initialState = {
   isReady: false,
   selectedCharacterId: null,
   previewLeafTurnId: null,
+  lastVisibleTurnId: null,
   pendingScrollTarget: null,
   shouldAutoFollow: () => false,
 };
@@ -59,6 +63,11 @@ export const useScenarioPlayerStore = create<ScenarioPlayerState>()(
     setPreviewLeaf: (leafTurnId) =>
       set((state) => {
         state.previewLeafTurnId = leafTurnId;
+      }),
+
+    setLastVisibleTurn: (turnId) =>
+      set((state) => {
+        state.lastVisibleTurnId = turnId;
       }),
 
     setPendingScrollTarget: (t) =>

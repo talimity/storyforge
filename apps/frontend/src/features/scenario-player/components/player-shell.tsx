@@ -8,12 +8,13 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
-import { LuArrowLeft, LuBookOpen } from "react-icons/lu";
+import { LuArrowLeft, LuBookOpen, LuGitBranch } from "react-icons/lu";
 import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lore-activation-preview-dialog";
 import { PlayerMetaMenu } from "@/features/scenario-player/components/player-meta-menu";
 import { ScenarioNavigation } from "@/features/scenario-player/components/scenario-navigation";
+import { TurnGraphDialog } from "@/features/scenario-player/graph";
 import {
   ScenarioProvider,
   useScenarioContext,
@@ -41,6 +42,7 @@ function PlayerShellInner() {
   const { scenario } = useScenarioContext();
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
   const [showPreview, setShowPreview] = useState(false);
+  const [showGraph, setShowGraph] = useState(false);
 
   useEffect(() => {
     if (scenario.title) {
@@ -93,6 +95,14 @@ function PlayerShellInner() {
 
         {/* Right Section - Meta Toolbar */}
         <HStack gap={0.5} justifySelf="end" alignItems="center">
+          <IconButton
+            variant="ghost"
+            size="sm"
+            aria-label="Open turn graph"
+            onClick={() => setShowGraph(true)}
+          >
+            <LuGitBranch />
+          </IconButton>
           <IconButton variant="ghost" size="sm" onClick={() => setShowPreview(true)}>
             <LuBookOpen />
           </IconButton>
@@ -133,6 +143,7 @@ function PlayerShellInner() {
         leafTurnId={previewLeafTurnId ?? undefined}
         title={`Lore Preview – ${scenario.title}`}
       />
+      <TurnGraphDialog scenarioId={scenario.id} isOpen={showGraph} onOpenChange={setShowGraph} />
     </Flex>
   );
 }

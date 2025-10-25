@@ -13,6 +13,8 @@ import {
   setTurnGhostOutputSchema,
   switchTimelineInputSchema,
   switchTimelineOutputSchema,
+  timelineGraphInputSchema,
+  timelineGraphOutputSchema,
   timelineStateInputSchema,
   timelineStateOutputSchema,
   updateTurnContentInputSchema,
@@ -26,6 +28,7 @@ import {
   resolveLeafForScenario,
 } from "../../services/timeline/timeline.queries.js";
 import { TimelineService } from "../../services/timeline/timeline.service.js";
+import { getTimelineBranchMap } from "../../services/timeline/turn-graph.queries.js";
 import { TimelineStateService } from "../../services/timeline-events/timeline-state.service.js";
 import { TurnContentService } from "../../services/turn/turn-content.service.js";
 import { publicProcedure, router } from "../index.js";
@@ -309,5 +312,20 @@ export const timelineRouter = router({
     .output(generationInfoOutputSchema)
     .query(async ({ input, ctx }) => {
       return getGenerationInfoForTurn(ctx.db, input.turnId);
+    }),
+
+  graph: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/timeline/graph",
+        tags: ["timeline"],
+        summary: "Returns a compact turn graph for a scenario",
+      },
+    })
+    .input(timelineGraphInputSchema)
+    .output(timelineGraphOutputSchema)
+    .query(async ({ input, ctx }) => {
+      return getTimelineBranchMap(ctx.db, input);
     }),
 });
