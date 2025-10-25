@@ -51,7 +51,7 @@ export const Toaster = () => {
               </Stack>
               {toast.action && <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>}
               {toast.closable && (
-                <Toast.CloseTrigger>
+                <Toast.CloseTrigger asChild>
                   <CloseButton />
                 </Toast.CloseTrigger>
               )}

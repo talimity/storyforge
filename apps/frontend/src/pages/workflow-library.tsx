@@ -1,11 +1,11 @@
-import { Badge, Box, Flex, SimpleGrid, Skeleton, Tabs } from "@chakra-ui/react";
+import { Badge, Box, Flex, HStack, SimpleGrid, Skeleton, Tabs } from "@chakra-ui/react";
 import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { LuMapPin, LuWorkflow } from "react-icons/lu";
+import { LuImport, LuListPlus, LuMapPin, LuPlus, LuWorkflow } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
+import { Button, EmptyState, ErrorEmptyState, PageHeader } from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
 import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { AssignmentDialog } from "@/features/workflows/components/assignment-dialog";
@@ -66,6 +66,26 @@ function WorkflowsPage() {
               </Badge>
             </Tabs.Trigger>
           </Flex>
+          <HStack gap={3}>
+            <Tabs.Context>
+              {(ctx) =>
+                ctx.value === "workflows" ? (
+                  <HStack>
+                    <Button variant="outline" onClick={() => setImportOpen(true)}>
+                      <LuImport /> Import Workflow
+                    </Button>
+                    <Button colorPalette="primary" onClick={() => navigate("/workflows/create")}>
+                      <LuPlus /> Create Workflow
+                    </Button>
+                  </HStack>
+                ) : (
+                  <Button variant="outline" onClick={() => setAssignOpen(true)}>
+                    <LuListPlus /> New Assignment
+                  </Button>
+                )
+              }
+            </Tabs.Context>
+          </HStack>
           <TaskKindSelect
             includeAll
             value={taskFilter}

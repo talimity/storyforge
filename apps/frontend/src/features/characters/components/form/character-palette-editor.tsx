@@ -97,7 +97,7 @@ export const CharacterPaletteEditor = withFieldGroup({
                       value={colorPicker}
                     >
                       <ColorPicker.HiddenInput />
-                      {colorData.isEnabled && colorData.isPending ? (
+                      {colorData.isEnabled && colorData.isPending && allowReset ? (
                         <HStack>
                           <Skeleton h="10" width="40" rounded="md" />
                           <Skeleton boxSize="10" rounded="md" />
@@ -139,7 +139,18 @@ export const CharacterPaletteEditor = withFieldGroup({
                               ) : (
                                 swatches.map((item) => (
                                   <ColorPicker.SwatchTrigger key={item} value={item}>
-                                    <ColorPicker.Swatch boxSize="5" value={item}>
+                                    <ColorPicker.Swatch
+                                      boxSize="5"
+                                      value={item}
+                                      // bug of some sort causes swatches to not trigger onValueChangeEnd
+                                      // so we must manually handle the onClick event
+                                      onClick={() => {
+                                        setTimeout(() => {
+                                          colorPicker.setValue(parseColor(item));
+                                          field.handleChange(item);
+                                        }, 0);
+                                      }}
+                                    >
                                       <ColorPicker.SwatchIndicator color="white">
                                         <LuCheck />
                                       </ColorPicker.SwatchIndicator>

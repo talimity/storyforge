@@ -111,6 +111,7 @@ export function ProviderForm({
   const isEditMode = Boolean(initialData?.name);
 
   const form = useAppForm({
+    formId: `provider-form-${useId()}`,
     defaultValues: buildDefaultValues(initialData),
     validators: {
       onChange: providerFormSchema,
@@ -130,8 +131,6 @@ export function ProviderForm({
     },
   });
 
-  const formId = useId();
-
   const isOpenAICompatible = useStore(
     form.store,
     (state) => state.values.kind === "openai-compatible"
@@ -149,7 +148,7 @@ export function ProviderForm({
 
   return (
     <form
-      id={formId}
+      id={form.formId}
       onSubmit={(event) => {
         event.preventDefault();
         void form.handleSubmit();
@@ -242,7 +241,7 @@ export function ProviderForm({
           Cancel
         </Button>
         <form.AppForm>
-          <form.SubmitButton form={formId} colorPalette="primary">
+          <form.SubmitButton form={form.formId} colorPalette="primary">
             {submitLabel}
           </form.SubmitButton>
         </form.AppForm>

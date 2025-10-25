@@ -44,14 +44,13 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
   const collection = createListCollection({ items: authorOptions });
 
   const form = useAppForm({
+    formId: `insert-turn-form-${useId()}`,
     defaultValues: { authorParticipantId: "", text: "" },
     validators: { onChange: insertTurnSchema },
     onSubmit: async ({ value }) => {
       await onSubmit(value);
     },
   });
-
-  const formId = useId();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset
   useEffect(() => {
@@ -78,7 +77,7 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
     >
       <Dialog.Content>
         <form
-          id={formId}
+          id={form.formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();

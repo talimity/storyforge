@@ -123,11 +123,15 @@ function CharacterEditPage() {
         <CharacterForm
           initialData={initialFormData}
           onSubmit={(formData: CharacterFormData) => {
-            const defaultColor = formData.defaultColor === null ? undefined : formData.defaultColor;
+            const defaultColor = formData.defaultColor ?? undefined;
+            const portraitFocalPoint = formData.portraitFocalPoint ?? undefined;
+
+            console.log("Submitting form data:", { id: String(id), ...formData, defaultColor });
 
             return updateCharacterMutation.mutateAsync({
               id: String(id),
               ...formData,
+              portraitFocalPoint,
               defaultColor,
             });
           }}

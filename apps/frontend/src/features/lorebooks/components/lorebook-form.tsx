@@ -25,18 +25,17 @@ export function LorebookForm({
   onSubmit,
 }: LorebookFormProps) {
   const form = useAppForm({
+    formId: `lorebook-form-${useId()}`,
     defaultValues: { ...lorebookFormDefaultValues, ...initialData },
     validators: { onBlur: lorebookSubmitSchema },
     onSubmit: ({ value }) => onSubmit(lorebookSubmitSchema.parse(value)),
   });
 
-  const formId = useId();
-
   return (
     <>
       <Card.Root layerStyle="surface" maxW="60rem" mx="auto">
         <form
-          id={formId}
+          id={form.formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -69,7 +68,7 @@ export function LorebookForm({
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
                   Cancel
                 </form.CancelButton>
-                <form.SubmitButton form={formId} colorPalette="primary">
+                <form.SubmitButton form={form.formId} colorPalette="primary">
                   {submitLabel}
                 </form.SubmitButton>
               </form.AppForm>

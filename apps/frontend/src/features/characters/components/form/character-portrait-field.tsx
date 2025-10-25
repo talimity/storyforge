@@ -37,11 +37,11 @@ export const CharacterPortraitField = withForm({
   render: function Render({ form, character, tempAvatarUrl }) {
     const imageDataUri = useStore(form.store, (s) => s.values.imageDataUri);
 
-    const needsUpload = !character?.imagePath || !character?.avatarPath || imageDataUri === null;
+    const showUploader = !character?.imagePath || !character?.avatarPath || imageDataUri === null;
 
     return (
       <>
-        {needsUpload ? (
+        {showUploader ? (
           <PortraitUploader form={form} />
         ) : (
           <PortraitManager
@@ -115,6 +115,7 @@ const PortraitManager = withForm({
       onOpen: openCropDialog,
       onClose: closeCropDialog,
     } = useDisclosure();
+    const imageDataUri = useStore(form.store, (s) => s.values.imageDataUri);
 
     const resetCropMutation = useMutation(
       trpc.characters.resetPortraitCrop.mutationOptions({
@@ -153,10 +154,13 @@ const PortraitManager = withForm({
                     zIndex={1}
                     size={isMobile ? "xs" : "2xs"}
                     mb={2}
-                    onClick={() => form.setFieldValue("imageDataUri", null)}
+                    onClick={() => {
+                      form.setFieldValue("imageDataUri", null);
+                      form.setFieldValue("portraitFocalPoint", null); // let server crop
+                    }}
                   />
                   <Image
-                    src={portraitPath}
+                    src={imageDataUri || portraitPath}
                     alt="Character portrait image"
                     aspectRatio={2 / 3}
                     fit="cover"
@@ -169,6 +173,11 @@ const PortraitManager = withForm({
 
         <form.AppField name="portraitFocalPoint">
           {(field) => {
+            // cannot adjust crop when using an image that has not been uploaded yet
+            if (imageDataUri) {
+              return null;
+            }
+
             return (
               <>
                 <field.Field label="Avatar" width="auto">

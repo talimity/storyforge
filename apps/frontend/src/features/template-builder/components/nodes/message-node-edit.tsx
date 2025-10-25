@@ -34,6 +34,7 @@ export function MessageNodeEdit(props: MessageNodeEditProps) {
   } = props;
 
   const form = useAppForm({
+    formId: `message-node-edit-form-${node.id}`,
     defaultValues: {
       role: node.role,
       name: node.name ?? "",

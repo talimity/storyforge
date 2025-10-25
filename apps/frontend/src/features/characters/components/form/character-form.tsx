@@ -76,12 +76,11 @@ export function CharacterForm({
   };
 
   const form = useAppForm({
+    formId: `character-form-${useId()}`,
     defaultValues: initialValues,
     validators: { onChange: characterFormSchema },
     onSubmit: ({ value }) => onSubmit(value),
   });
-
-  const formId = useId();
 
   const displayName = useStore(form.store, (s) => s.values.name) || "New Character";
   const charaType = useStore(form.store, (s) => s.values.cardType);
@@ -120,7 +119,7 @@ export function CharacterForm({
   return (
     <Card.Root layerStyle="surface" maxW="60rem" mx="auto">
       <form
-        id={formId}
+        id={form.formId}
         onSubmit={(event) => {
           event.preventDefault();
           void form.handleSubmit();
@@ -308,7 +307,7 @@ export function CharacterForm({
               <form.CancelButton variant="ghost" onCancel={onCancel}>
                 Cancel
               </form.CancelButton>
-              <form.SubmitButton form={formId} colorPalette="primary">
+              <form.SubmitButton form={form.formId} colorPalette="primary">
                 {submitLabel}
               </form.SubmitButton>
               <form.SubscribedUnsavedChangesDialog

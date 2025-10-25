@@ -45,7 +45,6 @@ export function AssignmentDialog({
 }: AssignmentDialogProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const formId = useId();
 
   const upsert = useMutation(
     trpc.workflows.upsertScope.mutationOptions({
@@ -62,6 +61,7 @@ export function AssignmentDialog({
     : { ...assignmentFormDefaultValues, task: defaultTask, scopeKind: "default" as const };
 
   const form = useAppForm({
+    formId: `assignment-dialog-form-${useId()}`,
     defaultValues: initialValues,
     validators: { onSubmit: assignmentFormSchema },
     onSubmit: async ({ value }) => {
@@ -100,7 +100,7 @@ export function AssignmentDialog({
     >
       <Dialog.Content>
         <form
-          id={formId}
+          id={form.formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -223,7 +223,7 @@ export function AssignmentDialog({
                   Cancel
                 </form.CancelButton>
               </Dialog.ActionTrigger>
-              <form.SubmitButton form={formId} colorPalette="primary">
+              <form.SubmitButton form={form.formId} colorPalette="primary">
                 {isEditMode ? "Save Changes" : "Save Assignment"}
               </form.SubmitButton>
             </form.AppForm>

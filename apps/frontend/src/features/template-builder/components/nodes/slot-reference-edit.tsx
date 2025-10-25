@@ -149,6 +149,7 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
   } satisfies SlotEditFormValues;
 
   const form = useAppForm({
+    formId: `slot-edit-form-${node.id}`,
     defaultValues,
     validators: {
       onChange: ({ value }) => {

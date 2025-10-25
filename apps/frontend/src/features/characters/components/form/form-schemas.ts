@@ -15,9 +15,9 @@ export const characterFormSchema = createCharacterSchema
   .extend({
     cardType: createCharacterSchema.shape.cardType.unwrap(),
     starters: createCharacterSchema.shape.starters.unwrap(),
-    portraitFocalPoint: focalPointSchema.optional(),
     // null needed for compatibility with chara palette editor, but needs to be
     // handled properly in form submission
+    portraitFocalPoint: focalPointSchema.nullish(),
     defaultColor: createCharacterSchema.shape.defaultColor.nullable(),
   });
 

@@ -27,7 +27,6 @@ export function ScenarioForm({
   onCancel,
   submitLabel = "Save Scenario",
 }: ScenarioFormProps) {
-  const formId = useId();
   const initialParticipants = (initialData?.participants ?? []).map((participant) => ({
     characterId: participant.characterId,
     role: participant.role,
@@ -77,6 +76,7 @@ export function ScenarioForm({
   };
 
   const form = useAppForm({
+    formId: `scenario-form-${useId()}`,
     defaultValues: initialValues,
     validators: { onBlur: scenarioFormSchema },
     onSubmit: ({ value }) => onSubmit(value),
@@ -86,7 +86,7 @@ export function ScenarioForm({
     <>
       <Card.Root layerStyle="surface" maxW="60rem" mx="auto">
         <form
-          id={formId}
+          id={form.formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -150,7 +150,7 @@ export function ScenarioForm({
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
                   Cancel
                 </form.CancelButton>
-                <form.SubmitButton form={formId} colorPalette="primary">
+                <form.SubmitButton form={form.formId} colorPalette="primary">
                   {submitLabel}
                 </form.SubmitButton>
               </form.AppForm>

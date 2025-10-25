@@ -1,4 +1,4 @@
-import { Box } from "@chakra-ui/react";
+import { Center } from "@chakra-ui/react";
 import { useState } from "react";
 import ReactCrop, { type PercentCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
@@ -83,7 +83,7 @@ export function AvatarCropDialog({
           <Dialog.Title>Adjust Avatar Crop</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
-          <Box>
+          <Center>
             <ReactCrop
               crop={percentCrop}
               onChange={(_, pc) => setPercentCrop(pc)}
@@ -91,9 +91,9 @@ export function AvatarCropDialog({
               keepSelection
               circularCrop={false}
             >
-              <img src={src} alt="Portrait" style={{ maxWidth: "100%" }} onLoad={handleImgLoad} />
+              <img src={src} alt="Portrait" style={{ maxHeight: "60vh" }} onLoad={handleImgLoad} />
             </ReactCrop>
-          </Box>
+          </Center>
         </Dialog.Body>
         <Dialog.Footer>
           <Dialog.ActionTrigger asChild>

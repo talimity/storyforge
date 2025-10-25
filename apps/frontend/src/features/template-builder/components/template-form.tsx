@@ -1,6 +1,6 @@
 import { List, Tabs, VStack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { LuEye, LuInfo, LuRows3, LuSyringe, LuTriangleAlert } from "react-icons/lu";
 import { useShallow } from "zustand/react/shallow";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
@@ -62,6 +62,7 @@ export function TemplateForm({
   };
 
   const form = useAppForm({
+    formId: `template-metadata-form-${useId()}`,
     defaultValues: metadataDefaults,
     validators: {
       onBlur: ({ value }) => {

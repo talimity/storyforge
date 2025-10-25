@@ -1,6 +1,6 @@
 import { Accordion, Card, Heading, HStack, Stack, Text } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { LuLibrary } from "react-icons/lu";
 import {
   cloneLoreAttachmentValues,
@@ -20,6 +20,7 @@ interface LoreAttachmentsFormProps {
 
 export function LoreAttachmentsForm({ draft, onChange }: LoreAttachmentsFormProps) {
   const form = useAppForm({
+    formId: `lore-attachments-form-${useId()}`,
     defaultValues: draft.values,
     listeners: {
       onBlur: ({ formApi }) => {

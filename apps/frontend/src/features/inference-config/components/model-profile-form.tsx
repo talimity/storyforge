@@ -3,7 +3,7 @@ import type { ProviderConfig, SearchModelsOutput } from "@storyforge/contracts";
 import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import {
   Button,
@@ -44,12 +44,11 @@ function ModelProfileForm({
 
   const initialValues = getInitialValues(initialData);
   const form = useAppForm({
+    formId: `model-profile-form-${initialData?.modelId ?? "new"}`,
     defaultValues: initialValues,
     validators: { onSubmit: modelProfileFormSchema },
     onSubmit: ({ value }) => onSubmit(value),
   });
-
-  const formId = useId();
 
   useEffect(() => form.reset(initialValues), [form, initialValues]);
 
@@ -107,7 +106,7 @@ function ModelProfileForm({
   return (
     <>
       <form
-        id={formId}
+        id={form.formId}
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -239,7 +238,7 @@ function ModelProfileForm({
               <form.CancelButton variant="ghost" onCancel={onCancel}>
                 Cancel
               </form.CancelButton>
-              <form.SubmitButton form={formId} colorPalette="primary">
+              <form.SubmitButton form={form.formId} colorPalette="primary">
                 {submitLabel}
               </form.SubmitButton>
             </form.AppForm>

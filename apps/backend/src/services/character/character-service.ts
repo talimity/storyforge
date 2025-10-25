@@ -151,9 +151,7 @@ export class CharacterService {
         characterUpdates.portraitFocalPoint = imageUpdates.portraitFocalPoint;
       }
       characterUpdates.defaultColor = imageUpdates.defaultColor;
-    }
-
-    if (portraitFocalPoint) {
+    } else if (portraitFocalPoint) {
       characterUpdates.portraitFocalPoint = portraitFocalPoint;
     }
 

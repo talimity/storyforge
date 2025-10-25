@@ -27,9 +27,9 @@ export interface WorkflowFormProps {
 
 export function WorkflowForm(props: WorkflowFormProps) {
   const { initialData, submitLabel = "Save", onCancel, onSubmit, isEditMode = false } = props;
-  const formId = useId();
 
   const form = useAppForm({
+    formId: `workflow-form-${useId()}`,
     defaultValues: { ...workflowFormDefaultValues, ...initialData },
     validators: { onChange: workflowFormSchema },
     onSubmit: ({ value }) => onSubmit(value),
@@ -42,7 +42,7 @@ export function WorkflowForm(props: WorkflowFormProps) {
     <>
       <Card.Root layerStyle="surface" maxW="60rem" mx="auto">
         <form
-          id={formId}
+          id={form.formId}
           onSubmit={(event) => {
             event.preventDefault();
             void form.handleSubmit();
@@ -92,7 +92,7 @@ export function WorkflowForm(props: WorkflowFormProps) {
                 <form.CancelButton variant="ghost" onCancel={onCancel}>
                   Cancel
                 </form.CancelButton>
-                <form.SubmitButton form={formId} colorPalette="primary">
+                <form.SubmitButton form={form.formId} colorPalette="primary">
                   {submitLabel}
                 </form.SubmitButton>
               </form.AppForm>
