@@ -2,7 +2,7 @@ import { Box, Flex, HStack, IconButton, Spinner, Text, useBreakpointValue } from
 import type { TimelineGraphOutput } from "@storyforge/contracts";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { LuRefreshCw } from "react-icons/lu";
+import { LuMinimize } from "react-icons/lu";
 import { Alert, Dialog } from "@/components/ui";
 import { useTRPC } from "@/lib/trpc";
 import { useBranchPreview } from "../hooks/use-branch-preview";
@@ -101,7 +101,7 @@ export function TurnGraphDialog({ scenarioId, isOpen, onOpenChange }: TurnGraphD
               onClick={() => graphQuery.refetch()}
               disabled={graphQuery.isFetching}
             >
-              <LuRefreshCw />
+              <LuMinimize />
             </IconButton>
             <Dialog.CloseTrigger position="static" />
           </HStack>
