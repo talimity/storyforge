@@ -39,7 +39,7 @@ export interface StreamingMarkdownProps extends Omit<ProseProps, "children"> {
   paragraphizeSoftBreaks?: boolean;
 }
 
-export const StreamingMarkdown = memo(function StreamingMarkdown({
+const StreamingMarkdown = memo(function StreamingMarkdown({
   text,
   dialogueAuthorId = null,
   dialogueTintColor = null,
@@ -84,3 +84,5 @@ export const StreamingMarkdown = memo(function StreamingMarkdown({
     </Prose>
   );
 });
+
+export default StreamingMarkdown;

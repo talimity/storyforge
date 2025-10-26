@@ -1,3 +1,5 @@
+import { lazy } from "react";
+
 export * from "@/components/ui/library-controls/sort-dropdown";
 export * from "@/components/ui/library-controls/view-modes";
 export * from "./action-bar";
@@ -16,7 +18,8 @@ export * from "./prose";
 export * from "./radio";
 export * from "./select";
 export * from "./split-button";
-export * from "./streaming-markdown";
+// export * from "./streaming-markdown";
+export const StreamingMarkdown = lazy(() => import("./streaming-markdown"));
 export * from "./surface";
 export * from "./switch";
 export * from "./tag";

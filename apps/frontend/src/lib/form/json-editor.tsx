@@ -1,4 +1,3 @@
-// apps/frontend/src/lib/form/json-editor.tsx
 import { chakra } from "@chakra-ui/react";
 import { inputRecipe as chakraInputRecipe } from "@chakra-ui/react/theme";
 import { deepmerge } from "@fastify/deepmerge";

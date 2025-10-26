@@ -1,5 +1,6 @@
+import { Flex, Spinner } from "@chakra-ui/react";
 import type { IntentInput } from "@storyforge/contracts";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import {
   type InputMode,
   IntentPanel,
@@ -106,17 +107,25 @@ function PlayerPage() {
   const firstChapterLabel = firstChapter ? deriveChapterLabel(firstChapter) : undefined;
 
   const timeline = (
-    <VirtualizedTimeline
-      scenarioId={scenario.id}
-      scenarioTitle={scenario.title}
-      firstChapterLabel={firstChapterLabel}
-      turns={turns}
-      hasNextPage={hasNextPage}
-      isFetching={isFetching}
-      isPending={isPending}
-      onLoadMore={fetchNextPage}
-      onStarterSelect={handleStarterSelect}
-    />
+    <Suspense
+      fallback={
+        <Flex h="full" align="center" justify="center">
+          <Spinner size="lg" />
+        </Flex>
+      }
+    >
+      <VirtualizedTimeline
+        scenarioId={scenario.id}
+        scenarioTitle={scenario.title}
+        firstChapterLabel={firstChapterLabel}
+        turns={turns}
+        hasNextPage={hasNextPage}
+        isFetching={isFetching}
+        isPending={isPending}
+        onLoadMore={fetchNextPage}
+        onStarterSelect={handleStarterSelect}
+      />
+    </Suspense>
   );
 
   const intentPanel = (

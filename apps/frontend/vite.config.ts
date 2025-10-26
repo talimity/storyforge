@@ -22,26 +22,26 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (/node_modules\/react-icons\//.test(id)) return "icons";
-            if (/node_modules\/@?monaco-editor\//.test(id)) return "monaco";
-            if (/node_modules\/@dnd-kit\//.test(id)) return "dnd-kit";
-            if (/node_modules\/(micromark|@micromark|mdast)\//.test(id)) return "markdown";
-            if (/node_modules\/@huggingface\//.test(id)) return "huggingface";
-
-            if (
-              /node_modules\/(react|react-router|react-dom|scheduler)\//.test(id) ||
-              /node_modules\/@chakra-ui\//.test(id) ||
-              /node_modules\/@emotion\//.test(id) ||
-              /node_modules\/@zag-js\//.test(id) ||
-              /node_modules\/@ark-ui\//.test(id)
-            )
-              return "framework";
-          },
-        },
-      },
+      // rollupOptions: {
+      //   output: {
+      //     manualChunks(id) {
+      //       if (/node_modules\/react-icons\//.test(id)) return "icons";
+      //       if (/node_modules\/@?monaco-editor\//.test(id)) return "monaco";
+      //       if (/node_modules\/@dnd-kit\//.test(id)) return "dnd-kit";
+      //       if (/node_modules\/(micromark|@micromark|mdast)\//.test(id)) return "markdown";
+      //       if (/node_modules\/@huggingface\//.test(id)) return "huggingface";
+      //
+      //       if (
+      //         /node_modules\/(react|react-router|react-dom|scheduler)\//.test(id) ||
+      //         /node_modules\/@chakra-ui\//.test(id) ||
+      //         /node_modules\/@emotion\//.test(id) ||
+      //         /node_modules\/@zag-js\//.test(id) ||
+      //         /node_modules\/@ark-ui\//.test(id)
+      //       )
+      //         return "framework";
+      //     },
+      //   },
+      // },
     },
     plugins: [
       react({

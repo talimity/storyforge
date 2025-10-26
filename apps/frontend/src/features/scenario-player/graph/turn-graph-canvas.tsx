@@ -239,6 +239,7 @@ export default function TurnGraphCanvas({
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
+        minZoom={0.2}
         onInit={(inst) => setInstance(inst)}
         onNodeClick={(_, node) => {
           if (onNodeClick) {

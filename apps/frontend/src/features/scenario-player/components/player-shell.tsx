@@ -163,11 +163,16 @@ function PlayerChromeSkeleton() {
           <Skeleton boxSize="8" />
         </HStack>
       </Flex>
-      <Flex flex="1" overflow="hidden">
-        <Box w="50%" p={3} display={{ base: "none", lg: "block" }}>
+      <Flex direction="column" h="100%" justify="space-between" align="center" flex="1" pt={4}>
+        <Box w="3xl" p={3} display={{ base: "none", lg: "block" }}>
           <Skeleton height="5" mb={3} />
-          <Skeleton height="16" mb={2} />
-          <Skeleton height="16" mb={2} />
+          <Skeleton height="64" mb={2} />
+          <Skeleton height="48" mb={2} />
+          <Skeleton height="64" mb={2} />
+          <Skeleton height="64" mb={2} />
+        </Box>
+        <Box pb={1}>
+          <Skeleton height="24" w="3xl" />
         </Box>
       </Flex>
     </Flex>
