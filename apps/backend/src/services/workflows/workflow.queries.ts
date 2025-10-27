@@ -1,24 +1,20 @@
 import { type SqliteTxLike, schema } from "@storyforge/db";
-import type { GenStep, GenWorkflow } from "@storyforge/gentasks";
+import type { GenStep, GenWorkflow, TaskKind } from "@storyforge/gentasks";
 import { assertDefined } from "@storyforge/utils";
 import { and, eq, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm/sql/sql";
 
 const { workflows, workflowScopes } = schema;
 
-/**
- * Given the scope of a turn generation task, finds the workflow that best fits
- * the scope. If no scoped workflow is found, returns the default turn
- * generation workflow.
- */
-export async function getTurngenWorkflowForScope(
+export async function getWorkflowForTaskScope<K extends TaskKind>(
   db: SqliteTxLike,
+  task: K,
   scope: {
     scenarioId?: string;
     characterId?: string;
     participantId?: string;
   }
-): Promise<GenWorkflow<"turn_generation">> {
+): Promise<GenWorkflow<K>> {
   let characterId = scope.characterId;
 
   if (scope.participantId && !scope.characterId) {
@@ -59,7 +55,7 @@ export async function getTurngenWorkflowForScope(
     })
     .from(workflows)
     .innerJoin(workflowScopes, eq(workflows.id, workflowScopes.workflowId))
-    .where(and(eq(workflows.task, "turn_generation"), or(...orClauses)))
+    .where(and(eq(workflows.task, task), or(...orClauses)))
     .orderBy(
       // Order by specificity: participant > character > scenario > default
       sql`CASE 
@@ -85,8 +81,24 @@ export async function getTurngenWorkflowForScope(
     id: workflow.id,
     name: workflow.name,
     description: workflow.description ?? undefined,
-    task: "turn_generation",
+    task,
     version: 1,
     steps: workflow.steps as GenStep[],
   };
+}
+
+/**
+ * Given the scope of a turn generation task, finds the workflow that best fits
+ * the scope. If no scoped workflow is found, returns the default turn
+ * generation workflow.
+ */
+export async function getTurngenWorkflowForScope(
+  db: SqliteTxLike,
+  scope: {
+    scenarioId?: string;
+    characterId?: string;
+    participantId?: string;
+  }
+): Promise<GenWorkflow<"turn_generation">> {
+  return getWorkflowForTaskScope(db, "turn_generation", scope);
 }

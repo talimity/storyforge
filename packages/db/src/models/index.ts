@@ -1,3 +1,4 @@
+export * from "./chapter-summaries.js";
 export * from "./character-examples.js";
 export * from "./character-lorebooks.js";
 export * from "./character-starters.js";

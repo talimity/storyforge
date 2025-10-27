@@ -2,15 +2,13 @@ import type { LorebookAssignment } from "@storyforge/lorebooks";
 import type { InjectionTarget } from "@storyforge/prompt-rendering";
 import { describe, expect, it } from "vitest";
 import type { TurnGenCtx } from "../tasks/turn-generation.js";
-import {
-  buildDefaultLoreLaneSpec,
-  buildTurnGenRenderOptions,
-  TURN_GEN_REQUIRED_ANCHORS,
-} from "./turn-generation.js";
+import { buildDefaultLoreLaneSpec } from "./narrative.js";
+import { buildTurnGenRenderOptions, TURN_GEN_REQUIRED_ANCHORS } from "./turn-generation.js";
 
 const baseContext: TurnGenCtx = {
   turns: [],
   characters: [],
+  chapterSummaries: [],
   actor: { id: "actor", name: "Actor", description: "", type: "character" },
   nextTurnNumber: 1,
   globals: {

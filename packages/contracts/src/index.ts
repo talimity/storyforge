@@ -1,4 +1,5 @@
 export * from "./events.js";
+export * from "./schemas/chapter-summaries.js";
 export * from "./schemas/character.js";
 export * from "./schemas/chat-import.js";
 export * from "./schemas/intents.js";

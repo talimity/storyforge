@@ -1,15 +1,13 @@
-import {
-  type Character,
-  type NewIntent,
-  type SqliteTxLike,
-  characters as tCharacters,
-  scenarioParticipants as tScenarioParticipants,
-  scenarios as tScenarios,
-} from "@storyforge/db";
-import type { CharacterCtxDTO, TurnGenCtx } from "@storyforge/gentasks";
-import { assertDefined, stripNulls } from "@storyforge/utils";
-import { and, asc, eq, sql } from "drizzle-orm";
+import type { NewIntent, SqliteDatabase, SqliteTxLike } from "@storyforge/db";
+import type { TurnGenCtx } from "@storyforge/gentasks";
+import { assertDefined } from "@storyforge/utils";
+import { ChapterSummariesService } from "../chapter-summaries/chapter-summaries.service.js";
 import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.queries.js";
+import {
+  loadScenarioCharacterContext,
+  loadScenarioMetadata,
+} from "../narrative/context-loaders.js";
+import { attachEventsToTurns } from "../narrative/turn-utils.js";
 import { getFullTimelineTurnCtx } from "../timeline/timeline.queries.js";
 import { TimelineStateService } from "../timeline-events/timeline-state.service.js";
 import { eventDTOsByTurn } from "../timeline-events/utils/event-dtos.js";
@@ -32,31 +30,42 @@ export class IntentContextBuilder {
     const stateService = new TimelineStateService(this.db);
 
     const derivationPromise = stateService.deriveState(this.scenarioId, leafTurnId);
-    const charaDataPromise = this.loadParticipantCharaData(actorParticipantId);
-    const scenarioPromise = this.loadScenarioData();
+    const charaDataPromise = loadScenarioCharacterContext(this.db, this.scenarioId);
+    const scenarioPromise = loadScenarioMetadata(this.db, this.scenarioId);
     const turnsPromise = getFullTimelineTurnCtx(this.db, {
       leafTurnId,
       scenarioId: this.scenarioId,
     });
     const lorebooksPromise = loadScenarioLorebookAssignments(this.db, this.scenarioId);
+    const summaryService = new ChapterSummariesService(this.db as SqliteDatabase);
+    const chaptersPromise = summaryService.getSummariesForPath({
+      scenarioId: this.scenarioId,
+      leafTurnId,
+    });
 
-    const [charaData, derivation, scenario, turns, lorebooks] = await Promise.all([
-      charaDataPromise,
-      derivationPromise,
-      scenarioPromise,
-      turnsPromise,
-      lorebooksPromise,
-    ]);
+    const [charaData, derivation, scenario, turns, lorebooks, chapterSummaries] = await Promise.all(
+      [
+        charaDataPromise,
+        derivationPromise,
+        scenarioPromise,
+        turnsPromise,
+        lorebooksPromise,
+        chaptersPromise,
+      ]
+    );
 
-    const { characters, userProxyName, actor, actorIsNarrator } = charaData;
+    const { characters, userProxyName, byParticipantId } = charaData;
+    const actorFromMap = byParticipantId.get(actorParticipantId);
+    const actorIsNarrator = !actorFromMap;
+    const actor = actorIsNarrator
+      ? ({ id: "narrator", name: "Narrator", description: "", type: "narrator" } as const)
+      : actorFromMap;
+    assertDefined(actor, "Actor participant not found in scenario");
     const actorName = actorIsNarrator ? "Narrator" : actor.name;
 
     // Enrich turn DTO with events
     const eventsByTurn = eventDTOsByTurn(derivation.events);
-    const enrichedTurns = turns.map((t) => ({
-      ...t,
-      events: eventsByTurn[t.turnId] ?? [],
-    }));
+    const enrichedTurns = attachEventsToTurns(turns, eventsByTurn);
     const nextTurnNumber = (turns.at(-1)?.turnNo ?? 0) + 1;
     // TODO: this is definitely not a good way to do this
     // templates may need raw kind for switch case behavior, but also need
@@ -72,6 +81,7 @@ export class IntentContextBuilder {
     return {
       turns: enrichedTurns,
       characters,
+      chapterSummaries,
       actor,
       ...(intent
         ? {
@@ -91,105 +101,5 @@ export class IntentContextBuilder {
       },
       lorebooks,
     };
-  }
-
-  /**
-   * Loads character information from the database for active participants in
-   * the current scenario, ordered by card type.
-   * @private
-   */
-  private async loadParticipantCharaData(actorParticipantId: string): Promise<{
-    characters: CharacterCtxDTO[];
-    actor: CharacterCtxDTO;
-    userProxyName: string;
-    actorIsNarrator: boolean;
-  }> {
-    // TODO: Possibly make sorting configurable via recipe
-    const charaTypeSort: [Character["cardType"], number][] = [
-      ["character", 0],
-      ["narrator", 1],
-      ["group", 2],
-      ["persona", 3],
-    ];
-    const whenClauses = sql.join(
-      charaTypeSort.map(([type, idx]) => sql`WHEN ${type} THEN ${idx}`),
-      sql.raw(" ")
-    );
-    const cardTypeRank = sql`CASE ${tCharacters.cardType} ${whenClauses} ELSE 999 END`;
-
-    const data = await this.db
-      .select({
-        id: tCharacters.id,
-        name: tCharacters.name,
-        description: tCharacters.description,
-        participantId: tScenarioParticipants.id,
-        isUserProxy: tScenarioParticipants.isUserProxy,
-        type: tCharacters.cardType,
-        styleInstructions: tCharacters.styleInstructions,
-      })
-      .from(tCharacters)
-      .innerJoin(
-        tScenarioParticipants,
-        and(
-          eq(tScenarioParticipants.scenarioId, this.scenarioId),
-          eq(tScenarioParticipants.characterId, tCharacters.id),
-          eq(tScenarioParticipants.status, "active")
-        )
-      )
-      .orderBy(cardTypeRank, asc(tScenarioParticipants.isUserProxy), asc(tCharacters.name));
-
-    // Try to find a player proxy
-    const proxyCandidates = data.slice().sort((a, b) => {
-      // explicit user proxy first
-      if (a.isUserProxy !== b.isUserProxy) return a.isUserProxy ? -1 : 1;
-      // personas before others
-      const aPersona = a.type === "persona";
-      const bPersona = b.type === "persona";
-      if (aPersona !== bPersona) return aPersona ? -1 : 1;
-      // break ties by name
-      return a.name.localeCompare(b.name);
-    });
-    const userProxyName = proxyCandidates.at(0)?.name;
-
-    // TODO: Handle characters with cardType "narrator" specially, which should replace
-    // the fake 'Narrator' character.
-
-    // Generic narrator doesn't exist as a character, so they won't be in the list
-    const actorIsNarrator = !proxyCandidates.some(
-      (chara) => chara.participantId === actorParticipantId
-    );
-
-    const actor = actorIsNarrator
-      ? { id: "narrator", name: "Narrator", description: "", type: "narrator" as const }
-      : data.find((chara) => chara.participantId === actorParticipantId);
-    // DB constraints and invariants should ensure neither of these are null
-    assertDefined(actor, "Actor participant not found in scenario");
-    assertDefined(userProxyName, "No fallback player proxy character found");
-
-    // TODO: HACK - we replace `{{char}}` macros in character data here. This is
-    // because in the context of the prompt, {{char}} resolves to the currently
-    // acting character. But in the context of character descriptions, the same
-    // macro resolves to the character being described. This is how SillyTavern
-    // works so all cards in its ecosystem make this assumption.
-    const characters = data.map((chara) =>
-      stripNulls({
-        id: chara.id,
-        name: chara.name,
-        description: chara.description.replaceAll("{{char}}", chara.name),
-        type: chara.type,
-        styleInstructions: chara.styleInstructions,
-      })
-    );
-
-    return { characters, actor: stripNulls(actor), userProxyName, actorIsNarrator };
-  }
-
-  private async loadScenarioData() {
-    const [scenario] = await this.db
-      .select({ name: tScenarios.name, description: tScenarios.description })
-      .from(tScenarios)
-      .where(eq(tScenarios.id, this.scenarioId))
-      .limit(1);
-    return scenario;
   }
 }

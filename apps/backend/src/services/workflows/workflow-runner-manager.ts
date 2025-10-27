@@ -23,6 +23,7 @@ import {
   type SourceRegistry,
   type UnboundTemplate,
 } from "@storyforge/prompt-rendering";
+import { assertNever } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { fromDbPromptTemplate } from "../template/utils/marshalling.js";
@@ -67,34 +68,33 @@ export class WorkflowRunnerManager {
     }
 
     const registry = getRegistryForTask(taskKind);
-    if (taskKind === "turn_generation") {
-      const runner = makeWorkflowRunner<"turn_generation">({
-        loadTemplate: (id) => this.loadTemplate(id),
-        loadModelProfile: (id) => this.loadModelProfile(id),
-        budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
-        makeAdapter: createAdapter,
-        // cast needed because registry is not a discriminated union
-        registry: registry as SourceRegistry<
-          ContextFor<"turn_generation">,
-          TaskSourcesMap["turn_generation"]
-        >,
-        resolveRenderOptions: ({ extendedContext }) => buildTurnGenRenderOptions(extendedContext),
-      });
 
-      this.runners.set(taskKind, runner as WorkflowRunner<TaskKind>);
-      return runner as WorkflowRunner<K>;
+    switch (taskKind) {
+      case "turn_generation":
+      case "chapter_summarization": {
+        // chapter summarization is a subset of turn generation for runner purposes
+        const runner = makeWorkflowRunner<"turn_generation">({
+          loadTemplate: (id) => this.loadTemplate(id),
+          loadModelProfile: (id) => this.loadModelProfile(id),
+          budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
+          makeAdapter: createAdapter,
+          // cast needed because registry is not a discriminated union
+          registry: registry as SourceRegistry<
+            ContextFor<"turn_generation">,
+            TaskSourcesMap["turn_generation"]
+          >,
+          resolveRenderOptions: ({ extendedContext }) => buildTurnGenRenderOptions(extendedContext),
+        });
+
+        this.runners.set(taskKind, runner as WorkflowRunner<TaskKind>);
+        return runner as WorkflowRunner<K>;
+      }
+
+      case "writing_assistant":
+        throw new Error("Not implemented");
+      default:
+        assertNever(taskKind);
     }
-
-    const runner = makeWorkflowRunner<K>({
-      loadTemplate: (id) => this.loadTemplate(id),
-      loadModelProfile: (id) => this.loadModelProfile(id),
-      budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
-      makeAdapter: createAdapter,
-      registry: registry as unknown as SourceRegistry<ContextFor<K>, TaskSourcesMap[K]>,
-    });
-
-    this.runners.set(taskKind, runner);
-    return runner;
   }
 
   /**

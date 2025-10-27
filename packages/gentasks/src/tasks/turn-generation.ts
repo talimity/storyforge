@@ -1,10 +1,16 @@
-import type { LorebookAssignment } from "@storyforge/lorebooks";
 import type { PromptTemplate, SourceHandlerMap } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
-import type { CharacterCtxDTO, RuntimeSourceSpec, TurnCtxDTO } from "../types.js";
+import type { CharacterCtxDTO, RuntimeSourceSpec } from "../types.js";
+import {
+  type ChapterSummaryCtxEntry,
+  makeNarrativeSourceHandlers,
+  type NarrativeContextBase,
+  type NarrativeGlobalsBase,
+  type NarrativeSourcesBase,
+} from "./narrative-shared.js";
 
-type TurnGenGlobals = {
+type TurnGenGlobals = NarrativeGlobalsBase & {
   /** Whether the current turn is a narrator turn */
   isNarratorTurn: boolean;
   // SillyTavern-style global accessors to make imported characters and prompts
@@ -30,27 +36,19 @@ type TurnGenGlobals = {
   scenario?: string; // SillyTavern macro {{scenario}}
 };
 
+type TurnGenContextBase = NarrativeContextBase & {
+  /**
+   * The character authoring the current turn.
+   */
+  actor: CharacterCtxDTO;
+};
+
 /**
  * The prompt rendering context for a single turn generation task. Provides
  * the backing data for the task's source handlers, as well as variables that
  * can be accessed directly via template strings.
  */
-export type TurnGenCtx = {
-  /**
-   * All turns in the scenario, in chronological order. Should be accessed via
-   * the `turns` source.
-   */
-  turns: TurnCtxDTO[];
-  /**
-   * All characters in the scenario. `character`-type characters are ordered
-   * first, then `narrator`, then `persona`. Should be accessed via the
-   * `characters` source.
-   */
-  characters: CharacterCtxDTO[];
-  /**
-   * The character authoring the current turn.
-   */
-  actor: CharacterCtxDTO;
+export type TurnGenCtx = TurnGenContextBase & {
   /**
    * The intent input that triggered this turn generation, if any.
    */
@@ -64,8 +62,6 @@ export type TurnGenCtx = {
    * scalar values.
    */
   globals: TurnGenGlobals;
-  /** Lorebook assignments available for prompting. */
-  lorebooks: readonly LorebookAssignment[];
 };
 
 /**
@@ -73,14 +69,10 @@ export type TurnGenCtx = {
  * can be accessed in prompts via source handlers and the arguments that can be
  * passed to them.
  */
-export type TurnGenSources = {
-  turns: {
-    args: { order?: "asc" | "desc"; limit?: number; start?: number; end?: number } | undefined;
-    out: TurnCtxDTO[];
-  };
-  characters: {
-    args: { order?: "asc" | "desc"; limit?: number; ids?: string[] } | undefined;
-    out: CharacterCtxDTO[];
+export type TurnGenSources = NarrativeSourcesBase & {
+  chapterSummaries: {
+    args: { order?: "asc" | "desc"; limit?: number } | undefined;
+    out: readonly ChapterSummaryCtxEntry[];
   };
   currentIntent: {
     args: never;
@@ -89,40 +81,20 @@ export type TurnGenSources = {
   globals: { args: never; out: TurnGenGlobals };
 };
 
+const narrativeHandlers = makeNarrativeSourceHandlers<TurnGenCtx>();
+
 const makeTurnGenRegistry = (handlers: SourceHandlerMap<TurnGenCtx, TurnGenSources>) =>
   makeRegistry<TurnGenCtx, TurnGenSources>(handlers);
 
 export const turnGenRegistry = makeTurnGenRegistry({
-  /**
-   * Retrieve turns with optional ordering, slicing, and limiting.
-   * - `order`: "asc" (oldest first) or "desc" (newest first). Default is "desc".
-   * - `start` and `end`: Indices to slice the turns array. Supports negative indices.
-   * - `limit`: Maximum number of turns to return after slicing and ordering.
-   */
-  turns: (ref, ctx) => {
-    const { order = "desc", limit, start, end } = ref.args ?? {};
-    let arr = ctx.turns;
-
-    const norm = (i: number, len: number) => (i < 0 ? len + i : i);
-
-    if (typeof start === "number" || typeof end === "number") {
-      const s = norm(start ?? 0, arr.length);
-      const e = norm(end ?? arr.length - 1, arr.length);
-      arr = arr.slice(Math.max(0, s), Math.min(arr.length, e + 1));
-    }
-
-    if (order === "desc") arr = [...arr].reverse();
-    return typeof limit === "number" ? arr.slice(0, limit) : arr;
-  },
-  characters: (ref, ctx) => {
-    const { order = "asc", limit, ids } = ref.args ?? {};
-    let arr = ctx.characters;
-    if (ids?.length) {
-      const set = new Set(ids);
-      arr = arr.filter((c) => set.has(c.id));
-    }
-    if (order === "desc") arr = [...arr].reverse();
-    return typeof limit === "number" ? arr.slice(0, limit) : arr;
+  ...narrativeHandlers,
+  chapterSummaries: (ref, ctx) => {
+    const summaries = ctx.chapterSummaries ?? [];
+    const { order = "desc", limit } = ref.args ?? {};
+    const sorted = [...summaries].sort((a, b) =>
+      order === "asc" ? a.chapterNumber - b.chapterNumber : b.chapterNumber - a.chapterNumber
+    );
+    return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
   },
   currentIntent: (_ref, ctx) => ctx.currentIntent,
   globals: (_ref, ctx) => ctx.globals,
@@ -131,6 +103,7 @@ export const turnGenRegistry = makeTurnGenRegistry({
 export const TURN_GEN_SOURCE_NAMES = exactKeys<TurnGenSources>()(
   "turns",
   "characters",
+  "chapterSummaries",
   "currentIntent",
   "globals"
 );

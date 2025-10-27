@@ -1,4 +1,5 @@
 import { router } from "./index.js";
+import { chapterSummariesRouter } from "./routers/chapter-summaries.js";
 import { charactersRouter } from "./routers/characters.js";
 import { chatImportRouter } from "./routers/chat-import.js";
 import { intentsRouter } from "./routers/intents.js";
@@ -17,6 +18,7 @@ import { workflowsRouter } from "./routers/workflows.js";
 export const allRouters = {
   characters: charactersRouter,
   chatImport: chatImportRouter,
+  chapterSummaries: chapterSummariesRouter,
   lorebooks: lorebooksRouter,
   scenarioLorebooks: scenarioLorebooksRouter,
   characterLorebooks: characterLorebooksRouter,

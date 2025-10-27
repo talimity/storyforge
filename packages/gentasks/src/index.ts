@@ -1,7 +1,10 @@
 export {
   buildDefaultLoreLaneSpec,
-  buildTurnGenRenderOptions,
+  buildNarrativeLoreRenderOptions,
   LORE_LANE_ID,
+} from "./attachments/narrative.js";
+export {
+  buildTurnGenRenderOptions,
   TURN_GEN_REQUIRED_ANCHORS,
 } from "./attachments/turn-generation.js";
 export * from "./runner/index.js";
@@ -9,11 +12,18 @@ export { taskKindSchema } from "./schemas.js";
 export {
   CHAPTER_SUMM_SOURCE_NAMES,
   type ChapterSummCtx,
+  type ChapterSummGlobals,
+  type ChapterSummRange,
   type ChapterSummRegistry,
   type ChapterSummSources,
+  type ChapterSummTarget,
   type ChapterSummTemplate,
   chapterSummarizationRegistry,
 } from "./tasks/chapter-summarization.js";
+export type {
+  ChapterSummaryCtxEntry,
+  NarrativeGlobalsBase,
+} from "./tasks/narrative-shared.js";
 export {
   TURN_GEN_SOURCE_NAMES,
   type TurnGenCtx,

@@ -114,6 +114,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       currentIntent: { kind: "turn_generation", prompt: "Test intent" },
       actor: { id: "char1", name: "Alice", description: "I'm going to Alice", type: "character" },
@@ -186,6 +187,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       actor: { id: "char1", name: "Alice", description: "", type: "character" },
       globals: {
@@ -247,6 +249,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       currentIntent: {
         prompt: "Multi-step test",
@@ -317,6 +320,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       actor: { id: "char1", name: "Alice", description: "I'm going to Alice", type: "character" },
       globals: {
@@ -387,6 +391,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "Transform test", kind: "turn_generation" },
       actor: { id: "char1", name: "Alice", description: "I'm going to Alice", type: "character" },
@@ -480,6 +485,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "Cancel test", kind: "turn_generation" },
       actor: { id: "char1", name: "Alice", description: "I'm going to Alice", type: "character" },
@@ -563,6 +569,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "JSON test", kind: "turn_generation" },
       actor: { id: "char1", name: "Alice", description: "I'm going to Alice", type: "character" },
@@ -612,6 +619,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "Snapshot test", kind: "turn_generation" },
       actor: { id: "char1", name: "Alice", description: "I'm going to Alice", type: "character" },
@@ -682,6 +690,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "Stream return test", kind: "turn_generation" },
       actor: { id: "char1", name: "Alice", description: "I'm going to Alice", type: "character" },
@@ -736,6 +745,7 @@ describe("Workflow Runner", () => {
     const context: TurnGenCtx = {
       turns: [],
       characters: [],
+      chapterSummaries: [],
       nextTurnNumber: 1,
       currentIntent: { prompt: "Transform event test", kind: "turn_generation" },
       actor: { id: "char1", name: "Alice", description: "I'm going to Alice", type: "character" },
