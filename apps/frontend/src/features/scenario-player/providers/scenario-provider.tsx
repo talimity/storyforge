@@ -14,7 +14,7 @@ type ScenarioCtx = ScenarioCtxEnvironment & {
   charactersById: Record<string, ScenarioCtxCharacter>;
   getCharacterById: (characterId?: string | null) => ScenarioCtxCharacter | null;
   getParticipantById: (participantId?: string | null) => ScenarioCtxParticipant | null;
-  getCharacterByParticipantId: (participantId: string) => ScenarioCtxCharacter | null;
+  getCharacterByParticipantId: (participantId?: string | null) => ScenarioCtxCharacter | null;
   timelineState: ScenarioCtxTimelineState;
   chapters: ScenarioCtxTimelineState["chapters"]["chapters"];
   chaptersByEventId: Record<string, ScenarioCtxChapter>;
@@ -78,7 +78,8 @@ export function ScenarioProvider(props: { scenarioId: string; children: ReactNod
   );
 
   const getCharacterByParticipantId = useMemo(
-    () => (participantId: string) => {
+    () => (participantId?: string | null) => {
+      if (!participantId) return null;
       const p = participantsById[participantId];
       return p?.characterId ? charactersById[p.characterId] : null;
     },

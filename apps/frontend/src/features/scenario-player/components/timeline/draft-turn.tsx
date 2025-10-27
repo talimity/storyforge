@@ -1,10 +1,16 @@
-import { Box, Stack, Text } from "@chakra-ui/react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { Box, HStack, Stack, Text } from "@chakra-ui/react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Avatar, Button, StreamingMarkdown } from "@/components/ui";
 import { AutoFollowOnDraft } from "@/features/scenario-player/components/timeline/auto-follow-draft";
+import { useScenarioIntentActions } from "@/features/scenario-player/hooks/use-scenario-intent-actions";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
-import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
+import {
+  type RecoverableDraft,
+  useIntentRunsStore,
+} from "@/features/scenario-player/stores/intent-run-store";
+import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
+import { showErrorToast } from "@/lib/error-handling";
 import { getApiUrl } from "@/lib/get-api-url";
 import { TurnHeader } from "./turn-header";
 
@@ -12,22 +18,51 @@ import { TurnHeader } from "./turn-header";
 const MemoAvatar = memo(Avatar, (prev, next) => prev.src === next.src);
 
 export function DraftTurn() {
-  const { getCharacterByParticipantId } = useScenarioContext();
-  const { runId, isActive, authorId, previewText, isPresentation, charCount } = useDraftPreview();
+  const { scenario, getCharacterByParticipantId } = useScenarioContext();
+  const { addTurn } = useScenarioIntentActions();
+  const clearRun = useIntentRunsStore((state) => state.clearRun);
+  const setPendingScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
+  const {
+    runId,
+    isVisible,
+    mode,
+    authorId,
+    previewText,
+    isPresentation,
+    charCount,
+    error,
+    recoverable,
+  } = useDraftPreview();
   const [showInternal, setShowInternal] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
 
   useEffect(() => {
     void runId;
     setShowInternal(false);
   }, [runId]);
 
-  const author = authorId ? getCharacterByParticipantId(authorId) : null;
-  const authorName = author?.name ?? "Generating";
+  const author = getCharacterByParticipantId(authorId);
+  const defaultName = mode === "recoverable" ? "Recovered turn" : "Generating";
+  const authorName = author?.name ?? defaultName;
   const avatarSrc = getApiUrl(author?.avatarPath ?? undefined);
-  const tintColor = author?.defaultColor ? author.defaultColor.toLowerCase() : null;
-  const shouldShowText = isPresentation || showInternal;
-  const hint = isPresentation ? null : "Draft";
-  const approxTokens = charCount > 0 ? Math.max(1, Math.round(charCount / 4)) : 0;
+  const tintColor = author?.defaultColor.toLowerCase();
+  const shouldShowText = mode === "recoverable" ? true : isPresentation || showInternal;
+  const statusHint =
+    mode === "recoverable"
+      ? recoverable?.source === "cancelled"
+        ? "Generation interrupted"
+        : "Generation failed"
+      : isPresentation
+        ? null
+        : "Draft";
+  const approxTokens =
+    mode === "generating" && charCount > 0 ? Math.max(1, Math.round(charCount / 4)) : 0;
+  const canToggleInternal = mode === "generating" && !isPresentation;
+  const canConvert =
+    mode === "recoverable" &&
+    recoverable !== null &&
+    recoverable.actorParticipantId !== null &&
+    previewText.trim().length > 0;
 
   const tintCss = useMemo(() => {
     const resolvedTint =
@@ -35,7 +70,55 @@ export function DraftTurn() {
     return { "--input-color": resolvedTint };
   }, [tintColor]);
 
-  if (!isActive) return null;
+  const handleDismiss = useCallback(() => {
+    if (!runId) return;
+    clearRun(runId);
+  }, [clearRun, runId]);
+
+  const handleConvertToManual = useCallback(async () => {
+    if (
+      mode !== "recoverable" ||
+      !recoverable ||
+      recoverable.actorParticipantId === null ||
+      previewText.trim().length === 0
+    ) {
+      return;
+    }
+
+    setIsConverting(true);
+    try {
+      const text = previewText.trim();
+      const baseInput = {
+        scenarioId: scenario.id,
+        text,
+        authorParticipantId: recoverable.actorParticipantId,
+      };
+      const input =
+        recoverable.branchFromTurnId && recoverable.branchFromTurnId.length > 0
+          ? { ...baseInput, parentTurnId: recoverable.branchFromTurnId }
+          : baseInput;
+      await addTurn(input);
+      setPendingScrollTarget({ kind: "bottom" });
+      clearRun(runId);
+    } catch (error_) {
+      showErrorToast({ title: "Failed to create manual turn", error: error_ });
+    } finally {
+      setIsConverting(false);
+    }
+  }, [
+    addTurn,
+    clearRun,
+    mode,
+    previewText,
+    recoverable,
+    runId,
+    scenario.id,
+    setPendingScrollTarget,
+  ]);
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <Box
@@ -64,11 +147,11 @@ export function DraftTurn() {
           title={authorName}
           metadata={[
             <Text fontSize="xs" layerStyle="tinted.muted" key="hint">
-              {hint}
+              {statusHint}
             </Text>,
           ]}
           rightSlot={
-            !isPresentation ? (
+            canToggleInternal ? (
               <Button size="xs" variant="ghost" onClick={() => setShowInternal((v) => !v)}>
                 {showInternal ? "Hide draft" : "Show draft"}
               </Button>
@@ -80,7 +163,7 @@ export function DraftTurn() {
             <StreamingMarkdown text={previewText} dialogueAuthorId={author?.id ?? null} />
           ) : (
             <Text fontSize="md" color="content.muted">
-              Thinking…
+              {mode === "recoverable" ? "No recovered text." : "Thinking…"}
             </Text>
           )
         ) : (
@@ -89,40 +172,108 @@ export function DraftTurn() {
           </Text>
         )}
 
-        <AutoFollowOnDraft />
+        {mode === "recoverable" && error ? (
+          <Text fontSize="sm" color="fg.error">
+            {error}
+          </Text>
+        ) : null}
+
+        {mode === "recoverable" ? (
+          <HStack gap={2} justify="space-between" align="center">
+            <Button size="xs" variant="ghost" onClick={handleDismiss} disabled={isConverting}>
+              Discard
+            </Button>
+            <Button
+              size="xs"
+              colorPalette="primary"
+              onClick={handleConvertToManual}
+              disabled={!canConvert || isConverting}
+              loading={isConverting}
+            >
+              Save
+            </Button>
+          </HStack>
+        ) : (
+          <AutoFollowOnDraft />
+        )}
       </Stack>
     </Box>
   );
 }
 
-function useDraftPreview() {
+type DraftPreviewState = {
+  runId: string;
+  isVisible: boolean;
+  mode: "generating" | "recoverable" | "inactive";
+  authorId: string | null;
+  previewText: string;
+  isPresentation: boolean;
+  charCount: number;
+  error?: string;
+  recoverable: RecoverableDraft | null;
+};
+
+function useDraftPreview(): DraftPreviewState {
   return useIntentRunsStore(
-    useShallow((s) => {
+    useShallow((s): DraftPreviewState => {
+      const fallback: DraftPreviewState = {
+        runId: "",
+        isVisible: false,
+        mode: "inactive",
+        authorId: null,
+        previewText: "",
+        isPresentation: true,
+        charCount: 0,
+        error: undefined,
+        recoverable: null,
+      };
       const id = s.currentRunId;
       if (!id) {
+        return fallback;
+      }
+
+      const run = s.runsById[id];
+      if (!run) {
+        return fallback;
+      }
+
+      const hasRecovery = Boolean(run.pendingRecovery);
+      const isGenerating = run.status === "pending" || run.status === "running";
+      const mode = hasRecovery ? "recoverable" : isGenerating ? "generating" : "inactive";
+
+      if (mode === "inactive") {
         return {
-          runId: "",
-          isActive: false,
-          isStreaming: false,
+          runId: id,
+          isVisible: false,
+          mode,
           authorId: null,
           previewText: "",
           isPresentation: true,
           charCount: 0,
+          error: undefined,
+          recoverable: null,
         };
       }
 
-      const run = s.runsById[id];
       const last = run.provisional[run.provisional.length - 1];
-      // Use throttled UI-facing fields from the store
+      const previewSource =
+        run.displayPresentationPreview || run.displayPreview || last?.text || "";
+      const previewText = hasRecovery
+        ? (run.pendingRecovery?.text ?? "").trim()
+        : previewSource.trim();
 
       return {
         runId: id,
-        isActive: run.status === "pending" || run.status === "running",
-        isStreaming: last?.status === "streaming" || run.livePreview.length > 0,
-        authorId: run.currentActorParticipantId ?? null,
-        previewText: (run.displayPreview || last?.text || "").trim(),
-        isPresentation: run.lastTokenIsPresentation ?? true,
+        isVisible: true,
+        mode,
+        authorId: hasRecovery
+          ? (run.pendingRecovery?.actorParticipantId ?? null)
+          : (run.currentActorParticipantId ?? null),
+        previewText,
+        isPresentation: hasRecovery ? true : (run.lastTokenIsPresentation ?? true),
         charCount: run.displayCharCount ?? 0,
+        error: hasRecovery ? (run.pendingRecovery?.error ?? run.error) : undefined,
+        recoverable: run.pendingRecovery ?? null,
       };
     })
   );

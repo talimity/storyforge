@@ -82,6 +82,7 @@
 │   │   │   │   │   │   └── turn.ts
 │   │   │   │   │   ├── timeline.queries.ts
 │   │   │   │   │   ├── timeline.service.ts
+│   │   │   │   │   ├── turn-graph.queries.ts
 │   │   │   │   │   └── utils
 │   │   │   │   │       ├── leaf.ts
 │   │   │   │   │       └── mutation-planner.ts
@@ -179,11 +180,12 @@
 │       │   │   │   │       ├── character-portrait-field.tsx
 │       │   │   │   │       ├── character-starters-editor.tsx
 │       │   │   │   │       └── form-schemas.ts
-│       │   │   │   └── hooks
-│       │   │   │       ├── use-character-actions.ts
-│       │   │   │       ├── use-character-library-state.ts
-│       │   │   │       ├── use-character-search.ts
-│       │   │   │       └── use-character-star.ts
+│       │   │   │   ├── hooks
+│       │   │   │   │   ├── use-character-actions.ts
+│       │   │   │   │   ├── use-character-search.ts
+│       │   │   │   │   └── use-character-star.ts
+│       │   │   │   └── library
+│       │   │   │       └── filters.ts
 │       │   │   ├── inference-config
 │       │   │   │   ├── components
 │       │   │   │   │   ├── capabilities-selector.tsx
@@ -204,8 +206,8 @@
 │       │   │   │   └── hooks
 │       │   │   │       └── use-model-profile-search.ts
 │       │   │   ├── library
-│       │   │   │   └── hooks
-│       │   │   │       └── use-hydrated-search-params.ts
+│       │   │   │   ├── filter-param-helpers.ts
+│       │   │   │   └── use-persisted-library-filters.ts
 │       │   │   ├── lorebooks
 │       │   │   │   ├── components
 │       │   │   │   │   ├── delete-lorebook-dialog.tsx
@@ -267,6 +269,11 @@
 │       │   │   │   │       ├── turn-header.tsx
 │       │   │   │   │       ├── turn-item.tsx
 │       │   │   │   │       └── virtualized-timeline.tsx
+│       │   │   │   ├── graph
+│       │   │   │   │   ├── index.ts
+│       │   │   │   │   ├── turn-graph-canvas.tsx
+│       │   │   │   │   ├── turn-graph-dialog.tsx
+│       │   │   │   │   └── turn-node.tsx
 │       │   │   │   ├── hooks
 │       │   │   │   │   ├── use-branch-preview.ts
 │       │   │   │   │   ├── use-chapter-actions.ts
@@ -300,11 +307,12 @@
 │       │   │   │   │   ├── scenario-lorebook-manager.tsx
 │       │   │   │   │   └── scenario-selector.tsx
 │       │   │   │   ├── forms
-│       │   │   │   └── hooks
-│       │   │   │       ├── use-scenario-actions.ts
-│       │   │   │       ├── use-scenario-library-state.ts
-│       │   │   │       ├── use-scenario-search.ts
-│       │   │   │       └── use-scenario-star.ts
+│       │   │   │   ├── hooks
+│       │   │   │   │   ├── use-scenario-actions.ts
+│       │   │   │   │   ├── use-scenario-search.ts
+│       │   │   │   │   └── use-scenario-star.ts
+│       │   │   │   └── library
+│       │   │   │       └── filters.ts
 │       │   │   ├── template-builder
 │       │   │   │   ├── components
 │       │   │   │   │   ├── attachments
@@ -642,4 +650,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
 
-126 directories, 517 files
+128 directories, 523 files

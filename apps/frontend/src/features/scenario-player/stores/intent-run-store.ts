@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 const DRAFT_FLUSH_INTERVAL_MS = 100; // ~10 FPS
-const draftFlushTimers = new Map<string, number>();
+const draftFlushTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 export type IntentRunStatus = "pending" | "running" | "finished" | "failed" | "cancelled";
 
@@ -29,6 +29,14 @@ export type StepState = {
   charCount?: number;
 };
 
+export type RecoverableDraft = {
+  text: string;
+  actorParticipantId: string | null;
+  branchFromTurnId: string | null;
+  source: "failed" | "cancelled";
+  error?: string;
+};
+
 export interface IntentRun {
   id: string; // intentId
   scenarioId: string;
@@ -40,8 +48,11 @@ export interface IntentRun {
 
   // current draft (streaming) text, independent of committed effects
   livePreview: string;
+  // presentation-only preview
+  presentationPreview: string;
   // throttled, UI-facing preview copied from livePreview
   displayPreview: string;
+  displayPresentationPreview: string;
 
   // often just one item; list allows future multi-effect previews
   provisional: ProvisionalTurn[];
@@ -69,6 +80,10 @@ export interface IntentRun {
    * no longer have to hide turns from the old branch).
    */
   truncateAfterTurnId?: string;
+  /** Tracks the latest branch point associated with generation. */
+  lastBranchFromTurnId: string | null;
+  /** Captured presentation preview available for recovery after a failure. */
+  pendingRecovery?: RecoverableDraft;
 }
 
 export interface IntentRunsState {
@@ -82,6 +97,8 @@ export interface IntentRunsState {
   applyEvent: (event: IntentEvent) => void;
   /** clears current intent run */
   clearActiveRun: () => void;
+  /** removes a run completely */
+  clearRun: (intentId: string) => void;
   /** clears all intent runs */
   clearAllRuns: (nextScenarioId: string) => void;
 }
@@ -102,12 +119,16 @@ export const useIntentRunsStore = create<IntentRunsState>()(
           status: "pending",
           startedAt: Date.now(),
           livePreview: "",
+          presentationPreview: "",
           displayPreview: "",
+          displayPresentationPreview: "",
           provisional: [],
           committedTurnIds: [],
           steps: {},
           truncateAfterTurnId: undefined,
           displayCharCount: 0,
+          lastBranchFromTurnId: null,
+          pendingRecovery: undefined,
         };
         s.currentRunId = intentId;
         s.lastScenarioId = scenarioId;
@@ -125,7 +146,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
           case "intent_started":
             run.status = "running";
             run.startedAt = ev.ts;
-            run.kind = ev.kind ?? run.kind;
+            run.kind = ev.kind;
             return;
 
           case "actor_selected":
@@ -154,13 +175,20 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             if (ev.participantId) {
               run.currentActorParticipantId = ev.participantId;
             }
+            run.lastBranchFromTurnId = ev.branchFromTurnId ?? null;
+            run.presentationPreview = "";
+            run.displayPresentationPreview = "";
+            run.pendingRecovery = undefined;
             return;
           }
 
           case "gen_token": {
             // append to live preview and to the current streaming provisional
             run.livePreview += ev.delta;
-            run.lastTokenIsPresentation = ev.presentation ?? true;
+            run.lastTokenIsPresentation = ev.presentation;
+            if (ev.presentation) {
+              run.presentationPreview += ev.delta;
+            }
             // Track per-step progress counts
             const step = (run.steps[ev.stepId] ??= { id: ev.stepId, status: "running" });
             step.deltaCount = (step.deltaCount ?? 0) + 1;
@@ -168,7 +196,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             if (run.provisional.length === 0) {
               run.provisional.push({
                 text: ev.delta,
-                actorParticipantId: run.currentActorParticipantId ?? null,
+                actorParticipantId: run.currentActorParticipantId,
                 status: "streaming",
               });
             } else {
@@ -177,19 +205,20 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             }
             // schedule throttled UI flush for display fields
             if (!draftFlushTimers.has(ev.intentId)) {
-              const tid = setTimeout(() => {
+              const timeoutHandle = setTimeout(() => {
                 // copy snapshot to UI-facing fields
                 useIntentRunsStore.setState((state) => {
                   const r = state.runsById[ev.intentId];
                   if (!r) return state;
                   r.displayPreview = r.livePreview;
+                  r.displayPresentationPreview = r.presentationPreview;
                   const running = Object.values(r.steps).find((st) => st.status === "running");
                   r.displayCharCount = running?.charCount ?? 0;
                   return state;
                 });
                 draftFlushTimers.delete(ev.intentId);
-              }, DRAFT_FLUSH_INTERVAL_MS) as unknown as number;
-              draftFlushTimers.set(ev.intentId, tid);
+              }, DRAFT_FLUSH_INTERVAL_MS);
+              draftFlushTimers.set(ev.intentId, timeoutHandle);
             }
             return;
           }
@@ -204,7 +233,11 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             // show the real state from the server
             run.truncateAfterTurnId = undefined;
             run.displayPreview = "";
+            run.displayPresentationPreview = "";
             run.displayCharCount = 0;
+            run.presentationPreview = "";
+            run.pendingRecovery = undefined;
+            run.lastBranchFromTurnId = null;
             return;
 
           case "intent_finished":
@@ -212,7 +245,11 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             run.finishedAt = ev.ts;
             run.truncateAfterTurnId = undefined;
             run.displayPreview = "";
+            run.displayPresentationPreview = "";
             run.displayCharCount = 0;
+            run.presentationPreview = "";
+            run.pendingRecovery = undefined;
+            run.lastBranchFromTurnId = null;
             return;
 
           case "intent_failed": {
@@ -231,11 +268,28 @@ export const useIntentRunsStore = create<IntentRunsState>()(
                 if (p.status === "streaming") p.text = ev.partialText;
               }
               run.livePreview = ev.partialText;
+              if (run.lastTokenIsPresentation !== false) {
+                run.presentationPreview = ev.partialText;
+              }
             }
-            run.truncateAfterTurnId = undefined;
             run.displayPreview = run.livePreview;
+            run.displayPresentationPreview = run.presentationPreview;
             const running = Object.values(run.steps).find((st) => st.status === "running");
             run.displayCharCount = running?.charCount ?? 0;
+            const presentationText = run.presentationPreview.trim();
+            const recoveryActor = run.currentActorParticipantId ?? null;
+            if (presentationText.length > 0 && recoveryActor) {
+              run.pendingRecovery = {
+                text: presentationText,
+                actorParticipantId: recoveryActor,
+                branchFromTurnId: run.lastBranchFromTurnId,
+                source: ev.cancelled ? "cancelled" : "failed",
+                error: ev.cancelled ? undefined : ev.error,
+              };
+            } else {
+              run.pendingRecovery = undefined;
+            }
+            run.truncateAfterTurnId = run.pendingRecovery?.branchFromTurnId ?? undefined;
             return;
           }
         }
@@ -244,22 +298,37 @@ export const useIntentRunsStore = create<IntentRunsState>()(
 
     clearActiveRun: () =>
       set((s) => {
-        console.log("Clearing active run", s.currentRunId);
         s.currentRunId = null;
       }),
 
-    clearAllRuns: (nextScenarioId) =>
+    clearRun: (intentId) => {
+      const timeoutHandle = draftFlushTimers.get(intentId);
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+        draftFlushTimers.delete(intentId);
+      }
       set((s) => {
-        if (s.lastScenarioId === nextScenarioId) {
-          console.log("Not clearing all runs, scenario hasn't changed");
+        if (!s.runsById[intentId]) {
           return;
         }
-        if (s.currentRunId) {
-          console.log("Clearing runs", s.lastScenarioId, s.currentRunId);
+        delete s.runsById[intentId];
+        if (s.currentRunId === intentId) {
+          s.currentRunId = null;
         }
+      });
+    },
+
+    clearAllRuns: (nextScenarioId) => {
+      draftFlushTimers.forEach((handle) => {
+        clearTimeout(handle);
+      });
+      draftFlushTimers.clear();
+      set((s) => {
+        if (s.lastScenarioId === nextScenarioId) return;
         s.currentRunId = null;
         s.runsById = {};
-      }),
+      });
+    },
   }))
 );
 
@@ -282,11 +351,15 @@ function reduceRunnerEvent(run: IntentRun, e: WorkflowEvent) {
     case "step_finished":
       run.steps[e.stepId] ??= { id: e.stepId, status: "running" };
       run.steps[e.stepId].status = "finished";
-      run.provisional[0].text = "";
+      if (run.provisional.length > 0) {
+        run.provisional[0].text = "";
+      }
       run.livePreview = "";
       run.lastTokenIsPresentation = undefined;
       run.displayPreview = "";
       run.displayCharCount = 0;
+      run.presentationPreview = "";
+      run.displayPresentationPreview = "";
       break;
     case "run_error":
       if (e.stepId) {
