@@ -281,8 +281,6 @@ export function usePersistedLibraryFilters<Filters extends Record<string, unknow
         return previous;
       }
       const nextParams = encodeParams(next, parsedDefaults, params, searchParams);
-      const nextString = nextParams.toString();
-      lastSyncedSearch.current = nextString;
       setSearchParams(nextParams);
       setSource("default");
       return next;
