@@ -58,7 +58,7 @@ export function VirtualizedTimeline(props: TimelineProps) {
   // all turns under the branching point, so that the DraftTurn (the list's
   // footer) appears in the spot where the new leaf would be.
   const run = useIntentRunsStore(selectCurrentRun);
-  const cutoffId = uiCutoffAfterTurnId ?? run?.truncateAfterTurnId ?? null;
+  const cutoffId = uiCutoffAfterTurnId ?? run?.truncateAfterTurnId;
   const visibleTurns = useMemo(() => {
     if (!cutoffId) return turns;
     const idx = turns.findIndex((t) => t.id === cutoffId);

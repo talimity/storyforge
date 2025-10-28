@@ -1,14 +1,25 @@
 import { createHash } from "node:crypto";
-import { type ChapterSummary, type SqliteDatabase, schema } from "@storyforge/db";
 import type {
-  ChapterSummaryCtxEntry,
+  ChapterSummary,
+  ChapterSummaryStatus,
+  ChapterSummaryStatusInput,
+  ChapterSummaryStatusState,
+  SaveChapterSummaryInput,
+  SaveChapterSummaryOutput,
+  SummarizeChapterInput,
+  SummarizeChapterOutput,
+} from "@storyforge/contracts";
+import type { ChapterSummary as ChapterSummaryRow, SqliteDatabase } from "@storyforge/db";
+import { schema } from "@storyforge/db";
+import type {
   ChapterSummCtx,
   ChapterSummGlobals,
   ChapterSummTarget,
   WorkflowRunHandle,
 } from "@storyforge/gentasks";
 import { TimelineStateDeriver } from "@storyforge/timeline-events";
-import { inArray, sql } from "drizzle-orm";
+import { normalizeJson } from "@storyforge/utils";
+import { sql } from "drizzle-orm";
 import { createChildLogger } from "../../logging.js";
 import { ServiceError } from "../../service-error.js";
 import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.queries.js";
@@ -22,14 +33,9 @@ import { TimelineEventLoader } from "../timeline-events/loader.js";
 import { eventDTOsByTurn } from "../timeline-events/utils/event-dtos.js";
 import { getWorkflowForTaskScope } from "../workflows/workflow.queries.js";
 import { WorkflowRunnerManager } from "../workflows/workflow-runner-manager.js";
+import { loadChapterNodes, loadPreviousSummariesForContext } from "./chapter-summaries.queries.js";
 import { type ChapterSummaryRunRecord, getChapterSummaryRunManager } from "./run-manager.js";
-import type {
-  ChapterDescriptor,
-  ChapterSpan,
-  ChapterSummaryRecord,
-  ChapterSummaryStatus,
-  ChapterSummaryStatusState,
-} from "./types.js";
+import type { ChapterEntry, ChapterNode } from "./types.js";
 
 const { chapterSummaries, turns, turnLayers } = schema;
 const log = createChildLogger("chapter-summaries");
@@ -37,9 +43,19 @@ const log = createChildLogger("chapter-summaries");
 const SUMMARY_TEXT_KEY = "summary_text";
 const SUMMARY_JSON_KEY = "summary_json";
 
+type ChapterSpan = {
+  chapterEventId: string;
+  closingEventId: string;
+  closingTurnId: string;
+  chapterNumber: number;
+  title: string | null;
+  turnIds: string[];
+  turns: ChapterSummCtx["turns"];
+};
+
 type FingerprintMeta = {
   turnCount: number;
-  maxTurnUpdatedAt: number;
+  maxTurnUpdatedAt: Date;
   spanFingerprint: string;
 };
 
@@ -52,130 +68,68 @@ export class ChapterSummariesService {
     this.deriver = new TimelineStateDeriver(this.loader);
   }
 
-  async getSummary(closingEventId: string): Promise<ChapterSummaryRecord | null> {
-    const row = await this.db.query.chapterSummaries.findFirst({
-      where: { closingEventId },
-    });
+  async getSummary(closingEventId: string): Promise<ChapterSummary | null> {
+    const pair = await this.findChapterByClosingEvent(closingEventId);
+    if (!pair?.closing) return null;
+
+    const row = await this.db.query.chapterSummaries.findFirst({ where: { closingEventId } });
     if (!row) return null;
-    const title = await this.resolveChapterTitle(row.scenarioId, closingEventId, row.closingTurnId);
-    return { ...row, title };
+
+    return this.toSummaryDTO(row, pair.chapter, pair.closing);
   }
 
-  async getStatus(args: {
-    scenarioId: string;
-    closingEventId: string;
-  }): Promise<ChapterSummaryStatus> {
-    const descriptors = await this.loadChapterDescriptors(args.scenarioId, null);
-    const descriptor = descriptors.find((d) => d.eventId === args.closingEventId);
-    if (!descriptor || !descriptor.turnId) {
+  async getStatus(args: ChapterSummaryStatusInput): Promise<ChapterSummaryStatus> {
+    const nodes = await loadChapterNodes(this.db, args);
+    const node = nodes.find((node) => node.chapter.eventId === args.chapterEventId);
+    if (!node) {
       throw new ServiceError("NotFound", {
-        message: `Chapter break ${args.closingEventId} not found on active timeline`,
+        message: `Chapter ${args.chapterEventId} not found on active timeline`,
       });
     }
-
-    const span = await this.buildSpan({
-      scenarioId: args.scenarioId,
-      descriptor,
-      closingTurnId: descriptor.turnId,
-    });
-
-    const summaryRow = await this.db.query.chapterSummaries.findFirst({
-      where: { closingEventId: args.closingEventId },
-    });
-    const runRecord = getChapterSummaryRunManager().getByClosingEvent(args.closingEventId);
-    const fingerprint = summaryRow
-      ? await this.computeFingerprint(args.scenarioId, span)
-      : undefined;
-
-    return this.computeStatus({
-      span,
-      summary: summaryRow ? { ...summaryRow, title: descriptor.title } : null,
-      run: runRecord,
-      fingerprint,
-    });
+    return this.buildStatusForNode(args.scenarioId, node);
   }
 
   async listForPath(args: {
     scenarioId: string;
     leafTurnId?: string | null;
   }): Promise<ChapterSummaryStatus[]> {
-    const descriptors = await this.loadChapterDescriptors(args.scenarioId, args.leafTurnId ?? null);
-    const relevant = descriptors.filter((d) => d.turnId !== null);
-    if (relevant.length === 0) return [];
-
-    const eventIds = relevant.map((d) => d.eventId);
-    const rows =
-      eventIds.length > 0
-        ? await this.db
-            .select()
-            .from(chapterSummaries)
-            .where(inArray(chapterSummaries.closingEventId, eventIds))
-        : [];
-
-    const summariesByEvent = new Map<string, ChapterSummary>();
-    for (const row of rows) summariesByEvent.set(row.closingEventId, row);
-
-    const runManager = getChapterSummaryRunManager();
+    const nodes = await loadChapterNodes(this.db, args);
     const statuses: ChapterSummaryStatus[] = [];
-    for (const descriptor of relevant) {
-      const span = await this.buildSpan({
-        scenarioId: args.scenarioId,
-        descriptor,
-        closingTurnId: descriptor.turnId as string,
-      });
-      const summaryRow = summariesByEvent.get(descriptor.eventId);
-      const run = runManager.getByClosingEvent(descriptor.eventId);
-      const fingerprint = summaryRow
-        ? await this.computeFingerprint(args.scenarioId, span)
-        : undefined;
-      statuses.push(
-        this.computeStatus({
-          span,
-          summary: summaryRow ? { ...summaryRow, title: descriptor.title } : null,
-          run,
-          fingerprint,
-        })
-      );
+    for (const node of nodes) {
+      statuses.push(await this.buildStatusForNode(args.scenarioId, node));
     }
     return statuses;
   }
 
-  async summarizeChapter(args: {
-    scenarioId: string;
-    closingEventId: string;
-    force?: boolean;
-  }): Promise<{ runId: string }> {
-    const runManager = getChapterSummaryRunManager();
-    const activeRun = runManager.getByClosingEvent(args.closingEventId);
-    if (activeRun && !args.force) {
-      return { runId: activeRun.runId };
-    }
-
-    const descriptors = await this.loadChapterDescriptors(args.scenarioId, null);
-    const descriptor = descriptors.find((d) => d.eventId === args.closingEventId);
-    if (!descriptor || !descriptor.turnId) {
+  async summarizeChapter(args: SummarizeChapterInput): Promise<SummarizeChapterOutput> {
+    const pair = await this.findChapterByClosingEvent(args.closingEventId);
+    if (!pair?.closing) {
       throw new ServiceError("NotFound", {
         message: `Chapter break ${args.closingEventId} not found on active timeline`,
       });
     }
 
-    const span = await this.buildSpan({
-      scenarioId: args.scenarioId,
-      descriptor,
-      closingTurnId: descriptor.turnId,
-    });
+    const runManager = getChapterSummaryRunManager();
+    const activeRun = runManager.getByClosingEvent(args.closingEventId);
+    if (activeRun && !args.force && !activeRun.finishedAt) {
+      return { runId: activeRun.runId };
+    }
+
+    const span = await this.buildSpan(args.scenarioId, pair.chapter, pair.closing);
+    const fingerprint = await this.computeFingerprint(args.scenarioId, span);
 
     const existingSummary = await this.db.query.chapterSummaries.findFirst({
       where: { closingEventId: args.closingEventId },
     });
-    const fingerprint = await this.computeFingerprint(args.scenarioId, span);
 
     if (existingSummary && !args.force) {
-      const status = this.computeStatus({
+      const status = await this.computeStatus({
+        scenarioId: args.scenarioId,
+        node: pair,
         span,
-        summary: { ...existingSummary, title: descriptor.title ?? null },
-        run: undefined,
+        summary: existingSummary,
         fingerprint,
+        run: undefined,
       });
       if (status.state === "ready") {
         throw new ServiceError("InvalidInput", {
@@ -184,10 +138,9 @@ export class ChapterSummariesService {
       }
     }
 
-    const previousContextSummaries = await this.loadPreviousSummariesForContext({
+    const previousSummaries = await loadPreviousSummariesForContext(this.db, {
       scenarioId: args.scenarioId,
-      descriptors,
-      currentEventId: descriptor.eventId,
+      closingEventId: args.closingEventId,
     });
 
     const [charactersCtx, scenarioMeta, lorebooks] = await Promise.all([
@@ -199,10 +152,6 @@ export class ChapterSummariesService {
     const globals: ChapterSummGlobals = {
       scenarioName: scenarioMeta.name,
       scenario: scenarioMeta.description,
-      range: {
-        startChapterNumber: span.rangeStartChapterNumber,
-        endChapterNumber: span.rangeEndChapterNumber,
-      },
     };
 
     const target: ChapterSummTarget = {
@@ -217,7 +166,7 @@ export class ChapterSummariesService {
       turns: span.turns,
       characters: charactersCtx.characters,
       lorebooks,
-      chapterSummaries: previousContextSummaries,
+      chapterSummaries: previousSummaries,
       globals,
       target,
     };
@@ -226,7 +175,6 @@ export class ChapterSummariesService {
       scenarioId: args.scenarioId,
     });
     const runner = WorkflowRunnerManager.getInstance(this.db).getRunner("chapter_summarization");
-
     const handle = await runner.startRun(workflow, context);
     runManager.track(args.closingEventId, args.scenarioId, handle);
 
@@ -246,12 +194,11 @@ export class ChapterSummariesService {
     leafTurnId?: string | null;
     force?: boolean;
   }): Promise<{ enqueued: number; runIds: string[] }> {
-    const statuses = await this.listForPath({
-      scenarioId: args.scenarioId,
-      leafTurnId: args.leafTurnId ?? null,
-    });
+    const statuses = await this.listForPath(args);
+
     const runIds: string[] = [];
     for (const status of statuses) {
+      if (!status.closingEventId) continue;
       if (status.state === "ready" && !args.force) continue;
       if (status.state === "running") {
         if (status.runId) runIds.push(status.runId);
@@ -267,89 +214,154 @@ export class ChapterSummariesService {
     return { enqueued: runIds.length, runIds };
   }
 
-  private async resolveChapterTitle(
-    scenarioId: string,
-    closingEventId: string,
-    closingTurnId: string
-  ): Promise<string | null> {
-    const descriptors = await this.loadChapterDescriptors(scenarioId, closingTurnId);
-    const descriptor = descriptors.find((d) => d.eventId === closingEventId);
-    return descriptor?.title ?? null;
-  }
-
-  private async loadChapterDescriptors(
-    scenarioId: string,
-    leafTurnId: string | null
-  ): Promise<ChapterDescriptor[]> {
-    const derivation = await this.deriver.run({
-      scenarioId,
-      leafTurnId,
-      mode: { mode: "events" },
-    });
-
-    const chapters = derivation.final.chapters?.chapters ?? [];
-    const descriptors: ChapterDescriptor[] = [];
-    for (let idx = 0; idx < chapters.length; idx += 1) {
-      const entry = chapters[idx];
-      const opening = chapters[idx - 1] ?? null;
-      descriptors.push({
-        eventId: entry.eventId,
-        turnId: entry.turnId,
-        chapterNumber: entry.number,
-        title: entry.title ?? null,
-        openingEventId: opening?.eventId ?? null,
-        rangeStartChapterNumber: entry.number,
-        rangeEndChapterNumber: entry.number,
+  async saveSummary(args: SaveChapterSummaryInput): Promise<SaveChapterSummaryOutput["summary"]> {
+    const pair = await this.findChapterByClosingEvent(args.closingEventId);
+    if (!pair?.closing) {
+      throw new ServiceError("NotFound", {
+        message: `Chapter break ${args.closingEventId} not found on active timeline`,
       });
     }
-    return descriptors;
+
+    const span = await this.buildSpan(args.scenarioId, pair.chapter, pair.closing);
+    const fingerprint = await this.computeFingerprint(args.scenarioId, span);
+    const summaryJson = normalizeJson(args.summaryJson);
+
+    await this.db.transaction(async (tx) => {
+      await tx
+        .insert(chapterSummaries)
+        .values({
+          scenarioId: args.scenarioId,
+          chapterNumber: span.chapterNumber,
+          closingEventId: span.closingEventId,
+          closingTurnId: span.closingTurnId,
+          summaryText: args.summaryText,
+          summaryJson,
+          turnCount: fingerprint.turnCount,
+          maxTurnUpdatedAt: fingerprint.maxTurnUpdatedAt,
+          spanFingerprint: fingerprint.spanFingerprint,
+          workflowId: null,
+          modelProfileId: null,
+        })
+        .onConflictDoUpdate({
+          target: chapterSummaries.closingEventId,
+          set: {
+            chapterNumber: span.chapterNumber,
+            summaryText: args.summaryText,
+            summaryJson,
+            turnCount: fingerprint.turnCount,
+            maxTurnUpdatedAt: fingerprint.maxTurnUpdatedAt,
+            spanFingerprint: fingerprint.spanFingerprint,
+            workflowId: null,
+            modelProfileId: null,
+            updatedAt: new Date(),
+          },
+        });
+    });
+
+    const row = await this.db.query.chapterSummaries.findFirst({
+      where: { closingEventId: args.closingEventId },
+    });
+    if (!row) {
+      throw new ServiceError("InternalError", { message: "Failed to load saved chapter summary" });
+    }
+    return this.toSummaryDTO(row, pair.chapter, pair.closing);
   }
 
-  private async buildSpan(args: {
-    scenarioId: string;
-    descriptor: ChapterDescriptor;
-    closingTurnId: string;
-  }): Promise<ChapterSpan> {
-    const { scenarioId, descriptor, closingTurnId } = args;
+  private async getScenarioIdForEvent(eventId: string) {
+    const row = await this.db.query.timelineEvents.findFirst({
+      where: { id: eventId },
+      columns: { scenarioId: true },
+    });
+    return row?.scenarioId;
+  }
+
+  private async findChapterByClosingEvent(closingEventId: string) {
+    const scenarioId = await this.getScenarioIdForEvent(closingEventId);
+    if (!scenarioId) return null;
+    const nodes = await loadChapterNodes(this.db, { scenarioId });
+    return nodes.find((node) => node.closing?.eventId === closingEventId);
+  }
+
+  private async buildStatusForNode(
+    scenarioId: string,
+    node: ChapterNode
+  ): Promise<ChapterSummaryStatus> {
+    if (!node.closing) {
+      return {
+        chapterEventId: node.chapter.eventId,
+        closingEventId: null,
+        closingTurnId: null,
+        chapterNumber: node.chapter.chapterNumber,
+        title: node.chapter.title,
+        state: "current",
+        summaryId: null,
+        updatedAt: null,
+        turnCount: null,
+        workflowId: null,
+        modelProfileId: null,
+        runId: null,
+        lastError: null,
+      };
+    }
+
+    const [span, summary, run] = await Promise.all([
+      this.buildSpan(scenarioId, node.chapter, node.closing),
+      this.db.query.chapterSummaries.findFirst({
+        where: { closingEventId: node.closing.eventId },
+      }),
+      Promise.resolve(getChapterSummaryRunManager().getByClosingEvent(node.closing.eventId)),
+    ]);
+
+    const fingerprint = summary ? await this.computeFingerprint(scenarioId, span) : undefined;
+
+    return this.computeStatus({ scenarioId, node, span, summary, fingerprint, run });
+  }
+
+  private async buildSpan(
+    scenarioId: string,
+    chapter: ChapterEntry,
+    closing: ChapterEntry
+  ): Promise<ChapterSpan> {
+    if (!closing.turnId) {
+      throw new ServiceError("InternalError", {
+        message: `Closing chapter break ${closing.eventId} is missing turn reference`,
+      });
+    }
+
     const turnsOnPath = await getFullTimelineTurnCtx(this.db, {
       scenarioId,
-      leafTurnId: closingTurnId,
+      leafTurnId: closing.turnId,
     });
     const derivation = await this.deriver.run({
       scenarioId,
-      leafTurnId: closingTurnId,
+      leafTurnId: closing.turnId,
       mode: { mode: "events" },
     });
     const eventsByTurn = eventDTOsByTurn(derivation.events);
     const enrichedTurns = attachEventsToTurns(turnsOnPath, eventsByTurn);
 
-    const closingTurnIndex = enrichedTurns.findIndex((turn) => turn.turnId === closingTurnId);
+    const closingTurnIndex = enrichedTurns.findIndex((turn) => turn.turnId === closing.turnId);
     if (closingTurnIndex === -1) {
-      throw new ServiceError("NotFound", {
-        message: `Closing turn ${closingTurnId} not found on path`,
+      throw new ServiceError("InternalError", {
+        message: `Closing turn ${closing.turnId} not found on path`,
       });
     }
 
-    const openingTurnId = descriptor.openingEventId
-      ? (derivation.events.find((ev) => ev.id === descriptor.openingEventId)?.turnId ?? null)
-      : null;
     let startIndex = 0;
-    if (openingTurnId) {
-      const idx = enrichedTurns.findIndex((turn) => turn.turnId === openingTurnId);
-      if (idx !== -1) startIndex = idx + 1;
+    if (chapter.turnId) {
+      const idx = enrichedTurns.findIndex((turn) => turn.turnId === chapter.turnId);
+      if (idx !== -1) startIndex = idx;
     }
 
     const slice = enrichedTurns.slice(startIndex, closingTurnIndex + 1);
     const turnIds = slice.map((turn) => turn.turnId);
 
     return {
-      closingEventId: descriptor.eventId,
-      closingTurnId,
-      chapterNumber: descriptor.chapterNumber,
-      title: descriptor.title ?? null,
-      openingEventId: descriptor.openingEventId,
-      rangeStartChapterNumber: descriptor.rangeStartChapterNumber,
-      rangeEndChapterNumber: descriptor.rangeEndChapterNumber,
+      chapterEventId: chapter.eventId,
+      closingEventId: closing.eventId,
+      closingTurnId: closing.turnId,
+      chapterNumber: chapter.chapterNumber,
+      title: chapter.title,
       turnIds,
       turns: slice,
     };
@@ -360,7 +372,11 @@ export class ChapterSummariesService {
     span: ChapterSpan
   ): Promise<FingerprintMeta> {
     if (span.turnIds.length === 0) {
-      return { turnCount: 0, maxTurnUpdatedAt: 0, spanFingerprint: span.closingEventId };
+      return {
+        turnCount: 0,
+        maxTurnUpdatedAt: new Date(0),
+        spanFingerprint: `${span.chapterEventId}::${span.closingEventId}`,
+      };
     }
 
     const placeholders = span.turnIds.map((id) => sql`${id}`);
@@ -382,7 +398,7 @@ export class ChapterSummariesService {
 
     let maxUpdatedAt = 0;
     const hash = createHash("sha256");
-    hash.update(span.openingEventId ?? "null");
+    hash.update(span.chapterEventId);
     hash.update("::");
     hash.update(span.closingEventId);
     for (const turnId of span.turnIds) {
@@ -396,28 +412,28 @@ export class ChapterSummariesService {
 
     return {
       turnCount: span.turnIds.length,
-      maxTurnUpdatedAt: maxUpdatedAt,
+      maxTurnUpdatedAt: new Date(maxUpdatedAt),
       spanFingerprint: hash.digest("hex"),
     };
   }
 
-  private computeStatus(args: {
+  private async computeStatus(args: {
+    scenarioId: string;
+    node: ChapterNode;
     span: ChapterSpan;
-    summary: ChapterSummaryRecord | null;
-    run?: ChapterSummaryRunRecord;
+    summary?: ChapterSummaryRow;
     fingerprint?: FingerprintMeta;
-  }): ChapterSummaryStatus {
-    const { span, summary, run, fingerprint } = args;
+    run?: ChapterSummaryRunRecord;
+  }): Promise<ChapterSummaryStatus> {
+    const { node, span, summary, fingerprint, run } = args;
     const currentTurnCount = fingerprint?.turnCount ?? span.turnIds.length;
+
     const base: Omit<ChapterSummaryStatus, "state"> = {
+      chapterEventId: node.chapter.eventId,
       closingEventId: span.closingEventId,
       closingTurnId: span.closingTurnId,
       chapterNumber: span.chapterNumber,
-      title: span.title,
-      range: {
-        startChapterNumber: span.rangeStartChapterNumber,
-        endChapterNumber: span.rangeEndChapterNumber,
-      },
+      title: node.chapter.title,
       summaryId: summary?.id ?? null,
       updatedAt: summary?.updatedAt ?? null,
       turnCount: currentTurnCount,
@@ -439,21 +455,14 @@ export class ChapterSummariesService {
     }
 
     const staleReasons: string[] = [];
-    if (summary.turnCount !== currentTurnCount) {
-      staleReasons.push("turn_count_changed");
-    }
-    if (
-      fingerprint &&
-      summary.spanFingerprint !== fingerprint.spanFingerprint &&
-      !staleReasons.includes("turn_count_changed")
-    ) {
-      staleReasons.push("fingerprint_mismatch");
-    } else if (
-      fingerprint &&
-      summary.maxTurnUpdatedAt.getTime() !== fingerprint.maxTurnUpdatedAt &&
-      !staleReasons.includes("turn_count_changed")
-    ) {
-      staleReasons.push("turn_updated_at_changed");
+    if (fingerprint) {
+      if (summary.turnCount !== fingerprint.turnCount) {
+        staleReasons.push("turn_count_changed");
+      } else if (summary.spanFingerprint !== fingerprint.spanFingerprint) {
+        staleReasons.push("fingerprint_mismatch");
+      } else if (summary.maxTurnUpdatedAt.getTime() !== fingerprint.maxTurnUpdatedAt.getTime()) {
+        staleReasons.push("turn_updated_at_changed");
+      }
     }
 
     const state: ChapterSummaryStatusState = staleReasons.length ? "stale" : "ready";
@@ -465,75 +474,31 @@ export class ChapterSummariesService {
     };
   }
 
-  private async loadPreviousSummariesForContext(args: {
-    scenarioId: string;
-    descriptors: ChapterDescriptor[];
-    currentEventId: string;
-  }): Promise<ChapterSummaryCtxEntry[]> {
-    const ordered = args.descriptors
-      .filter((d) => d.turnId)
-      .filter((d) => d.eventId !== args.currentEventId);
-    const eventIds = ordered.map((d) => d.eventId);
-    if (eventIds.length === 0) return [];
+  private toSummaryDTO(
+    row: ChapterSummaryRow,
+    chapter: ChapterEntry,
+    closing: ChapterEntry
+  ): ChapterSummary {
+    const summaryJson = normalizeJson(row.summaryJson);
 
-    const rows = await this.db
-      .select()
-      .from(chapterSummaries)
-      .where(inArray(chapterSummaries.closingEventId, eventIds));
-
-    const byEventId = new Map<string, ChapterSummary>();
-    for (const row of rows) byEventId.set(row.closingEventId, row);
-
-    const entries: ChapterSummaryCtxEntry[] = [];
-    for (const descriptor of ordered) {
-      const record = byEventId.get(descriptor.eventId);
-      if (!record) continue;
-      entries.push(this.toCtxEntry({ ...record, title: descriptor.title ?? null }));
-    }
-    return entries;
-  }
-
-  private toCtxEntry(record: ChapterSummaryRecord): ChapterSummaryCtxEntry {
     return {
-      closingEventId: record.closingEventId,
-      closingTurnId: record.closingTurnId,
-      chapterNumber: record.chapterNumber,
-      title: record.title,
-      summaryText: record.summaryText,
-      summaryJson:
-        typeof record.summaryJson === "string"
-          ? JSON.parse(record.summaryJson)
-          : (record.summaryJson as Record<string, unknown> | null),
-      updatedAt: record.updatedAt,
+      id: row.id,
+      scenarioId: row.scenarioId,
+      chapterEventId: chapter.eventId,
+      closingEventId: closing.eventId,
+      closingTurnId: closing.turnId,
+      chapterNumber: chapter.chapterNumber,
+      title: chapter.title,
+      summaryText: row.summaryText,
+      summaryJson,
+      turnCount: row.turnCount,
+      maxTurnUpdatedAt: row.maxTurnUpdatedAt,
+      spanFingerprint: row.spanFingerprint,
+      workflowId: row.workflowId,
+      modelProfileId: row.modelProfileId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
     };
-  }
-
-  async getSummariesForPath(args: {
-    scenarioId: string;
-    leafTurnId?: string | null;
-  }): Promise<ChapterSummaryCtxEntry[]> {
-    const descriptors = await this.loadChapterDescriptors(args.scenarioId, args.leafTurnId ?? null);
-    const relevant = descriptors.filter((d) => d.turnId);
-    if (relevant.length === 0) return [];
-
-    const eventIds = relevant.map((d) => d.eventId);
-    const rows = await this.db
-      .select()
-      .from(chapterSummaries)
-      .where(inArray(chapterSummaries.closingEventId, eventIds));
-
-    const byEventId = new Map<string, ChapterSummary>();
-    for (const row of rows) byEventId.set(row.closingEventId, row);
-
-    const entries: ChapterSummaryCtxEntry[] = [];
-    for (const descriptor of relevant) {
-      const record = byEventId.get(descriptor.eventId);
-      if (!record) continue;
-      entries.push(this.toCtxEntry({ ...record, title: descriptor.title ?? null }));
-    }
-
-    entries.sort((a, b) => a.chapterNumber - b.chapterNumber);
-    return entries;
   }
 
   private async persistOnCompletion(args: {
@@ -550,38 +515,30 @@ export class ChapterSummariesService {
         throw new Error("Workflow did not produce chapter summary text output");
       }
       const rawStructured = result.finalOutputs[SUMMARY_JSON_KEY];
-      let structured = rawStructured ?? null;
-      if (typeof structured === "string") {
-        try {
-          structured = JSON.parse(structured);
-        } catch {
-          // keep original string if parsing fails
-        }
-      }
+      const structured = normalizeJson(rawStructured);
       await this.db.transaction(async (tx) => {
         await tx
           .insert(chapterSummaries)
           .values({
             scenarioId: args.scenarioId,
+            chapterNumber: args.span.chapterNumber,
             closingEventId: args.span.closingEventId,
             closingTurnId: args.span.closingTurnId,
-            chapterNumber: args.span.chapterNumber,
-            rangeStartChapterNumber: args.span.rangeStartChapterNumber,
-            rangeEndChapterNumber: args.span.rangeEndChapterNumber,
             summaryText: text,
             summaryJson: structured,
             turnCount: args.fingerprint.turnCount,
-            maxTurnUpdatedAt: new Date(args.fingerprint.maxTurnUpdatedAt),
+            maxTurnUpdatedAt: args.fingerprint.maxTurnUpdatedAt,
             spanFingerprint: args.fingerprint.spanFingerprint,
             workflowId: args.workflowId,
           })
           .onConflictDoUpdate({
             target: chapterSummaries.closingEventId,
             set: {
+              chapterNumber: args.span.chapterNumber,
               summaryText: text,
-              summaryJson: structured ?? null,
+              summaryJson: structured,
               turnCount: args.fingerprint.turnCount,
-              maxTurnUpdatedAt: new Date(args.fingerprint.maxTurnUpdatedAt),
+              maxTurnUpdatedAt: args.fingerprint.maxTurnUpdatedAt,
               spanFingerprint: args.fingerprint.spanFingerprint,
               workflowId: args.workflowId,
               updatedAt: new Date(),

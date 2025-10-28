@@ -7,45 +7,14 @@ import {
   getChapterSummaryStatusOutputSchema,
   listChapterSummariesForPathInputSchema,
   listChapterSummariesForPathOutputSchema,
+  saveChapterSummaryInputSchema,
+  saveChapterSummaryOutputSchema,
   summarizeChapterInputSchema,
   summarizeChapterOutputSchema,
 } from "@storyforge/contracts";
 import { ServiceError } from "../../service-error.js";
 import { ChapterSummariesService } from "../../services/chapter-summaries/chapter-summaries.service.js";
-import type { ChapterSummaryRecord } from "../../services/chapter-summaries/types.js";
 import { publicProcedure, router } from "../index.js";
-
-const toContractSummary = (summary: ChapterSummaryRecord) => {
-  let jsonValue: unknown = summary.summaryJson;
-  if (typeof jsonValue === "string") {
-    try {
-      jsonValue = JSON.parse(jsonValue);
-    } catch {
-      // keep original string if parsing fails
-    }
-  }
-  return {
-    id: summary.id,
-    scenarioId: summary.scenarioId,
-    closingEventId: summary.closingEventId,
-    closingTurnId: summary.closingTurnId,
-    chapterNumber: summary.chapterNumber,
-    range: {
-      startChapterNumber: summary.rangeStartChapterNumber,
-      endChapterNumber: summary.rangeEndChapterNumber,
-    },
-    title: summary.title,
-    summaryText: summary.summaryText,
-    summaryJson: jsonValue ?? null,
-    turnCount: summary.turnCount,
-    maxTurnUpdatedAt: summary.maxTurnUpdatedAt,
-    spanFingerprint: summary.spanFingerprint,
-    workflowId: summary.workflowId ?? null,
-    modelProfileId: summary.modelProfileId ?? null,
-    createdAt: summary.createdAt,
-    updatedAt: summary.updatedAt,
-  };
-};
 
 export const chapterSummariesRouter = router({
   get: publicProcedure
@@ -67,14 +36,14 @@ export const chapterSummariesRouter = router({
           message: `No summary for chapter break ${input.closingEventId}`,
         });
       }
-      return { summary: toContractSummary(summary) };
+      return { summary };
     }),
 
   status: publicProcedure
     .meta({
       openapi: {
         method: "GET",
-        path: "/api/chapter-summaries/{closingEventId}/status",
+        path: "/api/chapter-summaries/{chapterEventId}/status",
         tags: ["chapter_summaries"],
         summary: "Get status for a chapter summary",
       },
@@ -83,10 +52,7 @@ export const chapterSummariesRouter = router({
     .output(getChapterSummaryStatusOutputSchema)
     .query(async ({ ctx, input }) => {
       const service = new ChapterSummariesService(ctx.db);
-      const status = await service.getStatus({
-        scenarioId: input.scenarioId,
-        closingEventId: input.closingEventId,
-      });
+      const status = await service.getStatus(input);
       return { status };
     }),
 
@@ -103,10 +69,7 @@ export const chapterSummariesRouter = router({
     .output(listChapterSummariesForPathOutputSchema)
     .query(async ({ ctx, input }) => {
       const service = new ChapterSummariesService(ctx.db);
-      const summaries = await service.listForPath({
-        scenarioId: input.scenarioId,
-        leafTurnId: input.leafTurnId ?? null,
-      });
+      const summaries = await service.listForPath(input);
       return { summaries };
     }),
 
@@ -123,12 +86,25 @@ export const chapterSummariesRouter = router({
     .output(summarizeChapterOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const service = new ChapterSummariesService(ctx.db);
-      const { runId } = await service.summarizeChapter({
-        scenarioId: input.scenarioId,
-        closingEventId: input.closingEventId,
-        force: input.force ?? false,
-      });
+      const { runId } = await service.summarizeChapter(input);
       return { runId };
+    }),
+
+  save: publicProcedure
+    .meta({
+      openapi: {
+        method: "PUT",
+        path: "/api/chapter-summaries/{closingEventId}",
+        tags: ["chapter_summaries"],
+        summary: "Save manual edits to a chapter summary",
+      },
+    })
+    .input(saveChapterSummaryInputSchema)
+    .output(saveChapterSummaryOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const service = new ChapterSummariesService(ctx.db);
+      const summary = await service.saveSummary(input);
+      return { summary };
     }),
 
   bulkSummarizeMissing: publicProcedure
@@ -144,11 +120,7 @@ export const chapterSummariesRouter = router({
     .output(bulkSummarizeMissingOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const service = new ChapterSummariesService(ctx.db);
-      const { enqueued, runIds } = await service.bulkSummarizeMissing({
-        scenarioId: input.scenarioId,
-        leafTurnId: input.leafTurnId ?? null,
-        force: input.force ?? false,
-      });
+      const { enqueued, runIds } = await service.bulkSummarizeMissing(input);
       return { enqueued, runIds };
     }),
 });

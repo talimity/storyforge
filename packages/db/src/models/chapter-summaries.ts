@@ -22,8 +22,6 @@ export const chapterSummaries = sqliteTable(
       .notNull()
       .references(() => turns.id, { onDelete: "cascade" }),
     chapterNumber: integer("chapter_number").notNull(),
-    rangeStartChapterNumber: integer("range_start_chapter_number").notNull(),
-    rangeEndChapterNumber: integer("range_end_chapter_number").notNull(),
     summaryText: text("summary_text").notNull(),
     summaryJson: text("summary_json", { mode: "json" }),
     turnCount: integer("turn_count").notNull(),
@@ -40,15 +38,7 @@ export const chapterSummaries = sqliteTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [
-    uniqueIndex("idx_chapter_summaries_closing_event").on(table.closingEventId),
-    uniqueIndex("idx_chapter_summaries_range").on(
-      table.scenarioId,
-      table.rangeStartChapterNumber,
-      table.rangeEndChapterNumber,
-      table.closingEventId
-    ),
-  ]
+  (table) => [uniqueIndex("idx_chapter_summaries_closing_event").on(table.closingEventId)]
 );
 
 export type ChapterSummary = typeof chapterSummaries.$inferSelect;

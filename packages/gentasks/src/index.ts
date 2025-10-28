@@ -13,7 +13,6 @@ export {
   CHAPTER_SUMM_SOURCE_NAMES,
   type ChapterSummCtx,
   type ChapterSummGlobals,
-  type ChapterSummRange,
   type ChapterSummRegistry,
   type ChapterSummSources,
   type ChapterSummTarget,

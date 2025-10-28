@@ -22,14 +22,14 @@ export type ChapterSummTarget = {
   turnCount: number;
 };
 
-export type ChapterSummRange = {
-  startChapterNumber: number;
-  endChapterNumber: number;
-};
+// export type ChapterSummRange = {
+//   startChapterNumber: number;
+//   endChapterNumber: number;
+// };
 
 export type ChapterSummGlobals = NarrativeGlobalsBase & {
   scenarioName?: string;
-  range?: ChapterSummRange;
+  // range?: ChapterSummRange;
 };
 
 // Chapter summarization context

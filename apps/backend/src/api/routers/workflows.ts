@@ -183,7 +183,7 @@ export const workflowsRouter = router({
     .query(async ({ input, ctx }) => {
       const { workflowScopes, workflows } = schema;
       const where = and(
-        eq(workflowScopes.workflowTask, input.task),
+        input.task ? eq(workflowScopes.workflowTask, input.task) : undefined,
         input.scopeKind ? eq(workflowScopes.scopeKind, input.scopeKind) : undefined,
         input.scenarioId ? eq(workflowScopes.scenarioId, input.scenarioId) : undefined,
         input.characterId ? eq(workflowScopes.characterId, input.characterId) : undefined,

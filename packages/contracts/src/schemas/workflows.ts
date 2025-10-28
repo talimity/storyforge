@@ -86,7 +86,7 @@ export const upsertWorkflowScopeSchema = z.object({
 export const deleteWorkflowScopeSchema = z.object({ id: z.string().min(1) });
 
 export const listWorkflowScopesQuerySchema = z.object({
-  task: taskKindSchema,
+  task: taskKindSchema.optional(),
   // optional target filter
   scopeKind: workflowScopeKindSchema.optional(),
   scenarioId: z.string().optional(),

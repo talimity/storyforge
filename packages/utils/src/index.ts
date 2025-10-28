@@ -5,6 +5,7 @@ export * from "./exact-keys.js";
 export * from "./fractional-order.js";
 export * from "./is-defined.js";
 export * from "./lexo-order.js";
+export * from "./normalize-json.js";
 export * from "./result.js";
 export * from "./safe-json-parse.js";
 export * from "./strip-nulls.js";

@@ -1,17 +1,12 @@
 import { z } from "zod";
 
-export const chapterSummaryRangeSchema = z.object({
-  startChapterNumber: z.number().int().positive(),
-  endChapterNumber: z.number().int().positive(),
-});
-
 export const chapterSummarySchema = z.object({
   id: z.string(),
   scenarioId: z.string(),
+  chapterEventId: z.string(),
   closingEventId: z.string(),
-  closingTurnId: z.string(),
+  closingTurnId: z.string().nullable(),
   chapterNumber: z.number().int().positive(),
-  range: chapterSummaryRangeSchema,
   title: z.string().nullable(),
   summaryText: z.string(),
   summaryJson: z.unknown().nullable(),
@@ -34,6 +29,7 @@ export const getChapterSummaryOutputSchema = z.object({
 
 export const chapterSummaryStatusStateSchema = z.enum([
   "missing",
+  "current",
   "ready",
   "stale",
   "running",
@@ -41,10 +37,10 @@ export const chapterSummaryStatusStateSchema = z.enum([
 ]);
 
 export const chapterSummaryStatusSchema = z.object({
-  closingEventId: z.string(),
-  closingTurnId: z.string(),
+  chapterEventId: z.string(),
+  closingEventId: z.string().nullable(),
+  closingTurnId: z.string().nullable(),
   chapterNumber: z.number().int().positive(),
-  range: chapterSummaryRangeSchema,
   title: z.string().nullable(),
   state: chapterSummaryStatusStateSchema,
   summaryId: z.string().nullable(),
@@ -59,7 +55,7 @@ export const chapterSummaryStatusSchema = z.object({
 
 export const getChapterSummaryStatusInputSchema = z.object({
   scenarioId: z.string(),
-  closingEventId: z.string(),
+  chapterEventId: z.string(),
 });
 
 export const getChapterSummaryStatusOutputSchema = z.object({
@@ -87,6 +83,17 @@ export const bulkSummarizeMissingOutputSchema = z.object({
   runIds: z.array(z.string()),
 });
 
+export const saveChapterSummaryInputSchema = z.object({
+  scenarioId: z.string(),
+  closingEventId: z.string(),
+  summaryText: z.string(),
+  summaryJson: z.unknown().nullish(),
+});
+
+export const saveChapterSummaryOutputSchema = z.object({
+  summary: chapterSummarySchema,
+});
+
 export const listChapterSummariesForPathInputSchema = z.object({
   scenarioId: z.string(),
   leafTurnId: z.string().optional(),
@@ -95,3 +102,23 @@ export const listChapterSummariesForPathInputSchema = z.object({
 export const listChapterSummariesForPathOutputSchema = z.object({
   summaries: z.array(chapterSummaryStatusSchema),
 });
+
+export type ChapterSummary = z.infer<typeof chapterSummarySchema>;
+export type ChapterSummaryStatusState = z.infer<typeof chapterSummaryStatusStateSchema>;
+export type ChapterSummaryStatus = z.infer<typeof chapterSummaryStatusSchema>;
+export type ChapterSummaryStatusOutput = z.infer<typeof getChapterSummaryStatusOutputSchema>;
+export type ChapterSummaryStatusInput = z.infer<typeof getChapterSummaryStatusInputSchema>;
+export type ChapterSummaryOutput = z.infer<typeof getChapterSummaryOutputSchema>;
+export type ChapterSummaryInput = z.infer<typeof getChapterSummaryInputSchema>;
+export type SummarizeChapterInput = z.infer<typeof summarizeChapterInputSchema>;
+export type SummarizeChapterOutput = z.infer<typeof summarizeChapterOutputSchema>;
+export type BulkSummarizeMissingInput = z.infer<typeof bulkSummarizeMissingInputSchema>;
+export type BulkSummarizeMissingOutput = z.infer<typeof bulkSummarizeMissingOutputSchema>;
+export type ListChapterSummariesForPathInput = z.infer<
+  typeof listChapterSummariesForPathInputSchema
+>;
+export type ListChapterSummariesForPathOutput = z.infer<
+  typeof listChapterSummariesForPathOutputSchema
+>;
+export type SaveChapterSummaryInput = z.infer<typeof saveChapterSummaryInputSchema>;
+export type SaveChapterSummaryOutput = z.infer<typeof saveChapterSummaryOutputSchema>;

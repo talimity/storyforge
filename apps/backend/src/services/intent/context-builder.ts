@@ -1,7 +1,7 @@
-import type { NewIntent, SqliteDatabase, SqliteTxLike } from "@storyforge/db";
+import type { NewIntent, SqliteTxLike } from "@storyforge/db";
 import type { TurnGenCtx } from "@storyforge/gentasks";
 import { assertDefined } from "@storyforge/utils";
-import { ChapterSummariesService } from "../chapter-summaries/chapter-summaries.service.js";
+import { getSummariesForPath } from "../chapter-summaries/chapter-summaries.queries.js";
 import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.queries.js";
 import {
   loadScenarioCharacterContext,
@@ -27,34 +27,10 @@ export class IntentContextBuilder {
 
   async buildContext(args: BuildContextArgs): Promise<TurnGenCtx> {
     const { actorParticipantId, intent, leafTurnId = null } = args;
-    const stateService = new TimelineStateService(this.db);
 
-    const derivationPromise = stateService.deriveState(this.scenarioId, leafTurnId);
-    const charaDataPromise = loadScenarioCharacterContext(this.db, this.scenarioId);
-    const scenarioPromise = loadScenarioMetadata(this.db, this.scenarioId);
-    const turnsPromise = getFullTimelineTurnCtx(this.db, {
-      leafTurnId,
-      scenarioId: this.scenarioId,
-    });
-    const lorebooksPromise = loadScenarioLorebookAssignments(this.db, this.scenarioId);
-    const summaryService = new ChapterSummariesService(this.db as SqliteDatabase);
-    const chaptersPromise = summaryService.getSummariesForPath({
-      scenarioId: this.scenarioId,
-      leafTurnId,
-    });
+    const data = await this.loadEverything(this.scenarioId, leafTurnId);
 
-    const [charaData, derivation, scenario, turns, lorebooks, chapterSummaries] = await Promise.all(
-      [
-        charaDataPromise,
-        derivationPromise,
-        scenarioPromise,
-        turnsPromise,
-        lorebooksPromise,
-        chaptersPromise,
-      ]
-    );
-
-    const { characters, userProxyName, byParticipantId } = charaData;
+    const { characters, userProxyName, byParticipantId } = data.charaCtx;
     const actorFromMap = byParticipantId.get(actorParticipantId);
     const actorIsNarrator = !actorFromMap;
     const actor = actorIsNarrator
@@ -64,9 +40,9 @@ export class IntentContextBuilder {
     const actorName = actorIsNarrator ? "Narrator" : actor.name;
 
     // Enrich turn DTO with events
-    const eventsByTurn = eventDTOsByTurn(derivation.events);
-    const enrichedTurns = attachEventsToTurns(turns, eventsByTurn);
-    const nextTurnNumber = (turns.at(-1)?.turnNo ?? 0) + 1;
+    const eventsByTurn = eventDTOsByTurn(data.derivation.events);
+    const enrichedTurns = attachEventsToTurns(data.turns, eventsByTurn);
+    const nextTurnNumber = (data.turns.at(-1)?.turnNo ?? 0) + 1;
     // TODO: this is definitely not a good way to do this
     // templates may need raw kind for switch case behavior, but also need
     // model-friendly kind and a formatted prompt to insert in the text
@@ -81,7 +57,8 @@ export class IntentContextBuilder {
     return {
       turns: enrichedTurns,
       characters,
-      chapterSummaries,
+      chapterSummaries: data.chapterSummaries,
+      lorebooks: data.lorebooks,
       actor,
       ...(intent
         ? {
@@ -96,10 +73,24 @@ export class IntentContextBuilder {
       globals: {
         char: actorName,
         user: userProxyName,
-        scenario: scenario.description,
+        scenario: data.scenario.description,
         isNarratorTurn: actorIsNarrator,
       },
-      lorebooks,
     };
+  }
+
+  private async loadEverything(scenarioId: string, leafTurnId: string | null) {
+    const stateService = new TimelineStateService(this.db);
+
+    const [charaCtx, derivation, scenario, turns, lorebooks, chapterSummaries] = await Promise.all([
+      loadScenarioCharacterContext(this.db, scenarioId),
+      stateService.deriveState(scenarioId, leafTurnId),
+      loadScenarioMetadata(this.db, scenarioId),
+      getFullTimelineTurnCtx(this.db, { leafTurnId, scenarioId }),
+      loadScenarioLorebookAssignments(this.db, scenarioId),
+      getSummariesForPath(this.db, { scenarioId, leafTurnId }),
+    ]);
+
+    return { charaCtx, derivation, scenario, turns, lorebooks, chapterSummaries };
   }
 }

@@ -1,5 +1,5 @@
 import { Badge, Box, Flex, HStack, SimpleGrid, Skeleton, Tabs } from "@chakra-ui/react";
-import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
+import type { TaskKind } from "@storyforge/gentasks";
 import { createId } from "@storyforge/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -29,10 +29,9 @@ function WorkflowsPage() {
       task: taskFilter || undefined,
     })
   );
-  const selectedTask = taskKindSchema.parse(taskFilter || "turn_generation");
   const assignmentsQuery = useQuery(
     trpc.workflows.listScopes.queryOptions(
-      { task: selectedTask },
+      { task: taskFilter || undefined },
       { enabled: tab === "assignments" }
     )
   );
@@ -151,7 +150,7 @@ function WorkflowsPage() {
       <AssignmentDialog
         isOpen={assignOpen}
         onOpenChange={setAssignOpen}
-        defaultTask={selectedTask}
+        defaultTask={taskFilter || "turn_generation"}
       />
       <WorkflowImportDialog isOpen={importOpen} onOpenChange={({ open }) => setImportOpen(open)} />
     </PageContainer>

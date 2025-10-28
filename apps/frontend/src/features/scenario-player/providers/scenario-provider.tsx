@@ -19,7 +19,7 @@ type ScenarioCtx = ScenarioCtxEnvironment & {
   chapters: ScenarioCtxTimelineState["chapters"]["chapters"];
   chaptersByEventId: Record<string, ScenarioCtxChapter>;
   chapterLabelsByEventId: Record<string, string>;
-  deriveChapterLabel: (chapter: ScenarioCtxChapter) => string;
+  deriveChapterLabel: (chapter?: ScenarioCtxChapter) => string;
 };
 const ScenarioContext = createContext<ScenarioCtx | null>(null);
 
@@ -34,7 +34,8 @@ export function ScenarioProvider(props: { scenarioId: string; children: ReactNod
   });
   const chapters = useMemo(() => timelineState.chapters.chapters, [timelineState]);
   const deriveChapterLabel = useMemo(
-    () => (chapter: ScenarioCtxChapter) => {
+    () => (chapter?: ScenarioCtxChapter) => {
+      if (!chapter) return "Unknown";
       const trimmed = chapter.title?.trim();
       return trimmed ? `Ch.${chapter.number} - ${trimmed}` : `Chapter ${chapter.number}`;
     },

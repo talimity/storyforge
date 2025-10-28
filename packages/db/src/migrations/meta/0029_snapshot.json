@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "95f6a880-3a5c-4c23-90e1-206747551505",
-  "prevId": "144d920b-0de0-4fa5-a255-f8af7d375962",
+  "id": "87178e98-2268-4399-847a-c4a1f9b4ae6f",
+  "prevId": "95f6a880-3a5c-4c23-90e1-206747551505",
   "tables": {
     "chapter_summaries": {
       "name": "chapter_summaries",
@@ -37,20 +37,6 @@
         },
         "chapter_number": {
           "name": "chapter_number",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "range_start_chapter_number": {
-          "name": "range_start_chapter_number",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "range_end_chapter_number": {
-          "name": "range_end_chapter_number",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -123,15 +109,7 @@
       "indexes": {
         "idx_chapter_summaries_closing_event": {
           "name": "idx_chapter_summaries_closing_event",
-          "columns": ["closing_event_id"],
-          "isUnique": true
-        },
-        "idx_chapter_summaries_range": {
-          "name": "idx_chapter_summaries_range",
           "columns": [
-            "scenario_id",
-            "range_start_chapter_number",
-            "range_end_chapter_number",
             "closing_event_id"
           ],
           "isUnique": true
@@ -142,8 +120,12 @@
           "name": "chapter_summaries_scenario_id_scenarios_id_fk",
           "tableFrom": "chapter_summaries",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -151,8 +133,12 @@
           "name": "chapter_summaries_closing_event_id_timeline_events_id_fk",
           "tableFrom": "chapter_summaries",
           "tableTo": "timeline_events",
-          "columnsFrom": ["closing_event_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "closing_event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -160,8 +146,12 @@
           "name": "chapter_summaries_closing_turn_id_turns_id_fk",
           "tableFrom": "chapter_summaries",
           "tableTo": "turns",
-          "columnsFrom": ["closing_turn_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "closing_turn_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -169,8 +159,12 @@
           "name": "chapter_summaries_workflow_id_workflows_id_fk",
           "tableFrom": "chapter_summaries",
           "tableTo": "workflows",
-          "columnsFrom": ["workflow_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "workflow_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -178,8 +172,12 @@
           "name": "chapter_summaries_model_profile_id_model_profiles_id_fk",
           "tableFrom": "chapter_summaries",
           "tableTo": "model_profiles",
-          "columnsFrom": ["model_profile_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "model_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -233,8 +231,12 @@
           "name": "character_examples_character_id_characters_id_fk",
           "tableFrom": "character_examples",
           "tableTo": "characters",
-          "columnsFrom": ["character_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -271,7 +273,10 @@
       "indexes": {
         "idx_character_lorebooks_unique": {
           "name": "idx_character_lorebooks_unique",
-          "columns": ["character_id", "lorebook_id"],
+          "columns": [
+            "character_id",
+            "lorebook_id"
+          ],
           "isUnique": true
         }
       },
@@ -280,8 +285,12 @@
           "name": "character_lorebooks_character_id_characters_id_fk",
           "tableFrom": "character_lorebooks",
           "tableTo": "characters",
-          "columnsFrom": ["character_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -289,8 +298,12 @@
           "name": "character_lorebooks_lorebook_id_lorebooks_id_fk",
           "tableFrom": "character_lorebooks",
           "tableTo": "lorebooks",
-          "columnsFrom": ["lorebook_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "lorebook_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -352,8 +365,12 @@
           "name": "character_starters_character_id_characters_id_fk",
           "tableFrom": "character_starters",
           "tableTo": "characters",
-          "columnsFrom": ["character_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -624,7 +641,10 @@
       "indexes": {
         "idx_generation_run_steps_order": {
           "name": "idx_generation_run_steps_order",
-          "columns": ["run_id", "idx"],
+          "columns": [
+            "run_id",
+            "idx"
+          ],
           "isUnique": false
         }
       },
@@ -633,8 +653,12 @@
           "name": "generation_run_steps_run_id_generation_runs_id_fk",
           "tableFrom": "generation_run_steps",
           "tableTo": "generation_runs",
-          "columnsFrom": ["run_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "run_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -642,8 +666,12 @@
           "name": "generation_run_steps_model_profile_id_model_profiles_id_fk",
           "tableFrom": "generation_run_steps",
           "tableTo": "model_profiles",
-          "columnsFrom": ["model_profile_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "model_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -651,15 +679,22 @@
           "name": "generation_run_steps_prompt_template_id_prompt_templates_id_fk",
           "tableFrom": "generation_run_steps",
           "tableTo": "prompt_templates",
-          "columnsFrom": ["prompt_template_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "prompt_template_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "generation_run_steps_run_id_step_id_pk": {
-          "columns": ["run_id", "step_id"],
+          "columns": [
+            "run_id",
+            "step_id"
+          ],
           "name": "generation_run_steps_run_id_step_id_pk"
         }
       },
@@ -786,18 +821,24 @@
       "indexes": {
         "idx_generation_runs_turn": {
           "name": "idx_generation_runs_turn",
-          "columns": ["turn_id"],
+          "columns": [
+            "turn_id"
+          ],
           "isUnique": true,
           "where": "\"generation_runs\".\"turn_id\" IS NOT NULL"
         },
         "idx_generation_runs_intent": {
           "name": "idx_generation_runs_intent",
-          "columns": ["intent_id"],
+          "columns": [
+            "intent_id"
+          ],
           "isUnique": false
         },
         "idx_generation_runs_scenario": {
           "name": "idx_generation_runs_scenario",
-          "columns": ["scenario_id"],
+          "columns": [
+            "scenario_id"
+          ],
           "isUnique": false
         }
       },
@@ -806,8 +847,12 @@
           "name": "generation_runs_scenario_id_scenarios_id_fk",
           "tableFrom": "generation_runs",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -815,8 +860,12 @@
           "name": "generation_runs_intent_id_intents_id_fk",
           "tableFrom": "generation_runs",
           "tableTo": "intents",
-          "columnsFrom": ["intent_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "intent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -824,8 +873,12 @@
           "name": "generation_runs_turn_id_turns_id_fk",
           "tableFrom": "generation_runs",
           "tableTo": "turns",
-          "columnsFrom": ["turn_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "turn_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -833,8 +886,12 @@
           "name": "generation_runs_participant_id_scenario_participants_id_fk",
           "tableFrom": "generation_runs",
           "tableTo": "scenario_participants",
-          "columnsFrom": ["participant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "participant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -842,8 +899,12 @@
           "name": "generation_runs_workflow_id_workflows_id_fk",
           "tableFrom": "generation_runs",
           "tableTo": "workflows",
-          "columnsFrom": ["workflow_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "workflow_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -851,8 +912,12 @@
           "name": "generation_runs_branch_from_turn_id_turns_id_fk",
           "tableFrom": "generation_runs",
           "tableTo": "turns",
-          "columnsFrom": ["branch_from_turn_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_from_turn_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -915,7 +980,9 @@
       "indexes": {
         "idx_intent_effect_turn": {
           "name": "idx_intent_effect_turn",
-          "columns": ["turn_id"],
+          "columns": [
+            "turn_id"
+          ],
           "isUnique": false
         }
       },
@@ -924,8 +991,12 @@
           "name": "intent_effects_intent_id_intents_id_fk",
           "tableFrom": "intent_effects",
           "tableTo": "intents",
-          "columnsFrom": ["intent_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "intent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -933,15 +1004,22 @@
           "name": "intent_effects_turn_id_turns_id_fk",
           "tableFrom": "intent_effects",
           "tableTo": "turns",
-          "columnsFrom": ["turn_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "turn_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "intent_effects_intent_id_sequence_pk": {
-          "columns": ["intent_id", "sequence"],
+          "columns": [
+            "intent_id",
+            "sequence"
+          ],
           "name": "intent_effects_intent_id_sequence_pk"
         }
       },
@@ -1011,7 +1089,9 @@
       "indexes": {
         "idx_one_pending_intent_per_scenario": {
           "name": "idx_one_pending_intent_per_scenario",
-          "columns": ["scenario_id"],
+          "columns": [
+            "scenario_id"
+          ],
           "isUnique": true,
           "where": "status IN ('pending','running')"
         }
@@ -1021,8 +1101,12 @@
           "name": "intents_scenario_id_scenarios_id_fk",
           "tableFrom": "intents",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1030,8 +1114,12 @@
           "name": "intents_target_participant_id_scenario_participants_id_fk",
           "tableFrom": "intents",
           "tableTo": "scenario_participants",
-          "columnsFrom": ["target_participant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "target_participant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1111,12 +1199,16 @@
       "indexes": {
         "idx_lorebooks_fingerprint": {
           "name": "idx_lorebooks_fingerprint",
-          "columns": ["fingerprint"],
+          "columns": [
+            "fingerprint"
+          ],
           "isUnique": true
         },
         "idx_lorebooks_name": {
           "name": "idx_lorebooks_name",
-          "columns": ["name"],
+          "columns": [
+            "name"
+          ],
           "isUnique": false
         }
       },
@@ -1198,8 +1290,12 @@
           "name": "model_profiles_provider_id_provider_configs_id_fk",
           "tableFrom": "model_profiles",
           "tableTo": "provider_configs",
-          "columnsFrom": ["provider_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "provider_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1425,7 +1521,10 @@
       "indexes": {
         "idx_scenario_character_lorebook_overrides_unique": {
           "name": "idx_scenario_character_lorebook_overrides_unique",
-          "columns": ["scenario_id", "character_lorebook_id"],
+          "columns": [
+            "scenario_id",
+            "character_lorebook_id"
+          ],
           "isUnique": true
         }
       },
@@ -1434,8 +1533,12 @@
           "name": "scenario_character_lorebook_overrides_scenario_id_scenarios_id_fk",
           "tableFrom": "scenario_character_lorebook_overrides",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1443,8 +1546,12 @@
           "name": "scenario_character_lorebook_overrides_character_lorebook_id_character_lorebooks_id_fk",
           "tableFrom": "scenario_character_lorebook_overrides",
           "tableTo": "character_lorebooks",
-          "columnsFrom": ["character_lorebook_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "character_lorebook_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1503,7 +1610,10 @@
       "indexes": {
         "idx_scenario_lorebooks_unique": {
           "name": "idx_scenario_lorebooks_unique",
-          "columns": ["scenario_id", "lorebook_id"],
+          "columns": [
+            "scenario_id",
+            "lorebook_id"
+          ],
           "isUnique": true
         }
       },
@@ -1512,8 +1622,12 @@
           "name": "scenario_lorebooks_scenario_id_scenarios_id_fk",
           "tableFrom": "scenario_lorebooks",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1521,8 +1635,12 @@
           "name": "scenario_lorebooks_lorebook_id_lorebooks_id_fk",
           "tableFrom": "scenario_lorebooks",
           "tableTo": "lorebooks",
-          "columnsFrom": ["lorebook_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "lorebook_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1619,12 +1737,17 @@
       "indexes": {
         "idx_scenario_participant_character": {
           "name": "idx_scenario_participant_character",
-          "columns": ["character_id"],
+          "columns": [
+            "character_id"
+          ],
           "isUnique": false
         },
         "idx_scenario_character_unique": {
           "name": "idx_scenario_character_unique",
-          "columns": ["scenario_id", "character_id"],
+          "columns": [
+            "scenario_id",
+            "character_id"
+          ],
           "isUnique": true
         }
       },
@@ -1633,8 +1756,12 @@
           "name": "scenario_participants_scenario_id_scenarios_id_fk",
           "tableFrom": "scenario_participants",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1642,8 +1769,12 @@
           "name": "scenario_participants_character_id_characters_id_fk",
           "tableFrom": "scenario_participants",
           "tableTo": "characters",
-          "columnsFrom": ["character_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1743,8 +1874,12 @@
           "name": "scenarios_root_turn_id_turns_id_fk",
           "tableFrom": "scenarios",
           "tableTo": "turns",
-          "columnsFrom": ["root_turn_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "root_turn_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1752,8 +1887,12 @@
           "name": "scenarios_anchor_turn_id_turns_id_fk",
           "tableFrom": "scenarios",
           "tableTo": "turns",
-          "columnsFrom": ["anchor_turn_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "anchor_turn_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1834,19 +1973,28 @@
       "indexes": {
         "idx_events_turn": {
           "name": "idx_events_turn",
-          "columns": ["turn_id", "order_key"],
+          "columns": [
+            "turn_id",
+            "order_key"
+          ],
           "isUnique": true,
           "where": "turn_id IS NOT NULL"
         },
         "idx_events_initial": {
           "name": "idx_events_initial",
-          "columns": ["scenario_id", "order_key"],
+          "columns": [
+            "scenario_id",
+            "order_key"
+          ],
           "isUnique": true,
           "where": "turn_id IS NULL"
         },
         "idx_events_scenario": {
           "name": "idx_events_scenario",
-          "columns": ["scenario_id", "kind"],
+          "columns": [
+            "scenario_id",
+            "kind"
+          ],
           "isUnique": false
         }
       },
@@ -1855,8 +2003,12 @@
           "name": "timeline_events_scenario_id_scenarios_id_fk",
           "tableFrom": "timeline_events",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1864,8 +2016,12 @@
           "name": "timeline_events_turn_id_turns_id_fk",
           "tableFrom": "timeline_events",
           "tableTo": "turns",
-          "columnsFrom": ["turn_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "turn_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1923,17 +2079,24 @@
       "indexes": {
         "idx_turn_layer_turn": {
           "name": "idx_turn_layer_turn",
-          "columns": ["turn_id"],
+          "columns": [
+            "turn_id"
+          ],
           "isUnique": false
         },
         "idx_turn_layer_key": {
           "name": "idx_turn_layer_key",
-          "columns": ["key"],
+          "columns": [
+            "key"
+          ],
           "isUnique": false
         },
         "idx_one_layer_per_turn_key": {
           "name": "idx_one_layer_per_turn_key",
-          "columns": ["turn_id", "key"],
+          "columns": [
+            "turn_id",
+            "key"
+          ],
           "isUnique": true
         }
       },
@@ -1942,8 +2105,12 @@
           "name": "turn_layers_turn_id_turns_id_fk",
           "tableFrom": "turn_layers",
           "tableTo": "turns",
-          "columnsFrom": ["turn_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "turn_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2017,27 +2184,38 @@
       "indexes": {
         "idx_turn_parent": {
           "name": "idx_turn_parent",
-          "columns": ["parent_turn_id"],
+          "columns": [
+            "parent_turn_id"
+          ],
           "isUnique": false
         },
         "idx_turn_scenario": {
           "name": "idx_turn_scenario",
-          "columns": ["scenario_id"],
+          "columns": [
+            "scenario_id"
+          ],
           "isUnique": false
         },
         "idx_turn_author_participant": {
           "name": "idx_turn_author_participant",
-          "columns": ["author_participant_id"],
+          "columns": [
+            "author_participant_id"
+          ],
           "isUnique": false
         },
         "idx_uniq_turn_parent_order": {
           "name": "idx_uniq_turn_parent_order",
-          "columns": ["parent_turn_id", "sibling_order"],
+          "columns": [
+            "parent_turn_id",
+            "sibling_order"
+          ],
           "isUnique": true
         },
         "idx_one_root_per_scenario": {
           "name": "idx_one_root_per_scenario",
-          "columns": ["scenario_id"],
+          "columns": [
+            "scenario_id"
+          ],
           "isUnique": true,
           "where": "parent_turn_id IS NULL"
         }
@@ -2047,8 +2225,12 @@
           "name": "turns_scenario_id_scenarios_id_fk",
           "tableFrom": "turns",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2056,8 +2238,12 @@
           "name": "turns_author_participant_id_scenario_participants_id_fk",
           "tableFrom": "turns",
           "tableTo": "scenario_participants",
-          "columnsFrom": ["author_participant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "author_participant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2136,25 +2322,36 @@
       "indexes": {
         "idx_one_character_task_target": {
           "name": "idx_one_character_task_target",
-          "columns": ["workflow_task", "character_id"],
+          "columns": [
+            "workflow_task",
+            "character_id"
+          ],
           "isUnique": true,
           "where": "scope_kind = 'character'"
         },
         "idx_one_scenario_task_target": {
           "name": "idx_one_scenario_task_target",
-          "columns": ["workflow_task", "scenario_id"],
+          "columns": [
+            "workflow_task",
+            "scenario_id"
+          ],
           "isUnique": true,
           "where": "scope_kind = 'scenario'"
         },
         "idx_one_participant_task_target": {
           "name": "idx_one_participant_task_target",
-          "columns": ["workflow_task", "participant_id"],
+          "columns": [
+            "workflow_task",
+            "participant_id"
+          ],
           "isUnique": true,
           "where": "scope_kind = 'participant'"
         },
         "idx_one_default_task_target": {
           "name": "idx_one_default_task_target",
-          "columns": ["workflow_task"],
+          "columns": [
+            "workflow_task"
+          ],
           "isUnique": true,
           "where": "scope_kind = 'default'"
         }
@@ -2164,8 +2361,12 @@
           "name": "workflow_scopes_workflow_id_workflows_id_fk",
           "tableFrom": "workflow_scopes",
           "tableTo": "workflows",
-          "columnsFrom": ["workflow_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "workflow_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2173,8 +2374,12 @@
           "name": "workflow_scopes_scenario_id_scenarios_id_fk",
           "tableFrom": "workflow_scopes",
           "tableTo": "scenarios",
-          "columnsFrom": ["scenario_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2182,8 +2387,12 @@
           "name": "workflow_scopes_character_id_characters_id_fk",
           "tableFrom": "workflow_scopes",
           "tableTo": "characters",
-          "columnsFrom": ["character_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2191,8 +2400,12 @@
           "name": "workflow_scopes_participant_id_scenario_participants_id_fk",
           "tableFrom": "workflow_scopes",
           "tableTo": "scenario_participants",
-          "columnsFrom": ["participant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "participant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2200,8 +2413,14 @@
           "name": "fk_workflow_scope_workflow",
           "tableFrom": "workflow_scopes",
           "tableTo": "workflows",
-          "columnsFrom": ["workflow_id", "workflow_task"],
-          "columnsTo": ["id", "task"],
+          "columnsFrom": [
+            "workflow_id",
+            "workflow_task"
+          ],
+          "columnsTo": [
+            "id",
+            "task"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2287,7 +2506,10 @@
       "indexes": {
         "idx_workflows_id_task": {
           "name": "idx_workflows_id_task",
-          "columns": ["id", "task"],
+          "columns": [
+            "id",
+            "task"
+          ],
           "isUnique": true
         }
       },

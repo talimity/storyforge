@@ -28,6 +28,9 @@ export function useChapterActions() {
       qc.invalidateQueries(trpc.timeline.window.pathFilter()),
       qc.invalidateQueries(trpc.timeline.state.pathFilter()),
       qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
+      qc.invalidateQueries(trpc.chapterSummaries.listForPath.pathFilter()),
+      qc.invalidateQueries(trpc.chapterSummaries.status.pathFilter()),
+      qc.invalidateQueries(trpc.chapterSummaries.get.pathFilter()),
     ]);
   }, [qc, trpc]);
 

@@ -1,8 +1,7 @@
 import { Box, Flex, Presence } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { ChapterSeparator } from "@/features/scenario-player/components/timeline/chapter-separator";
-import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import {
   selectOverlayForTurn,
   useTurnUiStore,
@@ -18,20 +17,10 @@ interface TimelineTurnRowProps {
 
 function TimelineTurnRowImpl(props: TimelineTurnRowProps) {
   const { turn, prevTurn, nextTurn } = props;
-  const { chaptersByEventId, chapterLabelsByEventId, deriveChapterLabel } = useScenarioContext();
   const overlay = useTurnUiStore(selectOverlayForTurn(turn.id));
   const isRetryActive = overlay?.mode === "retry";
 
-  const chapterEvent = useMemo(
-    () => turn.events.find((event) => event.kind === "chapter_break"),
-    [turn.events]
-  );
-  const chapterLabel = chapterEvent
-    ? (chapterLabelsByEventId[chapterEvent.id] ??
-      (chaptersByEventId[chapterEvent.id]
-        ? deriveChapterLabel(chaptersByEventId[chapterEvent.id])
-        : undefined))
-    : undefined;
+  const chapterEvent = turn.events.find((event) => event.kind === "chapter_break");
 
   return (
     <Box width="100%" pb={4} data-testid="timeline-turn-row">
@@ -76,7 +65,7 @@ function TimelineTurnRowImpl(props: TimelineTurnRowProps) {
           </Box>
         </Box>
       </Flex>
-      {chapterLabel ? <ChapterSeparator label={chapterLabel} /> : null}
+      {chapterEvent ? <ChapterSeparator chapterEventId={chapterEvent.id} /> : null}
     </Box>
   );
 }

@@ -3,8 +3,6 @@ import type { SourceHandlerMap } from "@storyforge/prompt-rendering";
 import type { CharacterCtxDTO, TurnCtxDTO } from "../types.js";
 
 export type ChapterSummaryCtxEntry = {
-  closingEventId: string;
-  closingTurnId: string;
   chapterNumber: number;
   title: string | null;
   summaryText: string;

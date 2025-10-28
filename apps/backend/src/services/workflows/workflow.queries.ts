@@ -47,7 +47,7 @@ export async function getWorkflowForTaskScope<K extends TaskKind>(
     );
   }
 
-  // Query for workflows with their scopes, filtering for turn_generation task
+  // Query for workflows with their scopes, filtering by task kind
   const result = await db
     .select({
       workflow: workflows,
@@ -71,10 +71,7 @@ export async function getWorkflowForTaskScope<K extends TaskKind>(
   // There is always a seeded builtin workflow for each task kind which cannot
   // be deleted so this should never happen
   const workflow = result[0]?.workflow;
-  assertDefined(
-    workflow,
-    "No turn_generation workflow found. At least one default workflow must exist."
-  );
+  assertDefined(workflow, `No ${task} workflow found. At least one default workflow must exist.`);
 
   // Parse the steps JSON and return as GenWorkflow
   return {

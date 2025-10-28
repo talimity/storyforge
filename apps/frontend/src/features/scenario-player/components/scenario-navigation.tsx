@@ -1,30 +1,17 @@
-import {
-  Box,
-  Flex,
-  HStack,
-  Icon,
-  IconButton,
-  Input,
-  Link,
-  Menu,
-  Popover,
-  Portal,
-  Stack,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
-import { useState } from "react";
-import {
-  LuChevronDown,
-  LuEllipsisVertical,
-  LuPencilLine,
-  LuPlus,
-  LuTableOfContents,
-  LuTrash,
-} from "react-icons/lu";
-import { Button, Dialog, EmptyState, Field } from "@/components/ui";
+import { Flex, HStack, Icon, Link, Popover, Portal, Stack, Text } from "@chakra-ui/react";
+import type { ChapterSummaryStatus } from "@storyforge/contracts";
+import { LuChevronDown, LuCircleAlert, LuPlus, LuTableOfContents } from "react-icons/lu";
+import { Button, EmptyState } from "@/components/ui";
+import { ChapterRenameDialog } from "@/features/scenario-player/components/chapter-rename-dialog";
+import { ChapterSummaryActionsMenu } from "@/features/scenario-player/components/chapter-summary/chapter-summary-actions-menu";
+import { ChapterSummaryDialog } from "@/features/scenario-player/components/chapter-summary/chapter-summary-dialog";
+import { ChapterSummaryStatusBadge } from "@/features/scenario-player/components/chapter-summary/chapter-summary-status-badge";
 import { useChapterActions } from "@/features/scenario-player/hooks/use-chapter-actions";
+import { useChapterSummaryActions } from "@/features/scenario-player/hooks/use-chapter-summary-actions";
+import { useChapterSummaryStatuses } from "@/features/scenario-player/hooks/use-chapter-summary-statuses";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
+import { useChapterRenameDialogStore } from "@/features/scenario-player/stores/chapter-rename-dialog-store";
+import { useChapterSummaryDialogStore } from "@/features/scenario-player/stores/chapter-summary-dialog-store";
 import {
   selectIsGenerating,
   useIntentRunsStore,
@@ -37,45 +24,39 @@ type ChapterItem = ReturnType<typeof useScenarioContext>["chapters"][number];
 export function ScenarioNavigation() {
   const { scenario, chapters, deriveChapterLabel } = useScenarioContext();
 
+  const openSummaryDialog = useChapterSummaryDialogStore((s) => s.openDialog);
+  const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
+  const leafTurnId = previewLeafTurnId ?? scenario.anchorTurnId;
+  const { summaries: chapterSummaryStatuses, statusesByChapterEventId } = useChapterSummaryStatuses(
+    {
+      scenarioId: scenario.id,
+      leafTurnId,
+    }
+  );
+  const { summarizeChapter, isSummarizing } = useChapterSummaryActions();
+
   const latestChapter = chapters.at(-1);
-  const chapterLabel = latestChapter ? deriveChapterLabel(latestChapter) : null;
+  const chapterLabel = latestChapter ? deriveChapterLabel(latestChapter) : undefined;
 
-  const {
-    insertChapterAtTurn,
-    renameChapter,
-    deleteChapter,
-    isInsertingChapter,
-    isRenamingChapter,
-  } = useChapterActions();
+  const { insertChapterAtTurn, deleteChapter, isInsertingChapter, isDeletingChapter } =
+    useChapterActions();
+  const openRenameDialog = useChapterRenameDialogStore((s) => s.openDialog);
 
-  const {
-    open: isRenameDialogOpen,
-    onOpen: openRenameDialog,
-    onClose: closeRenameDialog,
-  } = useDisclosure();
-  const [renameTarget, setRenameTarget] = useState<ChapterItem | null>(null);
-  const [renameValue, setRenameValue] = useState("");
-  const openRename = (chapter: ChapterItem) => {
-    setRenameTarget(chapter);
-    setRenameValue(chapter.title ?? "");
-    openRenameDialog();
-  };
-
-  const handleRenameSubmit = async () => {
-    if (!renameTarget) return;
-    const nextTitle = renameValue.trim();
-
-    await renameChapter({ eventId: renameTarget.eventId, title: nextTitle });
-    showSuccessToast({ title: "Chapter renamed" });
-    closeRenameDialog();
-    setRenameTarget(null);
-  };
+  const hasAttention = chapterSummaryStatuses.some(
+    ({ state }) => state === "stale" || state === "error" || state === "missing"
+  );
 
   return (
     <>
       <Popover.Root positioning={{ placement: "bottom", gutter: 4 }} lazyMount unmountOnExit>
         <Popover.Trigger asChild>
-          <Button variant="ghost" px="8" w="full" justifyContent="space-between">
+          <Button
+            variant="ghost"
+            px="8"
+            w="full"
+            justifyContent="space-between"
+            position="relative"
+          >
             <Flex direction="column" gap="0" lineHeight="1.25">
               <Text truncate>{scenario.title}</Text>
               {chapterLabel && (
@@ -85,9 +66,15 @@ export function ScenarioNavigation() {
               )}
             </Flex>
             {/* icon makes text off-center so use absolute positioning */}
-            <Icon position="absolute" right="3" size="sm">
-              <LuChevronDown />
-            </Icon>
+            {hasAttention ? (
+              <Icon position="absolute" right="2" size="sm" color="fg.error">
+                <LuCircleAlert />
+              </Icon>
+            ) : (
+              <Icon position="absolute" right="3" size="sm">
+                <LuChevronDown />
+              </Icon>
+            )}
           </Button>
         </Popover.Trigger>
         <Portal>
@@ -97,10 +84,15 @@ export function ScenarioNavigation() {
               <Popover.Body>
                 <Popover.Title textStyle="heading">Chapter Outline</Popover.Title>
                 <ChapterList
-                  handleRename={openRename}
+                  handleRename={(chapter) => openRenameDialog(chapter.eventId)}
                   insertChapterAtTurn={insertChapterAtTurn}
                   deleteChapter={deleteChapter}
                   isInsertingChapter={isInsertingChapter}
+                  isDeletingChapter={isDeletingChapter}
+                  statusesByChapterEventId={statusesByChapterEventId}
+                  onOpenSummary={openSummaryDialog}
+                  onSummarize={summarizeChapter}
+                  isSummarizing={isSummarizing}
                 />
               </Popover.Body>
             </Popover.Content>
@@ -108,17 +100,8 @@ export function ScenarioNavigation() {
         </Portal>
       </Popover.Root>
 
-      <RenameChapterDialog
-        isOpen={isRenameDialogOpen}
-        onClose={() => {
-          closeRenameDialog();
-          setRenameTarget(null);
-        }}
-        value={renameValue}
-        onChange={setRenameValue}
-        onSubmit={handleRenameSubmit}
-        isSubmitting={isRenamingChapter}
-      />
+      <ChapterRenameDialog />
+      <ChapterSummaryDialog />
     </>
   );
 }
@@ -128,11 +111,21 @@ function ChapterList({
   insertChapterAtTurn,
   deleteChapter,
   isInsertingChapter,
+  isDeletingChapter,
+  statusesByChapterEventId,
+  onOpenSummary,
+  onSummarize,
+  isSummarizing,
 }: {
   handleRename: (chapter: ChapterItem) => void;
   insertChapterAtTurn: ReturnType<typeof useChapterActions>["insertChapterAtTurn"];
   deleteChapter: ReturnType<typeof useChapterActions>["deleteChapter"];
   isInsertingChapter: ReturnType<typeof useChapterActions>["isInsertingChapter"];
+  isDeletingChapter: ReturnType<typeof useChapterActions>["isDeletingChapter"];
+  statusesByChapterEventId: Map<string, ChapterSummaryStatus>;
+  onOpenSummary: (closingEventId: string) => void;
+  onSummarize: (args: { closingEventId: string; force?: boolean }) => Promise<unknown>;
+  isSummarizing: boolean;
 }) {
   const { scenario, chapters, deriveChapterLabel } = useScenarioContext();
   const setScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
@@ -175,16 +168,24 @@ function ChapterList({
           />
         )}
 
-        {chapters.map((chapter: ChapterItem) => (
-          <ChapterRow
-            key={chapter.eventId}
-            chapter={chapter}
-            onSelect={handleSelect}
-            onRename={handleRename}
-            onDelete={handleDelete}
-            label={deriveChapterLabel(chapter)}
-          />
-        ))}
+        {chapters.map((chapter: ChapterItem) => {
+          const status = statusesByChapterEventId.get(chapter.eventId);
+          return (
+            <ChapterRow
+              key={chapter.eventId}
+              chapter={chapter}
+              status={status}
+              onSelect={handleSelect}
+              onRename={handleRename}
+              onDelete={handleDelete}
+              onOpenSummary={onOpenSummary}
+              onSummarize={onSummarize}
+              isSummarizing={isSummarizing}
+              isDeleting={isDeletingChapter}
+              label={deriveChapterLabel(chapter)}
+            />
+          );
+        })}
       </Stack>
       {!isGenerating && !isPreviewing ? (
         <Button
@@ -206,19 +207,32 @@ function ChapterList({
 
 function ChapterRow({
   chapter,
+  status,
   onSelect,
   onRename,
   onDelete,
+  onOpenSummary,
+  onSummarize,
+  isSummarizing,
+  isDeleting,
   label,
 }: {
   chapter: ChapterItem;
+  status?: ChapterSummaryStatus;
   onSelect: (chapter: ChapterItem) => void;
   onRename: (chapter: ChapterItem) => void;
   onDelete: (chapter: ChapterItem) => void;
+  onOpenSummary: (closingEventId: string) => void;
+  onSummarize: (args: { closingEventId: string; force?: boolean }) => Promise<unknown>;
+  isSummarizing: boolean;
+  isDeleting: boolean;
   label: string;
 }) {
+  const closingEventId = status?.closingEventId;
+  const isActionable = Boolean(closingEventId && status?.state !== "current");
+
   return (
-    <HStack colorPalette="neutral">
+    <HStack colorPalette="neutral" align="center" gap="2" w="full">
       <Button
         asChild
         size="xs"
@@ -231,88 +245,19 @@ function ChapterRow({
           {label}
         </Link>
       </Button>
-      <Menu.Root positioning={{ placement: "bottom-end" }}>
-        <Menu.Trigger asChild>
-          <IconButton
-            variant="ghost"
-            size="xs"
-            onClick={(event) => event.stopPropagation()}
-            aria-label="Chapter actions"
-          >
-            <LuEllipsisVertical />
-          </IconButton>
-        </Menu.Trigger>
-        <Portal>
-          {/* additional z-index hack needed because of apparent chakra bug with popover/menu nesting */}
-          <Menu.Positioner zIndex="popover !important">
-            <Menu.Content>
-              <Menu.Item value="rename" onSelect={() => onRename(chapter)}>
-                <LuPencilLine />
-                <Box flex="1">Rename</Box>
-              </Menu.Item>
-              <Menu.Item
-                value="delete"
-                color="fg.error"
-                _hover={{ bg: "bg.error", color: "fg.error" }}
-                onSelect={() => onDelete(chapter)}
-              >
-                <LuTrash />
-                <Box flex="1">Delete</Box>
-              </Menu.Item>
-            </Menu.Content>
-          </Menu.Positioner>
-        </Portal>
-      </Menu.Root>
+      <ChapterSummaryStatusBadge status={status} />
+      <ChapterSummaryActionsMenu
+        status={status}
+        onOpenSummary={() => closingEventId && onOpenSummary(closingEventId)}
+        onSummarize={(force) =>
+          closingEventId ? onSummarize({ closingEventId, force }) : Promise.resolve()
+        }
+        onRename={() => onRename(chapter)}
+        onDelete={() => onDelete(chapter)}
+        isSummarizing={isSummarizing && isActionable}
+        isDeleting={isDeleting}
+        portalled={false}
+      />
     </HStack>
-  );
-}
-
-function RenameChapterDialog({
-  isOpen,
-  onClose,
-  value,
-  onChange,
-  onSubmit,
-  isSubmitting,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
-  isSubmitting: boolean;
-}) {
-  return (
-    <Dialog.Root
-      open={isOpen}
-      onOpenChange={(details) => !details.open && onClose()}
-      placement="center"
-    >
-      <Dialog.Content>
-        <Dialog.Header>
-          <Dialog.Title>Rename Chapter</Dialog.Title>
-        </Dialog.Header>
-        <Dialog.Body>
-          <Stack>
-            <Field label="Chapter title">
-              <Input
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder="Enter chapter title"
-                autoFocus
-              />
-            </Field>
-          </Stack>
-        </Dialog.Body>
-        <Dialog.Footer display="flex" justifyContent="flex-end" gap="2">
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button size="sm" onClick={onSubmit} loading={isSubmitting}>
-            Save
-          </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog.Root>
   );
 }
