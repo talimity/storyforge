@@ -50,8 +50,10 @@ interface OpenAIChatCompletionRequest {
   top_logprobs?: number;
   stream?: boolean;
   // these are prefill hints used variously by vLLM, SGLang, TensorRT-LLM, etc.
-  add_generation_prompt?: boolean;
   continue_final_message?: boolean;
+  separate_reasoning?: boolean;
+  chat_template_kwargs?: Record<string, unknown>;
+  // TODO: make extra body params configurable on model profiles
 }
 
 interface ChatLogprobsContent {
@@ -623,9 +625,13 @@ export class OpenAICompatibleAdapter extends ProviderAdapter {
       // todo: add some way to let users specify which prefill hint needs to be used
       const lastMsg = messages.at(-1) as ChatCompletionMessage & { prefix?: boolean };
       if (lastMsg?.role === "assistant") {
-        payload.add_generation_prompt = false;
-        payload.continue_final_message = true;
-        lastMsg.prefix = true;
+        // payload.add_generation_prompt = false; // maybe does not do anything as it seems to be overridden before jinja rendering
+        // lastMsg.prefix = true; // only used by mistral platform/deepseek platform
+
+        // vllm/sglang
+        payload.continue_final_message = true; // enables prefill
+        payload.separate_reasoning = false; // otherwise even when skipping reasoning via prefill, sglang collects output as `reasoning_content`
+        payload.chat_template_kwargs = { enable_thinking: false }; // required or sglang may wrap prefill in <think>
       }
     }
 
