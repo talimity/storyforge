@@ -41,8 +41,6 @@ export function useBranchPreview() {
       });
       const siblingIsLeaf = siblingLeafId === siblingId;
 
-      setPendingScrollTarget({ kind: "turn", turnId: siblingId, edge: "end" });
-
       // If the target leaf is the same as the anchor, we are 'previewing' the
       // active timeline, so exit preview.
       const anchor = scenario.anchorTurnId ?? null;
@@ -58,6 +56,10 @@ export function useBranchPreview() {
       else {
         setPreviewLeaf(siblingLeafId && anchor && siblingLeafId === anchor ? null : siblingLeafId);
       }
+
+      requestAnimationFrame(() =>
+        setPendingScrollTarget({ kind: "turn", turnId: siblingId, edge: "end" })
+      );
     },
     [
       isGenerating,
