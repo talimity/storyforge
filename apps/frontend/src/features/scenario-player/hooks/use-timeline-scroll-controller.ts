@@ -47,12 +47,11 @@ export function useTimelineScrollController<
   useLayoutEffect(() => {
     if (!pendingScrollTarget || !scrollerRef.current) return;
 
-    console.debug("useTimelineScrollController: seek scroll target", pendingScrollTarget);
+    console.debug("useTimelineScrollController: seek to scroll target", pendingScrollTarget);
 
     switch (pendingScrollTarget.kind) {
       case "bottom":
         v.scrollBy(Number.MAX_SAFE_INTEGER, { align: "end", behavior: "auto" });
-        console.debug("useTimelineScrollController: scrolled to bottom");
         setPendingScrollTarget(null);
         return;
       case "turn": {

@@ -5,6 +5,8 @@ import { useScenarioPlayerStore } from "../stores/scenario-player-store";
 const MAX_RAF = 6;
 const BOTTOM_EPSILON = 2;
 
+const raf = (cb: () => void) => requestAnimationFrame(() => cb());
+
 export function useInitialScroll<TScrollEl extends Element | Window, TItemEl extends Element>({
   virtualizer,
   scrollerRef,
@@ -18,8 +20,8 @@ export function useInitialScroll<TScrollEl extends Element | Window, TItemEl ext
   const initialScrolledRef = useRef(false);
 
   useLayoutEffect(() => {
-    if (turns.length <= 1) return;
     if (initialScrolledRef.current) return;
+    if (turns.length <= 1) return;
 
     let cancelled = false;
     let tries = 0;
@@ -27,11 +29,9 @@ export function useInitialScroll<TScrollEl extends Element | Window, TItemEl ext
     const tryScrollToBottom = () => {
       if (cancelled) return;
 
-      // Ask virtualizer to go to the last row
-      const count = virtualizer.options.count;
-      virtualizer.scrollToIndex(count - 1, { align: "end", behavior: "auto" });
+      raf(() => {
+        setPendingScrollTarget({ kind: "bottom" });
 
-      requestAnimationFrame(() => {
         const sc = scrollerRef.current;
         const total = virtualizer.getTotalSize();
         const offset = virtualizer.scrollOffset ?? sc?.scrollTop ?? 0;
@@ -40,18 +40,27 @@ export function useInitialScroll<TScrollEl extends Element | Window, TItemEl ext
 
         if (!atBottom && tries++ < MAX_RAF) {
           tryScrollToBottom();
+          console.log(`useInitialScroll: tryScrollToBottom attempt ${tries}`);
         } else {
-          // Seed the anchor so other systems see "we are following bottom"
-          setPendingScrollTarget({ kind: "bottom" });
-          setTimeout(() => {
-            initialScrolledRef.current = true;
-          }, 500);
+          initialScrolledRef.current = true;
+          console.log("useInitialScroll: initial scroll to bottom complete");
         }
       });
     };
 
-    tryScrollToBottom();
+    console.log("useInitialScroll: starting initial scroll to bottom", {
+      cancelled,
+      tries,
+      turnsLength: turns.length,
+    });
+
+    raf(() => {
+      if (!cancelled) {
+        tryScrollToBottom();
+      }
+    });
     return () => {
+      console.log("useInitialScroll: cancelling initial scroll to bottom");
       cancelled = true;
     };
   }, [virtualizer, scrollerRef, turns.length, setPendingScrollTarget]);
