@@ -11,9 +11,9 @@ export type IntentRunStatus = "pending" | "running" | "finished" | "failed" | "c
 export type ProvisionalTurn = {
   /** Provisional text (built from gen_token or draft steps) */
   text: string;
-  /** Optional hint about who is "speaking" for UI decoration */
-  actorParticipantId?: string | null;
   status: "streaming" | "error";
+  /** Optional hint about who is "speaking" for UI decoration */
+  actorParticipantId?: string;
   committedTurnId?: string;
 };
 
@@ -31,8 +31,8 @@ export type StepState = {
 
 export type RecoverableDraft = {
   text: string;
-  actorParticipantId: string | null;
-  branchFromTurnId: string | null;
+  actorParticipantId?: string;
+  branchFromTurnId?: string;
   source: "failed" | "cancelled";
   error?: string;
 };
@@ -64,7 +64,7 @@ export interface IntentRun {
   steps: Record<string, StepState>;
 
   // convenience flags
-  currentActorParticipantId?: string | null;
+  currentActorParticipantId?: string;
   error?: string;
 
   /** Whether the most recent token is presentation prose (default true when unknown). */
@@ -81,7 +81,7 @@ export interface IntentRun {
    */
   truncateAfterTurnId?: string;
   /** Tracks the latest branch point associated with generation. */
-  lastBranchFromTurnId: string | null;
+  lastBranchFromTurnId?: string;
   /** Captured presentation preview available for recovery after a failure. */
   pendingRecovery?: RecoverableDraft;
 }
@@ -127,7 +127,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
           steps: {},
           truncateAfterTurnId: undefined,
           displayCharCount: 0,
-          lastBranchFromTurnId: null,
+          lastBranchFromTurnId: undefined,
           pendingRecovery: undefined,
         };
         s.currentRunId = intentId;
@@ -175,7 +175,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             if (ev.participantId) {
               run.currentActorParticipantId = ev.participantId;
             }
-            run.lastBranchFromTurnId = ev.branchFromTurnId ?? null;
+            run.lastBranchFromTurnId = ev.branchFromTurnId;
             run.presentationPreview = "";
             run.displayPresentationPreview = "";
             run.pendingRecovery = undefined;
@@ -237,7 +237,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             run.displayCharCount = 0;
             run.presentationPreview = "";
             run.pendingRecovery = undefined;
-            run.lastBranchFromTurnId = null;
+            run.lastBranchFromTurnId = undefined;
             return;
 
           case "intent_finished":
@@ -249,7 +249,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             run.displayCharCount = 0;
             run.presentationPreview = "";
             run.pendingRecovery = undefined;
-            run.lastBranchFromTurnId = null;
+            run.lastBranchFromTurnId = undefined;
             return;
 
           case "intent_failed": {
@@ -260,7 +260,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
               if (run.provisional.length === 0) {
                 run.provisional.push({
                   text: ev.partialText,
-                  actorParticipantId: run.currentActorParticipantId ?? null,
+                  actorParticipantId: run.currentActorParticipantId,
                   status: "streaming",
                 });
               } else {
@@ -277,7 +277,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             const running = Object.values(run.steps).find((st) => st.status === "running");
             run.displayCharCount = running?.charCount ?? 0;
             const presentationText = run.presentationPreview.trim();
-            const recoveryActor = run.currentActorParticipantId ?? null;
+            const recoveryActor = run.currentActorParticipantId;
             if (presentationText.length > 0 && recoveryActor) {
               run.pendingRecovery = {
                 text: presentationText,

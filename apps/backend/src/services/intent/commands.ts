@@ -73,10 +73,7 @@ export function makeCommands(deps: IntentExecDeps) {
       const preferredId = args.preferredActorId;
       const participantId = preferredId
         ? preferredId
-        : await chooseNextActorFair(db, scenarioId, {
-            leafTurnId: args.afterTurnId ?? null,
-            includeNarrator: !!args.includeNarrator,
-          });
+        : await chooseNextActorFair(db, scenarioId, args);
 
       yield { type: "actor_selected", intentId, participantId: participantId, ts: now() };
 
@@ -100,7 +97,7 @@ export function makeCommands(deps: IntentExecDeps) {
       const ctx = await new IntentContextBuilder(db, scenarioId).buildContext({
         actorParticipantId: args.actorId,
         intent,
-        leafTurnId: args.branchFromTurnId ?? null,
+        leafTurnId: args.branchFromTurnId,
       });
 
       // Check for replay eligibility

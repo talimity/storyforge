@@ -50,7 +50,7 @@ export class IntentContextBuilder {
       ? getTurnIntentPrompt({
           kind: intent.kind,
           targetName: actorName,
-          text: intent.constraint ?? null,
+          text: intent.constraint,
         })?.prompt
       : undefined;
 

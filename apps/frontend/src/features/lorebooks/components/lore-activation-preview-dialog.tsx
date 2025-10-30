@@ -14,7 +14,7 @@ interface LoreActivationPreviewDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   scenarioId?: string;
-  leafTurnId?: string | null;
+  leafTurnId?: string;
   allowScenarioSelect?: boolean;
   title?: string;
 }
@@ -23,12 +23,12 @@ export function LoreActivationPreviewDialog({
   isOpen,
   onOpenChange,
   scenarioId,
-  leafTurnId = null,
+  leafTurnId,
   allowScenarioSelect = false,
   title = "Lore Activation Preview",
 }: LoreActivationPreviewDialogProps) {
   const trpc = useTRPC();
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(scenarioId ?? null);
+  const [selectedScenarioId, setSelectedScenarioId] = useState(scenarioId);
   const [debugMode, setDebugMode] = useState(false);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export function LoreActivationPreviewDialog({
   const activationQueryOptions = trpc.scenarioLorebooks.activated.queryOptions(
     {
       scenarioId: selectedScenarioId ?? "",
-      leafTurnId: leafTurnId ?? undefined,
+      leafTurnId,
       debug: debugMode,
     },
     { enabled: isOpen && canPreview, staleTime: 1 }

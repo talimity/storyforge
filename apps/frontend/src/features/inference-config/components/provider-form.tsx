@@ -61,7 +61,7 @@ function cloneCapabilities(
   value: ProviderFormData["capabilities"] | undefined
 ): ProviderFormData["capabilities"] {
   if (!value) {
-    return value ?? null;
+    return null;
   }
 
   return { ...value };

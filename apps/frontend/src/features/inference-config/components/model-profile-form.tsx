@@ -57,7 +57,7 @@ function ModelProfileForm({
     form.store,
     (state) => state.values.capabilityOverrides ?? {}
   );
-  const textTemplateValue = useStore(form.store, (state) => state.values.textTemplate ?? null);
+  const textTemplateValue = useStore(form.store, (state) => state.values.textTemplate);
   const [selectedProviderId, setSelectedProviderId] = useState(providerId);
   const [modelSearchInput, setModelSearchInput] = useState("");
   const [debouncedModelSearchQuery, setDebouncedModelSearchQuery] = useState("");
@@ -249,7 +249,7 @@ function ModelProfileForm({
       <JinjaTemplateDialog
         isOpen={isTemplateDialogOpen}
         onOpenChange={setTemplateDialogOpen}
-        initialTemplate={textTemplateValue ?? null}
+        initialTemplate={textTemplateValue}
         onSave={(template) => {
           const next = template.trim();
           form.setFieldValue("textTemplate", next.length > 0 ? next : null);

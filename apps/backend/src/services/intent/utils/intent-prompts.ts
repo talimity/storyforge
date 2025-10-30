@@ -4,7 +4,7 @@ import { assertNever } from "@storyforge/utils";
 export function getTurnIntentPrompt(args: {
   kind: Intent["kind"] | null;
   targetName: string;
-  text: string | null;
+  text?: string | null;
 }): { kind: Intent["kind"]; mappedKind?: string; prompt: string; text?: string } | undefined {
   const { kind, targetName, text } = args;
   if (!kind) return;

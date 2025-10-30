@@ -55,11 +55,11 @@ function mapModelProfile(model: DbModelProfile): ApiModelProfile {
     providerId: model.providerId,
     displayName: model.displayName,
     modelId: model.modelId,
-    textTemplate: model.textTemplate ?? null,
-    modelInstruction: model.modelInstruction ?? null,
-    capabilityOverrides: parsed.success ? parsed.data : null,
+    textTemplate: model.textTemplate,
+    modelInstruction: model.modelInstruction,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,
+    capabilityOverrides: parsed.success ? parsed.data : null,
   };
 }
 

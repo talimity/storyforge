@@ -140,7 +140,7 @@ export async function setCharacterStarred(
     .returning({ id: tCharacters.id, isStarred: tCharacters.isStarred })
     .all();
 
-  return updated[0] ?? null;
+  return updated[0];
 }
 
 export async function getCharacters(db: SqliteDatabase, ids: string[]) {

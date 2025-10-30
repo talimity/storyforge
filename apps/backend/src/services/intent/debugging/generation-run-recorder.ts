@@ -39,11 +39,7 @@ export class GenerationRunRecorder {
   async handle(event: IntentEvent) {
     switch (event.type) {
       case "gen_start":
-        this.pending.push({
-          participantId: event.participantId,
-          workflowId: event.workflowId,
-          branchFromTurnId: event.branchFromTurnId ?? null,
-        });
+        this.pending.push(event);
         return;
       case "gen_event":
         await this.handleWorkflowEvent(event.payload, event.ts);
@@ -73,7 +69,7 @@ export class GenerationRunRecorder {
             intentId: this.deps.intentId,
             participantId: context.participantId,
             workflowId: context.workflowId,
-            branchFromTurnId: context.branchFromTurnId ?? null,
+            branchFromTurnId: context.branchFromTurnId,
             status: "running",
             startedAt,
           })
@@ -90,10 +86,10 @@ export class GenerationRunRecorder {
         runState.stepOrder.push(event.stepId);
 
         await this.deps.db.insert(generationRunSteps).values({
+          idx,
           runId: runState.generationRunId,
           stepId: event.stepId,
-          idx,
-          name: event.name ?? null,
+          name: event.name,
         });
 
         await this.deps.db
@@ -116,11 +112,7 @@ export class GenerationRunRecorder {
         return;
       }
       case "step_prompt": {
-        await this.updateStep(event.runId, event.stepId, {
-          modelProfileId: event.modelProfileId,
-          modelId: event.modelId,
-          hints: event.hints ?? null,
-        });
+        await this.updateStep(event.runId, event.stepId, event);
         return;
       }
       case "step_captured": {

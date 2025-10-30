@@ -181,7 +181,7 @@ function CustomHeadingExample() {
 
 // Example: Character Selector Component
 function CharacterSelectorExample() {
-  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
+  const [selectedCharacter, setSelectedCharacter] = useState<string | undefined>(
     "sqboqbooj5ngqjlm6covotra"
   );
   const [selectedMany, setSelectedMany] = useState<string[]>([]);

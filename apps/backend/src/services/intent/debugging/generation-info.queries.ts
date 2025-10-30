@@ -68,13 +68,13 @@ export async function getGenerationInfoForTurn(
 
     stepMetadata[step.stepId] = {
       idx: step.idx,
-      name: step.name ?? null,
-      promptTemplateId: step.promptTemplateId ?? null,
+      name: step.name,
+      promptTemplateId: step.promptTemplateId,
+      modelProfileId: step.modelProfileId,
       promptTemplateName: step.promptTemplate?.name ?? null,
-      modelProfileId: step.modelProfileId ?? null,
       modelProfileName: step.modelProfile?.displayName ?? null,
-      modelId: step.modelId ?? null,
-      hints: step.hints ?? null,
+      modelId: step.modelId,
+      hints: step.hints,
     };
   }
 
@@ -85,7 +85,7 @@ export async function getGenerationInfoForTurn(
   return generationInfoOutputSchema.parse({
     generationRunId: run.id,
     workflowId: run.workflowId,
-    workflowName: run.workflow?.name ?? null,
+    workflowName: run.workflow?.name,
     task: "turn_generation" as const,
     stepOrder: run.stepOrder.length > 0 ? run.stepOrder : orderedSteps.map((s) => s.stepId),
     prompts,
@@ -104,10 +104,10 @@ export async function getGenerationInfoForTurn(
       turnId,
       status: run.status,
       startedAt: run.startedAt,
-      finishedAt: run.finishedAt ?? null,
-      error: run.error ?? null,
-      effectSequence: run.effectSequence ?? null,
-      branchFromTurnId: run.branchFromTurnId ?? null,
+      finishedAt: run.finishedAt,
+      error: run.error,
+      effectSequence: run.effectSequence,
+      branchFromTurnId: run.branchFromTurnId,
     },
   });
 }

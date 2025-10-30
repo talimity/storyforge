@@ -90,7 +90,7 @@ export function PageHeaderProvider({ children }: PropsWithChildren) {
 
 export function useCurrentPageHeader() {
   const context = useContext(PageHeaderContext);
-  return context?.current ?? null;
+  return context?.current;
 }
 
 function usePageHeaderRegistration() {

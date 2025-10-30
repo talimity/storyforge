@@ -1,4 +1,5 @@
 import { Box, HStack, Stack, Text } from "@chakra-ui/react";
+import { assertDefined } from "@storyforge/utils";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Avatar, Button, StreamingMarkdown } from "@/components/ui";
@@ -31,7 +32,7 @@ export function DraftTurn() {
     isPresentation,
     charCount,
     error,
-    recoverable,
+    recoverableDraft,
   } = useDraftPreview();
   const [showInternal, setShowInternal] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
@@ -42,14 +43,13 @@ export function DraftTurn() {
   }, [runId]);
 
   const author = getCharacterByParticipantId(authorId);
-  const defaultName = mode === "recoverable" ? "Recovered turn" : "Generating";
-  const authorName = author?.name ?? defaultName;
-  const avatarSrc = getApiUrl(author?.avatarPath ?? undefined);
+  const authorName = author?.name ?? "Generating";
+  const avatarSrc = getApiUrl(author?.avatarPath);
   const tintColor = author?.defaultColor.toLowerCase();
   const shouldShowText = mode === "recoverable" ? true : isPresentation || showInternal;
   const statusHint =
     mode === "recoverable"
-      ? recoverable?.source === "cancelled"
+      ? recoverableDraft?.source === "cancelled"
         ? "Generation interrupted"
         : "Generation failed"
       : isPresentation
@@ -60,8 +60,7 @@ export function DraftTurn() {
   const canToggleInternal = mode === "generating" && !isPresentation;
   const canConvert =
     mode === "recoverable" &&
-    recoverable !== null &&
-    recoverable.actorParticipantId !== null &&
+    recoverableDraft?.actorParticipantId !== null &&
     previewText.trim().length > 0;
 
   const tintCss = useMemo(() => {
@@ -78,8 +77,8 @@ export function DraftTurn() {
   const handleConvertToManual = useCallback(async () => {
     if (
       mode !== "recoverable" ||
-      !recoverable ||
-      recoverable.actorParticipantId === null ||
+      !recoverableDraft ||
+      recoverableDraft.actorParticipantId === null ||
       previewText.trim().length === 0
     ) {
       return;
@@ -87,17 +86,13 @@ export function DraftTurn() {
 
     setIsConverting(true);
     try {
-      const text = previewText.trim();
-      const baseInput = {
+      assertDefined(recoverableDraft.actorParticipantId);
+      await addTurn({
         scenarioId: scenario.id,
-        text,
-        authorParticipantId: recoverable.actorParticipantId,
-      };
-      const input =
-        recoverable.branchFromTurnId && recoverable.branchFromTurnId.length > 0
-          ? { ...baseInput, parentTurnId: recoverable.branchFromTurnId }
-          : baseInput;
-      await addTurn(input);
+        text: previewText.trim(),
+        authorParticipantId: recoverableDraft.actorParticipantId,
+        parentTurnId: recoverableDraft.branchFromTurnId,
+      });
       setPendingScrollTarget({ kind: "bottom" });
       clearRun(runId);
     } catch (error_) {
@@ -110,7 +105,7 @@ export function DraftTurn() {
     clearRun,
     mode,
     previewText,
-    recoverable,
+    recoverableDraft,
     runId,
     scenario.id,
     setPendingScrollTarget,
@@ -160,7 +155,7 @@ export function DraftTurn() {
         />
         {shouldShowText ? (
           previewText ? (
-            <StreamingMarkdown text={previewText} dialogueAuthorId={author?.id ?? null} />
+            <StreamingMarkdown text={previewText} dialogueAuthorId={author?.id} />
           ) : (
             <Text fontSize="md" color="content.muted">
               {mode === "recoverable" ? "No recovered text." : "Thinking…"}
@@ -205,12 +200,12 @@ type DraftPreviewState = {
   runId: string;
   isVisible: boolean;
   mode: "generating" | "recoverable" | "inactive";
-  authorId: string | null;
+  authorId?: string;
   previewText: string;
   isPresentation: boolean;
   charCount: number;
   error?: string;
-  recoverable: RecoverableDraft | null;
+  recoverableDraft?: RecoverableDraft;
 };
 
 function useDraftPreview(): DraftPreviewState {
@@ -220,12 +215,10 @@ function useDraftPreview(): DraftPreviewState {
         runId: "",
         isVisible: false,
         mode: "inactive",
-        authorId: null,
         previewText: "",
         isPresentation: true,
         charCount: 0,
         error: undefined,
-        recoverable: null,
       };
       const id = s.currentRunId;
       if (!id) {
@@ -237,43 +230,36 @@ function useDraftPreview(): DraftPreviewState {
         return fallback;
       }
 
-      const hasRecovery = Boolean(run.pendingRecovery);
+      const recovery = run.pendingRecovery;
       const isGenerating = run.status === "pending" || run.status === "running";
-      const mode = hasRecovery ? "recoverable" : isGenerating ? "generating" : "inactive";
+      const mode = recovery ? "recoverable" : isGenerating ? "generating" : "inactive";
 
       if (mode === "inactive") {
         return {
           runId: id,
-          isVisible: false,
           mode,
-          authorId: null,
           previewText: "",
+          isVisible: false,
           isPresentation: true,
           charCount: 0,
-          error: undefined,
-          recoverable: null,
         };
       }
 
       const last = run.provisional[run.provisional.length - 1];
       const previewSource =
         run.displayPresentationPreview || run.displayPreview || last?.text || "";
-      const previewText = hasRecovery
-        ? (run.pendingRecovery?.text ?? "").trim()
-        : previewSource.trim();
+      const previewText = recovery ? recovery.text.trim() : previewSource.trim();
 
       return {
         runId: id,
         isVisible: true,
         mode,
-        authorId: hasRecovery
-          ? (run.pendingRecovery?.actorParticipantId ?? null)
-          : (run.currentActorParticipantId ?? null),
+        authorId: recovery?.actorParticipantId ?? run.currentActorParticipantId,
         previewText,
-        isPresentation: hasRecovery ? true : (run.lastTokenIsPresentation ?? true),
-        charCount: run.displayCharCount ?? 0,
-        error: hasRecovery ? (run.pendingRecovery?.error ?? run.error) : undefined,
-        recoverable: run.pendingRecovery ?? null,
+        isPresentation: recovery ? true : (run.lastTokenIsPresentation ?? true),
+        charCount: run.displayCharCount,
+        error: recovery?.error ?? run.error,
+        recoverableDraft: run.pendingRecovery,
       };
     })
   );

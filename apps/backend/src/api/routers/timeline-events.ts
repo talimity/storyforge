@@ -48,13 +48,7 @@ export const timelineEventsRouter = router({
     .output(insertParticipantPresenceEventOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const service = new TimelineEventsService(ctx.db);
-      const event = await service.insertParticipantPresence({
-        scenarioId: input.scenarioId,
-        turnId: input.turnId,
-        participantId: input.participantId,
-        active: input.active,
-        status: input.status ?? null,
-      });
+      const event = await service.insertParticipantPresence(input);
       return { eventId: event.id };
     }),
 
@@ -71,12 +65,7 @@ export const timelineEventsRouter = router({
     .output(insertSceneSetEventOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const service = new TimelineEventsService(ctx.db);
-      const event = await service.insertSceneSet({
-        scenarioId: input.scenarioId,
-        turnId: input.turnId,
-        sceneName: input.sceneName,
-        description: input.description ?? null,
-      });
+      const event = await service.insertSceneSet(input);
       return { eventId: event.id };
     }),
 

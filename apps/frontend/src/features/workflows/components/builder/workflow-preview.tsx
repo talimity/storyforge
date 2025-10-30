@@ -27,8 +27,8 @@ type Props = {
 
 export function WorkflowPreviewTab({ values }: Props) {
   const trpc = useTRPC();
-  const [scenarioId, setScenarioId] = useState<string | null>(null);
-  const [characterId, setCharacterId] = useState<string | null>(null);
+  const [scenarioId, setScenarioId] = useState<string | undefined>(undefined);
+  const [characterId, setCharacterId] = useState<string | undefined>(undefined);
   const [guidance, setGuidance] = useState("");
   const [mockByStep, setMockByStep] = useState<Record<string, string>>({});
 

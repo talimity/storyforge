@@ -38,8 +38,8 @@ export function ScenarioSingleSelect({
   status,
   ...props
 }: {
-  value: string | null;
-  onChange: (id: string | null) => void;
+  value?: string | null;
+  onChange: (id?: string) => void;
   placeholder?: string;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
@@ -54,7 +54,7 @@ export function ScenarioSingleSelect({
     placeholder,
     inputBehavior: "autohighlight",
     value: internalValue,
-    onValueChange: (e) => onChange(e.value[0] ?? null),
+    onValueChange: (e) => onChange(e.value[0]),
     onInputValueChange: (e) => updateSearch(e.inputValue),
   });
 
@@ -74,7 +74,7 @@ export function ScenarioSingleSelect({
         </InputGroup>
         <Combobox.IndicatorGroup>
           {isLoading && <Spinner size="xs" />}
-          <Combobox.ClearTrigger onClick={() => onChange(null)} />
+          <Combobox.ClearTrigger onClick={() => onChange(undefined)} />
           <Combobox.Trigger />
         </Combobox.IndicatorGroup>
       </Combobox.Control>

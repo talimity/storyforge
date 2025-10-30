@@ -25,7 +25,7 @@ export function transformCharacter(dbCharacter: DbCharacter): ApiCharacter {
     creator: dbCharacter.creator,
     creatorNotes: dbCharacter.creatorNotes,
     customSystemPrompt: dbCharacter.customSystemPrompt,
-    styleInstructions: dbCharacter.styleInstructions ?? null,
+    styleInstructions: dbCharacter.styleInstructions,
     tags: dbCharacter.tags || [],
     revision: dbCharacter.revision,
     tavernCardData: dbCharacter.tavernCardData ? structuredClone(dbCharacter.tavernCardData) : null,

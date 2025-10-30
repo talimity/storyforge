@@ -333,7 +333,7 @@ export async function getTurnContentLayers(
  */
 export async function getFullTimelineTurnCtx(
   db: SqliteTxLike,
-  args: { leafTurnId: string | null; scenarioId: string }
+  args: { leafTurnId?: string | null; scenarioId: string }
 ): Promise<Omit<TurnCtxDTO, "events">[]> {
   const { leafTurnId, scenarioId } = args;
 

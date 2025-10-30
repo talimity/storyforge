@@ -19,8 +19,8 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
   const [tab, setTab] = useState<"file" | "character">("file");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileDataUri, setFileDataUri] = useState<string>("");
-  const [importError, setImportError] = useState<string | null>(null);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const [importError, setImportError] = useState("");
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | undefined>(undefined);
   const [linkToCharacter, setLinkToCharacter] = useState(true);
   const fileInputId = useId();
 
@@ -68,7 +68,7 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
       if (typeof result === "string") {
         setSelectedFile(file);
         setFileDataUri(result);
-        setImportError(null);
+        setImportError("");
       }
     };
     reader.onerror = () => setImportError("Failed to read file");
@@ -114,8 +114,8 @@ export function LorebookImportDialog({ isOpen, onOpenChange }: LorebookImportDia
   const resetState = () => {
     setSelectedFile(null);
     setFileDataUri("");
-    setImportError(null);
-    setSelectedCharacterId(null);
+    setImportError("");
+    setSelectedCharacterId(undefined);
     setLinkToCharacter(true);
     setTab("file");
   };

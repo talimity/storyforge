@@ -32,7 +32,7 @@ export async function getTimelineBranchMap(
   }
 
   const anchorTurnId = scenario.anchor_turn_id;
-  const rootTurnId = scenario.root_turn_id ?? null;
+  const rootTurnId = scenario.root_turn_id;
 
   let focusLeafId: string | null = null;
   if (focusTurnId) {

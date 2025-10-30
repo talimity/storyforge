@@ -193,8 +193,8 @@ export function CharacterSingleSelect({
   layerStyle = "surface",
   ...props
 }: {
-  value: string | null;
-  onChange: (id: string | null) => void;
+  value?: string | null;
+  onChange: (id?: string) => void;
   filterMode?: "all" | "inScenario" | "notInScenario";
   scenarioId?: string;
   placeholder?: string;
@@ -219,7 +219,7 @@ export function CharacterSingleSelect({
     placeholder,
     inputBehavior: "autohighlight",
     value: internalValue,
-    onValueChange: (e) => onChange(e.value[0] ?? null),
+    onValueChange: (e) => onChange(e.value[0]),
     onInputValueChange: (e) => updateSearch(e.inputValue),
   });
 
@@ -231,19 +231,19 @@ export function CharacterSingleSelect({
     hydratedRef.current = true;
   }
 
-  const selectedCharacter = collection.items.find((c) => c.id === value) ?? null;
+  const selectedCharacter = collection.items.find((c) => c.id === value);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === "Backspace" || e.key === "Delete") && combobox.value.length) {
       combobox.setValue([]);
       combobox.setInputValue("");
-      onChange(null);
+      onChange(undefined);
       e.preventDefault();
     }
     if (e.key === "Escape" && combobox.value.length) {
       combobox.setValue([]);
       combobox.setInputValue("");
-      onChange(null);
+      onChange(undefined);
       e.preventDefault();
     }
   };
@@ -277,8 +277,7 @@ export function CharacterSingleSelect({
         </InputGroup>
         <Combobox.IndicatorGroup>
           {isLoading && <Spinner size="xs" />}
-          {/* Clear resets to null for the parent */}
-          <Combobox.ClearTrigger onClick={() => onChange(null)} />
+          <Combobox.ClearTrigger onClick={() => onChange(undefined)} />
           <Combobox.Trigger />
         </Combobox.IndicatorGroup>
       </Combobox.Control>

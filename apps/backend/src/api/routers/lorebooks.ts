@@ -8,7 +8,6 @@ import {
   importLorebookFromCharacterSchema,
   importLorebookSchema,
   type LorebookDetail,
-  type LorebookSummary,
   linkCharacterLorebookSchema,
   lorebookActivationDebugResponseSchema,
   lorebookDataSchema,
@@ -40,9 +39,6 @@ import { LorebookService } from "../../services/lorebook/lorebook.service.js";
 import { getFullTimelineTurnCtx } from "../../services/timeline/timeline.queries.js";
 import { publicProcedure, router } from "../index.js";
 
-type LorebookSummaryRow = Awaited<ReturnType<typeof listLorebooks>> extends Array<infer R>
-  ? R
-  : never;
 type ScenarioLorebookRow = Awaited<ReturnType<typeof getScenarioLorebooks>> extends Array<infer R>
   ? R
   : never;
@@ -70,9 +66,7 @@ export const lorebooksRouter = router({
     .output(lorebooksListResponseSchema)
     .query(async ({ input, ctx }) => {
       const rows = await listLorebooks(ctx.db, input);
-      return {
-        lorebooks: rows.map(transformLorebookSummary),
-      };
+      return { lorebooks: rows };
     }),
 
   search: publicProcedure
@@ -88,9 +82,7 @@ export const lorebooksRouter = router({
     .output(lorebooksListResponseSchema)
     .query(async ({ input, ctx }) => {
       const rows = await listLorebooks(ctx.db, input);
-      return {
-        lorebooks: rows.map(transformLorebookSummary),
-      };
+      return { lorebooks: rows };
     }),
 
   getById: publicProcedure
@@ -362,10 +354,7 @@ export const scenarioLorebooksRouter = router({
     .output(lorebookActivationDebugResponseSchema)
     .query(async ({ input, ctx }) => {
       const lorebooks = await loadScenarioLorebookAssignments(ctx.db, input.scenarioId);
-      const turns = await getFullTimelineTurnCtx(ctx.db, {
-        scenarioId: input.scenarioId,
-        leafTurnId: input.leafTurnId ?? null,
-      });
+      const turns = await getFullTimelineTurnCtx(ctx.db, input);
 
       if (input.debug) {
         return scanLorebooksDebug({ turns, lorebooks });
@@ -388,10 +377,7 @@ export const scenarioLorebooksRouter = router({
     .output(activatedLoreIndexSchema)
     .query(async ({ input, ctx }) => {
       const lorebooks = await loadScenarioLorebookAssignments(ctx.db, input.scenarioId);
-      const turns = await getFullTimelineTurnCtx(ctx.db, {
-        scenarioId: input.scenarioId,
-        leafTurnId: input.leafTurnId ?? null,
-      });
+      const turns = await getFullTimelineTurnCtx(ctx.db, input);
 
       return scanLorebooks({ turns, lorebooks });
     }),
@@ -457,17 +443,6 @@ export const characterLorebooksRouter = router({
     }),
 });
 
-function transformLorebookSummary(row: LorebookSummaryRow): LorebookSummary {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description ?? null,
-    entryCount: row.entryCount,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
 type LorebookRecordLike = {
   id: string;
   name: string;
@@ -483,7 +458,7 @@ function transformLorebookDetail(row: LorebookRecordLike): LorebookDetail {
   return {
     id: row.id,
     name: row.name,
-    description: row.description ?? null,
+    description: row.description,
     entryCount: row.entryCount,
     data,
     createdAt: row.createdAt,
@@ -518,9 +493,5 @@ function transformScenarioLorebookItem(row: ScenarioLorebookRow): ScenarioLorebo
 }
 
 function transformCharacterLorebookSummary(row: CharacterLorebookRow): CharacterLinkedLorebook {
-  const summary = transformLorebookSummary(row);
-  return {
-    ...summary,
-    characterLorebookId: row.characterLorebookId,
-  };
+  return { ...row, characterLorebookId: row.characterLorebookId };
 }

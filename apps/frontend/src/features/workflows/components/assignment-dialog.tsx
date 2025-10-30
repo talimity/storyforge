@@ -177,8 +177,8 @@ export function AssignmentDialog({
                       <field.Field label="Scenario" required>
                         <ScenarioSingleSelect
                           inDialog
-                          value={field.state.value ?? null}
-                          onChange={(id) => field.handleChange(id ?? undefined)}
+                          value={field.state.value}
+                          onChange={(id) => field.handleChange(id)}
                           disabled={isEditMode}
                         />
                       </field.Field>

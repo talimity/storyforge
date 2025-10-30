@@ -374,7 +374,7 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
       type: p.type,
       status: p.status,
       characterId: p.characterId,
-      color: override ?? baseColor ?? null,
+      color: override ?? baseColor,
     };
   });
 
