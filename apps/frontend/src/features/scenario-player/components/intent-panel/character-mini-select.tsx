@@ -7,7 +7,6 @@ import {
   useSelectContext,
 } from "@chakra-ui/react";
 import type { CharacterSummary } from "@storyforge/contracts";
-import { useMemo } from "react";
 import { RiForbidLine } from "react-icons/ri";
 import { Avatar, type AvatarProps } from "@/components/ui/avatar";
 import { SelectContent, SelectItem, SelectRoot } from "@/components/ui/select";
@@ -34,7 +33,7 @@ type CharacterMiniSelectProps = {
 } & Omit<SelectRootProps & AvatarProps, "value" | "onChange" | "collection">;
 
 interface CharacterMiniSelectTriggerProps extends AvatarProps {
-  optionByValue: Map<string, CharacterOption>;
+  optionByValue: Record<string, CharacterOption | undefined>;
   disabled?: boolean;
 }
 
@@ -47,9 +46,9 @@ const CharacterMiniSelectTrigger = ({
 }: CharacterMiniSelectTriggerProps) => {
   const select = useSelectContext();
   const selectedValue = select.value[0];
-  const option = selectedValue ? (optionByValue.get(selectedValue) ?? null) : null;
-  const avatarName = option?.character.name ?? "";
-  const avatarUrl = option?.avatarUrl ?? null;
+  const option = selectedValue ? (optionByValue[selectedValue] ?? null) : null;
+  const avatarName = option?.character.name;
+  const avatarUrl = option?.avatarUrl;
   const label = option ? `Speaking as ${option.character.name}` : "Select a character";
 
   return (
@@ -88,25 +87,24 @@ export function CharacterMiniSelect(props: CharacterMiniSelectProps) {
     boxSize = "10",
     ...rest
   } = props;
-  const items = useMemo<CharacterOption[]>(
-    () =>
-      characters.map((character) => ({
-        value: character.id,
-        label: character.name,
-        avatarUrl: getApiUrl(character.avatarPath),
-        character,
-      })),
-    [characters]
-  );
-  const optionByValue = useMemo(() => new Map(items.map((item) => [item.value, item])), [items]);
-  const collection = useMemo(() => createListCollection({ items }), [items]);
+  const items = characters.map((character) => ({
+    value: character.id,
+    label: character.name,
+    avatarUrl: getApiUrl(character.avatarPath),
+    character,
+  }));
+  const optionByValue = items.reduce<Record<string, CharacterOption>>((acc, item) => {
+    acc[item.value] = item;
+    return acc;
+  }, {});
+  const collection = createListCollection({ items });
 
   return (
     <SelectRoot
       collection={collection}
       positioning={{ sameWidth: false }}
       value={value ? [value] : []}
-      onValueChange={(details) => onChange(details.value[0] ?? null)}
+      onValueChange={(details) => onChange(details.value[0])}
       disabled={disabled}
       maxW={boxSize}
       {...rest}

@@ -10,7 +10,7 @@ import {
 import type { TimelineTurn } from "@storyforge/contracts";
 import { isDefined } from "@storyforge/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useState } from "react";
 import {
   LuCheck,
   LuChevronRight,
@@ -122,46 +122,46 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
     })
   );
 
-  const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
+  const isMobile = useBreakpointValue({ base: true, md: false });
   const buttonSize = isMobile ? "sm" : "xs";
   const isRetryAvailable = Boolean(turn.parentTurnId);
 
-  const handleStartEdit = useCallback(() => {
+  const handleStartEdit = () => {
     startEditing(turn.id, turn.content.text);
-  }, [startEditing, turn.content.text, turn.id]);
+  };
 
-  const handleSave = useCallback(() => {
+  const handleSave = () => {
     if (!isDirty) {
       stopEditing();
       return;
     }
     updateTurnMutation.mutate({ turnId: turn.id, content: editedContent });
-  }, [editedContent, isDirty, stopEditing, turn.id, updateTurnMutation]);
+  };
 
-  const handleCancel = useCallback(() => {
+  const handleCancel = () => {
     if (!isDirty) {
       stopEditing();
       return;
     }
     setShowDiscardDialog(true);
-  }, [isDirty, stopEditing]);
+  };
 
-  const handleConfirmDiscard = useCallback(() => {
+  const handleConfirmDiscard = () => {
     setEditedContent(turn.id, turn.content.text);
     setShowDiscardDialog(false);
     stopEditing();
-  }, [setEditedContent, stopEditing, turn.content.text, turn.id]);
+  };
 
-  const handleRetry = useCallback(() => {
+  const handleRetry = () => {
     if (!isRetryAvailable || isGenerating) return;
     openRetryOverlay({
       turnId: turn.id,
       branchFromTurnId: turn.parentTurnId,
       cutoffTurnId: turn.id,
     });
-  }, [isGenerating, isRetryAvailable, openRetryOverlay, turn.id, turn.parentTurnId]);
+  };
 
-  const handleInsertChapterBreak = useCallback(async () => {
+  const handleInsertChapterBreak = async () => {
     if (isGenerating) return;
     try {
       await insertChapterAtTurn({ turnId: turn.id });
@@ -169,151 +169,129 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
     } catch (error) {
       showErrorToast({ title: "Failed to insert chapter break", error });
     }
-  }, [insertChapterAtTurn, isGenerating, turn.id]);
+  };
 
-  const handleToggleGhost = useCallback(() => {
+  const handleToggleGhost = () => {
     toggleGhostMutation.mutate({ turnId: turn.id, isGhost: !turn.isGhost });
-  }, [toggleGhostMutation, turn.id, turn.isGhost]);
+  };
 
-  const handleManualInsertSubmit = useCallback(
-    async (input: { authorParticipantId: string; text: string }) => {
-      if (!manualInsertTurn) return;
-      try {
-        await insertTurnAfter({
-          scenarioId: scenario.id,
-          targetTurnId: manualInsertTurn.id,
-          authorParticipantId: input.authorParticipantId,
-          text: input.text,
-        });
-        showSuccessToast({
-          title: "Turn inserted",
-          description: "Manual turn added to the timeline.",
-        });
-        closeManualInsert();
-      } catch (error) {
-        showErrorToast({ title: "Failed to insert turn", error });
-      }
+  const handleManualInsertSubmit = async (input: { authorParticipantId: string; text: string }) => {
+    if (!manualInsertTurn) return;
+    try {
+      await insertTurnAfter({
+        scenarioId: scenario.id,
+        targetTurnId: manualInsertTurn.id,
+        authorParticipantId: input.authorParticipantId,
+        text: input.text,
+      });
+      showSuccessToast({
+        title: "Turn inserted",
+        description: "Manual turn added to the timeline.",
+      });
+      closeManualInsert();
+    } catch (error) {
+      showErrorToast({ title: "Failed to insert turn", error });
+    }
+  };
+
+  const actionDefinitions: ActionDefinition[] = [
+    {
+      id: "edit",
+      label: "Edit",
+      icon: <LuPencil />,
+      slots: ["quick", "menu"],
+      kind: "item",
+      disabled: isEditing || isPreviewing || isGenerating,
+      onSelect: handleStartEdit,
     },
-    [closeManualInsert, insertTurnAfter, manualInsertTurn, scenario.id]
-  );
-
-  const actionDefinitions: ActionDefinition[] = useMemo(
-    () => [
-      {
-        id: "edit",
-        label: "Edit",
-        icon: <LuPencil />,
-        slots: ["quick", "menu"],
-        kind: "item",
-        disabled: isEditing || isPreviewing || isGenerating,
-        onSelect: handleStartEdit,
-      },
-      {
-        id: "retry",
-        label: "Retry",
-        icon: <LuRefreshCw />,
-        slots: ["quick", "menu"],
-        kind: "item",
-        disabled: !isRetryAvailable || isGenerating,
-        onSelect: handleRetry,
-      },
-      { id: "separator-actions", slots: ["menu"], kind: "separator" },
-      {
-        id: "move-up",
-        label: "Move Up",
-        icon: <LuMoveUp />,
-        slots: ["menu"],
-        kind: "item",
-        disabled: true,
-        onSelect: () => {},
-      },
-      {
-        id: "move-down",
-        label: "Move Down",
-        icon: <LuMoveDown />,
-        slots: ["menu"],
-        kind: "item",
-        disabled: true,
-        onSelect: () => {},
-      },
-      {
-        id: "insert",
-        label: "Insert",
-        icon: <LuListEnd />,
-        slots: ["menu"],
-        kind: "submenu",
-        children: [
-          {
-            id: "manual-insert",
-            label: "Manual Turn",
-            icon: <LuFilePlus />,
-            slots: ["menu"],
-            kind: "item",
-            disabled: isGenerating,
-            onSelect: () => openManualInsert(turn.id),
+    {
+      id: "retry",
+      label: "Retry",
+      icon: <LuRefreshCw />,
+      slots: ["quick", "menu"],
+      kind: "item",
+      disabled: !isRetryAvailable || isGenerating,
+      onSelect: handleRetry,
+    },
+    { id: "separator-actions", slots: ["menu"], kind: "separator" },
+    {
+      id: "move-up",
+      label: "Move Up",
+      icon: <LuMoveUp />,
+      slots: ["menu"],
+      kind: "item",
+      disabled: true,
+      onSelect: () => {},
+    },
+    {
+      id: "move-down",
+      label: "Move Down",
+      icon: <LuMoveDown />,
+      slots: ["menu"],
+      kind: "item",
+      disabled: true,
+      onSelect: () => {},
+    },
+    {
+      id: "insert",
+      label: "Insert",
+      icon: <LuListEnd />,
+      slots: ["menu"],
+      kind: "submenu",
+      children: [
+        {
+          id: "manual-insert",
+          label: "Manual Turn",
+          icon: <LuFilePlus />,
+          slots: ["menu"],
+          kind: "item",
+          disabled: isGenerating,
+          onSelect: () => openManualInsert(turn.id),
+        },
+        {
+          id: "chapter-break",
+          label: "Chapter Separator",
+          icon: <LuTableOfContents />,
+          slots: ["menu"],
+          kind: "item",
+          disabled: isInsertingChapter || isGenerating,
+          onSelect: () => {
+            void handleInsertChapterBreak();
           },
-          {
-            id: "chapter-break",
-            label: "Chapter Separator",
-            icon: <LuTableOfContents />,
-            slots: ["menu"],
-            kind: "item",
-            disabled: isInsertingChapter || isGenerating,
-            onSelect: () => {
-              void handleInsertChapterBreak();
-            },
-          },
-        ],
-      },
-      { id: "separator-ghost", slots: ["menu"], kind: "separator" },
-      {
-        id: "toggle-ghost",
-        label: turn.isGhost ? "Restore Turn" : "Ghost Turn",
-        icon: <LuGhost />,
-        slots: ["menu"],
-        kind: "item",
-        disabled: toggleGhostMutation.isPending,
-        onSelect: handleToggleGhost,
-      },
-      { id: "separator-delete", slots: ["menu"], kind: "separator" },
-      {
-        id: "delete",
-        label: "Delete…",
-        icon: <LuTrash />,
-        slots: ["quick", "menu"],
-        kind: "item",
-        color: "fg.error",
-        onSelect: () => openDeleteOverlay(turn.id),
-      },
-      { id: "separator-info", slots: ["menu"], kind: "separator" },
-      {
-        id: "generation-info",
-        label: "Gen Info",
-        icon: <LuInfo />,
-        slots: ["quick", "menu"],
-        kind: "item",
-        disabled: !turn.provenance,
-        onSelect: () => setShowGenerationInfo(true),
-      },
-    ],
-    [
-      handleInsertChapterBreak,
-      handleRetry,
-      handleStartEdit,
-      handleToggleGhost,
-      isGenerating,
-      isInsertingChapter,
-      isPreviewing,
-      isEditing,
-      isRetryAvailable,
-      openDeleteOverlay,
-      openManualInsert,
-      toggleGhostMutation.isPending,
-      turn.id,
-      turn.isGhost,
-      turn.provenance,
-    ]
-  );
+        },
+      ],
+    },
+    { id: "separator-ghost", slots: ["menu"], kind: "separator" },
+    {
+      id: "toggle-ghost",
+      label: turn.isGhost ? "Restore Turn" : "Ghost Turn",
+      icon: <LuGhost />,
+      slots: ["menu"],
+      kind: "item",
+      disabled: toggleGhostMutation.isPending,
+      onSelect: handleToggleGhost,
+    },
+    { id: "separator-delete", slots: ["menu"], kind: "separator" },
+    {
+      id: "delete",
+      label: "Delete…",
+      icon: <LuTrash />,
+      slots: ["quick", "menu"],
+      kind: "item",
+      color: "fg.error",
+      onSelect: () => openDeleteOverlay(turn.id),
+    },
+    { id: "separator-info", slots: ["menu"], kind: "separator" },
+    {
+      id: "generation-info",
+      label: "Gen Info",
+      icon: <LuInfo />,
+      slots: ["quick", "menu"],
+      kind: "item",
+      disabled: !turn.provenance,
+      onSelect: () => setShowGenerationInfo(true),
+    },
+  ];
 
   const pinnedQuickActions = usePlayerPreferencesStore(selectPinnedQuickActions);
   const quickActions = pinnedQuickActions

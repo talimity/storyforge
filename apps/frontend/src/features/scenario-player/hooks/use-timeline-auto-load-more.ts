@@ -1,6 +1,7 @@
 import type { VirtualItem } from "@tanstack/react-virtual";
 import { useEffect, useRef } from "react";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
+import { debugLog } from "@/lib/debug";
 
 type Args = {
   items: VirtualItem[];
@@ -29,11 +30,11 @@ export function useTimelineAutoLoadMore({
     const atTop = first?.key === "header";
     if (atTop && hasNextPage && !lockRef.current) {
       lockRef.current = true;
-      console.log("useTimelineAutoLoadMore -> auto-load more");
+      debugLog("timeline:auto-load-more", "auto-load more");
       onLoadMore?.()
         .catch(() => {})
         .finally(() => {
-          console.log("useTimelineAutoLoadMore -> auto-load more finished");
+          debugLog("timeline:auto-load-more", "auto-load more finished");
           lockRef.current = false;
         });
     }

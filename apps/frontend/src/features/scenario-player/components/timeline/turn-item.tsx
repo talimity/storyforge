@@ -1,6 +1,6 @@
 import { Box, HStack, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { type ReactNode, useCallback, useEffect, useMemo } from "react";
+import { type ReactNode, useEffect } from "react";
 import { LuGhost } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
 import { Avatar, Button, StreamingMarkdown, Tooltip } from "@/components/ui";
@@ -37,11 +37,10 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
   const { getCharacterByParticipantId, participantsById } = useScenarioContext();
   const authorChar = getCharacterByParticipantId(turn.authorParticipantId);
   const authorName = authorChar?.name ?? "Narrator";
-  const avatarSrc = getApiUrl(authorChar?.avatarPath ?? undefined);
+  const avatarSrc = getApiUrl(authorChar?.avatarPath);
   const participant = participantsById[turn.authorParticipantId];
-  const dialogueColor = participant?.color
-    ? participant.color.toLowerCase()
-    : (authorChar?.defaultColor?.toLowerCase() ?? null);
+  const paletteColor = participant?.color ?? authorChar?.defaultColor;
+  const dialogueColor = paletteColor?.toLowerCase();
 
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const { isPreviewing, previewSibling } = useBranchPreview();
@@ -51,13 +50,10 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
   const { ref: visibilityRef, inView: isGraphFocus } = useInView({ threshold: 0.75 });
   const setLastVisibleTurn = useScenarioPlayerStore((s) => s.setLastVisibleTurn);
 
-  const mergedRef = useCallback(
-    (node: Element | null) => {
-      initialRef(node);
-      visibilityRef(node);
-    },
-    [initialRef, visibilityRef]
-  );
+  const mergedRef = (node: Element | null) => {
+    initialRef(node);
+    visibilityRef(node);
+  };
 
   useEffect(() => {
     if (isGraphFocus) {
@@ -65,60 +61,45 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
     }
   }, [isGraphFocus, setLastVisibleTurn, turn.id]);
 
-  const provenanceDisplay = useMemo(
-    () => getIntentProvenanceDisplay(turn, prevTurn, nextTurn),
-    [turn, prevTurn, nextTurn]
-  );
+  const provenanceDisplay = getIntentProvenanceDisplay(turn, prevTurn, nextTurn);
 
-  const handleSwipe = useCallback(
-    async (dir: "left" | "right") => {
-      if (isGenerating) return;
-      const siblingId = dir === "left" ? turn.swipes?.leftTurnId : turn.swipes?.rightTurnId;
-      await previewSibling(siblingId, turn.id);
-    },
-    [isGenerating, previewSibling, turn.swipes, turn.id]
-  );
-  const swipeLeft = useCallback(() => handleSwipe("left"), [handleSwipe]);
-  const swipeRight = useCallback(() => handleSwipe("right"), [handleSwipe]);
+  const handleSwipe = async (dir: "left" | "right") => {
+    if (isGenerating) return;
+    const siblingId = dir === "left" ? turn.swipes?.leftTurnId : turn.swipes?.rightTurnId;
+    await previewSibling(siblingId, turn.id);
+  };
 
   const shouldRenderActions = isEditing || inView;
   const isDeleteOverlayActive = overlay?.mode === "delete";
 
-  const tintCss = useMemo(() => {
-    const resolvedDialogueColor =
-      typeof dialogueColor === "string" ? dialogueColor : "var(--chakra-colors-fg-emphasized)";
-    return { "--input-color": resolvedDialogueColor };
-  }, [dialogueColor]);
+  const resolvedDialogueColor = dialogueColor ?? "var(--chakra-colors-fg-emphasized)";
+  const tintCss = { "--input-color": resolvedDialogueColor } as const;
 
-  const headerMetadata = useMemo(() => {
-    const items: ReactNode[] = [
-      <Tooltip key="turn-no" content={turn.createdAt.toLocaleString() ?? "Unknown"}>
-        <Text fontSize="xs" layerStyle="tinted.muted">
-          #{turn.turnNo}
-        </Text>
-      </Tooltip>,
-    ];
+  const headerMetadata: ReactNode[] = [
+    <Tooltip key="turn-no" content={turn.createdAt.toLocaleString()}>
+      <Text fontSize="xs" layerStyle="tinted.muted">
+        #{turn.turnNo}
+      </Text>
+    </Tooltip>,
+  ];
 
-    if (inView && turn.isGhost) {
-      items.push(
-        <Text as="span" fontSize="xs" color="content.muted" key="ghost">
-          <Tooltip
-            content={
-              "This turn is not included in prompts or factored into the timeline's current state."
-            }
-          >
-            <LuGhost aria-label="Ghost turn" />
-          </Tooltip>
-        </Text>
-      );
-    }
+  if (inView && turn.isGhost) {
+    headerMetadata.push(
+      <Text as="span" fontSize="xs" color="content.muted" key="ghost">
+        <Tooltip
+          content={
+            "This turn is not included in prompts or factored into the timeline's current state."
+          }
+        >
+          <LuGhost aria-label="Ghost turn" />
+        </Tooltip>
+      </Text>
+    );
+  }
 
-    if (inView && provenanceDisplay) {
-      items.push(<IntentProvenanceIndicator key="provenance" display={provenanceDisplay} />);
-    }
-
-    return items;
-  }, [inView, provenanceDisplay, turn.createdAt, turn.isGhost, turn.turnNo]);
+  if (inView && provenanceDisplay) {
+    headerMetadata.push(<IntentProvenanceIndicator key="provenance" display={provenanceDisplay} />);
+  }
 
   return (
     <Box
@@ -160,7 +141,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
         ) : (
           <StreamingMarkdown
             text={turn.content.text}
-            dialogueAuthorId={authorChar?.id ?? null}
+            dialogueAuthorId={authorChar?.id}
             dialogueTintColor={dialogueColor}
             data-testid="turn-content"
           />
@@ -171,7 +152,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
             <Button
               size="xs"
               variant="ghost"
-              onClick={swipeLeft}
+              onClick={() => handleSwipe("left")}
               disabled={isGenerating || !turn.swipes.leftTurnId}
               aria-label="View previous alternate"
             >
@@ -183,7 +164,7 @@ export function TurnItem({ turn, prevTurn, nextTurn }: TurnItemProps) {
             <Button
               size="xs"
               variant="ghost"
-              onClick={swipeRight}
+              onClick={() => handleSwipe("right")}
               disabled={isGenerating || !turn.swipes.rightTurnId}
               aria-label="View next alternate"
             >

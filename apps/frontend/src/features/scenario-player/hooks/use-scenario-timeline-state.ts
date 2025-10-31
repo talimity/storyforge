@@ -8,12 +8,12 @@ export function useScenarioTimelineState({
   leafTurnId,
 }: {
   scenarioId: string;
-  leafTurnId?: string | null;
+  leafTurnId?: string;
 }) {
   const trpc = useTRPC();
   const query = useQuery({
     ...trpc.timeline.state.queryOptions(
-      { scenarioId, atTurnId: leafTurnId ?? undefined },
+      { scenarioId, atTurnId: leafTurnId },
       { select: (data) => data.state }
     ),
   });

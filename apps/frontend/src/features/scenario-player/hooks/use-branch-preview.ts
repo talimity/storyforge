@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
 import { useTRPC } from "@/lib/trpc";
 import { useScenarioContext } from "../providers/scenario-provider";
 import { selectIsGenerating, useIntentRunsStore } from "../stores/intent-run-store";
@@ -18,106 +17,84 @@ export function useBranchPreview() {
   const resolveLeaf = useMutation(trpc.timeline.resolveLeaf.mutationOptions());
   const switchTimeline = useMutation(trpc.timeline.switchTimeline.mutationOptions());
 
-  const commitSwitch = useCallback(
-    async (leafTurnId: string) => {
-      await switchTimeline.mutateAsync({ scenarioId: scenario.id, leafTurnId });
-      await Promise.all([
-        qc.invalidateQueries(trpc.timeline.window.pathFilter()),
-        qc.invalidateQueries(trpc.timeline.state.pathFilter()),
-        qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
-      ]);
-      setPreviewLeaf(null); // do this after invalidate resolves to avoid flickering
-    },
-    [switchTimeline, scenario.id, qc, trpc, setPreviewLeaf]
-  );
+  const scenarioId = scenario.id;
+  const anchorTurnId = scenario.anchorTurnId;
 
-  const previewSibling = useCallback(
-    async (siblingId: string | null | undefined, currentTurnId: string) => {
-      if (isGenerating || !siblingId) return;
+  const commitSwitch = async (leafTurnId: string) => {
+    await switchTimeline.mutateAsync({ scenarioId, leafTurnId });
+    await Promise.all([
+      qc.invalidateQueries(trpc.timeline.window.pathFilter()),
+      qc.invalidateQueries(trpc.timeline.state.pathFilter()),
+      qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
+    ]);
+    // clear preview after cache invalidation to avoid flicker
+    setPreviewLeaf(null);
+  };
 
-      const { leafTurnId: siblingLeafId } = await resolveLeaf.mutateAsync({
-        scenarioId: scenario.id,
-        fromTurnId: siblingId,
-      });
-      const siblingIsLeaf = siblingLeafId === siblingId;
+  const previewSibling = async (siblingId: string | null | undefined, currentTurnId: string) => {
+    if (isGenerating || !siblingId) return;
 
-      // If the target leaf is the same as the anchor, we are 'previewing' the
-      // active timeline, so exit preview.
-      const anchor = scenario.anchorTurnId ?? null;
-      if (siblingLeafId && anchor && siblingLeafId === anchor) {
-        setPreviewLeaf(null);
-      }
-      // Skip preview and switch immediately if the user is swiping through
-      // several leaf nodes of equal depth at the bottom of the active timeline.
-      else if (!previewLeafTurnId && siblingIsLeaf && currentTurnId === scenario.anchorTurnId) {
-        await commitSwitch(siblingLeafId);
-      }
-      // Preview the resolved leaf
-      else {
-        setPreviewLeaf(siblingLeafId && anchor && siblingLeafId === anchor ? null : siblingLeafId);
-      }
+    const { leafTurnId: siblingLeafId } = await resolveLeaf.mutateAsync({
+      scenarioId,
+      fromTurnId: siblingId,
+    });
+    const siblingIsLeaf = siblingLeafId === siblingId;
 
-      requestAnimationFrame(() =>
-        setPendingScrollTarget({ kind: "turn", turnId: siblingId, edge: "end" })
-      );
-    },
-    [
-      isGenerating,
-      resolveLeaf,
-      scenario.id,
-      scenario.anchorTurnId,
-      previewLeafTurnId,
-      commitSwitch,
-      setPreviewLeaf,
-      setPendingScrollTarget,
-    ]
-  );
+    // 1. If the preview target is the same as the anchor, we are trying to
+    //    "preview" the active timeline and can just exit preview mode.
+    if (anchorTurnId && siblingLeafId === anchorTurnId) {
+      setPreviewLeaf(null);
+    }
+    // 2. If the user is at the bottom of the current timeline and switching
+    //    between siblings that are also leaf nodes, we skip previewing since
+    //    the tree does not go any deeper and the user is likely choosing an
+    //    alternative generation.
+    else if (!previewLeafTurnId && siblingIsLeaf && currentTurnId === anchorTurnId) {
+      await commitSwitch(siblingLeafId);
+    }
+    // 3. Otherwise, we enter preview mode for the sibling's leaf turn.
+    else {
+      setPreviewLeaf(siblingLeafId);
+    }
 
-  const previewTurn = useCallback(
-    async (turnId: string) => {
-      if (isGenerating) return;
+    requestAnimationFrame(() =>
+      setPendingScrollTarget({ kind: "turn", turnId: siblingId, edge: "end" })
+    );
+  };
 
-      const { leafTurnId } = await resolveLeaf.mutateAsync({
-        scenarioId: scenario.id,
-        fromTurnId: turnId,
-      });
+  const previewTurn = async (turnId: string) => {
+    if (isGenerating) return;
 
-      setPendingScrollTarget({ kind: "turn", turnId, edge: "center", skipIfVisible: true });
+    const { leafTurnId } = await resolveLeaf.mutateAsync({
+      scenarioId,
+      fromTurnId: turnId,
+    });
 
-      const anchor = scenario.anchorTurnId ?? null;
-      if (leafTurnId && anchor && leafTurnId === anchor) {
-        setPreviewLeaf(null);
-      } else {
-        setPreviewLeaf(leafTurnId ?? null);
-      }
-    },
-    [
-      isGenerating,
-      resolveLeaf,
-      scenario.id,
-      scenario.anchorTurnId,
-      setPendingScrollTarget,
-      setPreviewLeaf,
-    ]
-  );
+    setPendingScrollTarget({ kind: "turn", turnId, edge: "center", skipIfVisible: true });
 
-  const commitPreview = useCallback(async () => {
+    if (anchorTurnId && leafTurnId === anchorTurnId) {
+      setPreviewLeaf(null);
+    } else {
+      setPreviewLeaf(leafTurnId);
+    }
+  };
+
+  const commitPreview = async () => {
     if (!previewLeafTurnId) return;
     await commitSwitch(previewLeafTurnId);
-  }, [previewLeafTurnId, commitSwitch]);
+  };
 
-  const exitPreview = useCallback(() => setPreviewLeaf(null), [setPreviewLeaf]);
+  const exitPreview = () => {
+    setPreviewLeaf(null);
+  };
 
-  return useMemo(
-    () => ({
-      isGenerating,
-      isPreviewing: Boolean(previewLeafTurnId),
-      previewLeafTurnId,
-      previewSibling,
-      previewTurn,
-      commitPreview,
-      exitPreview,
-    }),
-    [isGenerating, previewLeafTurnId, previewSibling, previewTurn, commitPreview, exitPreview]
-  );
+  return {
+    isGenerating,
+    isPreviewing: Boolean(previewLeafTurnId),
+    previewLeafTurnId,
+    previewSibling,
+    previewTurn,
+    commitPreview,
+    exitPreview,
+  };
 }

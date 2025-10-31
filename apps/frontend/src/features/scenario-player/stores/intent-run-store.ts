@@ -2,6 +2,7 @@ import type { IntentEvent } from "@storyforge/contracts";
 import type { WorkflowEvent } from "@storyforge/gentasks";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { debugLog } from "@/lib/debug";
 
 const DRAFT_FLUSH_INTERVAL_MS = 100; // ~10 FPS
 const draftFlushTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -111,7 +112,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
 
     startRun: ({ intentId, scenarioId, kind }) =>
       set((s) => {
-        console.log("Starting run", intentId, scenarioId, kind);
+        debugLog("intent-run-store", "Starting run", intentId, scenarioId, kind);
         s.runsById[intentId] = {
           id: intentId,
           scenarioId,

@@ -2,6 +2,7 @@ import type { Virtualizer, VirtualizerOptions } from "@tanstack/react-virtual";
 import { useCallback, useLayoutEffect, useRef } from "react";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
+import { debugLog } from "@/lib/debug";
 
 type Args<TScrollEl extends Element | Window, TItemEl extends Element> = {
   virtualizer: Virtualizer<TScrollEl, TItemEl>;
@@ -32,7 +33,7 @@ export function useTimelineKeepBottomDistance<
   const keepBottomDistance = useCallback(() => {
     // adapted from https://github.com/TanStack/virtual/discussions/195#discussioncomment-13906325
     if (hasPendingScrollTarget) return;
-    console.log("useTimelineKeepBottomDistance -> keepBottomDistance", {
+    debugLog("timeline:keep-bottom-distance", {
       totalSize: virtualizer.getTotalSize(),
       bottomDistance: prevBottomDistanceRef.current,
     });

@@ -31,14 +31,12 @@ export function ScenarioForm({
     characterId: participant.characterId,
     role: participant.role,
     isUserProxy: participant.isUserProxy ?? false,
-    colorOverride: participant.colorOverride ?? null,
+    colorOverride: participant.colorOverride,
   }));
 
   const fallbackParticipants = initialCharacterIds.map((characterId) => ({
     characterId,
-    role: undefined,
     isUserProxy: false,
-    colorOverride: null,
   }));
 
   const initialLorebooks = (initialData?.lorebooks ?? []).map((lorebook) => {
@@ -46,7 +44,7 @@ export function ScenarioForm({
       return {
         kind: "manual" as const,
         lorebookId: lorebook.lorebookId,
-        manualAssignmentId: lorebook.manualAssignmentId ?? null,
+        manualAssignmentId: lorebook.manualAssignmentId,
         enabled: lorebook.enabled,
         defaultEnabled: lorebook.defaultEnabled,
         name: lorebook.name,

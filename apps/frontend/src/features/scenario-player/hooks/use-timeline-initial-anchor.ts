@@ -1,5 +1,6 @@
 import type { Virtualizer } from "@tanstack/react-virtual";
 import { useLayoutEffect, useRef } from "react";
+import { debugLog } from "@/lib/debug";
 import { useScenarioPlayerStore } from "../stores/scenario-player-store";
 
 const MAX_RAF = 6;
@@ -40,15 +41,15 @@ export function useInitialScroll<TScrollEl extends Element | Window, TItemEl ext
 
         if (!atBottom && tries++ < MAX_RAF) {
           tryScrollToBottom();
-          console.log(`useInitialScroll: tryScrollToBottom attempt ${tries}`);
+          debugLog("timeline:initial-scroll", `tryScrollToBottom attempt ${tries}`);
         } else {
           initialScrolledRef.current = true;
-          console.log("useInitialScroll: initial scroll to bottom complete");
+          debugLog("timeline:initial-scroll", "initial scroll to bottom complete");
         }
       });
     };
 
-    console.log("useInitialScroll: starting initial scroll to bottom", {
+    debugLog("timeline:initial-scroll", "starting initial scroll to bottom", {
       cancelled,
       tries,
       turnsLength: turns.length,
@@ -60,7 +61,7 @@ export function useInitialScroll<TScrollEl extends Element | Window, TItemEl ext
       }
     });
     return () => {
-      console.log("useInitialScroll: cancelling initial scroll to bottom");
+      debugLog("timeline:initial-scroll", "cancelling initial scroll to bottom");
       cancelled = true;
     };
   }, [virtualizer, scrollerRef, turns.length, setPendingScrollTarget]);

@@ -1,4 +1,4 @@
-import { type ComponentPropsWithoutRef, memo, useMemo } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -39,7 +39,10 @@ export interface StreamingMarkdownProps extends Omit<ProseProps, "children"> {
   paragraphizeSoftBreaks?: boolean;
 }
 
-const StreamingMarkdown = memo(function StreamingMarkdown({
+const BASE_REHYPE_PLUGINS: PluggableList = [[rehypeSanitize, richTextSanitizeSchema]];
+const BASE_REMARK_PLUGINS: PluggableList = [remarkGfm, remarkBreaks];
+
+export function StreamingMarkdown({
   text,
   dialogueAuthorId = null,
   dialogueTintColor = null,
@@ -47,34 +50,20 @@ const StreamingMarkdown = memo(function StreamingMarkdown({
   paragraphizeSoftBreaks = true,
   ...rest
 }: StreamingMarkdownProps) {
-  const stableText = useMemo(() => closeIncompleteMarkdown(text), [text]);
-
-  const rehypePlugins = useMemo(() => {
-    const plugins: PluggableList = [[rehypeSanitize, richTextSanitizeSchema]];
-
-    if (paragraphizeSoftBreaks) {
-      plugins.push(rehypeSoftBreakParagraphs);
-    }
-
-    plugins.push([rehypeDialogue, { authorId: dialogueAuthorId }]);
-
-    if (allowBasicHtml) {
-      plugins.unshift(rehypeRaw);
-    }
-
-    return plugins;
-  }, [allowBasicHtml, dialogueAuthorId, paragraphizeSoftBreaks]);
-
-  // remark-breaks converts soft line breaks (single \n) into <br />
-  // This fixes models that use single line breaks for new lines
-  // instead of double line breaks for new paragraphs
-  const remarkPlugins = useMemo(() => [remarkGfm, remarkBreaks], []);
+  const stableText = closeIncompleteMarkdown(text);
   const fontSize = usePlayerPreferencesStore(selectFontSize);
+
+  const rehypePlugins: PluggableList = [
+    ...(allowBasicHtml ? [rehypeRaw] : []),
+    ...BASE_REHYPE_PLUGINS,
+    ...(paragraphizeSoftBreaks ? [rehypeSoftBreakParagraphs] : []),
+    [rehypeDialogue, { authorId: dialogueAuthorId }],
+  ];
 
   return (
     <Prose maxW="fit-content" fontSize={fontSize} {...rest}>
       <ReactMarkdown
-        remarkPlugins={remarkPlugins}
+        remarkPlugins={BASE_REMARK_PLUGINS}
         rehypePlugins={rehypePlugins}
         components={markdownComponents}
         skipHtml={!allowBasicHtml}
@@ -83,6 +72,6 @@ const StreamingMarkdown = memo(function StreamingMarkdown({
       </ReactMarkdown>
     </Prose>
   );
-});
+}
 
 export default StreamingMarkdown;

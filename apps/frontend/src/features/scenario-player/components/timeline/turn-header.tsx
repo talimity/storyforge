@@ -9,17 +9,8 @@ interface TurnHeaderProps {
 }
 
 export function TurnHeader({ avatar, title, metadata, rightSlot }: TurnHeaderProps) {
-  const items = metadata ?? [];
-  const renderedItems: ReactNode[] = [];
-
-  for (const item of items) {
-    if (item === null || item === undefined || item === false) {
-      continue;
-    }
-    renderedItems.push(item);
-  }
-
-  const hasMetadata = renderedItems.length > 0;
+  const filteredMetadata = metadata?.filter((item): item is ReactNode => !!item) ?? [];
+  const hasMetadata = filteredMetadata.length > 0;
 
   return (
     <HStack justify="space-between" pb={1} align="flex-start">
@@ -29,7 +20,7 @@ export function TurnHeader({ avatar, title, metadata, rightSlot }: TurnHeaderPro
           <Heading size="md" fontWeight="bold" layerStyle="tinted.normal">
             {title}
           </Heading>
-          {hasMetadata ? <HStack gap={2}>{renderedItems.map((item) => item)}</HStack> : null}
+          {hasMetadata ? <HStack gap={2}>{filteredMetadata.map((item) => item)}</HStack> : null}
         </Stack>
       </HStack>
       {rightSlot ?? null}

@@ -1,5 +1,5 @@
 import { type ButtonProps, For, Group, IconButton, Menu, Portal } from "@chakra-ui/react";
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import { LuChevronDown } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui";
@@ -18,21 +18,15 @@ export const SplitButton = (props: SplitButtonProps) => {
   const { size, variant, onClick, colorPalette, buttonLabel, onSelect, menuItems } = props;
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const onClickFn = useMemo(
-    () =>
-      onClick ||
-      (() => {
-        if (triggerRef.current) {
-          triggerRef.current.click();
-        }
-      }),
-    [onClick]
-  );
+  const fallbackClick = () => {
+    triggerRef.current?.click();
+  };
+  const handleClick = onClick ?? fallbackClick;
 
   return (
     <Menu.Root positioning={{ placement: "bottom-end" }} onSelect={onSelect}>
       <Group attached colorPalette={colorPalette}>
-        <Button variant={variant} size={size} onClick={onClickFn}>
+        <Button variant={variant} size={size} onClick={handleClick}>
           {buttonLabel}
         </Button>
         <Menu.Trigger asChild ref={triggerRef}>

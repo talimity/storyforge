@@ -38,14 +38,7 @@ function ScenarioCreatePage() {
       <ScenarioForm
         onSubmit={async (vals) => {
           const result = await createScenarioMutation.mutateAsync({
-            name: vals.name,
-            description: vals.description,
-            participants: vals.participants.map((participant) => ({
-              characterId: participant.characterId,
-              role: participant.role,
-              isUserProxy: participant.isUserProxy ?? false,
-              colorOverride: participant.colorOverride ?? null,
-            })),
+            ...vals,
             lorebooks: serializeLorebookAssignments(vals.lorebooks),
           });
 

@@ -5,6 +5,7 @@ import {
   useIntentRunsStore,
 } from "@/features/scenario-player/stores/intent-run-store";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
+import { debugLog } from "@/lib/debug";
 
 const AT_BOTTOM_TOLERANCE_PX = 5;
 const QUIET_MS = 400;
@@ -56,7 +57,7 @@ export function useTimelineFollowOutputMode<
 
     stateRef.current = atBottom() ? "following" : "suspended";
     suspendUntilRef.current = 0;
-    console.log("useTimelineFollowOutputMode -> run status change, state", stateRef.current);
+    debugLog("timeline:follow-mode", "run status change", stateRef.current);
   }, [isGenerating, atBottom]);
 
   // Detect scroll adjustments to pause or resume following during a run.
@@ -70,20 +71,20 @@ export function useTimelineFollowOutputMode<
       const now = Date.now();
       const isAtBottom = atBottom();
 
-      console.log("useTimelineFollowOutputMode -> onUserScrollStart", {
+      debugLog("timeline:follow-mode", "onUserScrollStart", {
         state: stateRef.current,
         isAtBottom,
         now,
       });
 
       if (stateRef.current === "suspended" && isAtBottom && now >= suspendUntilRef.current) {
-        console.log("useTimelineFollowOutputMode -> onScroll -> resume following");
+        debugLog("timeline:follow-mode", "resume following after scroll");
         stateRef.current = "following";
         suspendUntilRef.current = 0;
       }
 
       if (stateRef.current === "following") {
-        console.log("useTimelineFollowOutputMode -> onScroll -> suspend following");
+        debugLog("timeline:follow-mode", "suspend following after scroll");
         stateRef.current = "suspended";
         suspendUntilRef.current = Date.now() + QUIET_MS;
       }
@@ -111,7 +112,7 @@ export function useTimelineFollowOutputMode<
       const now = Date.now();
       const isAtBottom = atBottom();
       if (now >= suspendUntilRef.current && isAtBottom) {
-        console.log("useTimelineFollowOutputMode -> shouldAutoFollow -> resume following");
+        debugLog("timeline:follow-mode", "resume following after quiet period");
         stateRef.current = "following";
         suspendUntilRef.current = 0;
         return true;

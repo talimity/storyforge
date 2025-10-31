@@ -162,7 +162,6 @@ function QuickActionSelector() {
                 key={option.value}
                 checked={isChecked}
                 onCheckedChange={(event) => {
-                  console.log(option.value, event.checked);
                   togglePinnedQuickAction(option.value, Boolean(event.checked));
                 }}
                 colorPalette="neutral"

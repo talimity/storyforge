@@ -1,19 +1,19 @@
+import { useDisclosure } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { showErrorToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 
 export function useTemplateActions(templateId: string) {
   const trpc = useTRPC();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
+  const deleteDialog = useDisclosure();
+  const duplicateDialog = useDisclosure();
   const queryClient = useQueryClient();
 
   const deleteTemplateMutation = useMutation(
     trpc.templates.delete.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.templates.list.pathFilter());
-        setIsDeleteDialogOpen(false);
+        deleteDialog.onClose();
       },
     })
   );
@@ -22,7 +22,7 @@ export function useTemplateActions(templateId: string) {
     trpc.templates.duplicate.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.templates.list.pathFilter());
-        setIsDuplicateDialogOpen(false);
+        duplicateDialog.onClose();
       },
     })
   );
@@ -30,9 +30,8 @@ export function useTemplateActions(templateId: string) {
   const exportTemplateQuery = useQuery(
     trpc.templates.export.queryOptions(
       { id: templateId },
-      {
-        enabled: false, // Only run when manually triggered
-      }
+      // Only run when manually triggered
+      { enabled: false }
     )
   );
 
@@ -69,34 +68,18 @@ export function useTemplateActions(templateId: string) {
     }
   };
 
-  const openDeleteDialog = () => {
-    setIsDeleteDialogOpen(true);
-  };
-
-  const closeDeleteDialog = () => {
-    setIsDeleteDialogOpen(false);
-  };
-
-  const openDuplicateDialog = () => {
-    setIsDuplicateDialogOpen(true);
-  };
-
-  const closeDuplicateDialog = () => {
-    setIsDuplicateDialogOpen(false);
-  };
-
   return {
-    isDeleteDialogOpen,
-    isDuplicateDialogOpen,
+    isDeleteDialogOpen: deleteDialog.open,
+    isDuplicateDialogOpen: duplicateDialog.open,
     deleteTemplateMutation,
     duplicateTemplateMutation,
     exportTemplateQuery,
     handleDelete,
     handleDuplicate,
     handleExport,
-    openDeleteDialog,
-    closeDeleteDialog,
-    openDuplicateDialog,
-    closeDuplicateDialog,
+    openDeleteDialog: deleteDialog.onOpen,
+    closeDeleteDialog: deleteDialog.onClose,
+    openDuplicateDialog: duplicateDialog.onOpen,
+    closeDuplicateDialog: duplicateDialog.onClose,
   };
 }

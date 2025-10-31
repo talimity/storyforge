@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useMemo } from "react";
+import { createContext, type ReactNode, useContext } from "react";
 import { useScenarioEnvironment } from "@/features/scenario-player/hooks/use-scenario-environment";
 import { useScenarioTimelineState } from "@/features/scenario-player/hooks/use-scenario-timeline-state";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
@@ -23,6 +23,54 @@ type ScenarioCtx = ScenarioCtxEnvironment & {
 };
 const ScenarioContext = createContext<ScenarioCtx | null>(null);
 
+function indexById<T extends { id: string }>(items: T[]) {
+  return Object.fromEntries(items.map((item) => [item.id, item])) as Record<string, T>;
+}
+
+function computeChapterLabel(chapter?: ScenarioCtxChapter) {
+  if (!chapter) return "Unknown";
+  const trimmed = chapter.title?.trim();
+  return trimmed ? `Ch.${chapter.number} - ${trimmed}` : `Chapter ${chapter.number}`;
+}
+
+function indexChapters(chapters: ScenarioCtxChapter[]) {
+  const chaptersByEventId: Record<string, ScenarioCtxChapter> = {};
+  const chapterLabelsByEventId: Record<string, string> = {};
+
+  for (const chapter of chapters) {
+    chaptersByEventId[chapter.eventId] = chapter;
+    chapterLabelsByEventId[chapter.eventId] = computeChapterLabel(chapter);
+  }
+
+  return { chaptersByEventId, chapterLabelsByEventId };
+}
+
+function createCharacterLookup(charactersById: Record<string, ScenarioCtxCharacter>) {
+  return (characterId?: string | null) => {
+    if (!characterId) return null;
+    return charactersById[characterId] ?? null;
+  };
+}
+
+function createParticipantLookup(participantsById: Record<string, ScenarioCtxParticipant>) {
+  return (participantId?: string | null) => {
+    if (!participantId) return null;
+    return participantsById[participantId] ?? null;
+  };
+}
+
+function createCharacterByParticipantLookup(
+  participantsById: Record<string, ScenarioCtxParticipant>,
+  charactersById: Record<string, ScenarioCtxCharacter>
+) {
+  return (participantId?: string | null) => {
+    if (!participantId) return null;
+    const participant = participantsById[participantId];
+    if (!participant?.characterId) return null;
+    return charactersById[participant.characterId] ?? null;
+  };
+}
+
 export function ScenarioProvider(props: { scenarioId: string; children: ReactNode }) {
   const { scenarioId, children } = props;
   const env = useScenarioEnvironment(scenarioId);
@@ -30,91 +78,33 @@ export function ScenarioProvider(props: { scenarioId: string; children: ReactNod
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
   const timelineState = useScenarioTimelineState({
     scenarioId,
-    leafTurnId: previewLeafTurnId ?? env.scenario.anchorTurnId ?? null,
+    leafTurnId: previewLeafTurnId ?? env.scenario.anchorTurnId ?? undefined,
   });
-  const chapters = useMemo(() => timelineState.chapters.chapters, [timelineState]);
-  const deriveChapterLabel = useMemo(
-    () => (chapter?: ScenarioCtxChapter) => {
-      if (!chapter) return "Unknown";
-      const trimmed = chapter.title?.trim();
-      return trimmed ? `Ch.${chapter.number} - ${trimmed}` : `Chapter ${chapter.number}`;
-    },
-    []
-  );
-  const chaptersByEventId = useMemo(
-    () => Object.fromEntries(chapters.map((chapter) => [chapter.eventId, chapter])),
-    [chapters]
-  );
-  const chapterLabelsByEventId = useMemo(
-    () =>
-      Object.fromEntries(
-        chapters.map((chapter) => [chapter.eventId, deriveChapterLabel(chapter)] as const)
-      ),
-    [chapters, deriveChapterLabel]
+  const chapters = timelineState.chapters.chapters;
+  const participantsById = indexById(env.participants);
+  const charactersById = indexById(env.characters);
+  const { chaptersByEventId, chapterLabelsByEventId } = indexChapters(chapters);
+
+  const getCharacterById = createCharacterLookup(charactersById);
+  const getParticipantById = createParticipantLookup(participantsById);
+  const getCharacterByParticipantId = createCharacterByParticipantLookup(
+    participantsById,
+    charactersById
   );
 
-  const participantsById = useMemo(
-    () => Object.fromEntries(env.participants.map((p) => [p.id, p])),
-    [env.participants]
-  );
-  const charactersById = useMemo(
-    () => Object.fromEntries(env.characters.map((c) => [c.id, c])),
-    [env.characters]
-  );
-
-  const getCharacterById = useMemo(
-    () => (characterId?: string | null) => {
-      if (!characterId) return null;
-      return charactersById[characterId] || null;
-    },
-    [charactersById]
-  );
-
-  const getParticipantById = useMemo(
-    () => (participantId?: string | null) => {
-      if (!participantId) return null;
-      return participantsById[participantId] || null;
-    },
-    [participantsById]
-  );
-
-  const getCharacterByParticipantId = useMemo(
-    () => (participantId?: string | null) => {
-      if (!participantId) return null;
-      const p = participantsById[participantId];
-      return p?.characterId ? charactersById[p.characterId] : null;
-    },
-    [participantsById, charactersById]
-  );
-
-  const contextValue = useMemo(
-    () => ({
-      ...env,
-      participantsById,
-      charactersById,
-      getCharacterById,
-      getParticipantById,
-      getCharacterByParticipantId,
-      timelineState,
-      chapters,
-      chaptersByEventId,
-      chapterLabelsByEventId,
-      deriveChapterLabel,
-    }),
-    [
-      env,
-      participantsById,
-      charactersById,
-      getCharacterById,
-      getParticipantById,
-      getCharacterByParticipantId,
-      timelineState,
-      chapters,
-      chaptersByEventId,
-      chapterLabelsByEventId,
-      deriveChapterLabel,
-    ]
-  );
+  const contextValue: ScenarioCtx = {
+    ...env,
+    participantsById,
+    charactersById,
+    getCharacterById,
+    getParticipantById,
+    getCharacterByParticipantId,
+    timelineState,
+    chapters,
+    chaptersByEventId,
+    chapterLabelsByEventId,
+    deriveChapterLabel: computeChapterLabel,
+  };
 
   return <ScenarioContext.Provider value={contextValue}>{children}</ScenarioContext.Provider>;
 }
