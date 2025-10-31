@@ -1,28 +1,21 @@
-import {
-  Combobox,
-  InputGroup,
-  Portal,
-  Spinner,
-  Text,
-  useCombobox,
-  useListCollection,
-} from "@chakra-ui/react";
+import { Combobox, InputGroup, Portal, Spinner, Text, useCombobox } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
-import { Fragment, useEffect, useMemo, useRef } from "react";
+import { Fragment } from "react";
 import { useTemplateSearch } from "@/features/templates/hooks/use-template-search";
+import {
+  useAsyncComboboxCollection,
+  useComboboxSelectionHydrator,
+} from "@/hooks/use-async-combobox";
 
 type TemplateItem = ReturnType<typeof useTemplateSearch>["templates"][number];
 
 function useTemplateCollection(enabled: boolean, task?: TaskKind) {
   const { templates, isLoading, updateSearch } = useTemplateSearch({ enabled, task });
-  const { collection, set } = useListCollection<TemplateItem>({
-    initialItems: [],
-    itemToString: (t) => t.name,
-    itemToValue: (t) => t.id,
+  const collection = useAsyncComboboxCollection<TemplateItem>({
+    items: templates,
+    itemToString: (template: TemplateItem) => template.name,
+    itemToValue: (template: TemplateItem) => template.id,
   });
-  useEffect(() => {
-    set(templates);
-  }, [templates, set]);
   return { collection, isLoading, updateSearch };
 }
 
@@ -45,21 +38,17 @@ export function TemplateSingleSelect({
   inDialog?: boolean;
 } & Omit<Combobox.RootProviderProps, "value" | "onValueChange" | "collection" | "onChange">) {
   const { collection, isLoading, updateSearch } = useTemplateCollection(!disabled, task);
-  const internalValue = useMemo(() => (value ? [value] : []), [value]);
   const combobox = useCombobox({
     collection,
     disabled,
     placeholder,
     inputBehavior: "autohighlight",
-    value: internalValue,
+    value: value ? [value] : [],
     onValueChange: (e) => onChange(e.value[0] ?? null),
     onInputValueChange: (e) => updateSearch(e.inputValue),
   });
-  const hydratedRef = useRef(false);
-  if (combobox.value.length && collection.size && !hydratedRef.current) {
-    combobox.syncSelectedItems();
-    hydratedRef.current = true;
-  }
+
+  useComboboxSelectionHydrator(combobox);
 
   const PortalComponent = inDialog ? Fragment : Portal;
 

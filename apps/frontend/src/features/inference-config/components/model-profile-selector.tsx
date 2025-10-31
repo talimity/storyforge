@@ -1,14 +1,10 @@
-import {
-  Combobox,
-  InputGroup,
-  Portal,
-  Spinner,
-  Text,
-  useCombobox,
-  useListCollection,
-} from "@chakra-ui/react";
-import { Fragment, useEffect, useMemo, useRef } from "react";
+import { Combobox, InputGroup, Portal, Spinner, Text, useCombobox } from "@chakra-ui/react";
+import { Fragment } from "react";
 import { useModelProfileSearch } from "@/features/inference-config/hooks/use-model-profile-search";
+import {
+  useAsyncComboboxCollection,
+  useComboboxSelectionHydrator,
+} from "@/hooks/use-async-combobox";
 
 type ModelProfileItem = ReturnType<typeof useModelProfileSearch>["modelProfiles"][number];
 
@@ -16,14 +12,11 @@ function useModelProfileCollection(enabled: boolean) {
   const { modelProfiles, isLoading, updateSearch } = useModelProfileSearch({
     enabled,
   });
-  const { collection, set } = useListCollection<ModelProfileItem>({
-    initialItems: [],
-    itemToString: (p) => p.displayName,
-    itemToValue: (p) => p.id,
+  const collection = useAsyncComboboxCollection<ModelProfileItem>({
+    items: modelProfiles,
+    itemToString: (profile: ModelProfileItem) => profile.displayName,
+    itemToValue: (profile: ModelProfileItem) => profile.id,
   });
-  useEffect(() => {
-    set(modelProfiles);
-  }, [modelProfiles, set]);
   return { collection, isLoading, updateSearch };
 }
 
@@ -44,21 +37,16 @@ export function ModelProfileSingleSelect({
   inDialog?: boolean;
 } & Omit<Combobox.RootProviderProps, "value" | "onValueChange" | "collection" | "onChange">) {
   const { collection, isLoading, updateSearch } = useModelProfileCollection(!disabled);
-  const internalValue = useMemo(() => (value ? [value] : []), [value]);
   const combobox = useCombobox({
     collection,
     disabled,
     placeholder,
     inputBehavior: "autohighlight",
-    value: internalValue,
+    value: value ? [value] : [],
     onValueChange: (e) => onChange(e.value[0]),
     onInputValueChange: (e) => updateSearch(e.inputValue),
   });
-  const hydratedRef = useRef(false);
-  if (combobox.value.length && collection.size && !hydratedRef.current) {
-    combobox.syncSelectedItems();
-    hydratedRef.current = true;
-  }
+  useComboboxSelectionHydrator(combobox);
   const PortalComponent = inDialog ? Fragment : Portal;
   return (
     <Combobox.RootProvider value={combobox} width="full" size={size} {...props}>

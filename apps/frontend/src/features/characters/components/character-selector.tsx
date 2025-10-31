@@ -1,18 +1,13 @@
-import {
-  Box,
-  Combobox,
-  InputGroup,
-  Portal,
-  Spinner,
-  Text,
-  useCombobox,
-  useListCollection,
-} from "@chakra-ui/react";
+import { Box, Combobox, InputGroup, Portal, Spinner, Text, useCombobox } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import type React from "react";
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment } from "react";
 import { Avatar } from "@/components/ui";
 import { useCharacterSearch } from "@/features/characters/hooks/use-character-search";
+import {
+  useAsyncComboboxCollection,
+  useComboboxSelectionHydrator,
+} from "@/hooks/use-async-combobox";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
 import { CharacterListItem } from "./character-list-item";
@@ -29,7 +24,7 @@ function useCharacterCollection(
   scenarioId?: string,
   requiredIds?: string[]
 ) {
-  const { characters, isLoading, updateSearch, searchQuery } = useCharacterSearch({
+  const { characters, isLoading, updateSearch } = useCharacterSearch({
     enabled,
     filterMode,
     scenarioId,
@@ -59,22 +54,16 @@ function useCharacterCollection(
 
   const combinedCharacters = getCombinedCharacters(characters, requiredCharacters);
 
-  const { collection, set } = useListCollection<CharacterSearchCharacter>({
-    initialItems: [],
-    itemToString: (c) => c.name,
-    itemToValue: (c) => c.id,
+  const collection = useAsyncComboboxCollection<CharacterSearchCharacter>({
+    items: combinedCharacters,
+    itemToString: (character: CharacterSearchCharacter) => character.name,
+    itemToValue: (character: CharacterSearchCharacter) => character.id,
   });
-
-  // push new results into Combobox collection whenever TRPC data changes
-  useEffect(() => {
-    set(combinedCharacters);
-  }, [combinedCharacters, set]);
 
   return {
     collection,
     isLoading: isLoading || requiredCharactersQuery.isLoading,
     updateSearch,
-    searchQuery,
   };
 }
 
@@ -223,15 +212,9 @@ export function CharacterSingleSelect({
     onInputValueChange: (e) => updateSearch(e.inputValue),
   });
 
-  // Rehydrate once items arrive
-  const hydratedRef = useRef(false);
+  useComboboxSelectionHydrator(combobox);
 
-  if (combobox.value.length && collection.size && !hydratedRef.current) {
-    combobox.syncSelectedItems();
-    hydratedRef.current = true;
-  }
-
-  const selectedCharacter = collection.items.find((c) => c.id === value);
+  const selectedCharacter = value ? collection.find(value) : null;
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === "Backspace" || e.key === "Delete") && combobox.value.length) {
