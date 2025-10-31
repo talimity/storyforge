@@ -1,6 +1,6 @@
 import { Mark, type MarkProps, Text, type TextProps, VStack } from "@chakra-ui/react";
 import { tokenizeTemplateString } from "@storyforge/prompt-rendering";
-import { Fragment, useMemo } from "react";
+import { Fragment } from "react";
 
 type TemplateSegment = ReturnType<typeof tokenizeTemplateString>["segments"][number];
 
@@ -44,16 +44,13 @@ export function TemplateStringPreview(props: TemplateStringPreviewProps) {
     ...textProps
   } = props;
 
-  const result = useMemo(() => tokenizeTemplateString(value), [value]);
-  const highlightStyles = useMemo<HighlightMap>(
-    () => ({
-      variable: { ...defaultHighlight.variable, ...highlight?.variable },
-      blockStart: { ...defaultHighlight.blockStart, ...highlight?.blockStart },
-      blockElse: { ...defaultHighlight.blockElse, ...highlight?.blockElse },
-      blockEnd: { ...defaultHighlight.blockEnd, ...highlight?.blockEnd },
-    }),
-    [highlight]
-  );
+  const result = tokenizeTemplateString(value);
+  const highlightStyles: HighlightMap = {
+    variable: { ...defaultHighlight.variable, ...highlight?.variable },
+    blockStart: { ...defaultHighlight.blockStart, ...highlight?.blockStart },
+    blockElse: { ...defaultHighlight.blockElse, ...highlight?.blockElse },
+    blockEnd: { ...defaultHighlight.blockEnd, ...highlight?.blockEnd },
+  };
 
   const shouldShowFallback = value.length === 0 && typeof fallback === "string";
   const contentSegments = shouldShowFallback ? [] : result.segments;
@@ -62,7 +59,7 @@ export function TemplateStringPreview(props: TemplateStringPreviewProps) {
   return (
     <VStack align="stretch" gap={errorMessages.length > 0 ? 1 : 0} width="full">
       <Text fontSize={fontSize} whiteSpace={whiteSpace} wordBreak={wordBreak} {...textProps}>
-        {shouldShowFallback ? (fallback ?? null) : renderSegments(contentSegments, highlightStyles)}
+        {shouldShowFallback ? fallback : renderSegments(contentSegments, highlightStyles)}
       </Text>
 
       {errorMessages.length > 0 && (
@@ -75,21 +72,20 @@ export function TemplateStringPreview(props: TemplateStringPreviewProps) {
 }
 
 function renderSegments(segments: TemplateSegment[], styles: HighlightMap) {
-  const occurrences = new Map<string, number>();
+  const seen: Record<string, number> = {};
 
   return segments.map((segment) => {
     const baseKey = `${segment.kind}:${segment.content}`;
-    const seen = occurrences.get(baseKey) ?? 0;
-    occurrences.set(baseKey, seen + 1);
-    const key = `${baseKey}:${seen}`;
+    const occurrences = seen[baseKey] ?? 0;
+    seen[baseKey] = occurrences + 1;
+    const key = `${baseKey}:${occurrences}`;
 
     if (segment.kind === "text") {
       return <Fragment key={key}>{segment.content}</Fragment>;
     }
 
-    const style = styles[segment.kind];
     return (
-      <Mark key={key} {...style}>
+      <Mark key={key} {...styles[segment.kind]}>
         {segment.content}
       </Mark>
     );

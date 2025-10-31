@@ -94,7 +94,7 @@ describe("OpenAICompatibleAdapter", () => {
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toBe(`${BASE_URL}/chat/completions`);
     const body = JSON.parse(init!.body as string);
-    expect(body.add_generation_prompt).toBe(false);
+    expect(body.continue_final_message).toBe(true);
     expect(result.message.content).toBe("Hi there");
     expect(result.metadata?.provider).toBe("openai-compatible");
     expect(result.metadata?.requestMode).toBe("chat");

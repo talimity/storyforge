@@ -1,5 +1,6 @@
 import { Box, ClientOnly, Flex, HStack, Separator, Skeleton, Stack, Text } from "@chakra-ui/react";
 import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
 import {
   LuBookOpen,
   LuChevronLeft,
@@ -24,10 +25,49 @@ interface SidebarProps {
   onToggleCollapse?: () => void;
 }
 
+type NavItem = {
+  readonly to: string;
+  readonly icon: IconType;
+  readonly label: string;
+};
+
+type NavSection = {
+  readonly key: string;
+  readonly title: string;
+  readonly items: readonly NavItem[];
+};
+
+const NAV_SECTIONS: readonly NavSection[] = [
+  {
+    key: "library",
+    title: "Library",
+    items: [
+      { to: "/characters", icon: LuUsersRound, label: "Characters" },
+      { to: "/scenarios", icon: LuBookOpen, label: "Scenarios" },
+      { to: "/lorebooks", icon: LuLibrary, label: "Lorebooks" },
+      { to: "/assets", icon: LuImages, label: "Assets" },
+    ],
+  },
+  {
+    key: "generation",
+    title: "Generation",
+    items: [
+      { to: "/workflows", icon: LuWorkflow, label: "Workflows" },
+      { to: "/templates", icon: LuScrollText, label: "Prompts" },
+      { to: "/models", icon: TbCubeSpark, label: "Models" },
+    ],
+  },
+  {
+    key: "tools",
+    title: "Tools",
+    items: [{ to: "/theme-demo", icon: LuPaintBucket, label: "Design System" }],
+  },
+];
+
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { activeScenarioId, scenarioQuery, hasValidActiveScenario } = useActiveScenarioWithData();
 
-  const loading = scenarioQuery.isLoading;
+  const isLoading = scenarioQuery.isLoading;
 
   return (
     <Stack
@@ -63,7 +103,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
       {/* Main Navigation */}
       <Stack gap="1" flex="1" py="4" px="3" overflowY="auto" data-testid="sidebar-nav">
-        {loading && (
+        {isLoading && (
           <HStack pl="4">
             <Skeleton h="6" w="6" rounded="md" />
             <Stack gap="2">
@@ -89,55 +129,9 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           />
         )}
 
-        {/* Library Section */}
-        {collapsed ? <Separator /> : <SectionHeader>Library</SectionHeader>}
-
-        <SidebarLink
-          to="/characters"
-          icon={<LuUsersRound />}
-          label="Characters"
-          collapsed={collapsed}
-        />
-
-        <SidebarLink
-          to="/scenarios"
-          icon={<LuBookOpen />}
-          label="Scenarios"
-          collapsed={collapsed}
-        />
-
-        <SidebarLink to="/lorebooks" icon={<LuLibrary />} label="Lorebooks" collapsed={collapsed} />
-
-        <SidebarLink to="/assets" icon={<LuImages />} label="Assets" collapsed={collapsed} />
-
-        {/* Generation config Section */}
-        {collapsed ? <Separator /> : <SectionHeader>Generation</SectionHeader>}
-
-        <SidebarLink
-          to="/workflows"
-          icon={<LuWorkflow />}
-          label="Workflows"
-          collapsed={collapsed}
-        />
-
-        <SidebarLink
-          to="/templates"
-          icon={<LuScrollText />}
-          label="Prompts"
-          collapsed={collapsed}
-        />
-
-        <SidebarLink to="/models" icon={<TbCubeSpark />} label="Models" collapsed={collapsed} />
-
-        {/* Dev tools Section */}
-        {collapsed ? <Separator /> : <SectionHeader>Tools</SectionHeader>}
-
-        <SidebarLink
-          to="/theme-demo"
-          icon={<LuPaintBucket />}
-          label="Design System"
-          collapsed={collapsed}
-        />
+        {NAV_SECTIONS.map((section) => (
+          <SidebarSection key={section.key} section={section} collapsed={collapsed} />
+        ))}
       </Stack>
 
       {/* Bottom Actions */}
@@ -148,6 +142,31 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         </ClientOnly>
       </Box>
     </Stack>
+  );
+}
+
+interface SidebarSectionProps {
+  section: NavSection;
+  collapsed: boolean;
+}
+
+function SidebarSection({ section, collapsed }: SidebarSectionProps) {
+  return (
+    <>
+      {collapsed ? <Separator /> : <SectionHeader>{section.title}</SectionHeader>}
+      {section.items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <SidebarLink
+            key={item.to}
+            to={item.to}
+            icon={<Icon />}
+            label={item.label}
+            collapsed={collapsed}
+          />
+        );
+      })}
+    </>
   );
 }
 
