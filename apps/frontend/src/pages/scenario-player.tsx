@@ -28,7 +28,7 @@ function PlayerPage() {
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
   const { turns, hasNextPage, isFetching, isPending, fetchNextPage } = useScenarioTimeline({
     scenarioId: scenario.id,
-    leafTurnId: previewLeafTurnId ?? null,
+    leafTurnId: previewLeafTurnId,
   });
 
   useEffect(() => {
@@ -52,6 +52,14 @@ function PlayerPage() {
   const selectedParticipant = selectedCharacterId
     ? participants.find((p) => p.characterId === selectedCharacterId)
     : null;
+
+  const createContinueIntent = (): IntentInput =>
+    selectedParticipant
+      ? {
+          kind: "continue_story",
+          targetParticipantId: selectedParticipant.id,
+        }
+      : { kind: "continue_story" };
 
   // Click handlers
   const handleSubmitIntent = async (mode: InputMode, text: string) => {
@@ -80,13 +88,7 @@ function PlayerPage() {
         break;
       }
       case "quick": {
-        const payload: IntentInput = selectedParticipant
-          ? {
-              kind: "continue_story",
-              targetParticipantId: selectedParticipant.id,
-            }
-          : { kind: "continue_story" };
-        await startIntent(payload);
+        await startIntent(createContinueIntent());
         break;
       }
     }
@@ -133,13 +135,7 @@ function PlayerPage() {
       onSubmitIntent={handleSubmitIntent}
       onCancelIntent={handleCancelIntent}
       onQuickContinue={() => {
-        const payload: IntentInput = selectedParticipant
-          ? {
-              kind: "continue_story",
-              targetParticipantId: selectedParticipant.id,
-            }
-          : { kind: "continue_story" };
-        void startIntent(payload);
+        void startIntent(createContinueIntent());
       }}
     />
   );

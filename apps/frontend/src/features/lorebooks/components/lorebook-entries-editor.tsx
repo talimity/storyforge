@@ -130,7 +130,10 @@ const LorebookEntriesFilter = withForm({
     onFilterChange: (_matchingIds: Set<string>) => {},
   },
   render: function Render(props) {
-    "use no memo"; // doing bad ref hacking that will break React Compiler
+    "use no memo";
+    // need to disable compiler as it does not play well with this combination
+    // of tanstack form HOCs/mutable refs that are necessary to get this form
+    // to perform well with very large lorebooks.
 
     const { form, onFilterChange } = props;
     // leave uncontrolled to avoid expensive re-rendering and filtering

@@ -1,6 +1,10 @@
 import type { IntentEvent } from "@storyforge/contracts";
-import type { SqliteDatabase } from "@storyforge/db";
-import { type GenerationRunStep, generationRunSteps, generationRuns } from "@storyforge/db";
+import {
+  type GenerationRunStep,
+  generationRunSteps,
+  generationRuns,
+  type SqliteDatabase,
+} from "@storyforge/db";
 import type { WorkflowEvent } from "@storyforge/gentasks";
 import { assertDefined } from "@storyforge/utils";
 import { and, eq } from "drizzle-orm";
@@ -112,7 +116,11 @@ export class GenerationRunRecorder {
         return;
       }
       case "step_prompt": {
-        await this.updateStep(event.runId, event.stepId, event);
+        await this.updateStep(event.runId, event.stepId, {
+          modelProfileId: event.modelProfileId,
+          modelId: event.modelId,
+          hints: event.hints,
+        });
         return;
       }
       case "step_captured": {
