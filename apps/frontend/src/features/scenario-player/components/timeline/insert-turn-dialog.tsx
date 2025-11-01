@@ -1,6 +1,6 @@
 import { Box, createListCollection, HStack, Stack, Text } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
-import { useEffect, useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { z } from "zod";
 import { Avatar, Button, Dialog } from "@/components/ui";
 import {
@@ -41,6 +41,8 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
   const { participants, participantsById, charactersById } = useScenarioContext();
 
   const authorOptions = buildAuthorOptions({ participants, charactersById });
+  const authorOptionsRef = useRef(authorOptions);
+  authorOptionsRef.current = authorOptions;
   const collection = createListCollection({ items: authorOptions });
 
   const form = useAppForm({
@@ -52,13 +54,14 @@ export function InsertTurnDialog(props: InsertTurnDialogProps) {
     },
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset
   useEffect(() => {
     if (!isOpen) return;
-    const options = buildAuthorOptions({ participants, charactersById });
-    const defaultAuthor = getDefaultAuthorId({ options, turn });
+    const defaultAuthor = getDefaultAuthorId({
+      options: authorOptionsRef.current,
+      turnAuthorParticipantId: turn?.authorParticipantId,
+    });
     form.reset({ authorParticipantId: defaultAuthor, text: "" });
-  }, [isOpen]);
+  }, [form, isOpen, turn?.authorParticipantId]);
 
   const turnLabel = getTurnLabel({ turn, participantsById, charactersById });
 
@@ -224,13 +227,16 @@ function buildAuthorOptions({
 
 function getDefaultAuthorId({
   options,
-  turn,
+  turnAuthorParticipantId,
 }: {
   options: AuthorOption[];
-  turn: TimelineTurn | null;
+  turnAuthorParticipantId: string | null | undefined;
 }): string {
-  if (turn && options.some((option) => option.value === turn.authorParticipantId)) {
-    return turn.authorParticipantId;
+  if (
+    turnAuthorParticipantId &&
+    options.some((option) => option.value === turnAuthorParticipantId)
+  ) {
+    return turnAuthorParticipantId;
   }
   return options.at(0)?.value ?? "";
 }

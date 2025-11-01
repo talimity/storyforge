@@ -15,15 +15,15 @@ export function TurnHeader({ avatar, title, metadata, rightSlot }: TurnHeaderPro
   return (
     <HStack justify="space-between" pb={1} align="flex-start">
       <HStack alignItems="center" gap={3}>
-        {avatar ?? null}
+        {avatar}
         <Stack gap={0}>
           <Heading size="md" fontWeight="bold" layerStyle="tinted.normal">
             {title}
           </Heading>
-          {hasMetadata ? <HStack gap={2}>{filteredMetadata.map((item) => item)}</HStack> : null}
+          {hasMetadata ? <HStack gap={2}>{filteredMetadata}</HStack> : null}
         </Stack>
       </HStack>
-      {rightSlot ?? null}
+      {rightSlot}
     </HStack>
   );
 }

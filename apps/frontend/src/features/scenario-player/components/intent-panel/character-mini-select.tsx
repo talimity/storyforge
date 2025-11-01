@@ -46,7 +46,7 @@ const CharacterMiniSelectTrigger = ({
 }: CharacterMiniSelectTriggerProps) => {
   const select = useSelectContext();
   const selectedValue = select.value[0];
-  const option = selectedValue ? (optionByValue[selectedValue] ?? null) : null;
+  const option = selectedValue ? optionByValue[selectedValue] : undefined;
   const avatarName = option?.character.name;
   const avatarUrl = option?.avatarUrl;
   const label = option ? `Speaking as ${option.character.name}` : "Select a character";
@@ -93,10 +93,7 @@ export function CharacterMiniSelect(props: CharacterMiniSelectProps) {
     avatarUrl: getApiUrl(character.avatarPath),
     character,
   }));
-  const optionByValue = items.reduce<Record<string, CharacterOption>>((acc, item) => {
-    acc[item.value] = item;
-    return acc;
-  }, {});
+  const optionByValue = Object.fromEntries(items.map((item) => [item.value, item]));
   const collection = createListCollection({ items });
 
   return (
@@ -104,7 +101,9 @@ export function CharacterMiniSelect(props: CharacterMiniSelectProps) {
       collection={collection}
       positioning={{ sameWidth: false }}
       value={value ? [value] : []}
-      onValueChange={(details) => onChange(details.value[0])}
+      onValueChange={(details) => {
+        onChange(details.value[0]);
+      }}
       disabled={disabled}
       maxW={boxSize}
       {...rest}

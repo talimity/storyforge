@@ -30,19 +30,21 @@ import { RetryReplaySection } from "./retry-replay-section";
 import { TurnHeader } from "./turn-header";
 
 function selectTintColor(
-  candidates: Array<ScenarioCtxParticipant | ScenarioCtxCharacter | null>
+  candidates: Array<ScenarioCtxParticipant | ScenarioCtxCharacter | null | undefined>
 ): string | null {
-  return (
-    candidates
-      .map((c) => {
-        if (!c) return null;
-        if ("defaultColor" in c) return c.defaultColor;
-        return c.color || null;
-      })
-      .filter(Boolean)
-      .at(0)
-      ?.toLowerCase() || null
-  );
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+
+    if ("defaultColor" in candidate && candidate.defaultColor) {
+      return candidate.defaultColor.toLowerCase();
+    }
+
+    if ("color" in candidate && candidate.color) {
+      return candidate.color.toLowerCase();
+    }
+  }
+
+  return null;
 }
 
 interface RetryInlineProps {

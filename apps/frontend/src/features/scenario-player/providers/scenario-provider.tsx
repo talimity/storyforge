@@ -12,9 +12,9 @@ type ScenarioCtxChapter = ScenarioCtxTimelineState["chapters"]["chapters"][numbe
 type ScenarioCtx = ScenarioCtxEnvironment & {
   participantsById: Record<string, ScenarioCtxParticipant>;
   charactersById: Record<string, ScenarioCtxCharacter>;
-  getCharacterById: (characterId?: string | null) => ScenarioCtxCharacter | null;
-  getParticipantById: (participantId?: string | null) => ScenarioCtxParticipant | null;
-  getCharacterByParticipantId: (participantId?: string | null) => ScenarioCtxCharacter | null;
+  getCharacterById: (characterId?: string | null) => ScenarioCtxCharacter | undefined;
+  getParticipantById: (participantId?: string | null) => ScenarioCtxParticipant | undefined;
+  getCharacterByParticipantId: (participantId?: string | null) => ScenarioCtxCharacter | undefined;
   timelineState: ScenarioCtxTimelineState;
   chapters: ScenarioCtxTimelineState["chapters"]["chapters"];
   chaptersByEventId: Record<string, ScenarioCtxChapter>;
@@ -47,15 +47,15 @@ function indexChapters(chapters: ScenarioCtxChapter[]) {
 
 function createCharacterLookup(charactersById: Record<string, ScenarioCtxCharacter>) {
   return (characterId?: string | null) => {
-    if (!characterId) return null;
-    return charactersById[characterId] ?? null;
+    if (!characterId) return;
+    return charactersById[characterId];
   };
 }
 
 function createParticipantLookup(participantsById: Record<string, ScenarioCtxParticipant>) {
   return (participantId?: string | null) => {
-    if (!participantId) return null;
-    return participantsById[participantId] ?? null;
+    if (!participantId) return;
+    return participantsById[participantId];
   };
 }
 
@@ -64,10 +64,10 @@ function createCharacterByParticipantLookup(
   charactersById: Record<string, ScenarioCtxCharacter>
 ) {
   return (participantId?: string | null) => {
-    if (!participantId) return null;
+    if (!participantId) return;
     const participant = participantsById[participantId];
-    if (!participant?.characterId) return null;
-    return charactersById[participant.characterId] ?? null;
+    if (!participant?.characterId) return;
+    return charactersById[participant.characterId];
   };
 }
 

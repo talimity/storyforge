@@ -70,6 +70,20 @@ export const intentFormDefaultValues: IntentFormValues = {
   replayOverrides: {},
 };
 
+type ReplaySettings = Pick<
+  IntentFormValues,
+  "replayMode" | "replayResumeStepId" | "replayOverrides"
+>;
+
+function createReplaySettings(overrides: Partial<ReplaySettings> = {}): ReplaySettings {
+  return {
+    replayMode: "full",
+    replayResumeStepId: null,
+    ...overrides,
+    replayOverrides: overrides.replayOverrides ?? {},
+  };
+}
+
 export function getInitialIntentFormValues(
   turn: TimelineTurn | null,
   participants: ScenarioParticipant[]
@@ -78,14 +92,7 @@ export function getInitialIntentFormValues(
   // not reuse the intent inputs because they generally only apply to the first
   // effect (subsequent effects are usually just continuations).
   if (!turn?.provenance || turn.provenance.effectSequence > 0) {
-    return {
-      kind: "continue_story",
-      characterId: null,
-      text: "",
-      replayMode: "full",
-      replayResumeStepId: null,
-      replayOverrides: {},
-    };
+    return { ...intentFormDefaultValues, replayOverrides: {} };
   }
 
   const { intentKind, inputText, targetParticipantId } = turn.provenance;
@@ -101,42 +108,53 @@ export function getInitialIntentFormValues(
         kind: "manual_control",
         characterId: characterId ?? "",
         text,
-        replayMode: "full",
-        replayResumeStepId: null,
-        replayOverrides: {},
+        ...createReplaySettings(),
       };
     case "guided_control":
       return {
         kind: "guided_control",
         characterId: characterId ?? "",
         text,
-        replayMode: "full",
-        replayResumeStepId: null,
-        replayOverrides: {},
+        ...createReplaySettings(),
       };
     case "narrative_constraint":
       return {
         kind: "narrative_constraint",
         characterId,
         text,
-        replayMode: "full",
-        replayResumeStepId: null,
-        replayOverrides: {},
+        ...createReplaySettings(),
       };
     case "continue_story":
       return {
         kind: "continue_story",
         characterId,
         text,
-        replayMode: "full",
-        replayResumeStepId: null,
-        replayOverrides: {},
+        ...createReplaySettings(),
       };
     default: {
       const exhaustiveCheck: never = intentKind;
       throw new Error(`Unsupported intent kind: ${exhaustiveCheck}`);
     }
   }
+}
+
+function findParticipantByCharacterId(
+  participants: ScenarioParticipant[],
+  characterId?: string | null
+) {
+  if (!characterId) return null;
+  return participants.find((p) => p.characterId === characterId) ?? null;
+}
+
+function requireParticipant(
+  participants: ScenarioParticipant[],
+  characterId?: string | null
+): ScenarioParticipant {
+  const participant = findParticipantByCharacterId(participants, characterId);
+  if (!participant) {
+    throw new Error("Character selection could not be resolved to a participant");
+  }
+  return participant;
 }
 
 export function createIntentInputPayload(
@@ -146,10 +164,7 @@ export function createIntentInputPayload(
   switch (values.kind) {
     case "manual_control":
     case "guided_control": {
-      const participant = participants.find((p) => p.characterId === values.characterId);
-      if (!participant) {
-        throw new Error("Character selection could not be resolved to a participant");
-      }
+      const participant = requireParticipant(participants, values.characterId);
       return {
         kind: values.kind,
         targetParticipantId: participant.id,
@@ -158,10 +173,7 @@ export function createIntentInputPayload(
     }
     case "narrative_constraint":
       if (values.characterId) {
-        const participant = participants.find((p) => p.characterId === values.characterId);
-        if (!participant) {
-          throw new Error("Character selection could not be resolved to a participant");
-        }
+        const participant = requireParticipant(participants, values.characterId);
         return {
           kind: "narrative_constraint",
           text: values.text.trim(),
@@ -174,10 +186,7 @@ export function createIntentInputPayload(
       };
     case "continue_story":
       if (values.characterId) {
-        const participant = participants.find((p) => p.characterId === values.characterId);
-        if (!participant) {
-          throw new Error("Character selection could not be resolved to a participant");
-        }
+        const participant = requireParticipant(participants, values.characterId);
         return {
           kind: "continue_story",
           targetParticipantId: participant.id,

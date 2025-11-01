@@ -342,6 +342,27 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
     menuActions.push(action);
   }
 
+  const dialogs = (
+    <>
+      <DiscardChangesDialog
+        isOpen={showDiscardDialog}
+        onOpenChange={(details) => setShowDiscardDialog(details.open)}
+        onConfirm={handleConfirmDiscard}
+      />
+      <GenerationInfoDialog
+        turnId={turn.id}
+        isOpen={showGenerationInfo}
+        onOpenChange={(details) => setShowGenerationInfo(details.open)}
+      />
+      <InsertTurnDialog
+        isOpen={Boolean(manualInsertTurn)}
+        turn={manualInsertTurn}
+        onSubmit={handleManualInsertSubmit}
+        onClose={closeManualInsert}
+      />
+    </>
+  );
+
   if (isEditing) {
     return (
       <>
@@ -368,22 +389,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
             <LuX />
           </IconButton>
         </HStack>
-        <DiscardChangesDialog
-          isOpen={showDiscardDialog}
-          onOpenChange={(details) => setShowDiscardDialog(details.open)}
-          onConfirm={handleConfirmDiscard}
-        />
-        <GenerationInfoDialog
-          turnId={turn.id}
-          isOpen={showGenerationInfo}
-          onOpenChange={(details) => setShowGenerationInfo(details.open)}
-        />
-        <InsertTurnDialog
-          isOpen={!!manualInsertTurn}
-          turn={manualInsertTurn}
-          onSubmit={handleManualInsertSubmit}
-          onClose={closeManualInsert}
-        />
+        {dialogs}
       </>
     );
   }
@@ -431,24 +437,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
           </Menu.Root>
         ) : null}
       </HStack>
-      <DiscardChangesDialog
-        isOpen={showDiscardDialog}
-        onOpenChange={(details) => setShowDiscardDialog(details.open)}
-        onConfirm={handleConfirmDiscard}
-      />
-      <GenerationInfoDialog
-        turnId={turn.id}
-        isOpen={showGenerationInfo}
-        onOpenChange={(details) => setShowGenerationInfo(details.open)}
-      />
-      {manualInsertTurn ? (
-        <InsertTurnDialog
-          isOpen
-          turn={manualInsertTurn}
-          onSubmit={handleManualInsertSubmit}
-          onClose={closeManualInsert}
-        />
-      ) : null}
+      {dialogs}
     </>
   );
 }
