@@ -20,7 +20,7 @@ These pieces let the rest of the application talk in terms of `ChatCompletionReq
 
 `createAdapter` switches on `kind` to instantiate the matching subclass, injecting auth and base URL. For OpenAI-compatible providers the base URL is mandatory; others default to public endpoints. Callers can ask `getDefaultCapabilities(kind)` to seed UI or validation before a profile is configured.
 
-At runtime, the workflow runner loads the model profile attached to a workflow step, calls `createAdapter`, and then `.withOverrides(profile.capabilityOverrides)` so per-model tweaks adjust behaviour without modifying global defaults.
+At runtime, the workflow runner loads the model profile attached to a workflow step, calls `createAdapter`, and then `.withOverrides(profile.capabilityOverrides)` so per-model tweaks adjust behavior without modifying global defaults.
 
 ## Provider Adapter Contract
 Every adapter extends `ProviderAdapter` and must implement:
@@ -42,7 +42,7 @@ Adapters also expose `searchModels()` to support model discovery UIs.
 Before dispatching a request, adapters call `preflightPrefill(request, capabilities)`. The helper inspects:
 - Prompt semantics (does the last message come from the assistant?).
 - Request hints (`assistantPrefill: require | auto | forbid`).
-- Provider behaviour (prefill implicit, explicit, or unsupported).
+- Provider behavior (prefill implicit, explicit, or unsupported).
 
 If a conflict exists (e.g., template requires prefill but provider cannot prefill) the adapter throws `InferenceProviderCompatibilityError`. This keeps higher layers from sending incompatible prompts and receiving garbled model output.
 
@@ -76,14 +76,14 @@ Adapters should catch HTTP/JSON issues, call `bubbleProviderError`, and throw co
 All adapters share the preflight/capability machinery and return the same response shapes, allowing higher layers to treat them interchangeably.
 
 ## Integration with Workflows & Intent Engine
-1. The workflow runner loads a model profile from the database (via `WorkflowDeps.loadModelProfile`). The profile now carries provider identifiers/names, display name, model ID, optional model-specific instruction text, capability overrides, default sampling params, and an optional text template.
+1. The workflow runner loads a model profile from the database (via `WorkflowDeps.loadModelProfile`). The profile carries provider identifiers/names, display name, model ID, optional model-specific instruction text, capability overrides, default sampling params, and an optional text template.
 2. `WorkflowRunnerManager` hands the profile to `createAdapter`, then applies overrides via `.withOverrides()` and passes the adapter to the runner.
 3. During step execution the runner:
    - Renders a prompt, optionally merges consecutive roles, and derives assistant-prefill hints.
    - Builds a `ChatCompletionRequest` (with `signal` to support cancellation) and calls `adapter.completeStream()`.
    - Emits streaming deltas to subscribers (UI, telemetry recorder) and aggregates the final `ChatCompletionResponse` for output capture.
 4. Intent execution pipelines rely on the workflow runner to generate turns; the inference layer ensures provider quirks do not leak back into timeline/intent logic.
-5. Diagnostics modules (generation recorder, prompt testing tools) reuse the same adapters so captured telemetry matches real execution behaviour.
+5. Diagnostics modules (generation recorder, prompt testing tools) reuse the same adapters so captured telemetry matches real execution behavior.
 
 ## Design Principles & Extension Points
 - **Single adapter surface**: All providers look the same to callers. Adding a new vendor means implementing one class and registering it in `createAdapter`.

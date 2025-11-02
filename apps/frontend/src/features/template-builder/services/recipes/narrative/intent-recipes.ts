@@ -1,6 +1,7 @@
 import type { IntentKind } from "@storyforge/contracts";
 import type { TurnGenSources } from "@storyforge/gentasks";
 import type { RecipeDefinition } from "@/features/template-builder/types";
+import { defineRecipe } from "@/features/template-builder/types";
 
 const params = [
   {
@@ -20,17 +21,13 @@ const params = [
   },
 ] as const;
 
-export const nextTurnIntentRecipe: RecipeDefinition<
-  "turn_generation",
-  TurnGenSources,
-  typeof params
-> = {
+export const nextTurnIntentRecipe: RecipeDefinition<TurnGenSources, typeof params> = defineRecipe({
   id: "intent_basic",
   name: "Next Turn Guidance",
-  task: "turn_generation",
   description:
     "Instructs the model how to continue the scenario, based on the player's guidance prompt. Skipped if player didn't provide any guidance.",
   parameters: params,
+  requires: ["currentIntent", "globals"],
   toSlotSpec(params) {
     return {
       meta: {},
@@ -84,4 +81,4 @@ export const nextTurnIntentRecipe: RecipeDefinition<
       ],
     };
   },
-};
+});

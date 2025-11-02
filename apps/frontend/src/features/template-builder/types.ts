@@ -1,4 +1,4 @@
-import type { TaskKind, TaskSourcesMap } from "@storyforge/gentasks";
+import type { NarrativeSourcesBase, TaskKind, TurnGenSources } from "@storyforge/gentasks";
 import type {
   ChatCompletionMessageRole,
   ConditionRef,
@@ -12,36 +12,15 @@ import type {
   LoreAttachmentLaneDraft,
 } from "@/features/template-builder/services/attachments/types";
 
-// Per-task recipe IDs
-export type TurnGenRecipeId =
+export type BaseRecipeId =
   | "timeline_basic"
   | "timeline_advanced"
   | "characters_basic"
   | "intent_basic";
-export type ChapterSummRecipeId = never; // none yet
-export type WritingAssistantRecipeId = never; // none yet
 
-// Map task kind to its recipe ID union
-export type RecipeId<K extends TaskKind> = K extends "turn_generation"
-  ? TurnGenRecipeId
-  : K extends "chapter_summarization"
-    ? ChapterSummRecipeId
-    : K extends "writing_assistant"
-      ? WritingAssistantRecipeId
-      : never;
-export type AnyRecipeId = RecipeId<TaskKind>;
-
-/** Represents a recipe for a specific task kind and its associated sources */
-type RecipeOf<K extends TaskKind> = RecipeDefinition<K, TaskSourcesMap[K]>;
-
-// Concrete per-task shapes
-export type TurnGenRecipe = RecipeOf<"turn_generation">;
-export type ChapterSummRecipe = RecipeOf<"chapter_summarization">;
-export type WritingAssistantRecipe = RecipeOf<"writing_assistant">;
-export type AnyRecipe = TurnGenRecipe | ChapterSummRecipe | WritingAssistantRecipe;
-
-/** Alias for "the member of the union for this task" */
-export type TypedRecipe<K extends TaskKind> = Extract<AnyRecipe, { task: K }>;
+export type RecipeId<_K extends TaskKind = TaskKind> = BaseRecipeId;
+export type AnyRecipeId = BaseRecipeId;
+export type AnyRecipe = RecipeDefinition<NarrativeSourcesBase> | RecipeDefinition<TurnGenSources>;
 
 /**
  * Represents a parameter that can be configured by the user when selecting a
@@ -88,15 +67,15 @@ export type InferRecipeParams<T extends readonly RecipeParamSpec[]> = {
  * into valid DSL SlotSpec.
  */
 export interface RecipeDefinition<
-  K extends TaskKind,
   S extends SourceSpec,
   P extends readonly RecipeParamSpec[] = readonly RecipeParamSpec[],
 > {
-  id: RecipeId<K>;
+  id: AnyRecipeId;
   name: string;
-  task: K;
   description?: string;
   parameters: P;
+  /** Names of sources this recipe requires */
+  requires: readonly (keyof S)[];
   buildSlotLayout?: (params: InferRecipeParams<P>) => {
     header?: SlotFrameNodeDraft[];
     footer?: SlotFrameNodeDraft[];
@@ -121,6 +100,12 @@ export interface RecipeDefinition<
     description: string;
     example?: string;
   }>;
+}
+
+export function defineRecipe<S extends SourceSpec, P extends readonly RecipeParamSpec[]>(
+  recipe: RecipeDefinition<S, P>
+): RecipeDefinition<S, P> {
+  return recipe;
 }
 
 // Top-level template draft type for UI
@@ -176,8 +161,8 @@ export interface MessageBlockDraft {
 }
 
 // Slot configuration in UI
-export interface SlotDraft<K extends TaskKind = TaskKind> {
-  recipeId: RecipeId<K> | "custom";
+export interface SlotDraft {
+  recipeId: AnyRecipeId | "custom";
   params: Record<string, unknown>;
   name: string;
   priority: number;

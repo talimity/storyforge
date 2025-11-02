@@ -1,65 +1,35 @@
 import type { TaskKind } from "@storyforge/gentasks";
-import { charactersRecipe } from "@/features/template-builder/services/recipes/turngen/characters-recipe";
-import { nextTurnIntentRecipe } from "@/features/template-builder/services/recipes/turngen/intent-recipes";
+import { getTaskDescriptor } from "@storyforge/gentasks";
+import { charactersRecipe } from "@/features/template-builder/services/recipes/narrative/characters-recipe";
+import { nextTurnIntentRecipe } from "@/features/template-builder/services/recipes/narrative/intent-recipes";
 import {
   timelineAdvancedRecipe,
   timelineBasicRecipe,
-} from "@/features/template-builder/services/recipes/turngen/timeline-recipe";
-import type {
-  AnyRecipe,
-  AnyRecipeId,
-  ChapterSummRecipe,
-  ChapterSummRecipeId,
-  RecipeId,
-  TurnGenRecipe,
-  TurnGenRecipeId,
-  TypedRecipe,
-  WritingAssistantRecipe,
-  WritingAssistantRecipeId,
-} from "@/features/template-builder/types";
+} from "@/features/template-builder/services/recipes/narrative/timeline-recipe";
+import type { AnyRecipe, AnyRecipeId } from "@/features/template-builder/types";
 
-/** Per-task registries */
-export const TURN_GEN_RECIPES = {
+export const ALL_RECIPES = {
   characters_basic: charactersRecipe,
   timeline_basic: timelineBasicRecipe,
   timeline_advanced: timelineAdvancedRecipe,
   intent_basic: nextTurnIntentRecipe,
-} as const satisfies Record<TurnGenRecipeId, TurnGenRecipe>;
+} as const satisfies Record<AnyRecipeId, AnyRecipe>;
 
-export const CHAPTER_SUMM_RECIPES = {
-  // TODO
-} as const satisfies Record<ChapterSummRecipeId, ChapterSummRecipe>;
-
-export const WRITING_ASSIST_RECIPES = {
-  // TODO
-} as const satisfies Record<WritingAssistantRecipeId, WritingAssistantRecipe>;
-
-/** Recipes-by-task view */
-type ByTask = {
-  [K in TaskKind]: Record<RecipeId<K>, TypedRecipe<K>>;
-};
-
-const BY_TASK: ByTask = {
-  turn_generation: TURN_GEN_RECIPES,
-  chapter_summarization: CHAPTER_SUMM_RECIPES,
-  writing_assistant: WRITING_ASSIST_RECIPES,
-};
-
-/** Flat registry across all tasks */
-export const ALL_RECIPES = {
-  ...TURN_GEN_RECIPES,
-  ...CHAPTER_SUMM_RECIPES,
-  ...WRITING_ASSIST_RECIPES,
-} as const;
-
-export function getRecipesForTask<K extends TaskKind>(
-  task: K
-): Array<Extract<AnyRecipe, { task: K }>> {
-  return Object.values(BY_TASK[task]);
+function normalizeRequires(recipe: AnyRecipe): readonly string[] {
+  return recipe.requires.map((key) => String(key));
 }
 
-export function getRecipeIdsForTask<K extends TaskKind>(task: K): RecipeId<K>[] {
-  return Object.keys(BY_TASK[task]) as RecipeId<K>[];
+export function isRecipeCompatibleWithTask(recipe: AnyRecipe, task: TaskKind): boolean {
+  const provided = new Set(getTaskDescriptor(task).providedSources.map((key) => String(key)));
+  return normalizeRequires(recipe).every((key) => provided.has(key));
+}
+
+export function getRecipesForTask<K extends TaskKind>(task: K): AnyRecipe[] {
+  return Object.values(ALL_RECIPES).filter((recipe) => isRecipeCompatibleWithTask(recipe, task));
+}
+
+export function getRecipeIdsForTask<K extends TaskKind>(task: K): AnyRecipeId[] {
+  return getRecipesForTask(task).map((recipe) => recipe.id);
 }
 
 export function getRecipeById<I extends keyof typeof ALL_RECIPES>(id: I): (typeof ALL_RECIPES)[I];
@@ -76,8 +46,11 @@ export function isValidRecipeId(id: string): id is AnyRecipeId {
   return id in ALL_RECIPES;
 }
 
-export function assertValidRecipeId(id: string): asserts id is AnyRecipeId {
-  if (!isValidRecipeId(id)) {
-    throw new Error(`Invalid recipe ID: ${id}`);
+export function assertRecipeCompatibleWithTask(task: TaskKind, recipe: AnyRecipe): void {
+  if (!isRecipeCompatibleWithTask(recipe, task)) {
+    throw new Error(
+      `Recipe "${recipe.id}" requires sources [${normalizeRequires(recipe).join(", ")}], ` +
+        `which task "${task}" does not provide.`
+    );
   }
 }

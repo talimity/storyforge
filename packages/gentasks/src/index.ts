@@ -22,7 +22,13 @@ export {
 export type {
   ChapterSummaryCtxEntry,
   NarrativeGlobalsBase,
+  NarrativeSourcesBase,
 } from "./tasks/narrative-shared.js";
+export type { TaskDescriptor } from "./tasks/task-descriptors.js";
+export {
+  getTaskDescriptor,
+  TASK_DESCRIPTORS,
+} from "./tasks/task-descriptors.js";
 export {
   TURN_GEN_SOURCE_NAMES,
   type TurnGenCtx,

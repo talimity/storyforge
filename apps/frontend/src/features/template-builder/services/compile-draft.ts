@@ -8,7 +8,10 @@ import {
   type UnboundTemplate,
 } from "@storyforge/prompt-rendering";
 import { coerceRecipeParams } from "@/features/template-builder/services/param-coercion";
-import { getRecipeById } from "@/features/template-builder/services/recipe-registry";
+import {
+  getRecipeById,
+  isRecipeCompatibleWithTask,
+} from "@/features/template-builder/services/recipe-registry";
 import type {
   AttachmentLaneDraft,
   LayoutNodeDraft,
@@ -243,9 +246,9 @@ export function validateDraft({
         errors.push(`Slot '${slotName}' uses unknown recipe: ${slot.recipeId}`);
       } else {
         // Ensure task compatibility
-        if (recipe.task && recipe.task !== task) {
+        if (!isRecipeCompatibleWithTask(recipe, task)) {
           errors.push(
-            `Slot '${slotName}' recipe '${slot.recipeId}' is not compatible with task '${task}'`
+            `Slot '${slotName}' recipe '${slot.recipeId}' requires sources not provided by task '${task}'`
           );
         }
       }

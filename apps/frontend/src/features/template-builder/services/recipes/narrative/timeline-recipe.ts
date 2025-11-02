@@ -1,6 +1,7 @@
 import type { IntentKind } from "@storyforge/contracts";
-import type { TurnGenSources } from "@storyforge/gentasks";
+import type { NarrativeSourcesBase } from "@storyforge/gentasks";
 import type { InferRecipeParams, RecipeDefinition } from "@/features/template-builder/types";
+import { defineRecipe } from "@/features/template-builder/types";
 
 const MAX_TURNS_PARAM = {
   key: "maxTurns",
@@ -33,65 +34,62 @@ const basicParameters = [
   TOKEN_BUDGET_PARAM,
 ] as const;
 
-export const timelineBasicRecipe: RecipeDefinition<
-  "turn_generation",
-  TurnGenSources,
-  typeof basicParameters
-> = {
-  id: "timeline_basic",
-  name: "Timeline (Simple)",
-  task: "turn_generation",
-  description: "Lists turns in chronological order.",
-  parameters: basicParameters,
+export const timelineBasicRecipe: RecipeDefinition<NarrativeSourcesBase, typeof basicParameters> =
+  defineRecipe({
+    id: "timeline_basic",
+    name: "Timeline (Simple)",
+    description: "Lists turns in chronological order.",
+    parameters: basicParameters,
+    requires: ["turns"],
 
-  availableVariables: [
-    {
-      name: "item.turnNo",
-      description: "The turn number in the scenario",
-      example: "5",
-    },
-    {
-      name: "item.authorName",
-      description: "Name of the character who authored this turn (or 'Narrator')",
-      example: "Alice",
-    },
-    {
-      name: "item.authorType",
-      description: "Type of author (character or narrator)",
-      example: "character",
-    },
-    {
-      name: "item.content",
-      description: "The text content of the turn",
-      example: "She walked through the forest, listening to the birds.",
-    },
-  ],
+    availableVariables: [
+      {
+        name: "item.turnNo",
+        description: "The turn number in the scenario",
+        example: "5",
+      },
+      {
+        name: "item.authorName",
+        description: "Name of the character who authored this turn (or 'Narrator')",
+        example: "Alice",
+      },
+      {
+        name: "item.authorType",
+        description: "Type of author (character or narrator)",
+        example: "character",
+      },
+      {
+        name: "item.content",
+        description: "The text content of the turn",
+        example: "She walked through the forest, listening to the birds.",
+      },
+    ],
 
-  buildSlotLayout() {
-    return {
-      header: [{ kind: "anchor", key: "timeline_start" }],
-      footer: [{ kind: "anchor", key: "timeline_end" }],
-    };
-  },
+    buildSlotLayout() {
+      return {
+        header: [{ kind: "anchor", key: "timeline_start" }],
+        footer: [{ kind: "anchor", key: "timeline_end" }],
+      };
+    },
 
-  toSlotSpec(params) {
-    return {
-      budget: { maxTokens: params.budget },
-      meta: {},
-      plan: [
-        {
-          kind: "forEach",
-          source: { source: "turns", args: { order: "desc", limit: params.maxTurns } },
-          fillDir: "prepend",
-          map: [
-            { kind: "message", role: "user", content: params.turnTemplate },
-            { kind: "anchor", key: "turn_{{item.turnNo}}" },
-          ],
-        },
-      ],
-    };
-  },
-};
+    toSlotSpec(params) {
+      return {
+        budget: { maxTokens: params.budget },
+        meta: {},
+        plan: [
+          {
+            kind: "forEach",
+            source: { source: "turns", args: { order: "desc", limit: params.maxTurns } },
+            fillDir: "prepend",
+            map: [
+              { kind: "message", role: "user", content: params.turnTemplate },
+              { kind: "anchor", key: "turn_{{item.turnNo}}" },
+            ],
+          },
+        ],
+      };
+    },
+  });
 
 const advancedParameters = [
   {
@@ -133,16 +131,15 @@ const advancedParameters = [
 ] as const;
 
 export const timelineAdvancedRecipe: RecipeDefinition<
-  "turn_generation",
-  TurnGenSources,
+  NarrativeSourcesBase,
   typeof advancedParameters
-> = {
+> = defineRecipe({
   id: "timeline_advanced",
   name: "Timeline (Advanced)",
-  task: "turn_generation",
   description:
     "Lists turns in chronological order, and includes the player's guidance prompt before each turn.",
   parameters: advancedParameters,
+  requires: ["turns"],
 
   buildSlotLayout() {
     return {
@@ -208,4 +205,4 @@ export const timelineAdvancedRecipe: RecipeDefinition<
       ],
     };
   },
-};
+});

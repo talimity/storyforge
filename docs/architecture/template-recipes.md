@@ -5,14 +5,15 @@ Template recipes give authors a guided way to configure prompt slots in the UI w
 
 ## Core Building Blocks
 - **RecipeDefinition** (`apps/frontend/src/features/template-builder/types.ts`):
-  - Identifies the recipe (`id`, `name`, `task`, optional description).
+  - Identifies the recipe (`id`, `name`, optional description).
   - Declares a set of typed UI parameters (`RecipeParamSpec`) with default values, min/max bounds, select options, help text, and tooltips.
+  - Lists the narrative sources it needs via `requires`; any task that surfaces those sources can use the recipe.
   - Optionally lists available template variables so editors know which fields exist (e.g., `item.turnNo`).
   - Implements `toSlotSpec(params)` which converts sanitized parameter values into an `Omit<SlotSpec, "priority">` compatible with the prompt DSL.
 
 - **Parameter inference** (`InferRecipeParams`): uses literal `parameters` arrays so TypeScript can infer the value type for each parameter key. The template builder components read these specs to render matching controls (number input, toggle, select, template string editor) and enforce constraints before invoking `toSlotSpec`.
 
-- **Recipes by task kind**: The frontend organizes recipe files by task (`services/recipes/turngen/*` for turn generation). Each recipe imports the task’s `SourceSpec` (e.g., `TurnGenSources`) to ensure the generated SlotSpec uses valid DataRefs.
+- **Task compatibility**: Recipes target a shared source base (e.g., `NarrativeSourcesBase`) and advertise the sources they require. The builder filters recipes per task by checking that the task’s source registry provides every required source.
 
 - **Slot Drafts**: When a user drops a recipe onto a slot, the UI stores a `SlotDraft` containing the recipe ID, current parameter values, and derived budget. Serialization as JSON lets drafts persist across sessions and rehydrate into real SlotSpecs when saving.
 
