@@ -14,6 +14,7 @@ import {
 import { assertDefined } from "@storyforge/utils";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
+import { withTransaction } from "../../transaction-utils.js";
 import { LorebookService } from "../lorebook/lorebook.service.js";
 
 export class ScenarioService {
@@ -76,7 +77,7 @@ export class ScenarioService {
       return sc;
     };
 
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   async updateScenario(
@@ -129,7 +130,7 @@ export class ScenarioService {
       return updatedScenario;
     };
 
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   private async reconcileParticipants(

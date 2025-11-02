@@ -3,6 +3,7 @@ import { after, combine } from "@storyforge/utils";
 import { eq, isNull, sql } from "drizzle-orm";
 import { EngineError } from "../../engine-error.js";
 import { ServiceError } from "../../service-error.js";
+import { withTransaction } from "../../transaction-utils.js";
 import { getGeneratingIntent } from "../intent/intent.queries.js";
 import { canCreateTurn, canPromoteChildren } from "./invariants/turn.js";
 import { validateTurnLayers } from "./invariants/turn-content.js";
@@ -14,12 +15,7 @@ import {
   type TurnGraphDeleteMode,
 } from "./utils/mutation-planner.js";
 
-const {
-  scenarios: tScenarios,
-  scenarioParticipants: tScenarioParticipants,
-  turns: tTurns,
-  turnLayers: tTurnLayers,
-} = schema;
+const { scenarios: tScenarios, turns: tTurns, turnLayers: tTurnLayers } = schema;
 
 const makeLoaders = (tx: SqliteTransaction) => ({
   loadTurn: (id: string) => tx.select().from(tTurns).where(eq(tTurns.id, id)).limit(1).get(),
@@ -61,16 +57,7 @@ export class TimelineService {
   async advanceTurn(args: AdvanceTurnArgs, outerTx?: SqliteTransaction) {
     const { scenarioId, branchFromTurnId } = args;
     const operation = async (tx: SqliteTransaction) => {
-      const [scenario] = await tx
-        .select()
-        .from(tScenarios)
-        .where(eq(tScenarios.id, scenarioId))
-        .limit(1);
-      if (!scenario) {
-        throw new ServiceError("NotFound", {
-          message: `Scenario with ID ${scenarioId} not found.`,
-        });
-      }
+      await this.getScenarioOrThrow(tx, scenarioId);
 
       const parentTurnId = await this.getParentTurnIdForAdvance(tx, scenarioId, branchFromTurnId);
 
@@ -86,7 +73,7 @@ export class TimelineService {
 
       return turn;
     };
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   /**
@@ -98,35 +85,14 @@ export class TimelineService {
   async insertTurnAfter(args: InsertTurnAfterArgs, outerTx?: SqliteTransaction) {
     const { scenarioId, targetTurnId, authorParticipantId, layers } = args;
     const op = async (tx: SqliteTransaction) => {
-      const [scenario] = await tx
-        .select()
-        .from(tScenarios)
-        .where(eq(tScenarios.id, scenarioId))
-        .limit(1);
-      if (!scenario) {
-        throw new ServiceError("NotFound", {
-          message: `Scenario with ID ${scenarioId} not found.`,
-        });
-      }
+      const scenario = await this.getScenarioOrThrow(tx, scenarioId);
+      await this.getTurnInScenarioOrThrow(tx, targetTurnId, scenarioId);
 
-      const target = await tx
-        .select()
-        .from(tTurns)
-        .where(eq(tTurns.id, targetTurnId))
-        .limit(1)
-        .then((rows) => rows[0]);
-      if (!target || target.scenarioId !== scenarioId) {
-        throw new ServiceError("NotFound", {
-          message: `Turn with ID ${targetTurnId} not found in scenario ${scenarioId}.`,
-        });
-      }
-
-      const existingChildren = await tx
-        .select({ id: tTurns.id })
-        .from(tTurns)
-        .where(eq(tTurns.parentTurnId, targetTurnId))
-        .orderBy(tTurns.siblingOrder)
-        .all();
+      const existingChildren = await tx.query.turns.findMany({
+        columns: { id: true },
+        where: { parentTurnId: targetTurnId },
+        orderBy: (t) => [t.siblingOrder],
+      });
 
       const newTurn = await this.insertTurn(
         {
@@ -163,23 +129,14 @@ export class TimelineService {
       return newTurn;
     };
 
-    return outerTx ? op(outerTx) : this.db.transaction(op);
+    return withTransaction(this.db, outerTx, op);
   }
 
   async setTurnGhostState(args: { turnId: string; isGhost: boolean }) {
     const { turnId, isGhost } = args;
 
     await this.db.transaction(async (tx) => {
-      const turn = await tx
-        .select({ id: tTurns.id })
-        .from(tTurns)
-        .where(eq(tTurns.id, turnId))
-        .limit(1)
-        .then((rows) => rows[0]);
-
-      if (!turn) {
-        throw new ServiceError("NotFound", { message: `Turn with ID ${turnId} not found.` });
-      }
+      await this.getTurnOrThrow(tx, turnId);
 
       await tx.update(tTurns).set({ isGhost, updatedAt: new Date() }).where(eq(tTurns.id, turnId));
     });
@@ -190,7 +147,7 @@ export class TimelineService {
    * an error if a branching operation is attempted on an empty scenario.
    */
   private async getParentTurnIdForAdvance(
-    tx: SqliteTransaction,
+    _tx: SqliteTransaction,
     scenarioId: string,
     branchFromTurnId?: string
   ): Promise<string | null> {
@@ -202,17 +159,16 @@ export class TimelineService {
 
     // No branch point provided, so we are advancing the active timeline
     // (appending to anchor, or creating a root).
-    const [{ anchorTurnId }] = await tx
-      .select({ anchorTurnId: tScenarios.anchorTurnId })
-      .from(tScenarios)
-      .where(eq(tScenarios.id, scenarioId))
-      .limit(1);
+    const scenario = await this.db.query.scenarios.findFirst({
+      columns: { anchorTurnId: true },
+      where: { id: scenarioId },
+    });
 
-    if (!anchorTurnId) {
+    if (!scenario?.anchorTurnId) {
       // No anchor turn, so we are creating a root.
       return null;
     }
-    return anchorTurnId;
+    return scenario.anchorTurnId;
   }
 
   async reorderTurn(_delta: number) {
@@ -255,30 +211,13 @@ export class TimelineService {
     turnId: string,
     mode: TurnGraphDeleteMode
   ): Promise<DeletionSnapshot> {
-    const [target] = await tx.select().from(tTurns).where(eq(tTurns.id, turnId)).limit(1);
-    if (!target) {
-      throw new ServiceError("NotFound", {
-        message: `Turn with ID ${turnId} not found.`,
-      });
-    }
+    const target = await this.getTurnOrThrow(tx, turnId);
+    const scenario = await this.getScenarioOrThrow(tx, target.scenarioId);
 
-    const [scenario] = await tx
-      .select()
-      .from(tScenarios)
-      .where(eq(tScenarios.id, target.scenarioId))
-      .limit(1);
-    if (!scenario) {
-      throw new ServiceError("NotFound", {
-        message: `Scenario with ID ${target.scenarioId} not found.`,
-      });
-    }
-
-    const children = await tx
-      .select()
-      .from(tTurns)
-      .where(eq(tTurns.parentTurnId, turnId))
-      .orderBy(tTurns.siblingOrder)
-      .all();
+    const children = await tx.query.turns.findMany({
+      where: { parentTurnId: turnId },
+      orderBy: (t) => [t.siblingOrder],
+    });
 
     const siblings = await tx
       .select({ id: tTurns.id, order: tTurns.siblingOrder })
@@ -379,29 +318,64 @@ export class TimelineService {
     };
     return outerTx ? op(outerTx) : this.db.transaction(op);
   }
+
+  private async getScenarioOrThrow(tx: SqliteTransaction, scenarioId: string) {
+    const scenario = await tx.query.scenarios.findFirst({ where: { id: scenarioId } });
+
+    if (!scenario) {
+      throw new ServiceError("NotFound", {
+        message: `Scenario with ID ${scenarioId} not found.`,
+      });
+    }
+
+    return scenario;
+  }
+
+  private async getTurnOrThrow(tx: SqliteTransaction, turnId: string) {
+    const turn = await tx.query.turns.findFirst({ where: { id: turnId } });
+
+    if (!turn) {
+      throw new ServiceError("NotFound", {
+        message: `Turn with ID ${turnId} not found.`,
+      });
+    }
+
+    return turn;
+  }
+
+  private async getTurnInScenarioOrThrow(
+    tx: SqliteTransaction,
+    turnId: string,
+    scenarioId: string
+  ) {
+    const turn = await this.getTurnOrThrow(tx, turnId);
+    if (turn.scenarioId !== scenarioId) {
+      throw new ServiceError("NotFound", {
+        message: `Turn with ID ${turnId} not found in scenario ${scenarioId}.`,
+      });
+    }
+    return turn;
+  }
 }
 
 async function nextSiblingOrder(tx: SqliteTransaction, parent: string | null) {
-  const rows = await tx
-    .select({ order: schema.turns.siblingOrder })
-    .from(schema.turns)
-    .where(parent ? eq(schema.turns.parentTurnId, parent) : isNull(schema.turns.parentTurnId))
-    .orderBy(schema.turns.siblingOrder);
+  const rows = await tx.query.turns.findMany({
+    columns: { siblingOrder: true },
+    where: {
+      ...(parent ? { parentTurnId: parent } : { parentTurnId: { isNull: true } }),
+    },
+    orderBy: (t) => [t.siblingOrder],
+  });
 
-  const last = rows.at(-1)?.order ?? "";
+  const last = rows.at(-1)?.siblingOrder ?? "";
   return after(last);
 }
 
 async function loadParticipantMembership(tx: SqliteTransaction, participantId: string) {
-  const [p] = await tx
-    .select({
-      id: tScenarioParticipants.id,
-      scenarioId: tScenarioParticipants.scenarioId,
-      status: tScenarioParticipants.status,
-    })
-    .from(tScenarioParticipants)
-    .where(eq(tScenarioParticipants.id, participantId))
-    .limit(1);
+  const p = await tx.query.scenarioParticipants.findFirst({
+    columns: { id: true, scenarioId: true, status: true },
+    where: { id: participantId },
+  });
   if (!p) return;
   return { id: p.id, scenarioId: p.scenarioId, status: p.status };
 }

@@ -116,13 +116,11 @@ export class CharacterService {
         }
       }
 
-      const refreshed = await tx
+      return await tx
         .select()
         .from(schema.characterStarters)
         .where(eq(schema.characterStarters.characterId, characterId))
         .orderBy(schema.characterStarters.isPrimary, schema.characterStarters.createdAt);
-
-      return refreshed;
     });
   }
 

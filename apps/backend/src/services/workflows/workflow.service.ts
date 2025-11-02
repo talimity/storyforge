@@ -9,6 +9,7 @@ import { genStepSchema, taskKindSchema, validateWorkflow } from "@storyforge/gen
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
+import { withTransaction } from "../../transaction-utils.js";
 
 type CreateWorkflowData = {
   task: TaskKind;
@@ -47,35 +48,15 @@ export class WorkflowService {
         .returning()
         .all();
 
-      return {
-        id: wf.id,
-        name: wf.name,
-        description: wf.description ?? undefined,
-        task: taskKindSchema.parse(wf.task),
-        version: 1 as const,
-        steps: z.array(genStepSchema).parse(wf.steps),
-        isBuiltIn: wf.isBuiltIn,
-        createdAt: wf.createdAt,
-        updatedAt: wf.updatedAt,
-      };
+      return this.toWorkflowDto(wf);
     };
 
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   async updateWorkflow(id: string, data: UpdateWorkflowData, outerTx?: SqliteTransaction) {
     const operation = async (tx: SqliteTransaction) => {
-      const existing = await tx.query.workflows.findFirst({ where: { id } });
-      if (!existing) {
-        throw new ServiceError("NotFound", {
-          message: `Workflow ${id} not found`,
-        });
-      }
-      if (existing.isBuiltIn) {
-        throw new ServiceError("Forbidden", {
-          message: "Cannot modify a built-in workflow",
-        });
-      }
+      const existing = await this.getEditableWorkflowOrThrow(tx, id);
 
       const newTask = taskKindSchema.parse(data.task ?? existing.task);
       const newName = data.name ?? existing.name;
@@ -105,49 +86,24 @@ export class WorkflowService {
         .returning()
         .all();
 
-      return {
-        id: wf.id,
-        name: wf.name,
-        description: wf.description ?? undefined,
-        task: taskKindSchema.parse(wf.task),
-        version: 1 as const,
-        steps: z.array(genStepSchema).parse(wf.steps),
-        isBuiltIn: wf.isBuiltIn,
-        createdAt: wf.createdAt,
-        updatedAt: wf.updatedAt,
-      };
+      return this.toWorkflowDto(wf);
     };
 
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   async deleteWorkflow(id: string, outerTx?: SqliteTransaction) {
     const operation = async (tx: SqliteTransaction) => {
-      const existing = await tx.query.workflows.findFirst({ where: { id } });
-      if (!existing) {
-        throw new ServiceError("NotFound", {
-          message: `Workflow ${id} not found`,
-        });
-      }
-      if (existing.isBuiltIn) {
-        throw new ServiceError("Forbidden", {
-          message: "Cannot delete a built-in workflow",
-        });
-      }
+      await this.getEditableWorkflowOrThrow(tx, id);
 
       await tx.delete(schema.workflows).where(eq(schema.workflows.id, id)).execute();
     };
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   async duplicateWorkflow(id: string, name: string, outerTx?: SqliteTransaction) {
     const operation = async (tx: SqliteTransaction) => {
-      const existing = await tx.query.workflows.findFirst({ where: { id } });
-      if (!existing) {
-        throw new ServiceError("NotFound", {
-          message: `Workflow ${id} not found`,
-        });
-      }
+      const existing = await this.getWorkflowOrThrow(tx, id);
 
       const [wf] = await tx
         .insert(schema.workflows)
@@ -162,18 +118,42 @@ export class WorkflowService {
         .returning()
         .all();
 
-      return {
-        id: wf.id,
-        name: wf.name,
-        description: wf.description ?? undefined,
-        task: taskKindSchema.parse(wf.task),
-        version: 1 as const,
-        steps: z.array(genStepSchema).parse(wf.steps),
-        isBuiltIn: wf.isBuiltIn,
-        createdAt: wf.createdAt,
-        updatedAt: wf.updatedAt,
-      };
+      return this.toWorkflowDto(wf);
     };
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
+  }
+
+  private toWorkflowDto(wf: typeof schema.workflows.$inferSelect) {
+    return {
+      id: wf.id,
+      name: wf.name,
+      description: wf.description ?? undefined,
+      task: taskKindSchema.parse(wf.task),
+      version: 1 as const,
+      steps: z.array(genStepSchema).parse(wf.steps),
+      isBuiltIn: wf.isBuiltIn,
+      createdAt: wf.createdAt,
+      updatedAt: wf.updatedAt,
+    };
+  }
+
+  private async getWorkflowOrThrow(tx: SqliteTransaction, id: string) {
+    const existing = await tx.query.workflows.findFirst({ where: { id } });
+    if (!existing) {
+      throw new ServiceError("NotFound", {
+        message: `Workflow ${id} not found`,
+      });
+    }
+    return existing;
+  }
+
+  private async getEditableWorkflowOrThrow(tx: SqliteTransaction, id: string) {
+    const existing = await this.getWorkflowOrThrow(tx, id);
+    if (existing.isBuiltIn) {
+      throw new ServiceError("Forbidden", {
+        message: "Cannot modify a built-in workflow",
+      });
+    }
+    return existing;
   }
 }

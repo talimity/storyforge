@@ -58,19 +58,27 @@ export class LorebookService {
     );
   }
 
-  async createLorebook(args: CreateLorebookArgs, outerTx?: SqliteTransaction) {
-    const normalized = normalizeLorebookData(args.data);
-    const hash = this.hashLorebook(normalized);
+  private prepareLorebookRecord(data: LorebookData) {
+    const normalized = normalizeLorebookData(data);
+    const fingerprint = this.hashLorebook(normalized);
     const entryCount = normalized.entries.length;
     const name = normalized.name?.trim() || "Untitled Lorebook";
     const description = normalized.description?.trim() || null;
+
+    return { normalized, fingerprint, entryCount, name, description };
+  }
+
+  async createLorebook(args: CreateLorebookArgs, outerTx?: SqliteTransaction) {
+    const { normalized, fingerprint, entryCount, name, description } = this.prepareLorebookRecord(
+      args.data
+    );
     const source = args.source ?? "manual";
 
     const work = async (tx: SqliteTransaction) => {
       const existing = await tx
         .select()
         .from(schema.lorebooks)
-        .where(eq(schema.lorebooks.fingerprint, hash))
+        .where(eq(schema.lorebooks.fingerprint, fingerprint))
         .limit(1);
 
       if (existing[0]) {
@@ -83,7 +91,7 @@ export class LorebookService {
           name,
           description,
           data: normalized,
-          fingerprint: hash,
+          fingerprint,
           entryCount,
           source,
         })
@@ -102,11 +110,9 @@ export class LorebookService {
   }
 
   async updateLorebook(args: UpdateLorebookArgs, outerTx?: SqliteTransaction) {
-    const normalized = normalizeLorebookData(args.data);
-    const fingerprint = this.hashLorebook(normalized);
-    const entryCount = normalized.entries.length;
-    const name = normalized.name?.trim() || "Untitled Lorebook";
-    const description = normalized.description?.trim() || null;
+    const { normalized, fingerprint, entryCount, name, description } = this.prepareLorebookRecord(
+      args.data
+    );
 
     const work = async (tx: SqliteTransaction) => {
       const [existing] = await tx

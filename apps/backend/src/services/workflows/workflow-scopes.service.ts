@@ -89,9 +89,9 @@ export class WorkflowScopesService {
             workflowId: data.workflowId,
             workflowTask,
             scopeKind: data.scopeKind,
-            scenarioId: data.scenarioId || null,
-            characterId: data.characterId || null,
-            participantId: data.participantId || null,
+            scenarioId: data.scenarioId,
+            characterId: data.characterId,
+            participantId: data.participantId,
           })
           .returning()
           .all();

@@ -7,6 +7,7 @@ import {
 import type { UnboundTemplate } from "@storyforge/prompt-rendering";
 import { eq } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
+import { withTransaction } from "../../transaction-utils.js";
 import { fromDbPromptTemplate, tryCompileUnboundTemplate } from "./utils/marshalling.js";
 
 type CreateTemplateData = Omit<UnboundTemplate, "id" | "version">;
@@ -51,7 +52,7 @@ export class TemplateService {
       };
     };
 
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   async updateTemplate(id: string, data: UpdateTemplateData, outerTx?: SqliteTransaction) {
@@ -111,7 +112,7 @@ export class TemplateService {
       };
     };
 
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   async deleteTemplate(id: string, outerTx?: SqliteTransaction) {
@@ -131,7 +132,7 @@ export class TemplateService {
       return { success: true };
     };
 
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   async duplicateTemplate(id: string, newName: string, outerTx?: SqliteTransaction) {
@@ -167,7 +168,7 @@ export class TemplateService {
       };
     };
 
-    return outerTx ? operation(outerTx) : this.db.transaction(operation);
+    return withTransaction(this.db, outerTx, operation);
   }
 
   async importTemplate(

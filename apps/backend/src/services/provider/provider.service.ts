@@ -24,6 +24,7 @@ import { stripNulls } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
 import { createChildLogger } from "../../logging.js";
 import { ServiceError } from "../../service-error.js";
+import { withTransaction } from "../../transaction-utils.js";
 
 const logger = createChildLogger("provider-service");
 
@@ -32,24 +33,15 @@ export class ProviderService {
 
   async createProvider(input: CreateProviderConfig, outerTx?: SqliteTransaction) {
     const op = async (tx: SqliteTransaction) => {
-      if (input.kind === "openai-compatible") {
-        if (!input.baseUrl) {
-          throw new ServiceError("InvalidInput", {
-            message: "Base URL is required for OpenAI-compatible provider",
-          });
-        }
-        if (!input.capabilities) {
-          throw new ServiceError("InvalidInput", {
-            message: "Capabilities are required for OpenAI-compatible provider",
-          });
-        }
-      }
+      ensureOpenAICompatibleRequirements({
+        kind: input.kind,
+        baseUrl: input.baseUrl,
+        capabilities: input.capabilities,
+      });
 
       const newProvider: NewProviderConfig = {
         ...input,
-        ...(input.kind === "openai-compatible"
-          ? { capabilities: input.capabilities }
-          : { capabilities: null }),
+        capabilities: resolveCapabilitiesForKind(input.kind, input.capabilities),
       };
 
       const [created] = await tx.insert(providerConfigs).values(newProvider).returning();
@@ -57,7 +49,7 @@ export class ProviderService {
       return created;
     };
 
-    return outerTx ? op(outerTx) : this.db.transaction(op);
+    return withTransaction(this.db, outerTx, op);
   }
 
   async updateProvider(
@@ -69,20 +61,11 @@ export class ProviderService {
       const existing = await this.getProviderByIdOrFail(tx, id);
 
       const newKind = input.kind ?? existing.kind;
-      if (newKind === "openai-compatible") {
-        const newBaseUrl = input.baseUrl ?? existing.baseUrl;
-        if (!newBaseUrl) {
-          throw new ServiceError("InvalidInput", {
-            message: "Base URL is required for OpenAI-compatible provider",
-          });
-        }
-        const newCapabilities = input.capabilities ?? existing.capabilities;
-        if (!newCapabilities) {
-          throw new ServiceError("InvalidInput", {
-            message: "Capabilities are required for OpenAI-compatible provider",
-          });
-        }
-      }
+      ensureOpenAICompatibleRequirements({
+        kind: newKind,
+        baseUrl: input.baseUrl ?? existing.baseUrl,
+        capabilities: input.capabilities ?? existing.capabilities,
+      });
 
       const updates = buildSqliteUpdates({
         input,
@@ -99,7 +82,7 @@ export class ProviderService {
       return updated;
     };
 
-    return outerTx ? op(outerTx) : this.db.transaction(op);
+    return withTransaction(this.db, outerTx, op);
   }
 
   async deleteProvider(id: string, outerTx?: SqliteTransaction): Promise<void> {
@@ -111,7 +94,7 @@ export class ProviderService {
       await tx.delete(providerConfigs).where(eq(providerConfigs.id, id));
     };
 
-    return outerTx ? op(outerTx) : this.db.transaction(op);
+    return withTransaction(this.db, outerTx, op);
   }
 
   async createModelProfile(
@@ -125,7 +108,7 @@ export class ProviderService {
       return created;
     };
 
-    return outerTx ? op(outerTx) : this.db.transaction(op);
+    return withTransaction(this.db, outerTx, op);
   }
 
   async updateModelProfile(
@@ -156,7 +139,7 @@ export class ProviderService {
       return updated;
     };
 
-    return outerTx ? op(outerTx) : this.db.transaction(op);
+    return withTransaction(this.db, outerTx, op);
   }
 
   async deleteModelProfile(id: string, outerTx?: SqliteTransaction): Promise<void> {
@@ -166,7 +149,7 @@ export class ProviderService {
       await tx.delete(modelProfiles).where(eq(modelProfiles.id, id));
     };
 
-    return outerTx ? op(outerTx) : this.db.transaction(op);
+    return withTransaction(this.db, outerTx, op);
   }
 
   async testProviderConnection(
@@ -240,4 +223,41 @@ export class ProviderService {
     }
     return provider;
   }
+}
+
+function ensureOpenAICompatibleRequirements(args: {
+  kind: ProviderConfig["kind"];
+  baseUrl: string | null | undefined;
+  capabilities: ProviderConfig["capabilities"] | null | undefined;
+}) {
+  if (args.kind !== "openai-compatible") return;
+
+  if (!args.baseUrl) {
+    throw new ServiceError("InvalidInput", {
+      message: "Base URL is required for OpenAI-compatible provider",
+    });
+  }
+
+  if (!args.capabilities) {
+    throw new ServiceError("InvalidInput", {
+      message: "Capabilities are required for OpenAI-compatible provider",
+    });
+  }
+}
+
+function resolveCapabilitiesForKind(
+  kind: ProviderConfig["kind"],
+  capabilities: ProviderConfig["capabilities"] | null | undefined
+): ProviderConfig["capabilities"] | null {
+  if (kind !== "openai-compatible") {
+    return null;
+  }
+
+  if (!capabilities) {
+    throw new ServiceError("InvalidInput", {
+      message: "Capabilities are required for OpenAI-compatible provider",
+    });
+  }
+
+  return capabilities;
 }
