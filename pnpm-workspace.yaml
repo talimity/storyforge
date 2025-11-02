@@ -12,7 +12,7 @@ catalog:
   '@types/json-schema': ^7.0.15
   '@types/node': ^24.9.2
   '@typescript-eslint/parser': ^8.46.2
-  '@typescript/native-preview': 7.0.0-dev.20251023.1
+  '@typescript/native-preview': 7.0.0-dev.20251101.1
   chevrotain: ^11.0.3
   drizzle-kit: beta
   drizzle-orm: 1.0.0-beta.1-27d2721
