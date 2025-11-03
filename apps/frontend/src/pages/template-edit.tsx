@@ -83,7 +83,7 @@ function TemplateEditPage() {
 
   if (templateQuery.isLoading) {
     return (
-      <Container maxW="6xl">
+      <Container>
         <SimplePageHeader title="Loading Template..." />
         <VStack gap={4} align="center" py={12}>
           <Text color="content.muted">Loading template data...</Text>
@@ -94,7 +94,7 @@ function TemplateEditPage() {
 
   if (!id || templateQuery.isError || !templateQuery.data) {
     return (
-      <Container maxW="6xl">
+      <Container>
         <SimplePageHeader title="Template Not Found" />
         <VStack gap={4} align="center" textAlign="center" py={12}>
           <Heading size="md" color="content.muted">
@@ -115,12 +115,13 @@ function TemplateEditPage() {
   const initialDraft = templateToDraft(template);
 
   return (
-    <PageContainer maxW="6xl">
+    <PageContainer>
+      <SimplePageHeader title={`Edit Template: ${template.name}`} />
       <TemplateForm
         initialDraft={initialDraft}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        pageTitle={template.name}
+        submitLabel="Save Changes"
         isEditMode
       />
     </PageContainer>

@@ -2,6 +2,7 @@ import { type TaskKind, taskKindSchema } from "@storyforge/gentasks";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { SimplePageHeader } from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
 import { TemplateForm } from "@/features/template-builder/components/template-form";
 import { compileDraft } from "@/features/template-builder/services/compile-draft";
@@ -90,13 +91,13 @@ function TemplateCreatePage() {
   }
 
   return (
-    <PageContainer maxW="6xl">
+    <PageContainer>
+      <SimplePageHeader title="Create Template" />
       <TemplateForm
         initialDraft={initialDraft}
         onSubmit={handleTemplateSubmit}
         onCancel={handleCancel}
-        pageTitle="New Template"
-        isEditMode={false}
+        submitLabel="Create Template"
       />
     </PageContainer>
   );

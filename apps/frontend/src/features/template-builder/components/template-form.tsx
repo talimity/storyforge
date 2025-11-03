@@ -1,10 +1,10 @@
-import { List, Tabs, VStack } from "@chakra-ui/react";
+import { Badge, Card, HStack, List, Spacer, Stack, Tabs, VStack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
 import { useEffect, useId, useRef, useState } from "react";
 import { LuEye, LuInfo, LuRows3, LuSyringe, LuTriangleAlert } from "react-icons/lu";
 import { useShallow } from "zustand/react/shallow";
 import { UnsavedChangesDialog } from "@/components/dialogs/unsaved-changes-dialog";
-import { Alert, Button, PageHeader } from "@/components/ui";
+import { Alert, Button } from "@/components/ui";
 import { AttachmentsPanel } from "@/features/template-builder/components/attachments/attachments-panel";
 import { LayoutBuilder } from "@/features/template-builder/components/layout-builder";
 import { TemplateMetadata } from "@/features/template-builder/components/template-metadata";
@@ -28,7 +28,8 @@ interface TemplateFormProps {
     attachmentDrafts: TemplateDraft["attachmentDrafts"];
   }) => Promise<void> | void;
   onCancel: () => void;
-  pageTitle: string;
+  submitLabel?: string;
+  cancelLabel?: string;
   isEditMode?: boolean;
 }
 
@@ -38,7 +39,8 @@ export function TemplateForm({
   initialDraft,
   onSubmit,
   onCancel,
-  pageTitle,
+  submitLabel,
+  cancelLabel = "Cancel",
   isEditMode = false,
 }: TemplateFormProps) {
   const [activeTab, setActiveTab] = useState("metadata");
@@ -171,11 +173,14 @@ export function TemplateForm({
     : metadataValidation.error.issues.length;
 
   const hasUnsavedChanges = (formIsDirty || builderIsDirty) && !formIsSubmitting;
-  const submitLabel = isEditMode
-    ? hasUnsavedChanges
-      ? "Save Changes"
-      : "Saved"
-    : "Create Template";
+
+  const computedSubmitLabel = submitLabel
+    ? submitLabel
+    : isEditMode
+      ? hasUnsavedChanges
+        ? "Save Changes"
+        : "Saved"
+      : "Create Template";
 
   const { showDialog, handleConfirmNavigation, handleCancelNavigation, confirmNavigation } =
     useUnsavedChangesProtection({
@@ -212,81 +217,110 @@ export function TemplateForm({
 
   return (
     <>
-      {/* Todo: move page wrapper out of form */}
-      <PageHeader.Root>
-        <PageHeader.Title>
-          {isEditMode ? `Edit Template: ${pageTitle}` : pageTitle}
-        </PageHeader.Title>
+      <Card.Root layerStyle="surface" maxW="60rem" mx="auto">
+        <form
+          id={form.formId}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit();
+          }}
+        >
+          <Tabs.Root
+            value={activeTab}
+            onValueChange={(details) => setActiveTab(details.value)}
+            lazyMount
+          >
+            <Tabs.List>
+              {tabs.map((tab) => (
+                <Tabs.Trigger key={tab.value} value={tab.value}>
+                  <HStack gap={2} align="center">
+                    {tab.icon}
+                    <span>{tab.label}</span>
+                    {tab.badge ? (
+                      <Badge colorPalette={tab.badgeColorPalette ?? "gray"}>{tab.badge}</Badge>
+                    ) : null}
+                  </HStack>
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
 
-        <PageHeader.Tabs tabs={tabs} defaultValue={activeTab} onChange={setActiveTab}>
-          <PageHeader.Controls>
-            <Button
-              variant="ghost"
-              onClick={() => confirmNavigation(onCancel)}
-              disabled={formIsSubmitting}
-            >
-              Cancel
-            </Button>
-            <form.Subscribe
-              selector={(state) => ({
-                canSubmit: state.canSubmit,
-                isSubmitting: state.isSubmitting,
-              })}
-            >
-              {({ canSubmit, isSubmitting }) => (
-                <Button
-                  colorPalette="primary"
-                  onClick={() => form.handleSubmit()}
-                  disabled={
-                    !canSubmit || isSubmitting || (hasStructureErrors && activeTab === "structure")
-                  }
-                  loading={isSubmitting}
-                  loadingText={isEditMode ? "Saving..." : "Creating..."}
-                >
-                  {submitLabel}
-                </Button>
-              )}
-            </form.Subscribe>
-          </PageHeader.Controls>
+            <Tabs.Content value="metadata" p={6}>
+              <TemplateMetadata form={form} isEditMode={isEditMode} />
+            </Tabs.Content>
 
-          <Tabs.Content value="metadata">
-            <TemplateMetadata form={form} isEditMode={isEditMode} />
-          </Tabs.Content>
+            <Tabs.Content value="structure" p={6}>
+              <VStack align="stretch" gap={4}>
+                {hasStructureErrors && (
+                  <Alert
+                    icon={<LuTriangleAlert />}
+                    title={`Template layout has issues (${structureErrorCount})`}
+                    status="error"
+                  >
+                    <List.Root>
+                      {structureErrors.map((error, index) => (
+                        <List.Item key={error + String(index)}>{error}</List.Item>
+                      ))}
+                    </List.Root>
+                  </Alert>
+                )}
 
-          <Tabs.Content value="structure">
-            <VStack align="stretch" gap={4}>
-              {hasStructureErrors && (
-                <Alert
-                  icon={<LuTriangleAlert />}
-                  title={`Template layout has issues (${structureErrorCount})`}
-                  status="error"
-                >
-                  <List.Root>
-                    {structureErrors.map((error, index) => (
-                      <List.Item key={error + String(index)}>{error}</List.Item>
-                    ))}
-                  </List.Root>
-                </Alert>
-              )}
+                <LayoutBuilder task={metadataValues.task} />
+              </VStack>
+            </Tabs.Content>
 
-              <LayoutBuilder task={metadataValues.task} />
-            </VStack>
-          </Tabs.Content>
+            <Tabs.Content value="attachments" p={6}>
+              <AttachmentsPanel task={metadataValues.task} />
+            </Tabs.Content>
 
-          <Tabs.Content value="attachments">
-            <AttachmentsPanel task={metadataValues.task} />
-          </Tabs.Content>
+            <Tabs.Content value="preview" p={6}>
+              <Stack gap={4}>
+                <TemplatePreview draft={currentDraft} />
+              </Stack>
+            </Tabs.Content>
+          </Tabs.Root>
 
-          <Tabs.Content value="preview">
-            <TemplatePreview draft={currentDraft} />
-          </Tabs.Content>
-        </PageHeader.Tabs>
-      </PageHeader.Root>
+          <Card.Footer borderTopWidth={1} borderTopColor="border" pt={6} px={6}>
+            <HStack width="full" align="center">
+              <Button
+                variant="ghost"
+                onClick={() => confirmNavigation(onCancel)}
+                disabled={formIsSubmitting}
+              >
+                {cancelLabel}
+              </Button>
+              <Spacer />
+              <form.Subscribe
+                selector={(state) => ({
+                  canSubmit: state.canSubmit,
+                  isSubmitting: state.isSubmitting,
+                })}
+              >
+                {({ canSubmit, isSubmitting }) => (
+                  <Button
+                    colorPalette="primary"
+                    type="submit"
+                    disabled={
+                      !canSubmit ||
+                      isSubmitting ||
+                      (hasStructureErrors && activeTab === "structure")
+                    }
+                    loading={isSubmitting}
+                    loadingText={isEditMode ? "Saving..." : "Creating..."}
+                  >
+                    {computedSubmitLabel}
+                  </Button>
+                )}
+              </form.Subscribe>
+            </HStack>
+          </Card.Footer>
+        </form>
+      </Card.Root>
 
       <UnsavedChangesDialog
         isOpen={showDialog}
         onConfirm={handleConfirmNavigation}
         onCancel={handleCancelNavigation}
+        message="You have unsaved changes to this template. Are you sure you want to leave?"
       />
     </>
   );

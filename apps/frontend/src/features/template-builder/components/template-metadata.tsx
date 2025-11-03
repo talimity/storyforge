@@ -1,4 +1,4 @@
-import { Card, Stack } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
 import { LuFileText } from "react-icons/lu";
 import { TabHeader } from "@/components/ui/tab-header";
@@ -22,57 +22,55 @@ export const TemplateMetadata = withForm({
     const selectedTask = taskKindOptions.find((option) => option.value === task);
 
     return (
-      <Card.Root layerStyle="surface">
-        <Stack p={6} gap={4}>
-          <TabHeader
-            title="Prompt Template Information"
-            description="Basic metadata and configuration"
-            icon={LuFileText}
-          />
+      <Stack gap={6}>
+        <TabHeader
+          title="Prompt Template Information"
+          description="Basic metadata and configuration"
+          icon={LuFileText}
+        />
 
-          <Stack gap={4}>
-            <form.AppField name="name">
-              {(field) => (
-                <field.TextInput
-                  label="Template Name"
-                  placeholder="Enter template name"
-                  autoComplete="off"
-                  required
+        <Stack gap={4}>
+          <form.AppField name="name">
+            {(field) => (
+              <field.TextInput
+                label="Template Name"
+                placeholder="Enter template name"
+                autoComplete="off"
+                required
+              />
+            )}
+          </form.AppField>
+
+          <form.AppField name="task">
+            {(field) => (
+              <field.Field label="Task Type" helperText={selectedTask?.description} required>
+                <TaskKindSelect
+                  value={field.state.value}
+                  onChange={(value) => {
+                    if (!value) return;
+                    field.handleChange(value);
+                    field.handleBlur();
+                  }}
+                  disabled={isEditMode}
+                  placeholder="Select task kind"
                 />
-              )}
-            </form.AppField>
+              </field.Field>
+            )}
+          </form.AppField>
 
-            <form.AppField name="task">
-              {(field) => (
-                <field.Field label="Task Type" helperText={selectedTask?.description} required>
-                  <TaskKindSelect
-                    value={field.state.value}
-                    onChange={(value) => {
-                      if (!value) return;
-                      field.handleChange(value);
-                      field.handleBlur();
-                    }}
-                    disabled={isEditMode}
-                    placeholder="Select task kind"
-                  />
-                </field.Field>
-              )}
-            </form.AppField>
-
-            <form.AppField name="description">
-              {(field) => (
-                <field.TextareaInput
-                  label="Description"
-                  helperText="Optional description of what this template does"
-                  placeholder="Describe the purpose and usage of this template..."
-                  autosize
-                  minRows={3}
-                />
-              )}
-            </form.AppField>
-          </Stack>
+          <form.AppField name="description">
+            {(field) => (
+              <field.TextareaInput
+                label="Description"
+                helperText="Optional description of what this template does"
+                placeholder="Describe the purpose and usage of this template..."
+                autosize
+                minRows={3}
+              />
+            )}
+          </form.AppField>
         </Stack>
-      </Card.Root>
+      </Stack>
     );
   },
 });

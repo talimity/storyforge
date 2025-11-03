@@ -85,7 +85,7 @@ function renderSegments(segments: TemplateSegment[], styles: HighlightMap) {
     }
 
     return (
-      <Mark key={key} {...styles[segment.kind]}>
+      <Mark key={key} {...styles[segment.kind]} whiteSpace="pre-wrap">
         {segment.content}
       </Mark>
     );
