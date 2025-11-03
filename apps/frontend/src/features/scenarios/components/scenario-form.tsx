@@ -8,7 +8,7 @@ import {
 } from "@/features/scenarios/components/form-schemas";
 import { ParticipantManager } from "@/features/scenarios/components/participant-manager";
 import { ScenarioLorebookManager } from "@/features/scenarios/components/scenario-lorebook-manager";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 
 interface ScenarioFormProps {
   initialData?: Partial<ScenarioFormValues>;

@@ -13,7 +13,7 @@ import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LuCheck, LuX } from "react-icons/lu";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 import { useTRPC } from "@/lib/trpc";
 
 const DEFAULT_SWATCHES = [

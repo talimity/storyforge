@@ -19,8 +19,8 @@ import {
   getInitialIntentFormValues,
   intentFormSchema,
 } from "@/features/scenario-player/utils/intent-form";
-import { useAppForm } from "@/lib/app-form";
 import { showErrorToast } from "@/lib/error-handling";
+import { useAppForm } from "@/lib/form/app-form";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
 import { useScenarioIntentActions } from "../../hooks/use-scenario-intent-actions";

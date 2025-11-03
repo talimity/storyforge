@@ -6,7 +6,7 @@ import {
   INTENT_KIND_CONFIG,
   intentFormDefaultValues,
 } from "@/features/scenario-player/utils/intent-form";
-import { withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/form/app-form";
 
 const INTENT_KIND_SEGMENTS: Array<{
   value: IntentKind;

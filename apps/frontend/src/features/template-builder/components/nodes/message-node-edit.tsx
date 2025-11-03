@@ -10,7 +10,7 @@ import {
   MESSAGE_ROLE_SELECT_OPTIONS,
 } from "@/features/template-builder/services/builder-utils";
 import type { MessageLayoutDraft } from "@/features/template-builder/types";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 
 interface MessageNodeEditProps {
   node: MessageLayoutDraft;

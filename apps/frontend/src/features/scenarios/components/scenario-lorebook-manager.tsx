@@ -13,7 +13,7 @@ import {
   type ScenarioFormValues,
   scenarioFormDefaultValues,
 } from "@/features/scenarios/components/form-schemas";
-import { withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/form/app-form";
 import { formatFormError } from "@/lib/form/field-control";
 import { useTRPC } from "@/lib/trpc";
 

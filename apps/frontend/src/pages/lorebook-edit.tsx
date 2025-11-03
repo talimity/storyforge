@@ -1,6 +1,6 @@
 import { Container, Skeleton, Text } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, SimplePageHeader } from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
@@ -9,6 +9,7 @@ import { LoreActivationPreviewDialog } from "@/features/lorebooks/components/lor
 import { LorebookForm } from "@/features/lorebooks/components/lorebook-form";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
+import { useRegisterRecentEntity } from "@/stores/recent-entity-store";
 
 function LorebookEditPage() {
   const trpc = useTRPC();
@@ -16,6 +17,7 @@ function LorebookEditPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showPreview, setShowPreview] = useState(false);
+  const registerRecentEntity = useRegisterRecentEntity();
 
   const lorebookQuery = useQuery(
     trpc.lorebooks.getById.queryOptions(
@@ -38,6 +40,22 @@ function LorebookEditPage() {
     })
   );
 
+  const lorebookDetail = lorebookQuery.data;
+  const lorebook = lorebookDetail?.data;
+  const lorebookId = lorebookDetail?.id;
+  const lorebookName = lorebookDetail?.name ?? "";
+
+  useEffect(() => {
+    if (!lorebookId || !lorebookName) return;
+
+    registerRecentEntity({
+      domain: "lorebooks",
+      id: lorebookId,
+      name: lorebookName,
+      path: `/lorebooks/${lorebookId}/edit`,
+    });
+  }, [registerRecentEntity, lorebookId, lorebookName]);
+
   if (lorebookQuery.isLoading) {
     return (
       <Container>
@@ -47,7 +65,7 @@ function LorebookEditPage() {
     );
   }
 
-  if (lorebookQuery.error || !lorebookQuery.data) {
+  if (lorebookQuery.error || !lorebook) {
     return (
       <Container>
         <SimplePageHeader title="Edit Lorebook" />
@@ -55,8 +73,6 @@ function LorebookEditPage() {
       </Container>
     );
   }
-
-  const lorebook = lorebookQuery.data.data;
 
   return (
     <PageContainer>

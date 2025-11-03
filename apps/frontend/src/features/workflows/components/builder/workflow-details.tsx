@@ -3,7 +3,7 @@ import { LuFileText } from "react-icons/lu";
 import { TabHeader } from "@/components/ui/tab-header";
 import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { workflowFormDefaultValues } from "@/features/workflows/components/builder/form-schemas";
-import { withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/form/app-form";
 
 export const WorkflowDetailsTab = withForm({
   defaultValues: workflowFormDefaultValues,

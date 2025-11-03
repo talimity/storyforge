@@ -9,7 +9,7 @@ import type { z } from "zod";
 import { useColorMode } from "@/components/ui";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { FieldControl, type FieldPresentationProps } from "@/lib/form/field-control";
-import { useFieldContext } from "@/lib/form-context";
+import { useFieldContext } from "@/lib/form/form-context";
 import { inputRecipe } from "@/theme";
 
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;

@@ -19,7 +19,7 @@ import { cardTypeLabels } from "@/features/characters/character-enums";
 import { CharacterLorebookManager } from "@/features/characters/components/form/character-lorebook-manager";
 import { CharacterPaletteEditor } from "@/features/characters/components/form/character-palette-editor";
 import { CharacterPortraitField } from "@/features/characters/components/form/character-portrait-field";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 import { getApiUrl } from "@/lib/get-api-url";
 import { CharacterStartersEditor } from "./character-starters-editor";
 import {

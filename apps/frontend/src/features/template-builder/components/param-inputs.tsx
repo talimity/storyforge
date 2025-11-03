@@ -4,7 +4,7 @@ import {
   type TemplateVariable,
 } from "@/features/template-builder/components/template-string-editor";
 import type { RecipeParamSpec } from "@/features/template-builder/types";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 
 type ParamInputsProps = {
   specs: readonly RecipeParamSpec[];

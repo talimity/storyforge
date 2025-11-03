@@ -2,7 +2,7 @@ import { Center, Code, Heading, HStack, IconButton, Text, VStack } from "@chakra
 
 import { LuChevronDown, LuChevronUp, LuClipboardPen, LuTrash } from "react-icons/lu";
 import { Button, InfoTip } from "@/components/ui";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 import type { WorkflowFormValues } from "./form-schemas";
 
 function OutputsInfoTip() {

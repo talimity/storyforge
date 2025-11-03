@@ -4,7 +4,7 @@ import { useStore } from "@tanstack/react-form";
 import { useEffect, useMemo } from "react";
 import { Switch } from "@/components/ui";
 import { intentFormDefaultValues } from "@/features/scenario-player/utils/intent-form";
-import { withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/form/app-form";
 
 type ReplaySectionProps = {
   generationInfo?: GenerationInfoOutput | null;

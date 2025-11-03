@@ -3,7 +3,7 @@ import { useStore } from "@tanstack/react-form";
 import { LuMessageSquarePlus } from "react-icons/lu";
 import { Button } from "@/components/ui/index";
 import { TabHeader } from "@/components/ui/tab-header";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 import type { CharacterFormValues } from "./form-schemas";
 
 export type StarterDraft = CharacterFormValues["starters"][number];

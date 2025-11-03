@@ -2,7 +2,7 @@ import { Card, HStack, Tabs } from "@chakra-ui/react";
 import { useId } from "react";
 import { LuInfo, LuLibrary } from "react-icons/lu";
 import type { z } from "zod";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 import {
   type LorebookPayload,
   lorebookFormDefaultValues,

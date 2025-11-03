@@ -79,13 +79,12 @@ export function generateSlotName(
   existingSlots: Record<string, SlotDraft>,
   baseName: string = "slot"
 ): string {
-  // remove non-alphanumeric characters, remove leading underscores
-  const safeName = baseName.replace(/[^a-zA-Z0-9_]/g, "").replace(/^_+/, "");
+  const safeName = baseName.replace(/^__/, "");
   let counter = 1;
   let name = safeName;
 
   while (existingSlots[name]) {
-    name = `${safeName}_${counter}`;
+    name = `${safeName} (${counter + 1})`;
     counter++;
   }
 

@@ -1,4 +1,14 @@
-import { Box, ClientOnly, Flex, HStack, Separator, Skeleton, Stack, Text } from "@chakra-ui/react";
+import {
+  Box,
+  ClientOnly,
+  Collapsible,
+  Flex,
+  HStack,
+  Separator,
+  Skeleton,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import type { ReactNode } from "react";
 import type { IconType } from "react-icons";
 import {
@@ -14,11 +24,17 @@ import {
   LuWorkflow,
 } from "react-icons/lu";
 import { TbCubeSpark } from "react-icons/tb";
+import { Link, useLocation } from "react-router-dom";
 import { ColorModeToggle } from "@/components/color-mode-toggle";
 import { Logo } from "@/components/logo";
 import { SidebarLink } from "@/components/sidebar-link";
 import { Button } from "@/components/ui";
 import { useActiveScenarioWithData } from "@/hooks/use-active-scenario";
+import {
+  type RecentEntityDomain,
+  type RecentEntityEntry,
+  useRecentEntities,
+} from "@/stores/recent-entity-store";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -29,6 +45,7 @@ type NavItem = {
   readonly to: string;
   readonly icon: IconType;
   readonly label: string;
+  readonly recentDomain?: RecentEntityDomain;
 };
 
 type NavSection = {
@@ -44,7 +61,7 @@ const NAV_SECTIONS: readonly NavSection[] = [
     items: [
       { to: "/characters", icon: LuUsersRound, label: "Characters" },
       { to: "/scenarios", icon: LuBookOpen, label: "Scenarios" },
-      { to: "/lorebooks", icon: LuLibrary, label: "Lorebooks" },
+      { to: "/lorebooks", icon: LuLibrary, label: "Lorebooks", recentDomain: "lorebooks" },
       { to: "/assets", icon: LuImages, label: "Assets" },
     ],
   },
@@ -52,8 +69,8 @@ const NAV_SECTIONS: readonly NavSection[] = [
     key: "generation",
     title: "Generation",
     items: [
-      { to: "/workflows", icon: LuWorkflow, label: "Workflows" },
-      { to: "/templates", icon: LuScrollText, label: "Prompts" },
+      { to: "/workflows", icon: LuWorkflow, label: "Workflows", recentDomain: "workflows" },
+      { to: "/templates", icon: LuScrollText, label: "Prompts", recentDomain: "templates" },
       { to: "/models", icon: TbCubeSpark, label: "Models" },
     ],
   },
@@ -154,18 +171,9 @@ function SidebarSection({ section, collapsed }: SidebarSectionProps) {
   return (
     <>
       {collapsed ? <Separator /> : <SectionHeader>{section.title}</SectionHeader>}
-      {section.items.map((item) => {
-        const Icon = item.icon;
-        return (
-          <SidebarLink
-            key={item.to}
-            to={item.to}
-            icon={<Icon />}
-            label={item.label}
-            collapsed={collapsed}
-          />
-        );
-      })}
+      {section.items.map((item) => (
+        <SidebarNavItem key={item.to} item={item} collapsed={collapsed} />
+      ))}
     </>
   );
 }
@@ -185,5 +193,70 @@ function SectionHeader({ children }: { children: ReactNode }) {
     >
       {children}
     </Text>
+  );
+}
+
+interface SidebarNavItemProps {
+  readonly item: NavItem;
+  readonly collapsed: boolean;
+}
+
+function SidebarNavItem({ item, collapsed }: SidebarNavItemProps) {
+  const location = useLocation();
+  const Icon = item.icon;
+  const isActive = location.pathname.startsWith(item.to);
+  const recentEntries = useRecentEntities(item.recentDomain);
+  const visibleRecentEntries = recentEntries.slice(0, 3);
+  const showRecent = !collapsed && isActive && item.recentDomain && visibleRecentEntries.length > 0;
+
+  return (
+    <Stack gap="0">
+      <SidebarLink to={item.to} icon={<Icon />} label={item.label} collapsed={collapsed} />
+      {item.recentDomain ? (
+        <Collapsible.Root open={showRecent} unmountOnExit lazyMount>
+          <Collapsible.Content>
+            <Stack pl="4" gap="0.5" mt="1">
+              {visibleRecentEntries.map((entry) => (
+                <SidebarRecentLink key={entry.id} entry={entry} />
+              ))}
+            </Stack>
+          </Collapsible.Content>
+        </Collapsible.Root>
+      ) : null}
+    </Stack>
+  );
+}
+
+function SidebarRecentLink({ entry }: { entry: RecentEntityEntry }) {
+  const location = useLocation();
+  const isActive = location.pathname === entry.path;
+
+  return (
+    <Button
+      asChild
+      variant="ghost"
+      h="8"
+      px="2"
+      fontSize="xs"
+      color={isActive ? "content.emphasized" : "content.subtle"}
+      _hover={{
+        bg: "surface.emphasized",
+        color: "content.emphasized",
+      }}
+    >
+      <Link
+        to={entry.path}
+        style={{
+          display: "block",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          alignContent: "center",
+        }}
+        title={entry.name}
+      >
+        {entry.name}
+      </Link>
+    </Button>
   );
 }

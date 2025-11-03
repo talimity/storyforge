@@ -4,7 +4,7 @@ import { LuFileText } from "react-icons/lu";
 import { TabHeader } from "@/components/ui/tab-header";
 import { TaskKindSelect, taskKindOptions } from "@/components/ui/task-kind-select";
 import type { TemplateFormData } from "@/features/template-builder/template-form-schema";
-import { withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/form/app-form";
 
 const fallbackTask = taskKindOptions[0]?.value ?? "turn_generation";
 

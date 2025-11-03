@@ -3,7 +3,7 @@ import { createId } from "@storyforge/utils";
 import { LuListOrdered, LuListPlus } from "react-icons/lu";
 import { Button, EmptyState } from "@/components/ui";
 import { TabHeader } from "@/components/ui/tab-header";
-import { withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/form/app-form";
 import { workflowFormDefaultValues } from "./form-schemas";
 import { StepCard } from "./step-card";
 

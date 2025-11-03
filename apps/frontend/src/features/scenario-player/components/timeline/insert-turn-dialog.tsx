@@ -12,7 +12,7 @@ import {
   SelectValueText,
 } from "@/components/ui/select";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 import { getApiUrl } from "@/lib/get-api-url";
 
 interface InsertTurnDialogProps {

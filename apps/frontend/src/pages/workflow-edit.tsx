@@ -1,16 +1,19 @@
 import { Container, Skeleton } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SimplePageHeader } from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
 import { WorkflowForm } from "@/features/workflows/components/builder/workflow-form";
 import { useTRPC } from "@/lib/trpc";
+import { useRegisterRecentEntity } from "@/stores/recent-entity-store";
 
 function WorkflowEditPage() {
   const trpc = useTRPC();
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const registerRecentEntity = useRegisterRecentEntity();
   const { data, isLoading, error } = useQuery(
     trpc.workflows.getById.queryOptions(
       { id: String(id) },
@@ -30,6 +33,20 @@ function WorkflowEditPage() {
       },
     })
   );
+
+  const workflowId = data?.id;
+  const workflowName = data?.name ?? "";
+
+  useEffect(() => {
+    if (!workflowId || !workflowName) return;
+
+    registerRecentEntity({
+      domain: "workflows",
+      id: workflowId,
+      name: workflowName,
+      path: `/workflows/${workflowId}/edit`,
+    });
+  }, [registerRecentEntity, workflowId, workflowName]);
 
   if (isLoading)
     return (

@@ -7,8 +7,8 @@ import { Dialog } from "@/components/ui";
 import { TaskKindSelect } from "@/components/ui/task-kind-select";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
 import { ScenarioSingleSelect } from "@/features/scenarios/components/scenario-selector";
-import { useAppForm } from "@/lib/app-form";
 import { showSuccessToast } from "@/lib/error-handling";
+import { useAppForm } from "@/lib/form/app-form";
 import { useTRPC } from "@/lib/trpc";
 import {
   type AssignmentFormValues,

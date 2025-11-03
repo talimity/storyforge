@@ -17,7 +17,7 @@ import {
 } from "@/features/template-builder/template-form-schema";
 import type { TemplateDraft } from "@/features/template-builder/types";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 
 interface TemplateFormProps {
   initialDraft: TemplateDraft;

@@ -38,7 +38,7 @@ import type {
   SlotFrameNodeDraft,
   SlotLayoutDraft,
 } from "@/features/template-builder/types";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 import { jsonText } from "@/lib/form/json-text-zod";
 
 interface SlotReferenceEditProps {

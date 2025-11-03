@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { LuChevronLeft, LuChevronRight, LuLibrary, LuPlus, LuSearch } from "react-icons/lu";
 import { Button, CloseButton, EmptyState } from "@/components/ui";
 import { TabHeader } from "@/components/ui/tab-header";
-import { withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/form/app-form";
 import {
   createLorebookEntryDraft,
   type LorebookEntryFormValues,

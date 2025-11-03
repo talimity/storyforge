@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui";
-import { useAppForm } from "@/lib/app-form";
 import { emptyToNull, emptyToUndefined } from "@/lib/empty-to-null";
+import { useAppForm } from "@/lib/form/app-form";
 import { CapabilitiesSelector } from "./capabilities-selector";
 
 const providerFormAuthInputSchema = providerAuthInputSchema.extend({

@@ -16,7 +16,7 @@ import { Avatar, Field, Radio, RadioGroup } from "@/components/ui";
 import { cardTypeLabels } from "@/features/characters/character-enums";
 import { CharacterMultiSelect } from "@/features/characters/components/character-selector";
 import { CharacterPaletteEditor } from "@/features/characters/components/form/character-palette-editor";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 import { formatFormError } from "@/lib/form/field-control";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";

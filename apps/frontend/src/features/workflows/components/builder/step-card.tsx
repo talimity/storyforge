@@ -3,7 +3,7 @@ import { useStore } from "@tanstack/react-form";
 import { LuChevronDown, LuChevronUp, LuCopy, LuTrash } from "react-icons/lu";
 import { ModelProfileSingleSelect } from "@/features/inference-config/components/model-profile-selector";
 import { TemplateSingleSelect } from "@/features/templates/components/template-selector";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 import type { WorkflowFormValues } from "./form-schemas";
 import { GenParamsTextarea, StopSequencesTextarea } from "./json-editors";
 import { OutputsEditor } from "./outputs-editor";

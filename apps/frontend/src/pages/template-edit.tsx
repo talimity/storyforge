@@ -1,6 +1,7 @@
 import { Container, Heading, Text, VStack } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, SimplePageHeader } from "@/components/ui";
 import { PageContainer } from "@/components/ui/page-container";
@@ -10,12 +11,14 @@ import { templateToDraft } from "@/features/template-builder/services/template-c
 import type { LayoutNodeDraft, SlotDraft, TemplateDraft } from "@/features/template-builder/types";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
+import { useRegisterRecentEntity } from "@/stores/recent-entity-store";
 
 function TemplateEditPage() {
   const trpc = useTRPC();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const registerRecentEntity = useRegisterRecentEntity();
 
   const templateQuery = useQuery(
     trpc.templates.getById.queryOptions(
@@ -36,6 +39,20 @@ function TemplateEditPage() {
       },
     })
   );
+
+  const templateId = templateQuery.data?.id;
+  const templateName = templateQuery.data?.name ?? "";
+
+  useEffect(() => {
+    if (!templateId || !templateName) return;
+
+    registerRecentEntity({
+      domain: "templates",
+      id: templateId,
+      name: templateName,
+      path: `/templates/${templateId}/edit`,
+    });
+  }, [registerRecentEntity, templateId, templateName]);
 
   const handleSubmit = async (data: {
     metadata: { name: string; task: TaskKind; description?: string };

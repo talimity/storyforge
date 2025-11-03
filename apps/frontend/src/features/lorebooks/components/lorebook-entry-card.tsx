@@ -5,7 +5,7 @@ import { AutosizeTextarea } from "@/components/ui";
 import { Tag } from "@/components/ui/tag";
 import { LorebookEntryCardHeader } from "@/features/lorebooks/components/lorebook-entry-card-header";
 import { LorebookExtensionsSection } from "@/features/lorebooks/components/lorebook-extensions-section";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 import { createLorebookEntryDraft, extensionsJsonSchema } from "./form-schemas";
 
 export type LorebookEntryCardProps = {

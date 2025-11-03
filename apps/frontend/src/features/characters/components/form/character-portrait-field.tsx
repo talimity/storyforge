@@ -16,9 +16,9 @@ import { ConditionalDropzone, ThumbnailFileList } from "@/components/ui/file-upl
 import { Button } from "@/components/ui/index";
 import { AvatarCropDialog } from "@/features/characters/components/form/avatar-crop-dialog";
 import { characterFormDefaultValues } from "@/features/characters/components/form/form-schemas";
-import { withForm } from "@/lib/app-form";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { convertFileToDataUri } from "@/lib/file-to-data-uri";
+import { withForm } from "@/lib/form/app-form";
 import { getApiUrl } from "@/lib/get-api-url";
 import { useTRPC } from "@/lib/trpc";
 

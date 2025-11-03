@@ -11,7 +11,7 @@ import type {
   LoreAttachmentLaneDraft,
 } from "@/features/template-builder/services/attachments/types";
 import { MESSAGE_ROLE_SELECT_OPTIONS } from "@/features/template-builder/services/builder-utils";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 
 interface LoreAttachmentsFormProps {
   draft: LoreAttachmentLaneDraft;

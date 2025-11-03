@@ -28,7 +28,7 @@ import {
   SelectValueText,
   Switch,
   type SwitchProps,
-} from "@/components/ui";
+} from "@/components/ui/index";
 import { useUnsavedChangesProtection } from "@/hooks/use-unsaved-changes-protection";
 import { FieldControl, type FieldPresentationProps } from "@/lib/form/field-control";
 import { fieldContext, formContext, useFieldContext, useFormContext } from "./form-context";
@@ -489,7 +489,7 @@ export function createAppForm() {
     fieldComponents: {
       Field: FieldControl,
       Checkbox: CheckboxField,
-      JsonEditor: lazy(() => import("./form/json-editor")),
+      JsonEditor: lazy(() => import("./json-editor")),
       NumberInput: NumberInputField,
       Select: SelectField,
       Switch: SwitchField,

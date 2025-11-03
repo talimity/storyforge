@@ -5,7 +5,7 @@ import {
   INTENT_KIND_CONFIG,
   intentFormDefaultValues,
 } from "@/features/scenario-player/utils/intent-form";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 
 type GuidanceFieldProps = {
   isGenerating?: boolean;

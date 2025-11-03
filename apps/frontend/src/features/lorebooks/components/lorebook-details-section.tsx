@@ -2,7 +2,7 @@ import { Stack } from "@chakra-ui/react";
 import { LuBookOpen } from "react-icons/lu";
 import { TabHeader } from "@/components/ui/tab-header";
 import { LorebookExtensionsSection } from "@/features/lorebooks/components/lorebook-extensions-section";
-import { withForm } from "@/lib/app-form";
+import { withForm } from "@/lib/form/app-form";
 import { extensionsJsonSchema, lorebookFormDefaultValues } from "./form-schemas";
 
 export const LorebookDetailsSection = withForm({

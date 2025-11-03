@@ -2,7 +2,7 @@ import { Card, HStack, Tabs } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
 import { useId } from "react";
 import { LuEye, LuInfo, LuListOrdered } from "react-icons/lu";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 import {
   type WorkflowFormValues,
   workflowFormDefaultValues,

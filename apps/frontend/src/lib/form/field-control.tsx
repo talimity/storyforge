@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Field as UiField, type FieldProps as UiFieldProps } from "@/components/ui/index";
-import { useFieldContext } from "@/lib/form-context";
+import { useFieldContext } from "@/lib/form/form-context";
 
 export type FieldPresentationProps = Pick<
   UiFieldProps,

@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "@/components/ui";
-import { useAppForm } from "@/lib/app-form";
+import { useAppForm } from "@/lib/form/app-form";
 import { useTRPC } from "@/lib/trpc";
 import { CapabilitiesSelector } from "./capabilities-selector";
 import { JinjaTemplateDialog } from "./jinja-template-dialog";

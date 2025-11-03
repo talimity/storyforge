@@ -1,7 +1,7 @@
 import { Card, Center, Heading, HStack, IconButton, Stack, Text, VStack } from "@chakra-ui/react";
 import { LuChevronDown, LuChevronUp, LuRegex, LuScissorsLineDashed, LuTrash } from "react-icons/lu";
 import { Button, InfoTip } from "@/components/ui";
-import { withFieldGroup } from "@/lib/app-form";
+import { withFieldGroup } from "@/lib/form/app-form";
 import type { WorkflowFormValues } from "./form-schemas";
 
 type TransformValues = WorkflowFormValues["steps"][0]["transforms"];
