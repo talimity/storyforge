@@ -148,7 +148,9 @@ describe("buildTurnGenRenderOptions", () => {
     };
 
     const options = buildTurnGenRenderOptions(ctx);
-    const loreInjections = (options.injections ?? []).filter((injection) => injection.lane === "lore");
+    const loreInjections = (options.injections ?? []).filter(
+      (injection) => injection.lane === "lore"
+    );
     expect(loreInjections).toHaveLength(1);
     const injection = loreInjections[0];
     expect(injection?.groupId).toBe("turn_2");

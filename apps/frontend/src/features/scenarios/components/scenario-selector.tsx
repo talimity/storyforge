@@ -45,6 +45,7 @@ export function ScenarioSingleSelect({
     disabled,
     placeholder,
     inputBehavior: "autohighlight",
+    openOnClick: true,
     value: value ? [value] : [],
     onValueChange: (e) => onChange(e.value[0]),
     onInputValueChange: (e) => updateSearch(e.inputValue),

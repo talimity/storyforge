@@ -80,6 +80,5 @@ export type ChapterSummaryContext = {
   chapterNumber: number;
   title?: string;
   summaryText?: string;
-  summaryJson?: unknown;
   updatedAt: Date;
 };

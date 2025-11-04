@@ -264,7 +264,7 @@ export function TemplateForm({
                   </Alert>
                 )}
 
-                <LayoutBuilder task={metadataValues.task} />
+                <LayoutBuilder task={metadataValues.task} templateId={currentDraft.id} />
               </VStack>
             </Tabs.Content>
 

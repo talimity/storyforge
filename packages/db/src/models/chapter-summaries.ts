@@ -23,7 +23,6 @@ export const chapterSummaries = sqliteTable(
       .references(() => turns.id, { onDelete: "cascade" }),
     chapterNumber: integer("chapter_number").notNull(),
     summaryText: text("summary_text").notNull(),
-    summaryJson: text("summary_json", { mode: "json" }),
     turnCount: integer("turn_count").notNull(),
     maxTurnUpdatedAt: integer("max_turn_updated_at", { mode: "timestamp_ms" }).notNull(),
     spanFingerprint: text("span_fingerprint").notNull(),

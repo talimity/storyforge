@@ -1,6 +1,6 @@
 import { Combobox, InputGroup, Portal, Spinner, Text, useCombobox } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import { useTemplateSearch } from "@/features/templates/hooks/use-template-search";
 import {
   useAsyncComboboxCollection,
@@ -9,10 +9,18 @@ import {
 
 type TemplateItem = ReturnType<typeof useTemplateSearch>["templates"][number];
 
-function useTemplateCollection(enabled: boolean, task?: TaskKind) {
+function useTemplateCollection(
+  enabled: boolean,
+  task?: TaskKind,
+  excludeIds: readonly string[] = []
+) {
   const { templates, isLoading, updateSearch } = useTemplateSearch({ enabled, task });
+  const filteredTemplates = useMemo(
+    () => templates.filter((template) => !excludeIds.includes(template.id)),
+    [templates, excludeIds]
+  );
   const collection = useAsyncComboboxCollection<TemplateItem>({
-    items: templates,
+    items: filteredTemplates,
     itemToString: (template: TemplateItem) => template.name,
     itemToValue: (template: TemplateItem) => template.id,
   });
@@ -27,6 +35,7 @@ export function TemplateSingleSelect({
   disabled = false,
   size = "md",
   inDialog = false,
+  excludeIds,
   ...props
 }: {
   value: string | null;
@@ -36,13 +45,19 @@ export function TemplateSingleSelect({
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
   inDialog?: boolean;
+  excludeIds?: readonly string[];
 } & Omit<Combobox.RootProviderProps, "value" | "onValueChange" | "collection" | "onChange">) {
-  const { collection, isLoading, updateSearch } = useTemplateCollection(!disabled, task);
+  const { collection, isLoading, updateSearch } = useTemplateCollection(
+    !disabled,
+    task,
+    excludeIds
+  );
   const combobox = useCombobox({
     collection,
     disabled,
     placeholder,
     inputBehavior: "autohighlight",
+    openOnClick: true,
     value: value ? [value] : [],
     onValueChange: (e) => onChange(e.value[0] ?? null),
     onInputValueChange: (e) => updateSearch(e.inputValue),

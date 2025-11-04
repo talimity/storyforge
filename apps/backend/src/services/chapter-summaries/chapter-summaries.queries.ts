@@ -5,7 +5,6 @@ import {
 } from "@storyforge/db";
 import type { ChapterSummaryContext } from "@storyforge/gentasks";
 import { TimelineStateDeriver } from "@storyforge/timeline-events";
-import { normalizeJson } from "@storyforge/utils";
 import { inArray } from "drizzle-orm";
 import { TimelineEventLoader } from "../timeline-events/loader.js";
 import type { ChapterEntry, ChapterNode } from "./types.js";
@@ -115,7 +114,6 @@ function toCtxEntry(record: ChapterSummaryRow, chapter: ChapterEntry): ChapterSu
     chapterNumber: chapter.chapterNumber,
     title: chapter.title,
     summaryText: record.summaryText,
-    summaryJson: normalizeJson(record.summaryJson),
     updatedAt: record.updatedAt,
   };
 }

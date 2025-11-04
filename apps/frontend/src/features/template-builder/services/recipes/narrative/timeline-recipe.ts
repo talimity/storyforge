@@ -20,10 +20,24 @@ const MAX_TURNS_PARAM = {
 
 const WINDOW_ENABLED_PARAM = {
   key: "chapterWindowEnabled",
-  label: "Limit by Chapter",
+  label: "Limit Turns by Chapter",
   type: "toggle",
   defaultValue: false,
-  help: "Limit turns to a relative chapter window.",
+  help: "Restrict included turns to a specific chapter range.",
+} as const satisfies RecipeParamSpec;
+
+const WINDOW_PRESET_PARAM = {
+  key: "chapterWindowPreset",
+  label: "Chapter Range",
+  type: "select",
+  defaultValue: "current",
+  options: [
+    { label: "Current Chapter", value: "current" },
+    { label: "Previous Chapters", value: "history" },
+    { label: "Custom", value: "custom" },
+  ],
+  help: "Use a predefined chapter range or specify a custom range.",
+  visibleWhen: (params: Record<string, unknown>) => Boolean(params.chapterWindowEnabled),
 } as const satisfies RecipeParamSpec;
 
 const WINDOW_START_PARAM = {
@@ -31,8 +45,9 @@ const WINDOW_START_PARAM = {
   label: "Start Offset",
   type: "number",
   defaultValue: 0,
-  help: "Relative chapter to start from (0 = current, -1 = previous, 1 = first chapter).",
-  visibleWhen: (params: Record<string, unknown>) => Boolean(params.chapterWindowEnabled),
+  help: "Relative chapter to start from; (0 = current chapter, -1 = previous, etc.).",
+  visibleWhen: (params: Record<string, unknown>) =>
+    Boolean(params.chapterWindowEnabled && params.chapterWindowPreset === "custom"),
 } as const satisfies RecipeParamSpec;
 
 const WINDOW_END_PARAM = {
@@ -41,7 +56,8 @@ const WINDOW_END_PARAM = {
   type: "number",
   defaultValue: 0,
   help: "Relative chapter to end on (inclusive).",
-  visibleWhen: (params: Record<string, unknown>) => Boolean(params.chapterWindowEnabled),
+  visibleWhen: (params: Record<string, unknown>) =>
+    Boolean(params.chapterWindowEnabled && params.chapterWindowPreset === "custom"),
 } as const satisfies RecipeParamSpec;
 
 const WINDOW_REQUIRE_MIN_TURNS_PARAM = {
@@ -49,7 +65,7 @@ const WINDOW_REQUIRE_MIN_TURNS_PARAM = {
   label: "Require Minimum Turns",
   type: "toggle",
   defaultValue: false,
-  help: "Guarantee a minimum number of turns by expanding the window as needed.",
+  help: "Extends chapter range if it does not include enough turns.",
   visibleWhen: (params: Record<string, unknown>) => Boolean(params.chapterWindowEnabled),
 } as const satisfies RecipeParamSpec;
 
@@ -60,13 +76,14 @@ const WINDOW_MIN_TURNS_PARAM = {
   defaultValue: 30,
   min: 1,
   max: 9999,
-  help: "Minimum number of turns to include. Older chapters are added if needed.",
+  help: "Target number of turns to include when extending chapter range.",
   visibleWhen: (params: Record<string, unknown>) =>
     Boolean(params.chapterWindowEnabled && params.chapterWindowRequireMinTurns),
 } as const satisfies RecipeParamSpec;
 
 const CHAPTER_WINDOW_PARAMETERS = [
   WINDOW_ENABLED_PARAM,
+  WINDOW_PRESET_PARAM,
   WINDOW_START_PARAM,
   WINDOW_END_PARAM,
   WINDOW_REQUIRE_MIN_TURNS_PARAM,
@@ -80,12 +97,25 @@ function buildChapterWindowArgs(params: ChapterWindowParamValues, maxTurns?: num
     return undefined;
   }
 
-  const startOffset = Number.isFinite(params.chapterWindowStartOffset)
+  let startOffset = Number.isFinite(params.chapterWindowStartOffset)
     ? Number(params.chapterWindowStartOffset)
     : 0;
-  const endOffset = Number.isFinite(params.chapterWindowEndOffset)
+  let endOffset = Number.isFinite(params.chapterWindowEndOffset)
     ? Number(params.chapterWindowEndOffset)
     : 0;
+
+  switch (params.chapterWindowPreset) {
+    case "current":
+      startOffset = 0;
+      endOffset = 0;
+      break;
+    case "history":
+      startOffset = -1;
+      endOffset = 1;
+      break;
+    default:
+      break;
+  }
 
   const chapterWindow: { startOffset: number; endOffset: number; minTurns?: number } = {
     startOffset,

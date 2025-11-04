@@ -21,9 +21,14 @@ export function applyChapterWindow(turns: TurnContext[], window?: ChapterWindow)
 
   const startOffset = window.startOffset ?? Number.NEGATIVE_INFINITY;
   const endOffset = window.endOffset ?? 0;
+  const startNormalized = Number.isFinite(startOffset) ? Math.trunc(startOffset) : startOffset;
+  const endNormalized = Number.isFinite(endOffset) ? Math.trunc(endOffset) : endOffset;
 
-  let startChapter = resolveOffset(startOffset, earliestChapter, latestChapter);
-  let endChapter = resolveOffset(endOffset, earliestChapter, latestChapter);
+  const startChapterRaw = resolveOffset(startOffset, earliestChapter, latestChapter);
+  const endChapterRaw = resolveOffset(endOffset, earliestChapter, latestChapter);
+
+  let startChapter = startChapterRaw;
+  let endChapter = endChapterRaw;
 
   startChapter = clampChapter(startChapter, earliestChapter, latestChapter);
   endChapter = clampChapter(endChapter, earliestChapter, latestChapter);
@@ -33,6 +38,22 @@ export function applyChapterWindow(turns: TurnContext[], window?: ChapterWindow)
 
   const grouped = groupTurnsByChapter(turns);
   let selected = collectTurns(chapterNumbers, grouped, lowIndex, highIndex);
+
+  const latestChapterNumber = chapterNumbers[chapterNumbers.length - 1];
+  const requestedPriorChapter =
+    (Number.isFinite(startNormalized) && (startNormalized as number) < 0) ||
+    (Number.isFinite(endNormalized) && (endNormalized as number) < 0);
+
+  if (
+    requestedPriorChapter &&
+    selected.length > 0 &&
+    !chapterNumbers.some((chapter) => chapter < latestChapterNumber) &&
+    selected.every((turn) => turn.chapterNumber === latestChapterNumber)
+  ) {
+    lowIndex = chapterNumbers.length;
+    highIndex = -1;
+    selected = [];
+  }
 
   const minTurns = Math.max(0, window.minTurns ?? 0);
   if (minTurns > 0 && selected.length < minTurns) {

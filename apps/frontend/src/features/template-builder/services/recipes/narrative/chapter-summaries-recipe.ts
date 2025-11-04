@@ -8,9 +8,9 @@ const parameters = [
     key: "maxSummaries",
     label: "Max Summaries",
     type: "number",
-    defaultValue: 3,
+    defaultValue: 20,
     min: 1,
-    max: 20,
+    max: 999,
     help: "Maximum number of chapter summaries to include.",
   },
   {
@@ -48,11 +48,6 @@ export const chapterSummariesRecipe: RecipeDefinition<NarrativeSources, typeof p
         example: "Our heroes regrouped in the port town after the disastrous raid.",
       },
       {
-        name: "item.summaryJson",
-        description: "Structured JSON payload for the chapter summary (if available)",
-        example: '{"beats":["arrival","alliance","cliffhanger"]}',
-      },
-      {
         name: "item.updatedAt",
         description: "Last updated timestamp for the summary",
         example: "",
@@ -66,6 +61,7 @@ export const chapterSummariesRecipe: RecipeDefinition<NarrativeSources, typeof p
           {
             kind: "forEach",
             source: { source: "chapterSummaries" },
+            fillDir: "prepend",
             limit: params.maxSummaries,
             map: [
               {

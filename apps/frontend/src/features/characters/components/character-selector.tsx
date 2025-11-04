@@ -207,6 +207,7 @@ export function CharacterSingleSelect({
     disabled,
     placeholder,
     inputBehavior: "autohighlight",
+    openOnClick: true,
     value: internalValue,
     onValueChange: (e) => onChange(e.value[0]),
     onInputValueChange: (e) => updateSearch(e.inputValue),

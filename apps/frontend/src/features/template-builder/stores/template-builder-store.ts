@@ -10,6 +10,7 @@ import {
 import { validateDraft } from "@/features/template-builder/services/compile-draft";
 import { getRecipeById } from "@/features/template-builder/services/recipe-registry";
 import { syncSlotLayoutWithRecipe } from "@/features/template-builder/services/recipe-slot-layout";
+import type { SlotBlockDraft } from "@/features/template-builder/services/template-import";
 import type {
   AnyRecipeId,
   AttachmentLaneDraft,
@@ -18,6 +19,16 @@ import type {
   SlotLayoutDraft,
   TemplateDraft,
 } from "@/features/template-builder/types";
+
+export class SlotImportError extends Error {
+  constructor(
+    message: string,
+    public kind: "conflict" | "unknown" = "unknown"
+  ) {
+    super(message);
+    this.name = "SlotImportError";
+  }
+}
 
 export interface TemplateBuilderState {
   layoutDraft: LayoutNodeDraft[];
@@ -59,6 +70,12 @@ export interface TemplateBuilderState {
   startEditingNode: (nodeId: string) => void;
   saveNodeEdit: (nodeId: string, nodeData: LayoutNodeDraft, slotData?: SlotDraft) => void;
   cancelNodeEdit: () => void;
+
+  // Import Actions
+  importSlotBlock: (
+    block: SlotBlockDraft,
+    options?: { insertionIndex?: number; overwrite?: boolean }
+  ) => { slotName: string; mode: "added" | "overwritten" };
 }
 
 const makeInitialState = (): Pick<
@@ -315,6 +332,85 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
       set((state) => {
         state.editingNodeId = null;
       }),
+
+    importSlotBlock: (block, options) => {
+      let result: { slotName: string; mode: "added" | "overwritten" } = {
+        slotName: block.slot.name,
+        mode: "added",
+      };
+
+      set((state) => {
+        const insertionIndex = options?.insertionIndex;
+        const overwrite = options?.overwrite ?? false;
+        const targetName = block.slot.name;
+
+        const slotExists = Boolean(state.slotsDraft[targetName]);
+
+        if (slotExists && !overwrite) {
+          throw new SlotImportError("A content block with this ID already exists.", "conflict");
+        }
+
+        const clonedSlot: SlotDraft = {
+          recipeId: block.slot.recipeId,
+          name: targetName,
+          priority: block.slot.priority,
+          params: structuredClone(block.slot.params),
+        };
+
+        if (typeof block.slot.budget === "number") {
+          clonedSlot.budget = block.slot.budget;
+        }
+
+        if (block.slot.customSpec) {
+          clonedSlot.customSpec = block.slot.customSpec;
+        }
+
+        const clonedLayout: SlotLayoutDraft = {
+          id: createId(),
+          kind: "slot",
+          name: targetName,
+          header: block.layout.header ? structuredClone(block.layout.header) : undefined,
+          footer: block.layout.footer ? structuredClone(block.layout.footer) : undefined,
+          omitIfEmpty: block.layout.omitIfEmpty,
+        };
+
+        if (slotExists && overwrite) {
+          state.slotsDraft[targetName] = clonedSlot;
+
+          state.layoutDraft.forEach((node) => {
+            if (node.kind !== "slot") return;
+            if (node.name !== targetName) return;
+
+            node.header = clonedLayout.header ? structuredClone(clonedLayout.header) : undefined;
+            node.footer = clonedLayout.footer ? structuredClone(clonedLayout.footer) : undefined;
+            node.omitIfEmpty = clonedLayout.omitIfEmpty;
+          });
+
+          result = { slotName: targetName, mode: "overwritten" };
+        } else {
+          // Assign a default priority if the imported slot has an undefined priority
+          if (typeof clonedSlot.priority !== "number") {
+            clonedSlot.priority = Object.keys(state.slotsDraft).length;
+          }
+
+          state.slotsDraft[targetName] = clonedSlot;
+
+          if (
+            typeof insertionIndex === "number" &&
+            insertionIndex >= 0 &&
+            insertionIndex <= state.layoutDraft.length
+          ) {
+            state.layoutDraft.splice(insertionIndex, 0, clonedLayout);
+          } else {
+            state.layoutDraft.push(clonedLayout);
+          }
+        }
+
+        state.isDirty = true;
+      });
+
+      return result;
+    },
   }))
 );
 

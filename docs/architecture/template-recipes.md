@@ -50,6 +50,11 @@ Template recipes give authors a guided way to configure prompt slots in the UI w
 3. When saving the template draft, the builder collects all slots: recipe-backed slots call `toSlotSpec`; custom slots store a raw JSON spec.
 4. The resulting template draft is persisted in the builder’s local state and, when published, is sent to the backend template service where it undergoes full prompt compilation and validation.
 
+### Cross-Template Block Reuse
+- Authors can import content blocks (slot + layout wrapper) from other templates without leaving the builder. The import dialog supports searching by template, previewing slot metadata (recipe, headers/footers, budgets), renaming the block, and optionally overwriting an existing block with the same identifier.
+- Imports default to filtering templates by the current task kind, but the dialog can intentionally pull from other task kinds when authors want to share structures across workflows. The usual compile-time validation still applies, surfacing incompatibilities before save.
+- Block imports reuse the same draft structures as locally created blocks, so imported slots behave exactly like native additions and can be edited immediately after insertion.
+
 ## Design Motivations & Extension Points
 - **Shield users from DSL complexity**: Most authors can assemble effective prompts using a few sliders and template strings. They only drop to raw SlotSpecs when necessary.
 - **Type-safe UI**: Declaring parameters as const arrays gives compile-time safety. Editing a parameter name or type forces updates across the UI and recipe implementation.

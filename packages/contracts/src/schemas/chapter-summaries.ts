@@ -9,7 +9,6 @@ export const chapterSummarySchema = z.object({
   chapterNumber: z.number().int().positive(),
   title: z.string().nullable(),
   summaryText: z.string(),
-  summaryJson: z.unknown().nullable(),
   turnCount: z.number().int().nonnegative(),
   maxTurnUpdatedAt: z.date(),
   spanFingerprint: z.string(),
@@ -50,6 +49,23 @@ export const chapterSummaryStatusSchema = z.object({
   modelProfileId: z.string().optional(),
   runId: z.string().optional(),
   lastError: z.string().optional(),
+  run: z
+    .object({
+      startedAt: z.date(),
+      finishedAt: z.date().optional(),
+      elapsedMs: z.number().int().nonnegative(),
+      lastEvent: z
+        .object({
+          type: z.string(),
+          stepId: z.string().optional(),
+          name: z.string().optional(),
+          ts: z.date(),
+          delta: z.string().optional(),
+        })
+        .optional(),
+      outputPreview: z.string().optional(),
+    })
+    .optional(),
   staleReasons: z.array(z.string()).optional(),
 });
 
@@ -87,11 +103,10 @@ export const saveChapterSummaryInputSchema = z.object({
   scenarioId: z.string(),
   closingEventId: z.string(),
   summaryText: z.string(),
-  summaryJson: z.unknown().nullish(),
 });
 
 export const saveChapterSummaryOutputSchema = z.object({
-  summary: chapterSummarySchema,
+  summary: chapterSummarySchema.nullable(),
 });
 
 export const listChapterSummariesForPathInputSchema = z.object({

@@ -13,6 +13,7 @@ type ChapterSeparatorPayload = {
   title?: string;
   turnId: string;
   turnNo: number;
+  summary?: string;
 };
 
 export const CHAPTER_SEPARATOR_LANE_ID = "chapter_separators";
@@ -89,6 +90,7 @@ function buildChapterSeparatorInjections(
       title: summary?.title ?? chapterByNumber.get(firstTurn.chapterNumber)?.title,
       turnId: firstTurn.turnId,
       turnNo: firstTurn.turnNo,
+      summary: summary?.summaryText,
     };
 
     injections.push({

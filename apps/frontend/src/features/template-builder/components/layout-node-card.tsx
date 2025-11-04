@@ -1,4 +1,5 @@
 import { Skeleton, Text } from "@chakra-ui/react";
+import type { TaskKind } from "@storyforge/gentasks";
 import { Suspense } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MessageNodeEdit } from "@/features/template-builder/components/nodes/message-node-edit";
@@ -16,10 +17,21 @@ interface LayoutNodeCardProps {
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
   containerRef?: React.Ref<HTMLDivElement>;
+  task?: TaskKind;
+  templateId?: string;
 }
 
 export function LayoutNodeCard(props: LayoutNodeCardProps) {
-  const { node, isDragging = false, onDelete, dragHandleProps, style, containerRef } = props;
+  const {
+    node,
+    isDragging = false,
+    onDelete,
+    dragHandleProps,
+    style,
+    containerRef,
+    task,
+    templateId,
+  } = props;
 
   const { slots, editingNodeId, startEditingNode, saveNodeEdit, cancelNodeEdit } =
     useTemplateBuilderStore(
@@ -92,6 +104,8 @@ export function LayoutNodeCard(props: LayoutNodeCardProps) {
             onSave={handleSaveSlot}
             onCancel={handleCancel}
             dragHandleProps={dragHandleProps}
+            task={task}
+            templateId={templateId}
           />
         </Suspense>
       );

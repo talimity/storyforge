@@ -72,4 +72,13 @@ describe("applyChapterWindow", () => {
     });
     expect(result).toEqual(turns);
   });
+
+  it("returns empty when requesting prior chapters but none exist", () => {
+    const singleChapterTurns = buildTurns([5]);
+    const result = applyChapterWindow(singleChapterTurns, {
+      startOffset: -1,
+      endOffset: 1,
+    });
+    expect(result).toHaveLength(0);
+  });
 });

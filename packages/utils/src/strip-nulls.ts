@@ -29,6 +29,14 @@ export type NonNull<T> = T extends null
  * https://github.com/drizzle-team/drizzle-orm/issues/2745
  */
 export const stripNulls = <T>(obj: T): NonNull<T> => {
+  if (obj instanceof Date || obj instanceof RegExp || obj instanceof Error) {
+    return obj as NonNull<T>;
+  }
+
+  if (obj instanceof Map || obj instanceof Set) {
+    return obj as NonNull<T>;
+  }
+
   if (!!obj && typeof obj === "object" && !Array.isArray(obj)) {
     // Process object entries recursively
     return Object.entries(obj).reduce(

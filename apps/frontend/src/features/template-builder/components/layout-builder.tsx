@@ -18,9 +18,10 @@ import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { TaskKind } from "@storyforge/gentasks";
 import type { ChatCompletionMessageRole } from "@storyforge/prompt-rendering";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   LuBotMessageSquare,
+  LuCopyPlus,
   LuLayers,
   LuMessageSquareCode,
   LuMessageSquareMore,
@@ -29,6 +30,7 @@ import {
 } from "react-icons/lu";
 import { useShallow } from "zustand/react/shallow";
 import { Alert, Button, EmptyState } from "@/components/ui";
+import { ImportContentBlockDialog } from "@/features/template-builder/components/import/import-content-block-dialog";
 import { LayoutNodeCard } from "@/features/template-builder/components/layout-node-card";
 import { useLayoutDnd } from "@/features/template-builder/hooks/use-layout-dnd";
 import { getRecipesForTask } from "@/features/template-builder/services/recipe-registry";
@@ -40,9 +42,10 @@ import type { AnyRecipeId, LayoutNodeDraft } from "@/features/template-builder/t
 
 interface LayoutBuilderProps {
   task?: TaskKind;
+  templateId?: string;
 }
 
-export function LayoutBuilder({ task }: LayoutBuilderProps) {
+export function LayoutBuilder({ task, templateId }: LayoutBuilderProps) {
   const { addMessageNode, createSlotFromRecipe, reorderNodes, deleteNode } =
     useTemplateBuilderStore(
       useShallow((s) => ({
@@ -60,6 +63,8 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
     reorderNodes,
   });
 
+  const [importDialog, setImportDialog] = useState<{ insertionIndex?: number } | null>(null);
+
   const handleDeleteNode = useCallback((id: string) => deleteNode(id, true), [deleteNode]);
   const handleAddMessage = useCallback(
     (role: ChatCompletionMessageRole, index?: number) => addMessageNode(role, index),
@@ -69,6 +74,10 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
     (id: AnyRecipeId | "custom", index?: number) =>
       task ? createSlotFromRecipe(id, undefined, index) : undefined,
     [task, createSlotFromRecipe]
+  );
+  const handleImportFromTemplate = useCallback(
+    (index?: number) => setImportDialog({ insertionIndex: index }),
+    []
   );
 
   return (
@@ -93,6 +102,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
         insertionIndex={0}
         onAddMessage={handleAddMessage}
         onCreateSlotFromRecipe={handleCreateSlotFromRecipe}
+        onImportFromTemplate={handleImportFromTemplate}
       />
 
       {/* Layout Nodes */}
@@ -104,10 +114,18 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
                 title="No layout elements yet"
                 description="Add blocks to your prompt layout using the Add Element menu."
                 icon={<LuLayers />}
+                actionLabel="Import Content Block"
+                onActionClick={() => setImportDialog({ insertionIndex: 0 })}
               />
             ) : (
               layout.map((node) => (
-                <SortableLayoutNode key={node.id} node={node} onDelete={handleDeleteNode} />
+                <SortableLayoutNode
+                  key={node.id}
+                  node={node}
+                  onDelete={handleDeleteNode}
+                  task={task}
+                  templateId={templateId}
+                />
               ))
             )}
           </VStack>
@@ -125,8 +143,17 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
           task={task}
           onAddMessage={handleAddMessage}
           onCreateSlotFromRecipe={handleCreateSlotFromRecipe}
+          onImportFromTemplate={handleImportFromTemplate}
         />
       )}
+
+      <ImportContentBlockDialog
+        isOpen={Boolean(importDialog)}
+        onClose={() => setImportDialog(null)}
+        task={task}
+        insertionIndex={importDialog?.insertionIndex}
+        templateId={templateId}
+      />
     </VStack>
   );
 }
@@ -136,10 +163,12 @@ type AddElementMenuProps = {
   insertionIndex?: number;
   onAddMessage: (role: ChatCompletionMessageRole, index?: number) => void;
   onCreateSlotFromRecipe: (id: AnyRecipeId | "custom", index?: number) => void;
+  onImportFromTemplate: (index?: number) => void;
 };
 
 function AddElementMenu(props: AddElementMenuProps) {
-  const { task, onAddMessage, onCreateSlotFromRecipe, insertionIndex } = props;
+  const { task, onAddMessage, onCreateSlotFromRecipe, insertionIndex, onImportFromTemplate } =
+    props;
 
   const taskRecipes = task ? getRecipesForTask(task) : [];
 
@@ -206,6 +235,14 @@ function AddElementMenu(props: AddElementMenuProps) {
                 <LuLayers />
                 Custom Block (Advanced)
               </MenuItem>
+              <MenuItem
+                key="import-slot"
+                value="import-slot"
+                onClick={() => onImportFromTemplate(insertionIndex)}
+              >
+                <LuCopyPlus />
+                Import Content Block…
+              </MenuItem>
             </MenuItemGroup>
           </MenuContent>
         </MenuPositioner>
@@ -220,9 +257,11 @@ function AddElementMenu(props: AddElementMenuProps) {
 interface SortableLayoutNodeProps {
   node: LayoutNodeDraft;
   onDelete: (nodeId: string) => void;
+  task?: TaskKind;
+  templateId?: string;
 }
 
-function SortableLayoutNode({ node, onDelete }: SortableLayoutNodeProps) {
+function SortableLayoutNode({ node, onDelete, task, templateId }: SortableLayoutNodeProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: node.id,
   });
@@ -240,6 +279,8 @@ function SortableLayoutNode({ node, onDelete }: SortableLayoutNodeProps) {
       isDragging={isDragging}
       onDelete={onDelete}
       dragHandleProps={{ ...attributes, ...listeners }}
+      task={task}
+      templateId={templateId}
     />
   );
 }

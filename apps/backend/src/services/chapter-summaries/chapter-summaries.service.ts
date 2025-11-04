@@ -5,15 +5,15 @@ import type {
   ChapterSummaryStatusInput,
   ChapterSummaryStatusState,
   SaveChapterSummaryInput,
-  SaveChapterSummaryOutput,
   SummarizeChapterInput,
   SummarizeChapterOutput,
 } from "@storyforge/contracts";
 import type { ChapterSummary as ChapterSummaryRow, SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
-import type { WorkflowRunHandle } from "@storyforge/gentasks";
-import { normalizeJson, stripNulls } from "@storyforge/utils";
-import { sql } from "drizzle-orm";
+import type { WorkflowEvent, WorkflowRunHandle } from "@storyforge/gentasks";
+import type { ChatCompletionResponse } from "@storyforge/inference";
+import { stripNulls } from "@storyforge/utils";
+import { eq, sql } from "drizzle-orm";
 import { createChildLogger } from "../../logging.js";
 import { ServiceError } from "../../service-error.js";
 import { getWorkflowForTaskScope } from "../workflows/workflow.queries.js";
@@ -27,7 +27,6 @@ const { chapterSummaries, turns, turnLayers } = schema;
 const log = createChildLogger("chapter-summaries");
 
 const SUMMARY_TEXT_KEY = "summary_text";
-const SUMMARY_JSON_KEY = "summary_json";
 
 type FingerprintMeta = {
   turnCount: number;
@@ -159,7 +158,7 @@ export class ChapterSummariesService {
     return { enqueued: runIds.length, runIds };
   }
 
-  async saveSummary(args: SaveChapterSummaryInput): Promise<SaveChapterSummaryOutput["summary"]> {
+  async saveSummary(args: SaveChapterSummaryInput): Promise<ChapterSummary | null> {
     const pair = await this.findChapterByClosingEvent(args.closingEventId, args.scenarioId);
     if (!pair?.closing) {
       throw new ServiceError("NotFound", {
@@ -168,8 +167,17 @@ export class ChapterSummariesService {
     }
 
     const span = await this.contextBuilder.buildSpan(args.scenarioId, pair.chapter, pair.closing);
+
+    const trimmedText = args.summaryText.trim();
+    if (trimmedText.length === 0) {
+      await this.db
+        .delete(chapterSummaries)
+        .where(eq(chapterSummaries.closingEventId, span.closingEventId));
+
+      return null;
+    }
+
     const fingerprint = await this.computeFingerprint(args.scenarioId, span);
-    const summaryJson = normalizeJson(args.summaryJson);
 
     await this.db.transaction(async (tx) => {
       await tx
@@ -179,8 +187,7 @@ export class ChapterSummariesService {
           chapterNumber: span.chapterNumber,
           closingEventId: span.closingEventId,
           closingTurnId: span.closingTurnId,
-          summaryText: args.summaryText,
-          summaryJson,
+          summaryText: trimmedText,
           turnCount: fingerprint.turnCount,
           maxTurnUpdatedAt: fingerprint.maxTurnUpdatedAt,
           spanFingerprint: fingerprint.spanFingerprint,
@@ -191,8 +198,7 @@ export class ChapterSummariesService {
           target: chapterSummaries.closingEventId,
           set: {
             chapterNumber: span.chapterNumber,
-            summaryText: args.summaryText,
-            summaryJson,
+            summaryText: trimmedText,
             turnCount: fingerprint.turnCount,
             maxTurnUpdatedAt: fingerprint.maxTurnUpdatedAt,
             spanFingerprint: fingerprint.spanFingerprint,
@@ -312,6 +318,91 @@ export class ChapterSummariesService {
     const { node, span, summary, fingerprint, run } = args;
     const currentTurnCount = fingerprint?.turnCount ?? span.turnIds.length;
 
+    type RunLastEvent = {
+      type: string;
+      stepId?: string;
+      name?: string;
+      ts: Date;
+      delta?: string;
+    };
+
+    let runInfo:
+      | {
+          startedAt: Date;
+          finishedAt?: Date;
+          elapsedMs: number;
+          lastEvent?: RunLastEvent;
+          outputPreview?: string;
+        }
+      | undefined;
+
+    if (run) {
+      const snapshot = run.handle.snapshot();
+      const startedAt = new Date(run.startedAt);
+      const finishedAt = run.finishedAt ? new Date(run.finishedAt) : undefined;
+      const elapsedMs = (finishedAt?.getTime() ?? Date.now()) - run.startedAt;
+
+      const lastEvent = snapshot.events.at(-1);
+      let runLastEvent: RunLastEvent | undefined;
+      if (lastEvent) {
+        runLastEvent = {
+          type: lastEvent.type,
+          stepId: "stepId" in lastEvent ? lastEvent.stepId : undefined,
+          name: "name" in lastEvent ? lastEvent.name : undefined,
+          ts: new Date(lastEvent.ts),
+          delta: lastEvent.type === "stream_delta" ? lastEvent.delta : undefined,
+        };
+      }
+
+      let outputPreview: string | undefined;
+      const lastStepEvent = [...snapshot.events]
+        .reverse()
+        .find((event): event is Extract<WorkflowEvent, { stepId: string }> => "stepId" in event);
+
+      if (lastStepEvent) {
+        const deltas = snapshot.events
+          .filter(
+            (event): event is Extract<WorkflowEvent, { type: "stream_delta"; delta: string }> =>
+              event.type === "stream_delta" &&
+              "stepId" in event &&
+              event.stepId === lastStepEvent.stepId
+          )
+          .map((event) => event.delta)
+          .join("");
+
+        if (deltas.trim().length > 0) {
+          outputPreview = deltas.slice(-2000);
+        } else {
+          const response = snapshot.stepResponses[lastStepEvent.stepId] as
+            | ChatCompletionResponse
+            | undefined;
+          const content = response?.message?.content;
+          if (typeof content === "string") {
+            outputPreview = content;
+          } else if (Array.isArray(content)) {
+            const parts = content as Array<string | { text?: string }>;
+            outputPreview = parts
+              .map((part) =>
+                typeof part === "string"
+                  ? part
+                  : typeof part === "object" && part
+                    ? (part.text ?? "")
+                    : ""
+              )
+              .join("");
+          }
+        }
+      }
+
+      runInfo = {
+        startedAt,
+        finishedAt,
+        elapsedMs,
+        lastEvent: runLastEvent,
+        outputPreview: outputPreview?.slice(-2000),
+      };
+    }
+
     const base = stripNulls({
       chapterEventId: node.chapter.eventId,
       closingEventId: span.closingEventId,
@@ -325,6 +416,7 @@ export class ChapterSummariesService {
       modelProfileId: summary?.modelProfileId,
       runId: run?.runId,
       lastError: run?.error,
+      run: runInfo,
     });
 
     if (run && !run.finishedAt) {
@@ -363,8 +455,6 @@ export class ChapterSummariesService {
     chapter: ChapterEntry,
     closing: ChapterEntry
   ): ChapterSummary {
-    const summaryJson = normalizeJson(row.summaryJson);
-
     return {
       id: row.id,
       scenarioId: row.scenarioId,
@@ -374,7 +464,6 @@ export class ChapterSummariesService {
       chapterNumber: chapter.chapterNumber,
       title: chapter.title || null,
       summaryText: row.summaryText,
-      summaryJson,
       turnCount: row.turnCount,
       maxTurnUpdatedAt: row.maxTurnUpdatedAt,
       spanFingerprint: row.spanFingerprint,
@@ -398,8 +487,6 @@ export class ChapterSummariesService {
       if (typeof text !== "string" || text.trim().length === 0) {
         throw new Error("Workflow did not produce chapter summary text output");
       }
-      const rawStructured = result.finalOutputs[SUMMARY_JSON_KEY];
-      const structured = normalizeJson(rawStructured);
       await this.db.transaction(async (tx) => {
         await tx
           .insert(chapterSummaries)
@@ -409,7 +496,6 @@ export class ChapterSummariesService {
             closingEventId: args.span.closingEventId,
             closingTurnId: args.span.closingTurnId,
             summaryText: text,
-            summaryJson: structured,
             turnCount: args.fingerprint.turnCount,
             maxTurnUpdatedAt: args.fingerprint.maxTurnUpdatedAt,
             spanFingerprint: args.fingerprint.spanFingerprint,
@@ -420,7 +506,6 @@ export class ChapterSummariesService {
             set: {
               chapterNumber: args.span.chapterNumber,
               summaryText: text,
-              summaryJson: structured,
               turnCount: args.fingerprint.turnCount,
               maxTurnUpdatedAt: args.fingerprint.maxTurnUpdatedAt,
               spanFingerprint: args.fingerprint.spanFingerprint,
@@ -434,6 +519,7 @@ export class ChapterSummariesService {
         { err: error, closingEventId: args.span.closingEventId, scenarioId: args.scenarioId },
         "Chapter summary run failed"
       );
+      getChapterSummaryRunManager().setError(args.handle.id, error);
     }
   }
 }

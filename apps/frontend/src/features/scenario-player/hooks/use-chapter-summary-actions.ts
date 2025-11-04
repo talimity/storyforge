@@ -11,7 +11,6 @@ interface SummarizeArgs {
 interface SaveSummaryArgs {
   closingEventId: string;
   summaryText: string;
-  summaryJson?: unknown;
 }
 
 export function useChapterSummaryActions() {
@@ -41,9 +40,12 @@ export function useChapterSummaryActions() {
 
   const saveMutation = useMutation(
     trpc.chapterSummaries.save.mutationOptions({
-      onSuccess: async () => {
+      onSuccess: async (_data, variables) => {
         await invalidateQueries();
-        showSuccessToast({ title: "Chapter summary saved" });
+        const wasCleared = variables.summaryText.trim().length === 0;
+        showSuccessToast({
+          title: wasCleared ? "Chapter summary cleared" : "Chapter summary saved",
+        });
       },
       onError: (error) => {
         showErrorToast({ title: "Failed to save chapter summary", error });
@@ -59,12 +61,11 @@ export function useChapterSummaryActions() {
     });
   }
 
-  async function saveSummary({ closingEventId, summaryText, summaryJson }: SaveSummaryArgs) {
+  async function saveSummary({ closingEventId, summaryText }: SaveSummaryArgs) {
     return saveMutation.mutateAsync({
       scenarioId: scenario.id,
       closingEventId,
       summaryText,
-      summaryJson,
     });
   }
 

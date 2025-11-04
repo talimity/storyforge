@@ -9,15 +9,18 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import type { TaskKind } from "@storyforge/gentasks";
 import {
   type ChatCompletionMessageRole,
   jsonSchema,
   slotSpecSchema,
 } from "@storyforge/prompt-rendering";
 import { useStore } from "@tanstack/react-form";
-import { useEffect } from "react";
-import { LuCheck, LuX } from "react-icons/lu";
+import { useEffect, useState } from "react";
+import { LuCheck, LuCopyPlus, LuX } from "react-icons/lu";
 import { z } from "zod";
+import { Button } from "@/components/ui";
+import { ImportContentBlockDialog } from "@/features/template-builder/components/import/import-content-block-dialog";
 import { NodeFrame } from "@/features/template-builder/components/nodes/node-frame";
 import { ParamInputGroup } from "@/features/template-builder/components/param-inputs";
 import {
@@ -50,6 +53,8 @@ interface SlotReferenceEditProps {
   dragHandleProps?: Record<string, unknown>;
   style?: React.CSSProperties;
   containerRef?: React.Ref<HTMLDivElement>;
+  task?: TaskKind;
+  templateId?: string;
 }
 
 const isAnchorNode = (
@@ -110,10 +115,13 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
     dragHandleProps,
     style,
     containerRef,
+    task,
+    templateId,
   } = props;
 
   const NodeIcon = getNodeIcon(node);
   const slotsDraft = useTemplateBuilderStore((state) => state.slotsDraft);
+  const [isReplaceDialogOpen, setReplaceDialogOpen] = useState(false);
 
   const recipe = slot.recipeId !== "custom" ? getRecipeById(slot.recipeId) : undefined;
 
@@ -231,6 +239,12 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
             Editing '{node.name}'
           </Text>
           <HStack gap={1}>
+            <Button size="xs" variant="outline" onClick={() => setReplaceDialogOpen(true)}>
+              <HStack gap={1} align="center">
+                <LuCopyPlus />
+                <Span>Replace from template</Span>
+              </HStack>
+            </Button>
             <IconButton
               size="xs"
               colorPalette="green"
@@ -402,6 +416,16 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
           </Accordion.Root>
         </VStack>
       </VStack>
+      <ImportContentBlockDialog
+        isOpen={isReplaceDialogOpen}
+        onClose={() => setReplaceDialogOpen(false)}
+        task={task}
+        templateId={templateId}
+        initialName={slot.name}
+        isNameEditable={false}
+        overwriteOnImport
+        confirmLabel="Replace Content Block"
+      />
     </NodeFrame>
   );
 }

@@ -61,6 +61,13 @@ export class ChapterSummaryRunManager {
     record.error = error instanceof Error ? error.message : error ? String(error) : undefined;
   }
 
+  setError(runId: string, error: unknown) {
+    const record = this.byRunId.get(runId);
+    if (!record) return;
+    record.finishedAt = record.finishedAt ?? Date.now();
+    record.error = error instanceof Error ? error.message : error ? String(error) : undefined;
+  }
+
   private sweep() {
     const now = Date.now();
     for (const record of this.byRunId.values()) {
