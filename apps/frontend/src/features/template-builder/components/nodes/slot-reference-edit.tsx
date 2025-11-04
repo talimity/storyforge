@@ -116,7 +116,6 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
   const slotsDraft = useTemplateBuilderStore((state) => state.slotsDraft);
 
   const recipe = slot.recipeId !== "custom" ? getRecipeById(slot.recipeId) : undefined;
-  // const availableVariables: TemplateVariable[] = recipe?.availableVariables ?? [];
 
   const paramsSchema = createRecipeParametersSchema(recipe?.parameters ?? []);
 

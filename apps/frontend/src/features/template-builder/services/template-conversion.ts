@@ -11,6 +11,10 @@ import type {
 import { assertNever, createId } from "@storyforge/utils";
 import { z } from "zod";
 import {
+  createChapterSeparatorAttachmentDraftFromSpec,
+  ensureChapterSeparatorAttachmentDraft,
+} from "@/features/template-builder/services/attachments/chapters";
+import {
   createLoreAttachmentDraftFromSpec,
   ensureLoreAttachmentDraft,
 } from "@/features/template-builder/services/attachments/lore";
@@ -155,17 +159,23 @@ function convertAttachmentsToDraft(
   attachments: readonly AttachmentLaneSpec[] | undefined,
   task: TaskKind
 ): Record<string, AttachmentLaneDraft> {
-  if (task !== "turn_generation") {
-    return {};
+  const drafts: Record<string, AttachmentLaneDraft> = {};
+
+  if (task === "turn_generation" || task === "chapter_summarization") {
+    const chapterSpec = attachments?.find((lane) => lane.id === "chapter_separators");
+    const chapterDraft = createChapterSeparatorAttachmentDraftFromSpec(chapterSpec);
+    drafts[chapterDraft.laneId] = chapterDraft;
+    console.log("Converted chapter separator attachment to draft:", chapterDraft, chapterSpec);
   }
 
-  const loreSpec = attachments?.find((lane) => lane.id === "lore");
-  const loreDraft = createLoreAttachmentDraftFromSpec(loreSpec);
-  console.log("Converted lore attachment to draft:", loreDraft, loreSpec);
+  if (task === "turn_generation") {
+    const loreSpec = attachments?.find((lane) => lane.id === "lore");
+    const loreDraft = createLoreAttachmentDraftFromSpec(loreSpec);
+    drafts[loreDraft.laneId] = loreDraft;
+    console.log("Converted lore attachment to draft:", loreDraft, loreSpec);
+  }
 
-  return {
-    [loreDraft.laneId]: loreDraft,
-  } satisfies Record<string, AttachmentLaneDraft>;
+  return drafts;
 }
 
 /**
@@ -173,6 +183,16 @@ function convertAttachmentsToDraft(
  */
 export function createBlankTemplate(task: TaskKind): TemplateDraft {
   const defaultLoreDraft = ensureLoreAttachmentDraft();
+  const defaultChapterDraft = ensureChapterSeparatorAttachmentDraft();
+
+  const attachments: Record<string, AttachmentLaneDraft> = {};
+
+  if (task === "turn_generation") {
+    attachments[defaultLoreDraft.laneId] = defaultLoreDraft;
+    attachments[defaultChapterDraft.laneId] = defaultChapterDraft;
+  } else if (task === "chapter_summarization") {
+    attachments[defaultChapterDraft.laneId] = defaultChapterDraft;
+  }
 
   return {
     id: createId(),
@@ -188,11 +208,6 @@ export function createBlankTemplate(task: TaskKind): TemplateDraft {
       },
     ],
     slotsDraft: {},
-    attachmentDrafts:
-      task === "turn_generation"
-        ? {
-            [defaultLoreDraft.laneId]: defaultLoreDraft,
-          }
-        : {},
+    attachmentDrafts: attachments,
   };
 }

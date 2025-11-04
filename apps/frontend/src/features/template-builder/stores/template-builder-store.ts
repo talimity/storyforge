@@ -195,6 +195,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
       let slotName = "";
       set((state) => {
         const recipe = recipeId !== "custom" ? getRecipeById(recipeId) : undefined;
+        console.log("createSlotFromRecipe: recipe", { recipeId, recipe });
         const baseName = recipe?.name || "custom_content";
         slotName = generateSlotName(state.slotsDraft, baseName);
 

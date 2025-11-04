@@ -18,6 +18,10 @@ describe("makeRegistry", () => {
       },
     ],
     chapterSummaries: [{ chapterNo: 1, summary: "The heroes meet" }],
+    chapters: [
+      { chapterNumber: 1, title: "Chapter 1", breakEventId: "ev1", breakTurnId: "turn-1" },
+      { chapterNumber: 2, title: "Chapter 2", breakEventId: "ev2", breakTurnId: "turn-2" },
+    ],
     characters: [
       { id: "alice", name: "Alice", description: "A brave warrior" },
       { id: "bob", name: "Bob", description: "A wise mage" },

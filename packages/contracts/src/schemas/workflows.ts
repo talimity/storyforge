@@ -158,16 +158,25 @@ export const workflowTestMockConfigSchema = z.object({
 });
 
 // Input for test run
-export const workflowTestRunInputSchema = z.object({
+const workflowTestRunBaseSchema = z.object({
   scenarioId: z.string(),
-  characterId: z.string(),
-  task: taskKindSchema.default("turn_generation"),
   // accept either a persisted workflow (full) or an unsaved draft (create shape)
   workflow: z.union([genWorkflowSchema, createWorkflowSchema]),
-  intent: workflowTestIntentSchema.default({ kind: "guided_control" }),
   mock: workflowTestMockConfigSchema.optional(),
   options: z.object({ captureTransformedPrompts: z.boolean().default(true) }).optional(),
 });
+
+export const workflowTestRunInputSchema = z.discriminatedUnion("task", [
+  workflowTestRunBaseSchema.extend({
+    task: z.literal("turn_generation"),
+    characterId: z.string(),
+    intent: workflowTestIntentSchema.default({ kind: "guided_control" }),
+  }),
+  workflowTestRunBaseSchema.extend({
+    task: z.literal("chapter_summarization"),
+    closingEventId: z.string(),
+  }),
+]);
 
 // Output for test run
 export const workflowTestRunOutputSchema = z.object({
@@ -184,7 +193,12 @@ export const workflowTestRunOutputSchema = z.object({
   stepResponses: z.record(z.string(), completionResponseUnknownSchema),
   finalOutputs: z.record(z.string(), z.unknown()),
   events: z.array(workflowEventUnknownSchema),
-  meta: z.object({ scenarioId: z.string(), participantId: z.string() }),
+  meta: z.object({
+    scenarioId: z.string(),
+    participantId: z.string().optional(),
+    closingEventId: z.string().optional(),
+    chapterNumber: z.number().optional(),
+  }),
 });
 
 // Type exports for consumers

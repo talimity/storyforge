@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ensureChapterSeparatorAttachmentDraft } from "@/features/template-builder/services/attachments/chapters";
 import { ensureLoreAttachmentDraft } from "@/features/template-builder/services/attachments/lore";
 import {
   compileDraft,
@@ -7,10 +8,12 @@ import {
 } from "@/features/template-builder/services/compile-draft";
 import type { TemplateDraft } from "@/features/template-builder/types";
 
-function createLoreAttachmentDrafts(): TemplateDraft["attachmentDrafts"] {
-  const base = ensureLoreAttachmentDraft();
+function createDefaultAttachmentDrafts(): TemplateDraft["attachmentDrafts"] {
+  const lore = ensureLoreAttachmentDraft();
+  const chapters = ensureChapterSeparatorAttachmentDraft();
   return {
-    [base.laneId]: base,
+    [lore.laneId]: lore,
+    [chapters.laneId]: chapters,
   };
 }
 
@@ -39,7 +42,6 @@ describe("compileDraft", () => {
           recipeId: "timeline_basic",
           params: {
             maxTurns: 5,
-            order: "desc",
             turnTemplate: "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
             budget: 2000,
           },
@@ -48,7 +50,7 @@ describe("compileDraft", () => {
           budget: 2000,
         },
       },
-      attachmentDrafts: createLoreAttachmentDrafts(),
+      attachmentDrafts: createDefaultAttachmentDrafts(),
     };
 
     const compiled = compileDraft(draft);
@@ -70,6 +72,97 @@ describe("compileDraft", () => {
     expect(compiled.slots.timeline).toBeDefined();
     expect(compiled.slots.timeline.priority).toBe(0);
     expect(compiled.slots.timeline.budget?.maxTokens).toBe(2000);
+  });
+
+  it("applies chapter limit parameters to the timeline turns source", () => {
+    const draft: TemplateDraft = {
+      id: "timeline_chapter_limit",
+      name: "Timeline Chapter Limit Template",
+      description: "Tests chapter limit parameters",
+      task: "turn_generation",
+      layoutDraft: [
+        {
+          id: "slot_1",
+          kind: "slot",
+          name: "timeline",
+        },
+      ],
+      slotsDraft: {
+        timeline: {
+          recipeId: "timeline_basic",
+          params: {
+            maxTurns: 20,
+            turnTemplate: "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
+            chapterWindowEnabled: true,
+            chapterWindowStartOffset: -2,
+            chapterWindowEndOffset: 0,
+            chapterWindowRequireMinTurns: true,
+            chapterWindowMinTurns: 35,
+          },
+          name: "timeline",
+          priority: 0,
+        },
+      },
+      attachmentDrafts: createDefaultAttachmentDrafts(),
+    };
+
+    const compiled = compileDraft(draft);
+    const forEachNode = compiled.slots.timeline.plan[0];
+    if (!forEachNode || forEachNode.kind !== "forEach") {
+      throw new Error("Expected first plan node to be a forEach node");
+    }
+
+    if (!("args" in forEachNode.source) || !forEachNode.source.args) {
+      throw new Error("Expected turns source to include chapter window args");
+    }
+
+    expect(forEachNode.source.args.chapterWindow).toEqual({
+      startOffset: -2,
+      endOffset: 0,
+      minTurns: 20,
+    });
+  });
+
+  it("should compile a chapter summaries recipe", () => {
+    const draft: TemplateDraft = {
+      id: "chapter_summaries_template",
+      name: "Chapter Summary Template",
+      description: "Tests chapter summaries recipe",
+      task: "turn_generation",
+      layoutDraft: [
+        {
+          id: "slot_1",
+          kind: "slot",
+          name: "summaries",
+        },
+      ],
+      slotsDraft: {
+        summaries: {
+          recipeId: "chapter_summaries_basic",
+          params: {},
+          name: "summaries",
+          priority: 0,
+        },
+      },
+      attachmentDrafts: createDefaultAttachmentDrafts(),
+    };
+
+    const compiled = compileDraft(draft);
+    const forEachNode = compiled.slots.summaries.plan[0];
+    if (!forEachNode || forEachNode.kind !== "forEach") {
+      throw new Error("Expected plan to begin with a forEach node");
+    }
+
+    expect(forEachNode.source).toEqual({ source: "chapterSummaries" });
+    expect(forEachNode.limit).toBe(3);
+
+    const messageNode = forEachNode.map[0];
+    expect(messageNode).toEqual({
+      kind: "message",
+      role: "user",
+      content:
+        "{{#if item.title}}[Ch.{{item.chapterNumber}} - {{item.title}}]{{#else}}[Chapter {{item.chapterNumber}}]{{#endif}}\n{{#if item.summaryText}}{{item.summaryText}}{{#else}}No summary available.{{#endif}}\n",
+    });
   });
 });
 
@@ -95,7 +188,7 @@ describe("validateDraft", () => {
           priority: 0,
         },
       },
-      attachmentDrafts: createLoreAttachmentDrafts(),
+      attachmentDrafts: createDefaultAttachmentDrafts(),
     };
 
     const errors = validateDraft(draft);
@@ -123,7 +216,7 @@ describe("validateDraft", () => {
           priority: 0,
         },
       },
-      attachmentDrafts: createLoreAttachmentDrafts(),
+      attachmentDrafts: createDefaultAttachmentDrafts(),
     };
 
     const errors = validateDraft(draft);
@@ -145,7 +238,7 @@ describe("validateDraft", () => {
           priority: 0,
         },
       },
-      attachmentDrafts: createLoreAttachmentDrafts(),
+      attachmentDrafts: createDefaultAttachmentDrafts(),
     };
 
     const errors = validateDraft(draft);
@@ -179,7 +272,7 @@ describe("validateDraft", () => {
           priority: 1,
         },
       },
-      attachmentDrafts: createLoreAttachmentDrafts(),
+      attachmentDrafts: createDefaultAttachmentDrafts(),
     };
 
     const errors = validateDraft(draft);
@@ -204,7 +297,7 @@ describe("content vs from mutual exclusivity", () => {
         },
       ],
       slotsDraft: {},
-      attachmentDrafts: createLoreAttachmentDrafts(),
+      attachmentDrafts: createDefaultAttachmentDrafts(),
     };
 
     expect(() => compileDraft(draft)).toThrow(DraftCompilationError);
@@ -241,7 +334,7 @@ describe("content vs from mutual exclusivity", () => {
           priority: 0,
         },
       },
-      attachmentDrafts: createLoreAttachmentDrafts(),
+      attachmentDrafts: createDefaultAttachmentDrafts(),
     };
 
     expect(() => compileDraft(draft)).toThrow(DraftCompilationError);

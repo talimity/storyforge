@@ -15,6 +15,10 @@ describe("evaluateCondition", () => {
       { turnNo: 2, authorName: "Bob", authorType: "character", content: "Hi" },
     ],
     chapterSummaries: [],
+    chapters: [
+      { chapterNumber: 1, title: "Intro", breakEventId: "ev1", breakTurnId: "turn-1" },
+      { chapterNumber: 2, title: "Continuation", breakEventId: "ev2", breakTurnId: "turn-2" },
+    ],
     characters: [{ id: "alice", name: "Alice", description: "A warrior" }],
     currentIntent: { description: "Test intent" },
     stepOutputs: { planner: { plan: "Talk about weather" } },

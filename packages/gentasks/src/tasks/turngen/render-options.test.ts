@@ -2,6 +2,10 @@ import type { LorebookAssignment } from "@storyforge/lorebooks";
 import type { InjectionTarget } from "@storyforge/prompt-rendering";
 import { describe, expect, it } from "vitest";
 import {
+  buildDefaultChapterSeparatorLaneSpec,
+  CHAPTER_SEPARATOR_LANE_ID,
+} from "../../attachments/chapter-separators.js";
+import {
   buildDefaultLoreLaneSpec,
   LORE_ATTACHMENT_REQUIRED_ANCHORS,
 } from "../../attachments/lore.js";
@@ -12,6 +16,7 @@ const baseContext: TurnGenContext = {
   turns: [],
   characters: [],
   chapterSummaries: [],
+  chapters: [],
   actor: { id: "actor", name: "Actor", description: "", type: "character" },
   nextTurnNumber: 1,
   globals: {
@@ -42,13 +47,13 @@ function makeAssignment(
 describe("buildTurnGenRenderOptions", () => {
   it("returns default lore lane even when no assignments are enabled", () => {
     const options = buildTurnGenRenderOptions(baseContext);
-    expect(options.attachmentDefaults).toHaveLength(1);
-    const defaults = buildDefaultLoreLaneSpec();
-    const lane = options.attachmentDefaults?.[0];
-    expect(lane?.id).toBe("lore");
-    expect(lane?.reserveTokens).toBeUndefined();
-    expect(lane).toMatchObject(defaults);
-    expect(options.injections).toHaveLength(0);
+    const lanes = options.attachmentDefaults ?? [];
+    expect(lanes).toHaveLength(2);
+    const loreLane = lanes.find((lane) => lane.id === "lore");
+    const chapterLane = lanes.find((lane) => lane.id === CHAPTER_SEPARATOR_LANE_ID);
+    expect(loreLane).toMatchObject(buildDefaultLoreLaneSpec());
+    expect(chapterLane).toMatchObject(buildDefaultChapterSeparatorLaneSpec());
+    expect(options.injections ?? []).toHaveLength(0);
   });
 
   it("produces injections for before_char positions", () => {
@@ -143,8 +148,9 @@ describe("buildTurnGenRenderOptions", () => {
     };
 
     const options = buildTurnGenRenderOptions(ctx);
-    expect(options.injections).toHaveLength(1);
-    const injection = options.injections?.[0];
+    const loreInjections = (options.injections ?? []).filter((injection) => injection.lane === "lore");
+    expect(loreInjections).toHaveLength(1);
+    const injection = loreInjections[0];
     expect(injection?.groupId).toBe("turn_2");
     const target = injection?.target;
     expect(Array.isArray(target)).toBe(true);
@@ -202,5 +208,65 @@ describe("buildTurnGenRenderOptions", () => {
 
     const options = buildTurnGenRenderOptions(ctx);
     expect(options.attachmentDefaults?.[0]?.reserveTokens).toBe(70);
+  });
+
+  it("emits chapter separator injections between chapters", () => {
+    const ctx: TurnGenContext = {
+      ...baseContext,
+      turns: [
+        {
+          turnId: "ta",
+          turnNo: 10,
+          chapterNumber: 4,
+          authorName: "A",
+          authorType: "character",
+          content: "",
+          layers: {},
+          events: [],
+        },
+        {
+          turnId: "tb",
+          turnNo: 11,
+          chapterNumber: 4,
+          authorName: "A",
+          authorType: "character",
+          content: "",
+          layers: {},
+          events: [],
+        },
+        {
+          turnId: "tc",
+          turnNo: 12,
+          chapterNumber: 5,
+          authorName: "B",
+          authorType: "character",
+          content: "",
+          layers: {},
+          events: [],
+        },
+      ],
+      chapterSummaries: [
+        { chapterNumber: 5, title: "Awakening", updatedAt: new Date() },
+      ] as TurnGenContext["chapterSummaries"],
+    };
+
+    const options = buildTurnGenRenderOptions({
+      ...ctx,
+      chapters: [
+        { chapterNumber: 4, title: "Shadows", breakEventId: "ev4", breakTurnId: "ta" },
+        { chapterNumber: 5, title: "Awakening", breakEventId: "ev5", breakTurnId: "tc" },
+      ],
+    });
+    const separators = (options.injections ?? []).filter(
+      (injection) => injection.lane === CHAPTER_SEPARATOR_LANE_ID
+    );
+    expect(separators).toHaveLength(2);
+    const chapterFour = separators.find((injection) => injection.payload?.chapterNumber === 4);
+    expect(chapterFour?.target).toEqual({ kind: "at", key: "turn_10_before" });
+    expect(chapterFour?.payload).toMatchObject({ chapterNumber: 4, title: "Shadows" });
+
+    const chapterFive = separators.find((injection) => injection.payload?.chapterNumber === 5);
+    expect(chapterFive?.target).toEqual({ kind: "at", key: "turn_12_before" });
+    expect(chapterFive?.payload).toMatchObject({ chapterNumber: 5, title: "Awakening" });
   });
 });

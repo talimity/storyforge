@@ -153,11 +153,16 @@ function compileSlot(slotDraft: SlotDraft): UnboundSlotSpec {
     ...baseSlotSpec.meta,
   };
 
-  return structuredClone({
-    ...baseSlotSpec,
+  const baseClone = structuredClone(baseSlotSpec);
+
+  const slotSpec: UnboundSlotSpec = {
+    ...baseClone,
+    ...(typeof slotDraft.budget === "number" ? { budget: { maxTokens: slotDraft.budget } } : {}),
     priority: slotDraft.priority,
     meta: recipeMeta,
-  });
+  };
+
+  return slotSpec;
 }
 
 const isSlotFrameAnchorDraft = (node: SlotFrameNodeDraft): node is SlotFrameAnchorDraft =>

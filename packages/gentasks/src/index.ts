@@ -1,4 +1,9 @@
 export {
+  buildChapterSeparatorRenderOptions,
+  buildDefaultChapterSeparatorLaneSpec,
+  CHAPTER_SEPARATOR_LANE_ID,
+} from "./attachments/chapter-separators.js";
+export {
   buildDefaultLoreLaneSpec,
   buildLoreRenderOptions,
   LORE_ATTACHMENT_REQUIRED_ANCHORS,
@@ -11,6 +16,7 @@ export {
   ChapterSummarizationGlobals,
   RenderContextSummarizationTarget,
 } from "./tasks/chapter-summarization/context.js";
+export { buildChapterSummarizationRenderOptions } from "./tasks/chapter-summarization/render-options.js";
 export {
   CHAPTER_SUMMARIZATION_SOURCE_NAMES,
   ChapterSummarizationSources,

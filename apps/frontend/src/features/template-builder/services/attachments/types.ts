@@ -32,3 +32,15 @@ export interface LoreAttachmentFormValues {
 }
 
 export type LoreAttachmentLaneDraft = AttachmentLaneDraftBase<"lore", LoreAttachmentFormValues>;
+export type AttachmentLaneDraft = LoreAttachmentLaneDraft | ChapterSeparatorAttachmentLaneDraft;
+
+export interface ChapterSeparatorAttachmentFormValues {
+  enabled: boolean;
+  role: ChatCompletionMessageRole;
+  template: string;
+}
+
+export type ChapterSeparatorAttachmentLaneDraft = AttachmentLaneDraftBase<
+  "chapter_separators",
+  ChapterSeparatorAttachmentFormValues
+>;

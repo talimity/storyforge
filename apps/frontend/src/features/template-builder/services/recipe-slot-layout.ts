@@ -118,13 +118,13 @@ export function syncSlotLayoutWithRecipe({
   layoutDraft,
   mode = "overwrite",
 }: SyncSlotLayoutWithRecipeOptions): SyncSlotLayoutWithRecipeResult | undefined {
-  if (!recipe?.buildSlotLayout) {
+  if (!recipe) {
     return undefined;
   }
 
   const coercedParams = coerceRecipeParams(recipe.parameters, params);
-  const frames = recipe.buildSlotLayout(coercedParams);
 
+  const frames = recipe.buildSlotLayout?.(coercedParams);
   if (!frames) {
     return { coercedParams };
   }

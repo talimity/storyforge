@@ -261,7 +261,7 @@ function resolveInjectionIndex(
         baseIndex = indices[Math.min(Math.max(idx, 0), indices.length - 1)];
       }
 
-      return target.after ? Math.min(baseIndex + 1, messageCount) : baseIndex;
+      return baseIndex;
     }
     case "offset": {
       const indices = anchorMap.get(target.key);
@@ -273,7 +273,7 @@ function resolveInjectionIndex(
       let index = base + target.delta;
       index = Math.max(0, Math.min(index, messageCount));
 
-      return target.after ? Math.min(index + 1, messageCount) : index;
+      return index;
     }
     case "boundary": {
       const delta = target.delta ?? 0;

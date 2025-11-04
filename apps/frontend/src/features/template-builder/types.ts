@@ -8,6 +8,8 @@ import type {
 } from "@storyforge/prompt-rendering";
 import type {
   AttachmentLaneDraftBase,
+  AttachmentLaneDraft as AttachmentLaneDraftUnion,
+  ChapterSeparatorAttachmentLaneDraft,
   LoreAttachmentFormValues,
   LoreAttachmentLaneDraft,
 } from "@/features/template-builder/services/attachments/types";
@@ -16,7 +18,8 @@ export type BaseRecipeId =
   | "timeline_basic"
   | "timeline_advanced"
   | "characters_basic"
-  | "intent_basic";
+  | "intent_basic"
+  | "chapter_summaries_basic";
 
 export type RecipeId<_K extends TaskKind = TaskKind> = BaseRecipeId;
 export type AnyRecipeId = BaseRecipeId;
@@ -36,6 +39,11 @@ export interface RecipeParamSpec {
   min?: number;
   max?: number;
   options?: readonly { label: string; value: string | number | boolean }[];
+  /**
+   * Optional predicate that determines whether the parameter should be rendered.
+   * Receives the current parameter value map.
+   */
+  visibleWhen?: (params: Record<string, unknown>) => boolean;
 }
 
 /**
@@ -170,6 +178,11 @@ export interface SlotDraft {
   customSpec?: string; // For custom slots, this is a JSON string of its SlotSpec
 }
 
-export type AttachmentLaneDraft = LoreAttachmentLaneDraft;
+export type AttachmentLaneDraft = AttachmentLaneDraftUnion;
 
-export type { LoreAttachmentFormValues, AttachmentLaneDraftBase };
+export type {
+  LoreAttachmentFormValues,
+  AttachmentLaneDraftBase,
+  LoreAttachmentLaneDraft,
+  ChapterSeparatorAttachmentLaneDraft,
+};

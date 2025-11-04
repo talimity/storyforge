@@ -72,6 +72,14 @@ export const richChapterSummariesDTOFixture = [
   },
 ];
 
+const buildChapterFixtures = (count: number) =>
+  Array.from({ length: count }, (_, index) => ({
+    chapterNumber: index + 1,
+    title: `Chapter ${index + 1}`,
+    breakEventId: `chapter-break-${index + 1}`,
+    breakTurnId: null,
+  }));
+
 /** Detailed character data with examples */
 export const richCharactersDTOFixture = [
   {
@@ -116,6 +124,7 @@ export const richCharactersDTOFixture = [
 export const standardTurnGenCtx: FakeTurnGenCtx = {
   turns: richTurnsDTOFixture,
   chapterSummaries: richChapterSummariesDTOFixture,
+  chapters: buildChapterFixtures(richChapterSummariesDTOFixture.length),
   characters: richCharactersDTOFixture,
   lorebooks: [],
   currentIntent: {
@@ -170,6 +179,7 @@ export const largeTurnGenCtx: FakeTurnGenCtx = {
       summary: `Chapter ${i + 6}: Additional chapter summary for testing budget limits and array truncation behavior.`,
     })),
   ],
+  chapters: buildChapterFixtures(richChapterSummariesDTOFixture.length + 10),
   stepOutputs: {},
   characters: richCharactersDTOFixture,
   lorebooks: [],
@@ -185,6 +195,7 @@ export const largeTurnGenCtx: FakeTurnGenCtx = {
 export const stepChainedCtx = {
   turns: richTurnsDTOFixture.slice(0, 3), // Smaller set for focused testing
   chapterSummaries: richChapterSummariesDTOFixture.slice(0, 2),
+  chapters: buildChapterFixtures(2),
   characters: richCharactersDTOFixture.slice(0, 3),
   currentIntent: {
     description: "Execute a multi-step workflow with planner -> writer chaining",
@@ -214,6 +225,7 @@ export const stepChainedCtx = {
 export const emptyTurnGenCtx = {
   turns: [],
   chapterSummaries: [],
+  chapters: [],
   characters: [],
   lorebooks: [],
   currentIntent: {
@@ -229,6 +241,7 @@ export const emptyTurnGenCtx = {
 export const noTurnsCtx = {
   turns: [],
   chapterSummaries: richChapterSummariesDTOFixture.slice(0, 2),
+  chapters: buildChapterFixtures(2),
   characters: richCharactersDTOFixture.slice(0, 3),
   lorebooks: [],
   currentIntent: {
@@ -266,6 +279,7 @@ export const deterministicTurnGenCtx: FakeTurnGenCtx = {
       summary: "Deterministic chapter summary 2",
     },
   ],
+  chapters: buildChapterFixtures(2),
   characters: [
     {
       id: "alice",

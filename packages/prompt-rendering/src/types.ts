@@ -279,9 +279,9 @@ export type InjectionTarget =
    * Insert relative to a specific anchor occurrence produced by the template.
    * Defaults to last occurrence.
    */
-  | { kind: "at"; key: string; occurrence?: "first" | "last" | number; after?: boolean }
+  | { kind: "at"; key: string; occurrence?: "first" | "last" | number }
   /** Insert at an offset relative to the latest anchor occurrence. */
-  | { kind: "offset"; key: string; delta: number; after?: boolean }
+  | { kind: "offset"; key: string; delta: number }
   /** Insert relative to the top or bottom of the assembled prompt. */
   | { kind: "boundary"; position: "top" | "bottom"; delta?: number };
 

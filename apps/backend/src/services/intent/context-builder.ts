@@ -25,6 +25,11 @@ export class IntentContextBuilder {
     private scenarioId: string
   ) {}
 
+  /**
+   * Builds the turn generation prompt context for the provided actor and optional leaf turn. The
+   * context includes enriched turns, derived chapter metadata, prior summaries, lorebook matches,
+   * and intent globals.
+   */
   async buildContext(args: BuildContextArgs): Promise<TurnGenContext> {
     const { actorParticipantId, intent, leafTurnId = null } = args;
 
@@ -45,6 +50,13 @@ export class IntentContextBuilder {
     const nextTurnNumber = (data.turns.at(-1)?.turnNo ?? 0) + 1;
     const currentChapterNumber =
       enrichedTurns.at(-1)?.chapterNumber ?? data.derivation.final.chapters?.chapters.length ?? 1;
+    const chapters =
+      data.derivation.final.chapters?.chapters.map((entry) => ({
+        chapterNumber: entry.number,
+        title: entry.title ?? undefined,
+        breakEventId: entry.eventId,
+        breakTurnId: entry.turnId,
+      })) ?? [];
     // TODO: this is definitely not a good way to do this
     // templates may need raw kind for switch case behavior, but also need
     // model-friendly kind and a formatted prompt to insert in the text
@@ -61,6 +73,7 @@ export class IntentContextBuilder {
       characters,
       chapterSummaries: data.chapterSummaries,
       lorebooks: data.lorebooks,
+      chapters,
       actor,
       ...(intent
         ? {

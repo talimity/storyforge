@@ -145,6 +145,9 @@ describe("DataRef Resolution", () => {
       },
     ],
     chapterSummaries: [],
+    chapters: [
+      { chapterNumber: 1, title: "Chapter 1", breakEventId: "ev1", breakTurnId: "turn-1" },
+    ],
     characters: [{ id: "alice", name: "Alice", description: "A warrior" }],
     currentIntent: { description: "Test intent" },
   };

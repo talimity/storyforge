@@ -1,14 +1,12 @@
 import { type SqliteDatabase, schema } from "@storyforge/db";
 import {
+  buildChapterSummarizationRenderOptions,
   buildTurnGenRenderOptions,
-  type ContextFor,
   chapterSummarizationRegistry,
   makeWorkflowRunner,
   type TaskKind,
-  type TaskSourcesMap,
   turnGenRegistry,
   type WorkflowRunner,
-  writingAssistRegistry,
 } from "@storyforge/gentasks";
 import {
   createAdapter,
@@ -19,25 +17,12 @@ import {
 import {
   type BudgetManager,
   DefaultBudgetManager,
-  type SourceRegistry,
   type UnboundTemplate,
 } from "@storyforge/prompt-rendering";
 import { assertNever } from "@storyforge/utils";
 import { eq } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { fromDbPromptTemplate } from "../template/utils/marshalling.js";
-
-const REGISTRIES = {
-  turn_generation: turnGenRegistry,
-  chapter_summarization: chapterSummarizationRegistry,
-  writing_assistant: writingAssistRegistry,
-} as const satisfies {
-  [K in TaskKind]: SourceRegistry<ContextFor<K>, TaskSourcesMap[K]>;
-};
-
-function getRegistryForTask<K extends TaskKind>(taskKind: K): (typeof REGISTRIES)[K] {
-  return REGISTRIES[taskKind];
-}
 
 /**
  * Singleton to manage workflow runners for different task kinds.
@@ -66,22 +51,15 @@ export class WorkflowRunnerManager {
       return this.runners.get(taskKind) as WorkflowRunner<K>;
     }
 
-    const registry = getRegistryForTask(taskKind);
-
     switch (taskKind) {
-      case "turn_generation":
-      case "chapter_summarization": {
-        // chapter summarization is a subset of turn generation for runner purposes
+      case "turn_generation": {
+        const registry = turnGenRegistry;
         const runner = makeWorkflowRunner<"turn_generation">({
           loadTemplate: (id) => this.loadTemplate(id),
           loadModelProfile: (id) => this.loadModelProfile(id),
           budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
           makeAdapter: createAdapter,
-          // cast needed because registry is not a discriminated union
-          registry: registry as SourceRegistry<
-            ContextFor<"turn_generation">,
-            TaskSourcesMap["turn_generation"]
-          >,
+          registry: registry,
           resolveRenderOptions: ({ extendedContext }) => buildTurnGenRenderOptions(extendedContext),
         });
 
@@ -89,7 +67,25 @@ export class WorkflowRunnerManager {
         return runner as WorkflowRunner<K>;
       }
 
+      case "chapter_summarization": {
+        const registry = chapterSummarizationRegistry;
+        const runner = makeWorkflowRunner<"chapter_summarization">({
+          loadTemplate: (id) => this.loadTemplate(id),
+          loadModelProfile: (id) => this.loadModelProfile(id),
+          budgetFactory: (maxTokens) => this.createBudgetManager(maxTokens),
+          makeAdapter: createAdapter,
+          registry: registry,
+          resolveRenderOptions: ({ extendedContext }) =>
+            buildChapterSummarizationRenderOptions(extendedContext),
+        });
+
+        this.runners.set(taskKind, runner as WorkflowRunner<TaskKind>);
+        return runner as WorkflowRunner<K>;
+      }
+
       case "writing_assistant":
+        // Writing assistant workflows are not yet supported by the tester
+        // fallback to thrown error until implemented.
         throw new Error("Not implemented");
       default:
         assertNever(taskKind);

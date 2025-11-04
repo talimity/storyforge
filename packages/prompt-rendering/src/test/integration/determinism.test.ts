@@ -84,6 +84,7 @@ describe("Determinism & Immutability", () => {
     const complexContext = {
       turns: [], // Triggers examples slot
       chapterSummaries: deterministicTurnGenCtx.chapterSummaries,
+      chapters: deterministicTurnGenCtx.chapters,
       characters: deterministicTurnGenCtx.characters,
       currentIntent: deterministicTurnGenCtx.currentIntent,
       stepOutputs: deterministicTurnGenCtx.stepOutputs,

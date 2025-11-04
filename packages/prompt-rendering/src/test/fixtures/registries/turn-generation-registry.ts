@@ -9,6 +9,12 @@ export type FakeTurnGenCtx = {
     content: string;
   }[];
   chapterSummaries: { chapterNo: number; summary: string }[];
+  chapters: {
+    chapterNumber: number;
+    title?: string;
+    breakEventId: string;
+    breakTurnId?: string | null;
+  }[];
   characters: { id: string; name: string; description: string }[];
   currentIntent: { description: string; constraint?: string };
   stepOutputs: Record<string, unknown>;

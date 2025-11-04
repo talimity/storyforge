@@ -4,6 +4,7 @@ import {
   Box,
   Card,
   Code,
+  createListCollection,
   Heading,
   HStack,
   Input,
@@ -11,10 +12,19 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { useMutation } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import type { WorkflowTestRunInput } from "@storyforge/contracts";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { LuEye, LuPlay } from "react-icons/lu";
-import { Button, Field } from "@/components/ui";
+import {
+  Button,
+  Field,
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "@/components/ui";
 import { TabHeader } from "@/components/ui/tab-header";
 import { CharacterSingleSelect } from "@/features/characters/components/character-selector";
 import { ScenarioSingleSelect } from "@/features/scenarios/components/scenario-selector";
@@ -25,38 +35,134 @@ type Props = {
   values: WorkflowFormValues;
 };
 
+type ChapterOption = {
+  value: string;
+  label: string;
+  state: string;
+};
+
 export function WorkflowPreviewTab({ values }: Props) {
   const trpc = useTRPC();
   const [scenarioId, setScenarioId] = useState<string | undefined>(undefined);
   const [characterId, setCharacterId] = useState<string | undefined>(undefined);
+  const [closingEventId, setClosingEventId] = useState<string | undefined>(undefined);
   const [guidance, setGuidance] = useState("");
   const [mockByStep, setMockByStep] = useState<Record<string, string>>({});
 
-  const isRunnable = Boolean(scenarioId && characterId && values?.steps?.length);
+  const isTurnGeneration = values.task === "turn_generation";
+  const isChapterSummarization = values.task === "chapter_summarization";
 
-  const payload = useMemo(() => {
-    if (!scenarioId || !characterId) return null;
-    return {
-      scenarioId,
-      characterId,
-      task: values.task,
-      workflow: {
-        task: values.task,
-        name: values.name,
-        description: values.description || undefined,
-        steps: values.steps,
-      },
-      intent: { kind: "guided_control" as const, text: guidance || undefined },
-      mock: Object.keys(mockByStep).length
-        ? {
-            stepResponses: Object.fromEntries(
-              Object.entries(mockByStep).filter(([, t]) => t?.trim())
-            ),
-          }
-        : undefined,
-      options: { captureTransformedPrompts: true },
-    };
-  }, [scenarioId, characterId, values, guidance, mockByStep]);
+  useEffect(() => {
+    setGuidance("");
+    setCharacterId(undefined);
+    setClosingEventId(undefined);
+  }, []);
+
+  useEffect(() => {
+    setCharacterId(undefined);
+    setClosingEventId(undefined);
+  }, []);
+
+  const chapterStatuses = useQuery({
+    ...trpc.chapterSummaries.listForPath.queryOptions({ scenarioId: scenarioId ?? "" }),
+    enabled: isChapterSummarization && Boolean(scenarioId),
+  });
+
+  const chapterOptions: ChapterOption[] = useMemo(() => {
+    const summaries = chapterStatuses.data?.summaries ?? [];
+    return summaries
+      .filter((summary) => summary.closingEventId)
+      .map((summary) => ({
+        value: summary.closingEventId || "",
+        label: `Chapter ${summary.chapterNumber}${summary.title ? ` - ${summary.title}` : ""}`,
+        state: summary.state,
+      }));
+  }, [chapterStatuses.data]);
+
+  useEffect(() => {
+    if (!isChapterSummarization) {
+      return;
+    }
+    if (chapterOptions.length === 0) {
+      setClosingEventId(undefined);
+      return;
+    }
+    if (!closingEventId || !chapterOptions.some((option) => option.value === closingEventId)) {
+      setClosingEventId(chapterOptions[0].value);
+    }
+  }, [isChapterSummarization, chapterOptions, closingEventId]);
+
+  const mockConfig = useMemo(() => {
+    const entries = Object.entries(mockByStep)
+      .map(([stepId, text]) => [stepId, text.trim()])
+      .filter(([, text]) => text.length > 0);
+    if (entries.length === 0) return undefined;
+    return { stepResponses: Object.fromEntries(entries) };
+  }, [mockByStep]);
+
+  const payload = useMemo<WorkflowTestRunInput | null>(() => {
+    if (!scenarioId || !values.steps || values.steps.length === 0) {
+      return null;
+    }
+
+    if (isTurnGeneration) {
+      if (!characterId) return null;
+      const payload: WorkflowTestRunInput = {
+        scenarioId,
+        task: "turn_generation",
+        characterId,
+        workflow: {
+          task: "turn_generation",
+          name: values.name,
+          description: values.description || undefined,
+          steps: values.steps,
+        },
+        intent: { kind: "guided_control", text: guidance || undefined },
+        mock: mockConfig,
+        options: { captureTransformedPrompts: true },
+      };
+      return payload;
+    }
+
+    if (isChapterSummarization) {
+      if (!closingEventId) return null;
+      const payload: WorkflowTestRunInput = {
+        scenarioId,
+        task: "chapter_summarization",
+        closingEventId,
+        workflow: {
+          task: "chapter_summarization",
+          name: values.name,
+          description: values.description || undefined,
+          steps: values.steps,
+        },
+        mock: mockConfig,
+        options: { captureTransformedPrompts: true },
+      };
+      return payload;
+    }
+
+    return null;
+  }, [
+    scenarioId,
+    characterId,
+    closingEventId,
+    values.name,
+    values.description,
+    values.steps,
+    guidance,
+    mockConfig,
+    isTurnGeneration,
+    isChapterSummarization,
+  ]);
+
+  const isRunnable =
+    Boolean(scenarioId && values.steps?.length) &&
+    ((isTurnGeneration && characterId) || (isChapterSummarization && closingEventId));
+
+  const runHint = isTurnGeneration
+    ? "Select a scenario and active character first"
+    : "Select a scenario and chapter closing event first";
 
   const run = useMutation(trpc.workflows.testRun.mutationOptions());
 
@@ -69,7 +175,7 @@ export function WorkflowPreviewTab({ values }: Props) {
     <Stack gap={6}>
       <TabHeader
         title="Preview"
-        description="Check workflow outputs and events with a fake model"
+        description="Check prompts and outputs without real API calls"
         icon={LuEye}
       />
 
@@ -79,27 +185,72 @@ export function WorkflowPreviewTab({ values }: Props) {
             <Field label="Scenario" helperText="Choose a scenario to test">
               <ScenarioSingleSelect value={scenarioId} onChange={setScenarioId} />
             </Field>
-            <Field label="Active Character" helperText="Choose target character">
-              <CharacterSingleSelect
-                disabled={!scenarioId}
-                value={characterId}
-                onChange={setCharacterId}
-                filterMode={scenarioId ? "inScenario" : "all"}
-                scenarioId={scenarioId ?? undefined}
-              />
-            </Field>
+
+            {isTurnGeneration && (
+              <Field label="Active Character" helperText="Choose target character">
+                <CharacterSingleSelect
+                  disabled={!scenarioId}
+                  value={characterId}
+                  onChange={setCharacterId}
+                  filterMode={scenarioId ? "inScenario" : "all"}
+                  scenarioId={scenarioId ?? undefined}
+                />
+              </Field>
+            )}
+
+            {isChapterSummarization && (
+              <Field
+                label="Target Chapter"
+                helperText="Choose the chapter closing event to summarize"
+              >
+                <Stack gap={1} minW="240px">
+                  <SelectRoot
+                    collection={createListCollection({ items: chapterOptions })}
+                    value={closingEventId ? [closingEventId] : []}
+                    onValueChange={(details: { value: string[] }) =>
+                      setClosingEventId(details.value[0] ?? undefined)
+                    }
+                    disabled={chapterStatuses.isLoading || chapterOptions.length === 0}
+                    size="md"
+                  >
+                    <SelectTrigger>
+                      <SelectValueText
+                        placeholder={
+                          chapterStatuses.isLoading ? "Loading chapters..." : "Select chapter"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chapterOptions.map((option) => (
+                        <SelectItem key={option.value} item={option}>
+                          {option.label}
+                          {option.state !== "ready" ? ` (${option.state})` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectRoot>
+                  {!chapterStatuses.isLoading && chapterOptions.length === 0 && (
+                    <Text color="content.muted" fontSize="sm">
+                      No chapters found on the active timeline.
+                    </Text>
+                  )}
+                </Stack>
+              </Field>
+            )}
           </HStack>
 
-          <Field
-            label="Guidance (optional)"
-            helperText="Simulates a player's input to guide the model"
-          >
-            <Input
-              value={guidance}
-              onChange={(e) => setGuidance(e.target.value)}
-              placeholder="e.g. Keep it witty"
-            />
-          </Field>
+          {isTurnGeneration && (
+            <Field
+              label="Guidance (optional)"
+              helperText="Simulates a player's input to guide the model"
+            >
+              <Input
+                value={guidance}
+                onChange={(e) => setGuidance(e.target.value)}
+                placeholder="e.g. Keep it witty"
+              />
+            </Field>
+          )}
 
           <Separator />
 
@@ -132,7 +283,7 @@ export function WorkflowPreviewTab({ values }: Props) {
             </Button>
             {!isRunnable && (
               <Text color="content.muted" fontSize="sm">
-                Select a scenario and active character first
+                {runHint}
               </Text>
             )}
           </HStack>

@@ -167,7 +167,6 @@ describe("chooseNextActorFair", () => {
       .where(eq(schema.scenarioParticipants.id, bobParticipantId));
 
     const nextActor = await chooseNextActorFair(db, scenarioId, {
-      leafTurnId: null,
       includeNarrator: false,
     });
     expect(nextActor).toBe(aliceParticipantId);

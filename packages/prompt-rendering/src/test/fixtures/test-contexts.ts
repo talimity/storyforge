@@ -37,6 +37,13 @@ export const sampleChapterSummariesDTOFixture = [
   },
 ];
 
+export const sampleChaptersDTOFixture = sampleChapterSummariesDTOFixture.map((summary, index) => ({
+  chapterNumber: index + 1,
+  title: summary.summary.split(":")[0] ?? `Chapter ${index + 1}`,
+  breakEventId: `sample-chapter-${index + 1}`,
+  breakTurnId: null,
+}));
+
 /** Sample character data for testing */
 export const sampleCharactersDTOFixture = [
   {
@@ -60,6 +67,7 @@ export const sampleCharactersDTOFixture = [
 export const sampleTurnGenCtx = {
   turns: sampleTurnsDTOFixture,
   chapterSummaries: sampleChapterSummariesDTOFixture,
+  chapters: sampleChaptersDTOFixture,
   characters: sampleCharactersDTOFixture,
   lorebooks: [],
   currentIntent: {
@@ -106,16 +114,20 @@ export const sampleWritingAssistantCtx = {
 export const sampleChapterSummCtx = {
   turns: sampleTurnsDTOFixture,
   chapterSummaries: sampleChapterSummariesDTOFixture.slice(0, 1), // Only previous chapters
+  chapters: sampleChaptersDTOFixture,
   globals: {
     storyGenre: "fantasy",
     maxSummaryLength: 200,
   },
+  characters: sampleCharactersDTOFixture,
+  lorebooks: [],
 };
 
 /** Minimal contexts for edge case testing */
 export const emptyTurnGenCtx = {
   turns: [],
   chapterSummaries: [],
+  chapters: [],
   characters: [],
   currentIntent: { description: "Start a new story" },
   lorebooks: [],
@@ -124,6 +136,9 @@ export const emptyTurnGenCtx = {
 export const minimalTurnGenCtx = {
   turns: [sampleTurnsDTOFixture[0]],
   chapterSummaries: [],
+  chapters: [
+    { chapterNumber: 1, title: "Chapter 1", breakEventId: "sample-chapter-1", breakTurnId: null },
+  ],
   characters: [sampleCharactersDTOFixture[0]],
   currentIntent: { description: "Simple test" },
   lorebooks: [],

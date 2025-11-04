@@ -1,30 +1,90 @@
 import type { WorkflowTestRunInput, WorkflowTestRunOutput } from "@storyforge/contracts";
 import type { SqliteDatabase } from "@storyforge/db";
 import {
+  buildChapterSummarizationRenderOptions,
   buildTurnGenRenderOptions,
+  type ContextFor,
+  chapterSummarizationRegistry,
   type GenWorkflow,
   makeWorkflowRunner,
+  type TaskKind,
   turnGenRegistry,
 } from "@storyforge/gentasks";
 import { MockAdapter } from "@storyforge/inference";
 import { DefaultBudgetManager, type UnboundTemplate } from "@storyforge/prompt-rendering";
 import { createId } from "@storyforge/utils";
 import { ServiceError } from "../../service-error.js";
+import { ChapterSummaryContextBuilder } from "../chapter-summaries/context-builder.js";
 import { IntentContextBuilder } from "../intent/context-builder.js";
 import { fromDbPromptTemplate } from "../template/utils/marshalling.js";
 
+type TurnGenTestInput = WorkflowTestRunInput & {
+  task: "turn_generation";
+  characterId: string;
+  intent: { kind: "guided_control"; text?: string };
+};
+
+type ChapterSummTestInput = WorkflowTestRunInput & {
+  task: "chapter_summarization";
+  closingEventId: string;
+};
+
+type ExecutionResult = Pick<
+  WorkflowTestRunOutput,
+  "workflowId" | "stepOrder" | "prompts" | "stepResponses" | "finalOutputs" | "events"
+>;
+
+type RunnerDeps<T extends TaskKind> = Parameters<typeof makeWorkflowRunner<T>>[0];
+
+type ExecuteArgs<T extends TaskKind> = {
+  task: T;
+  workflow: GenWorkflow<T>;
+  context: ContextFor<T>;
+  registry: RunnerDeps<T>["registry"];
+  resolveRenderOptions?: RunnerDeps<T>["resolveRenderOptions"];
+  mock: WorkflowTestRunInput["mock"];
+  captureTransformedPrompts: boolean;
+};
+
+type MockResp = {
+  text: string;
+  delay?: number;
+  chunkDelay?: number;
+  wordsPerChunk?: number;
+  metadata?: Record<string, unknown>;
+};
+
+type MockConfig = {
+  defaultResponse?: MockResp;
+  patterns?: Array<{ pattern: string; response: MockResp }>;
+  modelResponses?: Record<string, MockResp>;
+  streaming?: { defaultChunkDelay?: number; defaultWordsPerChunk?: number };
+};
+
 export class WorkflowTestService {
-  constructor(private db: SqliteDatabase) {}
+  private readonly chapterContextBuilder: ChapterSummaryContextBuilder;
+
+  constructor(private readonly db: SqliteDatabase) {
+    this.chapterContextBuilder = new ChapterSummaryContextBuilder(db);
+  }
 
   async runTest(input: WorkflowTestRunInput): Promise<WorkflowTestRunOutput> {
-    // v1: only support turn_generation
-    if (input.task !== "turn_generation") {
-      throw new ServiceError("InvalidInput", {
-        message: `Unsupported task kind for test run: ${input.task}. Only 'turn_generation' is supported for now.`,
-      });
+    const { task } = input;
+
+    if (task === "turn_generation") {
+      return this.runTurnGenerationTest(input as TurnGenTestInput);
     }
 
-    // Resolve participant by (scenarioId, characterId)
+    if (task === "chapter_summarization") {
+      return this.runChapterSummarizationTest(input as ChapterSummTestInput);
+    }
+
+    throw new ServiceError("InvalidInput", {
+      message: `Unsupported task kind for test run: ${task}.`,
+    });
+  }
+
+  private async runTurnGenerationTest(input: TurnGenTestInput): Promise<WorkflowTestRunOutput> {
     const participant = await this.db.query.scenarioParticipants.findFirst({
       columns: { id: true },
       where: {
@@ -39,62 +99,68 @@ export class WorkflowTestService {
       });
     }
 
-    // Build generation context from real scenario
-    const ctx = await new IntentContextBuilder(this.db, input.scenarioId).buildContext({
+    const intentBuilder = new IntentContextBuilder(this.db, input.scenarioId);
+    const ctx = await intentBuilder.buildContext({
       actorParticipantId: participant.id,
-      intent: { kind: "guided_control", constraint: input.intent?.text },
+      intent: { kind: input.intent?.kind ?? "guided_control", constraint: input.intent?.text },
     });
 
-    // Normalize workflow (allow persisted or draft)
-    const wf = this.normalizeWorkflow(input);
+    const workflow = this.normalizeWorkflow(input.workflow, "turn_generation");
+    const execution = await this.executeTestRun({
+      task: "turn_generation",
+      workflow,
+      context: ctx,
+      registry: turnGenRegistry,
+      resolveRenderOptions: ({ extendedContext }) => buildTurnGenRenderOptions(extendedContext),
+      mock: input.mock,
+      captureTransformedPrompts: input.options?.captureTransformedPrompts ?? true,
+    });
 
-    // Swap all steps to mock provider profiles and map step->modelId
-    const stepModelMap: Record<string, string> = {};
-    for (const step of wf.steps) {
-      step.modelProfileId = `mock:${step.id}`;
-      stepModelMap[step.id] = step.modelProfileId;
-    }
-
-    // Configure a single MockAdapter instance for all steps
-    type MockResp = {
-      text: string;
-      delay?: number;
-      chunkDelay?: number;
-      wordsPerChunk?: number;
-      metadata?: Record<string, unknown>;
+    return {
+      ...execution,
+      task: "turn_generation",
+      meta: { scenarioId: input.scenarioId, participantId: participant.id },
     };
-    type MockConfig = {
-      defaultResponse?: MockResp;
-      patterns?: Array<{ pattern: string; response: MockResp }>;
-      modelResponses?: Record<string, MockResp>;
-      streaming?: { defaultChunkDelay?: number; defaultWordsPerChunk?: number };
-      models?: string[];
-    };
-    const mockCfg: MockConfig = {};
-    if (input.mock?.defaultResponseText) {
-      mockCfg.defaultResponse = { text: input.mock.defaultResponseText };
-    }
-    if (input.mock?.patterns?.length) {
-      mockCfg.patterns = input.mock.patterns.map((p) => ({
-        pattern: p.pattern,
-        response: p.response,
-      }));
-    }
-    if (input.mock?.streaming) {
-      mockCfg.streaming = { ...input.mock.streaming };
-    }
-    if (input.mock?.stepResponses) {
-      const modelResponses: Record<string, MockResp> = {};
-      for (const [stepId, resp] of Object.entries(input.mock.stepResponses)) {
-        const model = stepModelMap[stepId] ?? "mock-fast";
-        modelResponses[model] = typeof resp === "string" ? { text: resp } : resp;
-      }
-      mockCfg.modelResponses = modelResponses;
-    }
-    const adapter = new MockAdapter({}, mockCfg);
+  }
 
-    // Build disposable runner deps
-    const runner = makeWorkflowRunner<"turn_generation">({
+  private async runChapterSummarizationTest(
+    input: ChapterSummTestInput
+  ): Promise<WorkflowTestRunOutput> {
+    const { node, span, context } = await this.chapterContextBuilder.buildContextForClosingEvent({
+      scenarioId: input.scenarioId,
+      closingEventId: input.closingEventId,
+    });
+
+    const workflow = this.normalizeWorkflow(input.workflow, "chapter_summarization");
+    const execution = await this.executeTestRun({
+      task: "chapter_summarization",
+      workflow,
+      context,
+      registry: chapterSummarizationRegistry,
+      resolveRenderOptions: ({ extendedContext }) =>
+        buildChapterSummarizationRenderOptions(extendedContext),
+      mock: input.mock,
+      captureTransformedPrompts: input.options?.captureTransformedPrompts ?? true,
+    });
+
+    return {
+      ...execution,
+      task: "chapter_summarization",
+      meta: {
+        scenarioId: input.scenarioId,
+        closingEventId: span.closingEventId,
+        chapterNumber: node.chapter.chapterNumber,
+      },
+    };
+  }
+
+  private async executeTestRun<T extends TaskKind>(args: ExecuteArgs<T>): Promise<ExecutionResult> {
+    const { workflow, stepModelMap, adapter } = this.prepareWorkflowForMockRun(
+      args.workflow,
+      args.mock
+    );
+
+    const runner = makeWorkflowRunner<T>({
       loadTemplate: (id: string) => this.loadTemplate(id),
       loadModelProfile: async (profileId: string) => {
         if (!profileId.startsWith("mock:")) {
@@ -117,22 +183,73 @@ export class WorkflowTestService {
         };
       },
       makeAdapter: () => adapter,
-      registry: turnGenRegistry,
-      // TODO: fallback token budget should come from the step's real model profile
+      registry: args.registry,
       budgetFactory: (maxTokens?: number) =>
         new DefaultBudgetManager({ maxTokens: maxTokens ?? 8192 }),
-      resolveRenderOptions: ({ extendedContext }) => buildTurnGenRenderOptions(extendedContext),
+      resolveRenderOptions: args.resolveRenderOptions,
     });
 
-    // Run inline and collect results
-    const handle = await runner.startRun(wf, ctx, {});
+    const handle = await runner.startRun(workflow, args.context, {});
     const { finalOutputs, stepResponses } = await handle.result;
     const snap = handle.snapshot();
+    const prompts = this.collectPrompts(snap.events, args.captureTransformedPrompts);
 
-    // Build prompts mapping from event log
+    return {
+      workflowId: workflow.id,
+      stepOrder: workflow.steps.map((s) => s.id),
+      prompts,
+      stepResponses,
+      finalOutputs,
+      events: snap.events,
+    };
+  }
+
+  private prepareWorkflowForMockRun<T extends TaskKind>(
+    workflow: GenWorkflow<T>,
+    mock: WorkflowTestRunInput["mock"]
+  ) {
+    const stepModelMap: Record<string, string> = {};
+    for (const step of workflow.steps) {
+      step.modelProfileId = `mock:${step.id}`;
+      stepModelMap[step.id] = step.modelProfileId;
+    }
+    const mockCfg = this.createMockConfig(mock, stepModelMap);
+    const adapter = new MockAdapter({}, mockCfg);
+    return { workflow, stepModelMap, adapter };
+  }
+
+  private createMockConfig(
+    mock: WorkflowTestRunInput["mock"],
+    stepModelMap: Record<string, string>
+  ): MockConfig {
+    if (!mock) return {};
+    const cfg: MockConfig = {};
+    if (mock.defaultResponseText) {
+      cfg.defaultResponse = { text: mock.defaultResponseText };
+    }
+    if (mock.patterns?.length) {
+      cfg.patterns = mock.patterns.map((p) => ({ pattern: p.pattern, response: p.response }));
+    }
+    if (mock.streaming) {
+      cfg.streaming = { ...mock.streaming };
+    }
+    if (mock.stepResponses) {
+      const modelResponses: Record<string, MockResp> = {};
+      for (const [stepId, resp] of Object.entries(mock.stepResponses)) {
+        const model = stepModelMap[stepId] ?? "mock-fast";
+        modelResponses[model] = typeof resp === "string" ? { text: resp } : resp;
+      }
+      cfg.modelResponses = modelResponses;
+    }
+    return cfg;
+  }
+
+  private collectPrompts(
+    events: WorkflowTestRunOutput["events"],
+    captureTransformed: boolean
+  ): WorkflowTestRunOutput["prompts"] {
     const prompts: WorkflowTestRunOutput["prompts"] = {};
-    const captureTransformed = input.options?.captureTransformedPrompts !== false;
-    for (const ev of snap.events) {
+    for (const ev of events) {
       if (ev.type === "prompt_rendered") {
         const existing = prompts[ev.stepId];
         if (existing) existing.rendered = ev.messages;
@@ -143,17 +260,7 @@ export class WorkflowTestService {
         else prompts[ev.stepId] = { rendered: [], transformed: ev.messages };
       }
     }
-
-    return {
-      workflowId: wf.id,
-      task: wf.task,
-      stepOrder: wf.steps.map((s) => s.id),
-      prompts,
-      stepResponses,
-      finalOutputs,
-      events: snap.events,
-      meta: { scenarioId: input.scenarioId, participantId: participant.id },
-    };
+    return prompts;
   }
 
   private async loadTemplate(templateId: string): Promise<UnboundTemplate> {
@@ -166,48 +273,52 @@ export class WorkflowTestService {
     return fromDbPromptTemplate(dbTemplate);
   }
 
-  private normalizeWorkflow(input: WorkflowTestRunInput): GenWorkflow<"turn_generation"> {
-    const wfUnknown = input.workflow as unknown;
+  private normalizeWorkflow<T extends TaskKind>(
+    workflowInput: WorkflowTestRunInput["workflow"],
+    expectedTask: T
+  ): GenWorkflow<T> {
+    const wfUnknown = workflowInput as unknown;
     const isPersisted =
       typeof (wfUnknown as { version?: unknown }).version === "number" &&
       typeof (wfUnknown as { id?: unknown }).id === "string";
+
     if (isPersisted) {
-      const wf = wfUnknown as GenWorkflow<"turn_generation">;
-      // Persisted/exported workflow: coerce task to requested and ensure version 1
-      if (wf.task !== "turn_generation") {
+      const wf = wfUnknown as GenWorkflow<T>;
+      if (wf.task !== expectedTask) {
         throw new ServiceError("InvalidInput", {
-          message: `Workflow task '${wf.task}' does not match supported task 'turn_generation' for test runs.`,
+          message: `Workflow task '${wf.task}' does not match supported task '${expectedTask}' for test runs.`,
         });
       }
       return {
         id: String(wf.id),
         name: String(wf.name),
         description: wf.description ?? undefined,
-        task: "turn_generation",
+        task: expectedTask,
         version: 1,
         steps: wf.steps,
-      } as GenWorkflow<"turn_generation">;
+      } as GenWorkflow<T>;
     }
 
-    // Draft workflow (create shape): synthesize id/version
     const draft = wfUnknown as {
-      task: string;
+      task: TaskKind;
       name: string;
       description?: string;
       steps: GenWorkflow["steps"];
     };
-    if (draft?.task !== "turn_generation") {
+
+    if (draft?.task !== expectedTask) {
       throw new ServiceError("InvalidInput", {
         message: `Workflow task '${draft?.task}' is not supported in test runs.`,
       });
     }
+
     return {
       id: `wf_test:${createId()}`,
       name: String(draft.name),
       description: draft.description ?? undefined,
-      task: "turn_generation",
+      task: expectedTask,
       version: 1 as const,
       steps: draft.steps,
-    } satisfies GenWorkflow<"turn_generation">;
+    } satisfies GenWorkflow<T>;
   }
 }

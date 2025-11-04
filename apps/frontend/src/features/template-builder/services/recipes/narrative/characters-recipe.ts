@@ -1,4 +1,5 @@
 import type { NarrativeSources } from "@storyforge/gentasks";
+import { MESSAGE_ROLE_SELECT_OPTIONS } from "@/features/template-builder/services/builder-utils";
 import type { RecipeDefinition } from "@/features/template-builder/types";
 import { defineRecipe } from "@/features/template-builder/types";
 
@@ -17,11 +18,7 @@ const parameters = [
     label: "Message Role",
     type: "select",
     defaultValue: "user",
-    options: [
-      { label: "User", value: "user" },
-      { label: "Assistant", value: "assistant" },
-      { label: "System", value: "system" },
-    ],
+    options: MESSAGE_ROLE_SELECT_OPTIONS,
     help: "Message role used for each character entry",
   },
   {

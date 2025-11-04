@@ -1,4 +1,5 @@
 import { Text } from "@chakra-ui/react";
+import { useStore } from "@tanstack/react-form";
 import {
   TemplateStringEditor,
   type TemplateVariable,
@@ -14,55 +15,75 @@ export const ParamInputGroup = withFieldGroup({
   defaultValues: { items: {} as Record<string, unknown> },
   props: { specs: [] } satisfies ParamInputsProps as ParamInputsProps,
   render: function Render({ group, specs }) {
+    const paramValues = useStore(
+      group.store,
+      (state) => ({ ...(state.values.items ?? {}) }) as Record<string, unknown>
+    );
+
     return (
       <>
-        {specs.map((param) => (
-          <group.AppField key={param.key} name={`items.${param.key}`}>
-            {(field) => {
-              switch (param.type) {
-                case "number":
-                  return (
-                    <field.NumberInput
-                      label={param.label}
-                      helperText={param.help}
-                      min={param.min}
-                      max={param.max}
-                      step={getNumberStep(param)}
-                    />
-                  );
-                case "toggle":
-                  return <field.Switch helperText={param.help}>{param.label}</field.Switch>;
-                case "select":
-                  return (
-                    <field.Select
-                      label={param.label}
-                      helperText={param.help}
-                      options={(param.options ?? []).map((o) => ({
-                        label: o.label,
-                        value: String(o.value),
-                      }))}
-                    />
-                  );
-                case "template_string":
-                  return (
-                    <field.TextareaInput
-                      label={param.label}
-                      helperText={param.help}
-                      placeholder="Enter template string"
-                      autosize
-                      minRows={3}
-                    />
-                  );
-                default:
-                  return (
-                    <Text color="fg.error" fontSize="sm">
-                      Unknown parameter type: {param.type}
-                    </Text>
-                  );
-              }
-            }}
-          </group.AppField>
-        ))}
+        {specs.map((param) => {
+          const isVisible = param.visibleWhen ? param.visibleWhen(paramValues) : true;
+          if (!isVisible) {
+            return null;
+          }
+
+          return (
+            <group.AppField key={param.key} name={`items.${param.key}`}>
+              {(field) => {
+                console.log(
+                  "Rendering param input for:",
+                  param.key,
+                  "with type:",
+                  param.type,
+                  param,
+                  field.state.value
+                );
+                switch (param.type) {
+                  case "number":
+                    return (
+                      <field.NumberInput
+                        label={param.label}
+                        helperText={param.help}
+                        min={param.min}
+                        max={param.max}
+                        step={getNumberStep(param)}
+                      />
+                    );
+                  case "toggle":
+                    return <field.Switch helperText={param.help}>{param.label}</field.Switch>;
+                  case "select":
+                    return (
+                      <field.Select
+                        label={param.label}
+                        helperText={param.help}
+                        options={(param.options ?? []).map((o) => ({
+                          label: o.label,
+                          value: String(o.value),
+                        }))}
+                      />
+                    );
+                  case "template_string":
+                    return (
+                      <field.TextareaInput
+                        label={param.label}
+                        helperText={param.help}
+                        placeholder="Enter template string"
+                        autosize
+                        minRows={3}
+                      />
+                    );
+                  default:
+                    return (
+                      <Text color="fg.error" fontSize="sm">
+                        Unknown parameter type: {param.type}
+                      </Text>
+                    );
+                }
+              }}
+            </group.AppField>
+          );
+        })}
       </>
     );
   },

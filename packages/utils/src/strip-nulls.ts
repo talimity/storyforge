@@ -1,4 +1,25 @@
-type NonNull<T> = T extends null ? never : T extends object ? { [K in keyof T]: NonNull<T[K]> } : T;
+// type NonNull<T> = T extends null ? never : T extends object ? { [K in keyof T]: NonNull<T[K]> } : T;
+
+type Leaves =
+  | Function
+  | Date
+  | RegExp
+  | Error
+  | Map<unknown, unknown>
+  | ReadonlyMap<unknown, unknown>
+  | Set<unknown>
+  | ReadonlySet<unknown>;
+export type NonNull<T> = T extends null
+  ? never
+  : T extends Leaves
+    ? T
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<NonNull<U>>
+      : T extends Array<infer U>
+        ? Array<NonNull<U>>
+        : T extends object
+          ? { [K in keyof T]: NonNull<T[K]> }
+          : T;
 
 /**
  * Drizzle ORM returns null for values that are not set, which is not ideal for

@@ -1,5 +1,6 @@
 import type { IntentKind } from "@storyforge/contracts";
 import type { TurnGenSources } from "@storyforge/gentasks";
+import { MESSAGE_ROLE_SELECT_OPTIONS } from "@/features/template-builder/services/builder-utils";
 import type { RecipeDefinition } from "@/features/template-builder/types";
 import { defineRecipe } from "@/features/template-builder/types";
 
@@ -18,6 +19,14 @@ const params = [
     defaultValue:
       "Remember, Narrator can't take actions for other characters. Only control NPCs or descriptive events during this turn.",
     help: "Extra instruction when generating a Narrator turn",
+  },
+  {
+    key: "messageRole",
+    label: "Message Role",
+    type: "select",
+    defaultValue: "user",
+    options: MESSAGE_ROLE_SELECT_OPTIONS,
+    help: "Message role used for the instruction prompts",
   },
 ] as const;
 
@@ -52,7 +61,7 @@ export const nextTurnIntentRecipe: RecipeDefinition<TurnGenSources, typeof param
               else: [
                 {
                   kind: "message",
-                  role: "user",
+                  role: params.messageRole,
                   content: params.currentIntentTemplate,
                   // only include if prompt is non-empty
                   when: [
@@ -75,7 +84,7 @@ export const nextTurnIntentRecipe: RecipeDefinition<TurnGenSources, typeof param
           },
           then: [
             // append narrator prompt
-            { kind: "message", role: "user", content: params.narratorTemplate },
+            { kind: "message", role: params.messageRole, content: params.narratorTemplate },
           ],
         },
       ],

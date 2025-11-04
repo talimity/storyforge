@@ -38,18 +38,18 @@ export const chapterSummaryStatusStateSchema = z.enum([
 
 export const chapterSummaryStatusSchema = z.object({
   chapterEventId: z.string(),
-  closingEventId: z.string().nullable(),
-  closingTurnId: z.string().nullable(),
+  closingEventId: z.string().optional(),
+  closingTurnId: z.string().optional(),
   chapterNumber: z.number().int().positive(),
-  title: z.string().nullable(),
+  title: z.string().optional(),
   state: chapterSummaryStatusStateSchema,
-  summaryId: z.string().nullable(),
-  updatedAt: z.date().nullable(),
-  turnCount: z.number().int().nonnegative().nullable(),
-  workflowId: z.string().nullable(),
-  modelProfileId: z.string().nullable(),
-  runId: z.string().nullable(),
-  lastError: z.string().nullable(),
+  summaryId: z.string().optional(),
+  updatedAt: z.date().optional(),
+  turnCount: z.number().int().nonnegative().optional(),
+  workflowId: z.string().optional(),
+  modelProfileId: z.string().optional(),
+  runId: z.string().optional(),
+  lastError: z.string().optional(),
   staleReasons: z.array(z.string()).optional(),
 });
 

@@ -1,12 +1,18 @@
 import { List, VStack } from "@chakra-ui/react";
 import type { TaskKind } from "@storyforge/gentasks";
+import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Alert } from "@/components/ui";
+import {
+  ensureChapterSeparatorAttachmentDraft,
+  getChapterSeparatorAttachmentWarnings,
+} from "@/features/template-builder/services/attachments/chapters";
 import {
   ensureLoreAttachmentDraft,
   getLoreAttachmentWarnings,
 } from "@/features/template-builder/services/attachments/lore";
 import { useTemplateBuilderStore } from "@/features/template-builder/stores/template-builder-store";
+import { ChapterSeparatorAttachmentsForm } from "./chapter-separator-attachments-form";
 import { LoreAttachmentsForm } from "./lore-attachments-form";
 
 interface AttachmentsPanelProps {
@@ -14,7 +20,8 @@ interface AttachmentsPanelProps {
 }
 
 export function AttachmentsPanel({ task }: AttachmentsPanelProps) {
-  const isTurnGen = task === "turn_generation";
+  const showLore = task === "turn_generation";
+  const showChapterSeparators = task === "turn_generation" || task === "chapter_summarization";
 
   const { attachmentDrafts, setAttachmentDraft } = useTemplateBuilderStore(
     useShallow((state) => ({
@@ -23,10 +30,45 @@ export function AttachmentsPanel({ task }: AttachmentsPanelProps) {
     }))
   );
 
-  const loreDraft = attachmentDrafts.lore ?? ensureLoreAttachmentDraft();
-  const warnings = getLoreAttachmentWarnings(loreDraft);
+  const storedLoreDraft = attachmentDrafts.lore;
+  const storedSeparatorDraft = attachmentDrafts.chapter_separators;
 
-  if (!isTurnGen) {
+  const loreDraft = showLore
+    ? ensureLoreAttachmentDraft(
+        storedLoreDraft && storedLoreDraft.type === "lore" ? storedLoreDraft : undefined
+      )
+    : undefined;
+  const separatorDraft = showChapterSeparators
+    ? ensureChapterSeparatorAttachmentDraft(
+        storedSeparatorDraft && storedSeparatorDraft.type === "chapter_separators"
+          ? storedSeparatorDraft
+          : undefined
+      )
+    : undefined;
+
+  const warnings = [
+    ...(loreDraft ? getLoreAttachmentWarnings(loreDraft) : []),
+    ...(separatorDraft ? getChapterSeparatorAttachmentWarnings(separatorDraft) : []),
+  ];
+
+  useEffect(() => {
+    if (showLore && !attachmentDrafts.lore && loreDraft) {
+      setAttachmentDraft(loreDraft);
+    }
+    if (showChapterSeparators && !attachmentDrafts.chapter_separators && separatorDraft) {
+      setAttachmentDraft(separatorDraft);
+    }
+  }, [
+    attachmentDrafts.chapter_separators,
+    attachmentDrafts.lore,
+    loreDraft,
+    separatorDraft,
+    setAttachmentDraft,
+    showChapterSeparators,
+    showLore,
+  ]);
+
+  if (!showLore && !showChapterSeparators) {
     return null;
   }
 
@@ -41,8 +83,10 @@ export function AttachmentsPanel({ task }: AttachmentsPanelProps) {
           </List.Root>
         </Alert>
       )}
-
-      <LoreAttachmentsForm draft={loreDraft} onChange={setAttachmentDraft} />
+      {loreDraft ? <LoreAttachmentsForm draft={loreDraft} onChange={setAttachmentDraft} /> : null}
+      {separatorDraft ? (
+        <ChapterSeparatorAttachmentsForm draft={separatorDraft} onChange={setAttachmentDraft} />
+      ) : null}
     </VStack>
   );
 }

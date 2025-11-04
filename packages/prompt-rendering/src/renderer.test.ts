@@ -133,7 +133,7 @@ describe("renderer", () => {
         {
           lane: "lore",
           payload: { text: "Forest" },
-          target: { kind: "at", key: "turn_1", after: true },
+          target: { kind: "at", key: "turn_1" },
         },
       ],
     });
@@ -249,7 +249,7 @@ describe("renderer", () => {
         {
           lane: "lore",
           groupId: "turn_1",
-          target: { kind: "at", key: "turn_1", after: true },
+          target: { kind: "at", key: "turn_1" },
           template: "Lore entry 2",
         },
       ],

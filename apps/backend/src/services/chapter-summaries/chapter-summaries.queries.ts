@@ -50,7 +50,7 @@ export async function loadChapterNodes(
   for (let idx = 0; idx < entries.length; idx += 1) {
     nodes.push({
       chapter: entries[idx],
-      closing: entries[idx + 1] ?? null,
+      closing: entries[idx + 1],
     });
   }
   return nodes;
@@ -69,7 +69,7 @@ export async function loadChapterEntries(
     eventId: entry.eventId,
     turnId: entry.turnId,
     chapterNumber: entry.number,
-    title: entry.title,
+    title: entry.title ?? undefined,
   }));
 }
 

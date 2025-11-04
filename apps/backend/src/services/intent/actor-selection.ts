@@ -6,7 +6,7 @@ import { TimelineStateService } from "../timeline-events/timeline-state.service.
 
 interface ChooseNextActorOpts {
   includeNarrator?: boolean;
-  leafTurnId?: string | null;
+  leafTurnId?: string;
   windowSize?: number;
 }
 
@@ -30,7 +30,7 @@ export async function chooseNextActorFair(
   scenarioId: string,
   opts: ChooseNextActorOpts
 ): Promise<string> {
-  const { includeNarrator = false, leafTurnId = null, windowSize } = opts;
+  const { includeNarrator = false, leafTurnId, windowSize } = opts;
 
   const participantTypes = includeNarrator
     ? (["character", "narrator"] as const)

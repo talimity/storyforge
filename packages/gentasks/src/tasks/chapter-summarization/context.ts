@@ -10,6 +10,7 @@ export type RenderContextSummarizationTarget = {
 
 export type ChapterSummarizationGlobals = NarrativeGlobals & {
   scenarioName?: string;
+  currentChapterNumber?: number;
 };
 
 export type ChapterSummarizationContext = NarrativeContext & {

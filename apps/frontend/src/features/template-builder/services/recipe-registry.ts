@@ -1,5 +1,6 @@
 import type { TaskKind } from "@storyforge/gentasks";
 import { getTaskDescriptor } from "@storyforge/gentasks";
+import { chapterSummariesRecipe } from "@/features/template-builder/services/recipes/narrative/chapter-summaries-recipe";
 import { charactersRecipe } from "@/features/template-builder/services/recipes/narrative/characters-recipe";
 import { nextTurnIntentRecipe } from "@/features/template-builder/services/recipes/narrative/intent-recipes";
 import {
@@ -13,6 +14,7 @@ export const ALL_RECIPES = {
   timeline_basic: timelineBasicRecipe,
   timeline_advanced: timelineAdvancedRecipe,
   intent_basic: nextTurnIntentRecipe,
+  chapter_summaries_basic: chapterSummariesRecipe,
 } as const satisfies Record<AnyRecipeId, AnyRecipe>;
 
 function normalizeRequires(recipe: AnyRecipe): readonly string[] {

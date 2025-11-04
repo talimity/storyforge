@@ -42,6 +42,32 @@ export type TimelineEventContext = {
   prompt?: string;
 };
 
+/**
+ * Derived chapter metadata exposed to narrative rendering contexts. Mirrors the chapter reducer
+ * output from the timeline event system so renderers can reason about chapter boundaries without
+ * querying the database.
+ */
+export type ChapterContext = {
+  /** Sequential chapter number along the active timeline (1-based). */
+  chapterNumber: number;
+  /**
+   * Title declared on the chapter break event that begins this chapter.
+   * May be undefined when the player omitted a title.
+   */
+  title?: string;
+  /**
+   * Identifier of the chapter break event that closes the previous chapter
+   * and opens this one. Useful for correlating summaries and other artifacts.
+   */
+  breakEventId: string;
+  /**
+   * Turn ID associated with the chapter break event, if the break was tied to
+   * an existing turn. When null, the chapter originates from an initial-state
+   * event that precedes the first turn.
+   */
+  breakTurnId?: string | null;
+};
+
 export type CharacterContext = {
   id: string;
   name: string;
@@ -52,7 +78,7 @@ export type CharacterContext = {
 
 export type ChapterSummaryContext = {
   chapterNumber: number;
-  title: string | null;
+  title?: string;
   summaryText?: string;
   summaryJson?: unknown;
   updatedAt: Date;
