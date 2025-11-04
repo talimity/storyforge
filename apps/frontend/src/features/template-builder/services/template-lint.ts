@@ -1,4 +1,4 @@
-import { LORE_LANE_ID, TURN_GEN_REQUIRED_ANCHORS } from "@storyforge/gentasks";
+import { LORE_ATTACHMENT_REQUIRED_ANCHORS, LORE_LANE_ID } from "@storyforge/gentasks";
 import type {
   LayoutNode,
   PlanNode,
@@ -35,7 +35,7 @@ function lintTurnGenerationTemplate(template: PromptTemplate<"turn_generation">)
     });
   }
 
-  if (!anchors.has(TURN_GEN_REQUIRED_ANCHORS.timeline.start)) {
+  if (!anchors.has(LORE_ATTACHMENT_REQUIRED_ANCHORS.timeline.start)) {
     warnings.push({
       level: "warning",
       code: "missing_timeline_start_anchor",
@@ -43,7 +43,7 @@ function lintTurnGenerationTemplate(template: PromptTemplate<"turn_generation">)
     });
   }
 
-  if (!anchors.has(TURN_GEN_REQUIRED_ANCHORS.timeline.end)) {
+  if (!anchors.has(LORE_ATTACHMENT_REQUIRED_ANCHORS.timeline.end)) {
     warnings.push({
       level: "warning",
       code: "missing_timeline_end_anchor",
@@ -62,7 +62,7 @@ function lintTurnGenerationTemplate(template: PromptTemplate<"turn_generation">)
     });
   }
 
-  if (!anchors.has(TURN_GEN_REQUIRED_ANCHORS.characters.start)) {
+  if (!anchors.has(LORE_ATTACHMENT_REQUIRED_ANCHORS.characters.start)) {
     warnings.push({
       level: "warning",
       code: "missing_character_start_anchor",
@@ -71,7 +71,7 @@ function lintTurnGenerationTemplate(template: PromptTemplate<"turn_generation">)
     });
   }
 
-  if (!anchors.has(TURN_GEN_REQUIRED_ANCHORS.characters.end)) {
+  if (!anchors.has(LORE_ATTACHMENT_REQUIRED_ANCHORS.characters.end)) {
     warnings.push({
       level: "warning",
       code: "missing_character_end_anchor",

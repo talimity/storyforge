@@ -72,7 +72,7 @@ export function LayoutBuilder({ task }: LayoutBuilderProps) {
   );
 
   return (
-    <VStack align="stretch" gap={4} pb={"40%"}>
+    <VStack align="stretch" gap={4}>
       {/* Validation Warnings */}
       {missingSlots.length > 0 && (
         <Alert
@@ -144,7 +144,7 @@ function AddElementMenu(props: AddElementMenuProps) {
   const taskRecipes = task ? getRecipesForTask(task) : [];
 
   return (
-    <MenuRoot positioning={{ sameWidth: true }}>
+    <MenuRoot positioning={{ sameWidth: true, fitViewport: true }}>
       <MenuTrigger asChild>
         <Button variant="outline" colorPalette="primary" w="full">
           <LuPlus />

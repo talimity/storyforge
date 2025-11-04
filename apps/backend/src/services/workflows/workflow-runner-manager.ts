@@ -3,7 +3,6 @@ import {
   buildTurnGenRenderOptions,
   type ContextFor,
   chapterSummarizationRegistry,
-  type ModelProfileResolved,
   makeWorkflowRunner,
   type TaskKind,
   type TaskSourcesMap,
@@ -117,7 +116,7 @@ export class WorkflowRunnerManager {
   /**
    * Loads a model profile with its provider configuration
    */
-  private async loadModelProfile(profileId: string): Promise<ModelProfileResolved> {
+  private async loadModelProfile(profileId: string) {
     // Query model profile with provider config joined
     const result = await this.db
       .select({

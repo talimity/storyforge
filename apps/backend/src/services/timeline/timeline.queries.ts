@@ -5,7 +5,7 @@ import {
   timelineEventSchema,
 } from "@storyforge/contracts";
 import type { Intent, SqliteDatabase, SqliteTxLike } from "@storyforge/db";
-import type { TurnCtxDTO } from "@storyforge/gentasks";
+import type { TurnContext } from "@storyforge/gentasks";
 import { sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { getTurnIntentPrompt } from "../intent/utils/intent-prompts.js";
@@ -334,7 +334,7 @@ export async function getTurnContentLayers(
 export async function getFullTimelineTurnCtx(
   db: SqliteTxLike,
   args: { leafTurnId?: string | null; scenarioId: string }
-): Promise<Omit<TurnCtxDTO, "events">[]> {
+): Promise<Omit<TurnContext, "events" | "chapterNumber">[]> {
   const { leafTurnId, scenarioId } = args;
 
   // We build the entire parent chain from leaf to root (depth 0..N), compute

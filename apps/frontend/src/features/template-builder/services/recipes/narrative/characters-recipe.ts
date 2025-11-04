@@ -1,4 +1,4 @@
-import type { NarrativeSourcesBase } from "@storyforge/gentasks";
+import type { NarrativeSources } from "@storyforge/gentasks";
 import type { RecipeDefinition } from "@/features/template-builder/types";
 import { defineRecipe } from "@/features/template-builder/types";
 
@@ -41,8 +41,8 @@ const parameters = [
   },
 ] as const;
 
-export const charactersRecipe: RecipeDefinition<NarrativeSourcesBase, typeof parameters> =
-  defineRecipe({
+export const charactersRecipe: RecipeDefinition<NarrativeSources, typeof parameters> = defineRecipe(
+  {
     id: "characters_basic",
     name: "Character Descriptions",
     description: "Lists each active character and their description/personality.",
@@ -84,10 +84,8 @@ export const charactersRecipe: RecipeDefinition<NarrativeSourcesBase, typeof par
         plan: [
           {
             kind: "forEach",
-            source: {
-              source: "characters",
-              args: { limit: params.maxChars },
-            },
+            limit: params.maxChars,
+            source: { source: "characters" },
             map: [
               {
                 kind: "if",
@@ -105,4 +103,5 @@ export const charactersRecipe: RecipeDefinition<NarrativeSourcesBase, typeof par
         ],
       };
     },
-  });
+  }
+);

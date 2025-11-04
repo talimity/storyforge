@@ -1,5 +1,5 @@
 import type { IntentKind } from "@storyforge/contracts";
-import type { NarrativeSourcesBase } from "@storyforge/gentasks";
+import type { NarrativeSources } from "@storyforge/gentasks";
 import type { InferRecipeParams, RecipeDefinition } from "@/features/template-builder/types";
 import { defineRecipe } from "@/features/template-builder/types";
 
@@ -12,15 +12,6 @@ const MAX_TURNS_PARAM = {
   max: 9999,
   help: "Maximum number of turns to include; truncates oldest turns",
 } as const;
-const TOKEN_BUDGET_PARAM = {
-  key: "budget",
-  label: "Token Budget",
-  type: "number",
-  defaultValue: 32768,
-  min: 1024,
-  max: Number.MAX_SAFE_INTEGER,
-  help: "Maximum tokens to allow for turn content; truncates oldest turns",
-} as const;
 
 const basicParameters = [
   {
@@ -31,10 +22,9 @@ const basicParameters = [
     help: "How each turn should be formatted",
   },
   MAX_TURNS_PARAM,
-  TOKEN_BUDGET_PARAM,
 ] as const;
 
-export const timelineBasicRecipe: RecipeDefinition<NarrativeSourcesBase, typeof basicParameters> =
+export const timelineBasicRecipe: RecipeDefinition<NarrativeSources, typeof basicParameters> =
   defineRecipe({
     id: "timeline_basic",
     name: "Timeline (Simple)",
@@ -47,6 +37,11 @@ export const timelineBasicRecipe: RecipeDefinition<NarrativeSourcesBase, typeof 
         name: "item.turnNo",
         description: "The turn number in the scenario",
         example: "5",
+      },
+      {
+        name: "item.chapterNumber",
+        description: "The chapter number the turn belongs to",
+        example: "2",
       },
       {
         name: "item.authorName",
@@ -74,12 +69,16 @@ export const timelineBasicRecipe: RecipeDefinition<NarrativeSourcesBase, typeof 
 
     toSlotSpec(params) {
       return {
-        budget: { maxTokens: params.budget },
         meta: {},
         plan: [
           {
             kind: "forEach",
-            source: { source: "turns", args: { order: "desc", limit: params.maxTurns } },
+            // Iterate turns array from newest to oldest (Turn# desc), but fill
+            // from bottom up (prepend) This ensures timeline is presented to
+            // the model in chronological order, but that more recent turns are
+            // prioritized when truncating due to maxTurns or budget limits.
+            source: { source: "turns", args: { order: "desc" } },
+            limit: params.maxTurns,
             fillDir: "prepend",
             map: [
               { kind: "message", role: "user", content: params.turnTemplate },
@@ -127,82 +126,80 @@ const advancedParameters = [
     help: "For turns that do not have any guidance, use the Turn Result Format (Assistant) instead of Player Turn.",
   },
   MAX_TURNS_PARAM,
-  TOKEN_BUDGET_PARAM,
 ] as const;
 
-export const timelineAdvancedRecipe: RecipeDefinition<
-  NarrativeSourcesBase,
-  typeof advancedParameters
-> = defineRecipe({
-  id: "timeline_advanced",
-  name: "Timeline (Advanced)",
-  description:
-    "Lists turns in chronological order, and includes the player's guidance prompt before each turn.",
-  parameters: advancedParameters,
-  requires: ["turns"],
+export const timelineAdvancedRecipe: RecipeDefinition<NarrativeSources, typeof advancedParameters> =
+  defineRecipe({
+    id: "timeline_advanced",
+    name: "Timeline (Advanced)",
+    description:
+      "Lists turns in chronological order, and includes the player's guidance prompt before each turn.",
+    parameters: advancedParameters,
+    requires: ["turns"],
 
-  buildSlotLayout() {
-    return {
-      header: [{ kind: "anchor", key: "timeline_start" }],
-      footer: [{ kind: "anchor", key: "timeline_end" }],
-    };
-  },
+    buildSlotLayout() {
+      return {
+        header: [{ kind: "anchor", key: "timeline_start" }],
+        footer: [{ kind: "anchor", key: "timeline_end" }],
+      };
+    },
 
-  toSlotSpec(params: InferRecipeParams<typeof advancedParameters>) {
-    return {
-      budget: { maxTokens: params.budget },
-      meta: {},
-      plan: [
-        {
-          kind: "forEach",
-          // Iterate turns array from newest to oldest (Turn# desc), but fill from bottom up (prepend)
-          // This ensures timeline is in chrono order, but that we stop prepending older turns once
-          // we hit budget limits.
-          source: { source: "turns", args: { order: "desc", limit: params.maxTurns } },
-          fillDir: "prepend",
-          map: [
-            {
-              kind: "if",
-              when: { type: "nonEmpty", ref: { source: "$item", args: { path: "intentKind" } } },
-              then: [
-                // Intent present, check for 'manual_control' intent
-                {
-                  kind: "if",
-                  when: {
-                    type: "eq",
-                    ref: { source: "$item", args: { path: "intentKind" } },
-                    // conditionref `value` does not check type against the ref
-                    // so we need to manually ensure literal is valid here
-                    value: "manual_control" satisfies IntentKind,
-                  },
-                  then: [
-                    // Control intent = use manual template
-                    { kind: "message", role: "user", content: params.manualTurnTemplate },
-                  ],
-                  else: [
-                    // Some other intent = use the intent/response templates
-                    { kind: "message", role: "user", content: params.intentTemplate },
-                    { kind: "message", role: "assistant", content: params.turnTemplate },
-                  ],
-                },
-              ],
-              else: [
-                // No intent = manually inserted turn
-                // If useAssistantForUnguidedTurns is enabled, use the intent/response templates
-                ...(params.useAssistantForUnguidedTurns
-                  ? [
-                      { kind: "message", role: "user", content: params.intentTemplate } as const,
-                      { kind: "message", role: "assistant", content: params.turnTemplate } as const,
-                    ]
-                  : ([
+    toSlotSpec(params: InferRecipeParams<typeof advancedParameters>) {
+      return {
+        meta: {},
+        plan: [
+          {
+            kind: "forEach",
+            source: { source: "turns", args: { order: "desc" } },
+            limit: params.maxTurns,
+            fillDir: "prepend",
+            map: [
+              {
+                kind: "if",
+                when: { type: "nonEmpty", ref: { source: "$item", args: { path: "intentKind" } } },
+                then: [
+                  // Intent present, check for 'manual_control' intent
+                  {
+                    kind: "if",
+                    when: {
+                      type: "eq",
+                      ref: { source: "$item", args: { path: "intentKind" } },
+                      // conditionref `value` does not check type against the ref
+                      // so we need to manually ensure literal is valid here
+                      value: "manual_control" satisfies IntentKind,
+                    },
+                    then: [
+                      // Control intent = use manual template
                       { kind: "message", role: "user", content: params.manualTurnTemplate },
-                    ] as const)),
-              ],
-            },
-            { kind: "anchor", key: "turn_{{item.turnNo}}" },
-          ],
-        },
-      ],
-    };
-  },
-});
+                    ],
+                    else: [
+                      // Some other intent = use the intent/response templates
+                      { kind: "message", role: "user", content: params.intentTemplate },
+                      { kind: "message", role: "assistant", content: params.turnTemplate },
+                    ],
+                  },
+                ],
+                else: [
+                  // No intent = manually inserted turn
+                  // If useAssistantForUnguidedTurns is enabled, use the intent/response templates
+                  ...(params.useAssistantForUnguidedTurns
+                    ? [
+                        { kind: "message", role: "user", content: params.intentTemplate } as const,
+                        {
+                          kind: "message",
+                          role: "assistant",
+                          content: params.turnTemplate,
+                        } as const,
+                      ]
+                    : ([
+                        { kind: "message", role: "user", content: params.manualTurnTemplate },
+                      ] as const)),
+                ],
+              },
+              { kind: "anchor", key: "turn_{{item.turnNo}}" },
+            ],
+          },
+        ],
+      };
+    },
+  });

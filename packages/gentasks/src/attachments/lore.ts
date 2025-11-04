@@ -10,12 +10,22 @@ import type {
   InjectionTarget,
   RenderOptions,
 } from "@storyforge/prompt-rendering";
-import type { TurnCtxDTO } from "../types.js";
+import type { TurnContext } from "../tasks/shared/dtos.js";
 
 export const LORE_LANE_ID = "lore";
+export const LORE_ATTACHMENT_REQUIRED_ANCHORS = {
+  timeline: {
+    start: "timeline_start",
+    end: "timeline_end",
+  },
+  characters: {
+    start: "character_definitions_start",
+    end: "character_definitions_end",
+  },
+} as const;
 
-export type NarrativeLoreContext = {
-  turns: readonly TurnCtxDTO[];
+export type LoreContext = {
+  turns: readonly TurnContext[];
   lorebooks: readonly LorebookAssignment[];
   extraSegments?: readonly string[];
 };
@@ -35,7 +45,7 @@ export function buildDefaultLoreLaneSpec(): AttachmentLaneSpec {
   };
 }
 
-export function buildNarrativeLoreRenderOptions(ctx: NarrativeLoreContext): RenderOptions {
+export function buildLoreRenderOptions(ctx: LoreContext): RenderOptions {
   const assignments = (ctx.lorebooks ?? []).filter((assignment) => assignment.enabled);
   const attachmentDefaults = [createLoreLane(assignments)];
   const injections = assignments.length ? buildLoreInjections(ctx.turns, ctx, assignments) : [];
@@ -57,8 +67,8 @@ function createLoreLane(assignments: readonly LorebookAssignment[]): AttachmentL
 }
 
 function buildLoreInjections(
-  turns: readonly TurnCtxDTO[],
-  ctx: NarrativeLoreContext,
+  turns: readonly TurnContext[],
+  ctx: LoreContext,
   assignments: readonly LorebookAssignment[]
 ): InjectionRequest[] {
   const extraSegments = ctx.extraSegments?.length ? [...ctx.extraSegments] : undefined;
@@ -124,13 +134,13 @@ function flattenActivatedEntries(index: ActivatedLoreIndex): ActivatedLoreEntry[
 
 function buildTargets(
   position: unknown,
-  turns: readonly TurnCtxDTO[]
+  turns: readonly TurnContext[]
 ): { targets: InjectionTarget[]; groupId?: string } {
   if (position === "before_char") {
     return {
       groupId: "before_char",
       targets: [
-        { kind: "at", key: TURN_GEN_REQUIRED_ANCHORS.characters.start },
+        { kind: "at", key: LORE_ATTACHMENT_REQUIRED_ANCHORS.characters.start },
         { kind: "boundary", position: "top", delta: 0 },
       ],
     };
@@ -140,7 +150,7 @@ function buildTargets(
     return {
       groupId: "after_char",
       targets: [
-        { kind: "at", key: TURN_GEN_REQUIRED_ANCHORS.characters.end },
+        { kind: "at", key: LORE_ATTACHMENT_REQUIRED_ANCHORS.characters.end },
         { kind: "boundary", position: "bottom", delta: 0 },
       ],
     };
@@ -157,20 +167,9 @@ function buildTargets(
   return { targets: [] };
 }
 
-export const TURN_GEN_REQUIRED_ANCHORS = {
-  timeline: {
-    start: "timeline_start" as const,
-    end: "timeline_end" as const,
-  },
-  characters: {
-    start: "character_definitions_start" as const,
-    end: "character_definitions_end" as const,
-  },
-};
-
 function buildLoreDepthTargets(
   depth: number,
-  turns: readonly TurnCtxDTO[]
+  turns: readonly TurnContext[]
 ): { targets: InjectionTarget[]; groupId?: string } {
   if (turns.length === 0) {
     return {
@@ -189,7 +188,11 @@ function buildLoreDepthTargets(
     targets.push({ kind: "at", key: `turn_${turn.turnNo}` });
     groupId = `turn_${turn.turnNo}`;
   } else {
-    targets.push({ kind: "offset", key: TURN_GEN_REQUIRED_ANCHORS.timeline.start, delta: -1 });
+    targets.push({
+      kind: "offset",
+      key: LORE_ATTACHMENT_REQUIRED_ANCHORS.timeline.start,
+      delta: -1,
+    });
   }
 
   targets.push({ kind: "boundary", position: depth <= 0 ? "bottom" : "top", delta: 0 });

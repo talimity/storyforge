@@ -1,5 +1,5 @@
 import type { NewIntent, SqliteTxLike } from "@storyforge/db";
-import type { TurnGenCtx } from "@storyforge/gentasks";
+import type { TurnGenContext } from "@storyforge/gentasks";
 import { assertDefined } from "@storyforge/utils";
 import { getSummariesForPath } from "../chapter-summaries/chapter-summaries.queries.js";
 import { loadScenarioLorebookAssignments } from "../lorebook/lorebook.queries.js";
@@ -25,7 +25,7 @@ export class IntentContextBuilder {
     private scenarioId: string
   ) {}
 
-  async buildContext(args: BuildContextArgs): Promise<TurnGenCtx> {
+  async buildContext(args: BuildContextArgs): Promise<TurnGenContext> {
     const { actorParticipantId, intent, leafTurnId = null } = args;
 
     const data = await this.loadEverything(this.scenarioId, leafTurnId);
@@ -43,6 +43,8 @@ export class IntentContextBuilder {
     const eventsByTurn = eventDTOsByTurn(data.derivation.events);
     const enrichedTurns = attachEventsToTurns(data.turns, eventsByTurn);
     const nextTurnNumber = (data.turns.at(-1)?.turnNo ?? 0) + 1;
+    const currentChapterNumber =
+      enrichedTurns.at(-1)?.chapterNumber ?? data.derivation.final.chapters?.chapters.length ?? 1;
     // TODO: this is definitely not a good way to do this
     // templates may need raw kind for switch case behavior, but also need
     // model-friendly kind and a formatted prompt to insert in the text
@@ -75,6 +77,7 @@ export class IntentContextBuilder {
         user: userProxyName,
         scenario: data.scenario.description,
         isNarratorTurn: actorIsNarrator,
+        currentChapterNumber,
       },
     };
   }

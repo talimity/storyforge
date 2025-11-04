@@ -5,7 +5,9 @@ import type {
 } from "@storyforge/prompt-rendering";
 import { makeRegistry } from "@storyforge/prompt-rendering";
 import { exactKeys } from "@storyforge/utils";
-import type { RuntimeSourceSpec } from "../types.js";
+import type { RuntimeSourceSpec } from "../../types.js";
+
+// TODO: this is all placeholder/throwaway and entire module should be replaced
 
 // Writing assistant context
 export type WritingAssistantCtx = {

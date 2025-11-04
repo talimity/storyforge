@@ -5,14 +5,14 @@ import {
   scenarioParticipants as tScenarioParticipants,
   scenarios as tScenarios,
 } from "@storyforge/db";
-import type { CharacterCtxDTO } from "@storyforge/gentasks";
+import type { CharacterContext } from "@storyforge/gentasks";
 import { assertDefined, stripNulls } from "@storyforge/utils";
 import { and, asc, eq, sql } from "drizzle-orm";
 
 export type ScenarioCharacterContext = {
-  characters: CharacterCtxDTO[];
+  characters: CharacterContext[];
   userProxyName: string;
-  byParticipantId: Map<string, CharacterCtxDTO>;
+  byParticipantId: Map<string, CharacterContext>;
 };
 
 /**
@@ -67,7 +67,7 @@ export async function loadScenarioCharacterContext(
   const userProxyName = proxyCandidates.at(0)?.name;
   assertDefined(userProxyName, "No fallback player proxy character found");
 
-  const byParticipantId = new Map<string, CharacterCtxDTO>();
+  const byParticipantId = new Map<string, CharacterContext>();
   const characters = rows.map((row) => {
     const character = stripNulls({
       id: row.id,

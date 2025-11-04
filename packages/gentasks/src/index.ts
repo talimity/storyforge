@@ -1,42 +1,37 @@
 export {
   buildDefaultLoreLaneSpec,
-  buildNarrativeLoreRenderOptions,
+  buildLoreRenderOptions,
+  LORE_ATTACHMENT_REQUIRED_ANCHORS,
   LORE_LANE_ID,
-} from "./attachments/narrative.js";
-export {
-  buildTurnGenRenderOptions,
-  TURN_GEN_REQUIRED_ANCHORS,
-} from "./attachments/turn-generation.js";
-export * from "./runner/index.js";
+} from "./attachments/lore.js";
+
 export { taskKindSchema } from "./schemas.js";
 export {
-  CHAPTER_SUMM_SOURCE_NAMES,
-  type ChapterSummCtx,
-  type ChapterSummGlobals,
-  type ChapterSummRegistry,
-  type ChapterSummSources,
-  type ChapterSummTarget,
-  type ChapterSummTemplate,
-  chapterSummarizationRegistry,
-} from "./tasks/chapter-summarization.js";
-export type {
-  ChapterSummaryCtxEntry,
-  NarrativeGlobalsBase,
-  NarrativeSourcesBase,
-} from "./tasks/narrative-shared.js";
-export type { TaskDescriptor } from "./tasks/task-descriptors.js";
+  ChapterSummarizationContext,
+  ChapterSummarizationGlobals,
+  RenderContextSummarizationTarget,
+} from "./tasks/chapter-summarization/context.js";
 export {
-  getTaskDescriptor,
-  TASK_DESCRIPTORS,
-} from "./tasks/task-descriptors.js";
+  CHAPTER_SUMMARIZATION_SOURCE_NAMES,
+  ChapterSummarizationSources,
+  chapterSummarizationRegistry,
+} from "./tasks/chapter-summarization/source.js";
+export { NarrativeGlobals } from "./tasks/shared/context.js";
+export {
+  ChapterSummaryContext,
+  CharacterContext,
+  TimelineEventContext,
+  TurnContext,
+} from "./tasks/shared/dtos.js";
+export { NarrativeSources } from "./tasks/shared/source.js";
+export { getTaskDescriptor } from "./tasks/task-descriptors.js";
+export { TurnGenContext } from "./tasks/turngen/context.js";
+export { buildTurnGenRenderOptions } from "./tasks/turngen/render-options.js";
 export {
   TURN_GEN_SOURCE_NAMES,
-  type TurnGenCtx,
-  type TurnGenRegistry,
-  type TurnGenSources,
-  type TurnGenTemplate,
+  TurnGenSources,
   turnGenRegistry,
-} from "./tasks/turn-generation.js";
+} from "./tasks/turngen/source.js";
 export {
   WRITING_ASSIST_SOURCE_NAMES,
   type WritingAssistantCtx,
@@ -44,14 +39,21 @@ export {
   type WritingAssistantSources,
   type WritingAssistantTemplate,
   writingAssistRegistry,
-} from "./tasks/writing-assistant.js";
+} from "./tasks/writing-assistant/writing-assistant.js";
 export {
-  CharacterCtxDTO,
   ContextFor,
   RunnerModelContext,
   SourcesFor,
   TaskKind,
   TaskSourcesMap,
-  TimelineEventDTO,
-  TurnCtxDTO,
 } from "./types.js";
+export { makeWorkflowRunner } from "./workflow/runner.js";
+export { genStepSchema, genWorkflowSchema, validateWorkflow } from "./workflow/schemas.js";
+export {
+  GenStep,
+  GenWorkflow,
+  WorkflowEvent,
+  WorkflowRunHandle,
+  WorkflowRunner,
+  WorkflowRunResume,
+} from "./workflow/types.js";

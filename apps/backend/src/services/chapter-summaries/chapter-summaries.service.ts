@@ -12,9 +12,9 @@ import type {
 import type { ChapterSummary as ChapterSummaryRow, SqliteDatabase } from "@storyforge/db";
 import { schema } from "@storyforge/db";
 import type {
-  ChapterSummCtx,
-  ChapterSummGlobals,
-  ChapterSummTarget,
+  ChapterSummarizationContext,
+  ChapterSummarizationGlobals,
+  RenderContextSummarizationTarget,
   WorkflowRunHandle,
 } from "@storyforge/gentasks";
 import { TimelineStateDeriver } from "@storyforge/timeline-events";
@@ -50,7 +50,7 @@ type ChapterSpan = {
   chapterNumber: number;
   title: string | null;
   turnIds: string[];
-  turns: ChapterSummCtx["turns"];
+  turns: ChapterSummarizationContext["turns"];
 };
 
 type FingerprintMeta = {
@@ -149,12 +149,12 @@ export class ChapterSummariesService {
       loadScenarioLorebookAssignments(this.db, args.scenarioId),
     ]);
 
-    const globals: ChapterSummGlobals = {
+    const globals: ChapterSummarizationGlobals = {
       scenarioName: scenarioMeta.name,
       scenario: scenarioMeta.description,
     };
 
-    const target: ChapterSummTarget = {
+    const target: RenderContextSummarizationTarget = {
       closingEventId: span.closingEventId,
       closingTurnId: span.closingTurnId,
       chapterNumber: span.chapterNumber,
@@ -162,7 +162,7 @@ export class ChapterSummariesService {
       turnCount: span.turnIds.length,
     };
 
-    const context: ChapterSummCtx = {
+    const context: ChapterSummarizationContext = {
       turns: span.turns,
       characters: charactersCtx.characters,
       lorebooks,

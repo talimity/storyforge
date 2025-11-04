@@ -15,6 +15,7 @@
     { "path": "../../packages/timeline-events/tsconfig.build.json" },
     { "path": "../../packages/inference/tsconfig.build.json" },
     { "path": "../../packages/prompt-rendering/tsconfig.build.json" },
+    { "path": "../../packages/gentasks/tsconfig.build.json" },
     { "path": "../../packages/contracts/tsconfig.build.json" },
     { "path": "../../packages/yolo-onnx/tsconfig.build.json" }
   ]

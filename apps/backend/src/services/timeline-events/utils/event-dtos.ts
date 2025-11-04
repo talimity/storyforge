@@ -1,16 +1,16 @@
-import type { TimelineEventDTO } from "@storyforge/gentasks";
+import type { TimelineEventContext } from "@storyforge/gentasks";
 import { type DerivedTimelineEvent, timelineEvents } from "@storyforge/timeline-events";
 
 export function eventDTOsByTurn(
   events: DerivedTimelineEvent[]
-): Record<string, TimelineEventDTO[]> {
-  const grouped: Record<string, TimelineEventDTO[]> = {};
+): Record<string, TimelineEventContext[]> {
+  const grouped: Record<string, TimelineEventContext[]> = {};
   for (const ev of events) {
     if (ev.turnId === null) {
       continue;
     }
     const spec = timelineEvents[ev.kind]; // union of all specs
-    const dto: TimelineEventDTO = {
+    const dto: TimelineEventContext = {
       id: ev.id,
       kind: ev.kind,
       orderKey: ev.orderKey,

@@ -1,4 +1,4 @@
-import type { NarrativeSourcesBase, TaskKind, TurnGenSources } from "@storyforge/gentasks";
+import type { NarrativeSources, TaskKind, TurnGenSources } from "@storyforge/gentasks";
 import type {
   ChatCompletionMessageRole,
   ConditionRef,
@@ -20,7 +20,7 @@ export type BaseRecipeId =
 
 export type RecipeId<_K extends TaskKind = TaskKind> = BaseRecipeId;
 export type AnyRecipeId = BaseRecipeId;
-export type AnyRecipe = RecipeDefinition<NarrativeSourcesBase> | RecipeDefinition<TurnGenSources>;
+export type AnyRecipe = RecipeDefinition<NarrativeSources> | RecipeDefinition<TurnGenSources>;
 
 /**
  * Represents a parameter that can be configured by the user when selecting a

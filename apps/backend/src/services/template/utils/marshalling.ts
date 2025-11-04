@@ -1,7 +1,7 @@
 import type { PromptTemplate as DbTemplate } from "@storyforge/db";
 import {
-  CHAPTER_SUMM_SOURCE_NAMES,
-  type ChapterSummSources,
+  CHAPTER_SUMMARIZATION_SOURCE_NAMES,
+  type ChapterSummarizationSources,
   TURN_GEN_SOURCE_NAMES,
   type TurnGenSources,
   WRITING_ASSIST_SOURCE_NAMES,
@@ -24,12 +24,12 @@ const TEMPLATE_KIND_CONFIG = {
   },
   chapter_summarization: {
     task: "chapter_summarization" as const,
-    sources: CHAPTER_SUMM_SOURCE_NAMES,
+    sources: CHAPTER_SUMMARIZATION_SOURCE_NAMES,
     parse: (json: Parameters<typeof parseTemplate>[0], lint: boolean) =>
-      parseTemplate<"chapter_summarization", ChapterSummSources>(
+      parseTemplate<"chapter_summarization", ChapterSummarizationSources>(
         json,
         "chapter_summarization",
-        lint ? CHAPTER_SUMM_SOURCE_NAMES : undefined
+        lint ? CHAPTER_SUMMARIZATION_SOURCE_NAMES : undefined
       ),
   },
   writing_assistant: {

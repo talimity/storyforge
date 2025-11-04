@@ -27,7 +27,7 @@ export const nextTurnIntentRecipe: RecipeDefinition<TurnGenSources, typeof param
   description:
     "Instructs the model how to continue the scenario, based on the player's guidance prompt. Skipped if player didn't provide any guidance.",
   parameters: params,
-  requires: ["currentIntent", "globals"],
+  requires: ["globals"],
   toSlotSpec(params) {
     return {
       meta: {},

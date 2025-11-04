@@ -3,15 +3,10 @@ import { MockAdapter } from "@storyforge/inference";
 import type { PromptTemplate } from "@storyforge/prompt-rendering";
 import { DefaultBudgetManager } from "@storyforge/prompt-rendering";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
-import type {
-  GenWorkflow,
-  ModelProfileResolved,
-  TurnGenCtx,
-  WorkflowDeps,
-  WorkflowEvent,
-} from "../index.js";
-import { turnGenRegistry } from "../tasks/turn-generation.js";
+import type { TurnGenContext } from "../tasks/turngen/context.js";
+import { turnGenRegistry } from "../tasks/turngen/source.js";
 import { makeWorkflowRunner } from "./runner.js";
+import type { GenWorkflow, ModelProfileResolved, WorkflowDeps, WorkflowEvent } from "./types.js";
 
 describe("Workflow Runner", () => {
   let mockDeps: WorkflowDeps<"turn_generation">;
@@ -111,7 +106,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -122,6 +117,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],
@@ -184,7 +180,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -194,6 +190,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],
@@ -246,7 +243,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -260,6 +257,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],
@@ -317,7 +315,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -327,6 +325,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
       },
       lorebooks: [],
     };
@@ -388,7 +387,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -399,6 +398,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],
@@ -482,7 +482,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -493,6 +493,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],
@@ -566,7 +567,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -577,6 +578,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],
@@ -616,7 +618,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -627,6 +629,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],
@@ -687,7 +690,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -698,6 +701,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],
@@ -742,7 +746,7 @@ describe("Workflow Runner", () => {
       ],
     };
 
-    const context: TurnGenCtx = {
+    const context: TurnGenContext = {
       turns: [],
       characters: [],
       chapterSummaries: [],
@@ -753,6 +757,7 @@ describe("Workflow Runner", () => {
         isNarratorTurn: false,
         char: "Alice",
         user: "Bob",
+        currentChapterNumber: 1,
         scenario: "Test scenario",
       },
       lorebooks: [],

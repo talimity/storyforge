@@ -1,11 +1,14 @@
 import type { LorebookAssignment } from "@storyforge/lorebooks";
 import type { InjectionTarget } from "@storyforge/prompt-rendering";
 import { describe, expect, it } from "vitest";
-import type { TurnGenCtx } from "../tasks/turn-generation.js";
-import { buildDefaultLoreLaneSpec } from "./narrative.js";
-import { buildTurnGenRenderOptions, TURN_GEN_REQUIRED_ANCHORS } from "./turn-generation.js";
+import {
+  buildDefaultLoreLaneSpec,
+  LORE_ATTACHMENT_REQUIRED_ANCHORS,
+} from "../../attachments/lore.js";
+import type { TurnGenContext } from "./context.js";
+import { buildTurnGenRenderOptions } from "./render-options.js";
 
-const baseContext: TurnGenCtx = {
+const baseContext: TurnGenContext = {
   turns: [],
   characters: [],
   chapterSummaries: [],
@@ -15,6 +18,7 @@ const baseContext: TurnGenCtx = {
     char: "Actor",
     user: "Player",
     scenario: "Test",
+    currentChapterNumber: 1,
     isNarratorTurn: false,
   },
   lorebooks: [],
@@ -48,7 +52,7 @@ describe("buildTurnGenRenderOptions", () => {
   });
 
   it("produces injections for before_char positions", () => {
-    const ctx: TurnGenCtx = {
+    const ctx: TurnGenContext = {
       ...baseContext,
       lorebooks: [
         makeAssignment({
@@ -77,18 +81,19 @@ describe("buildTurnGenRenderOptions", () => {
     expect(injection?.groupId).toBe("before_char");
     const target = injection?.target;
     expect(target).toEqual([
-      { kind: "at", key: TURN_GEN_REQUIRED_ANCHORS.characters.start },
+      { kind: "at", key: LORE_ATTACHMENT_REQUIRED_ANCHORS.characters.start },
       { kind: "boundary", position: "top", delta: 0 },
     ]);
   });
 
   it("derives depth anchors for numeric positions", () => {
-    const ctx: TurnGenCtx = {
+    const ctx: TurnGenContext = {
       ...baseContext,
       turns: [
         {
           turnId: "t1",
           turnNo: 1,
+          chapterNumber: 1,
           authorName: "A",
           authorType: "character",
           content: "",
@@ -98,6 +103,7 @@ describe("buildTurnGenRenderOptions", () => {
         {
           turnId: "t2",
           turnNo: 2,
+          chapterNumber: 1,
           authorName: "A",
           authorType: "character",
           content: "",
@@ -107,6 +113,7 @@ describe("buildTurnGenRenderOptions", () => {
         {
           turnId: "t3",
           turnNo: 3,
+          chapterNumber: 1,
           authorName: "A",
           authorType: "character",
           content: "",
@@ -147,7 +154,7 @@ describe("buildTurnGenRenderOptions", () => {
   });
 
   it("reserves tokens equal to combined lorebook budgets", () => {
-    const ctx: TurnGenCtx = {
+    const ctx: TurnGenContext = {
       ...baseContext,
       lorebooks: [
         makeAssignment(

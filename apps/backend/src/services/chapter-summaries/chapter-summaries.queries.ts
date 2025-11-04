@@ -3,7 +3,7 @@ import {
   chapterSummaries,
   type SqliteTxLike,
 } from "@storyforge/db";
-import type { ChapterSummaryCtxEntry } from "@storyforge/gentasks";
+import type { ChapterSummaryContext } from "@storyforge/gentasks";
 import { TimelineStateDeriver } from "@storyforge/timeline-events";
 import { normalizeJson } from "@storyforge/utils";
 import { inArray } from "drizzle-orm";
@@ -13,7 +13,7 @@ import type { ChapterEntry, ChapterNode } from "./types.js";
 export async function getSummariesForPath(
   db: SqliteTxLike,
   args: { scenarioId: string; leafTurnId?: string | null }
-): Promise<ChapterSummaryCtxEntry[]> {
+): Promise<ChapterSummaryContext[]> {
   const nodes = await loadChapterNodes(db, args);
   const closingIds = nodes
     .map((node) => node.closing?.eventId)
@@ -28,7 +28,7 @@ export async function getSummariesForPath(
 
   const rowsByClosing = new Map(rows.map((row) => [row.closingEventId, row]));
 
-  const entries: ChapterSummaryCtxEntry[] = [];
+  const entries: ChapterSummaryContext[] = [];
   for (const node of nodes) {
     const closing = node.closing;
     if (!closing) continue;
@@ -76,7 +76,7 @@ export async function loadChapterEntries(
 export async function loadPreviousSummariesForContext(
   db: SqliteTxLike,
   args: { scenarioId: string; closingEventId: string }
-): Promise<ChapterSummaryCtxEntry[]> {
+): Promise<ChapterSummaryContext[]> {
   const nodes = await loadChapterNodes(db, args);
   const previousNodes = [];
   for (const node of nodes) {
@@ -107,10 +107,10 @@ export async function loadPreviousSummariesForContext(
       if (!row) return null;
       return toCtxEntry(row, node.chapter);
     })
-    .filter((entry): entry is ChapterSummaryCtxEntry => Boolean(entry));
+    .filter((entry): entry is ChapterSummaryContext => Boolean(entry));
 }
 
-function toCtxEntry(record: ChapterSummaryRow, chapter: ChapterEntry): ChapterSummaryCtxEntry {
+function toCtxEntry(record: ChapterSummaryRow, chapter: ChapterEntry): ChapterSummaryContext {
   return {
     chapterNumber: chapter.chapterNumber,
     title: chapter.title,
