@@ -1,7 +1,7 @@
 import type { IntentInput } from "@storyforge/contracts";
 import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
-import { useCallback, useEffect, useRef } from "react";
+import { startTransition, useCallback, useEffect, useRef } from "react";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { showErrorToast } from "@/lib/error-handling";
@@ -78,7 +78,15 @@ export function useIntentEngine(scenarioId: string) {
 
       onData: async (event) => {
         if (!currentRunId) return;
-        applyEvent(event);
+
+        // Lower priority of token event spam as otherwise things like React
+        // Router navigation and scroll position monitoring get deferred too
+        // long even when the UI is otherwise responsive.
+        if (event.type === "gen_token") {
+          startTransition(() => applyEvent(event));
+        } else {
+          applyEvent(event);
+        }
 
         if (event.type === "effect_committed") {
           // Get the next authoritative data from server

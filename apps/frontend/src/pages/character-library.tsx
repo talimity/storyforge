@@ -62,14 +62,14 @@ function CharacterLibraryPage() {
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([]);
-  const { filters, setFilter, updateFilters } = usePersistedLibraryFilters({
+  const { filters, deferredFilters, setFilter, updateFilters } = usePersistedLibraryFilters({
     schema: characterLibraryFilterSchema,
     defaults: characterLibraryFilterDefaults,
     params: characterFilterParams,
     storageKey: characterFilterStorageKey,
     version: characterFilterVersion,
   });
-  const charaQueryInput = createCharacterQueryInput(filters);
+  const charaQueryInput = createCharacterQueryInput(deferredFilters);
   const charaQuery = useQuery(trpc.characters.list.queryOptions(charaQueryInput));
   const charas = charaQuery.data?.characters ?? [];
 

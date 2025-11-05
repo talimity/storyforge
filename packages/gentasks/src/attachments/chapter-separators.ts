@@ -83,6 +83,11 @@ function buildChapterSeparatorInjections(
     // chapter; we do this rather than looking for the previous turn's `after`
     // anchor since the previous turn may not exist (ch1) or may not be in scope
     const targetKey = `turn_${firstTurn.turnNo}_before`;
+    // we can use the previous turn as a fallback target; this covers the
+    // situation where a chapter separator exists at the very bottom of the
+    // current timeline, in which case the turn that opens the chapter doens't
+    // exist yet (it's the objective of the next generation)
+    const fallbackKey = `turn_${firstTurn.turnNo - 1}`;
 
     const summary = summaryByNumber.get(firstTurn.chapterNumber);
     const payload: ChapterSeparatorPayload = {
@@ -95,7 +100,10 @@ function buildChapterSeparatorInjections(
 
     injections.push({
       lane: CHAPTER_SEPARATOR_LANE_ID,
-      target: { kind: "at", key: targetKey },
+      target: [
+        { kind: "at", key: targetKey },
+        { kind: "at", key: fallbackKey },
+      ],
       payload,
       priority: payload.chapterNumber,
       groupId: targetKey,

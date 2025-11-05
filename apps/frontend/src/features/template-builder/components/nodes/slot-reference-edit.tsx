@@ -242,7 +242,7 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
             <Button size="xs" variant="outline" onClick={() => setReplaceDialogOpen(true)}>
               <HStack gap={1} align="center">
                 <LuCopyPlus />
-                <Span>Replace from template</Span>
+                <Span>Replace via import</Span>
               </HStack>
             </Button>
             <IconButton

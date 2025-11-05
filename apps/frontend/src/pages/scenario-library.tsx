@@ -48,14 +48,14 @@ function ScenarioLibraryPage() {
   const trpc = useTRPC();
   const navigate = useNavigate();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const { filters, setFilter, updateFilters } = usePersistedLibraryFilters({
+  const { filters, deferredFilters, setFilter, updateFilters } = usePersistedLibraryFilters({
     schema: scenarioLibraryFilterSchema,
     defaults: scenarioLibraryFilterDefaults,
     params: scenarioFilterParams,
     storageKey: scenarioFilterStorageKey,
     version: scenarioFilterVersion,
   });
-  const scenariosQueryInput = createScenarioQueryInput(filters);
+  const scenariosQueryInput = createScenarioQueryInput(deferredFilters);
   const scenariosQuery = useQuery(trpc.scenarios.list.queryOptions(scenariosQueryInput));
   const scenarios = scenariosQuery.data?.scenarios ?? [];
   const isFilterActive = filters.status !== "all" || filters.starredOnly;

@@ -231,7 +231,7 @@ export class WorkflowTestService {
       cfg.patterns = mock.patterns.map((p) => ({ pattern: p.pattern, response: p.response }));
     }
     if (mock.streaming) {
-      cfg.streaming = { ...mock.streaming };
+      cfg.streaming = { ...mock.streaming, defaultChunkDelay: 1 };
     }
     if (mock.stepResponses) {
       const modelResponses: Record<string, MockResp> = {};
@@ -296,7 +296,7 @@ export class WorkflowTestService {
         task: expectedTask,
         version: 1,
         steps: wf.steps,
-      } as GenWorkflow<T>;
+      };
     }
 
     const draft = wfUnknown as {
@@ -319,6 +319,6 @@ export class WorkflowTestService {
       task: expectedTask,
       version: 1 as const,
       steps: draft.steps,
-    } satisfies GenWorkflow<T>;
+    };
   }
 }

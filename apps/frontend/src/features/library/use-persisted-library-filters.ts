@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { z } from "zod";
 
@@ -23,7 +23,17 @@ interface UsePersistedLibraryFiltersOptions<Filters extends Record<string, unkno
 }
 
 interface UsePersistedLibraryFiltersResult<Filters extends Record<string, unknown>> {
+  /**
+   * The current filters state.
+   */
   readonly filters: Filters;
+  /**
+   * The filters state, wrapped in a useDeferredValue for less urgent updates.
+   *
+   * Use `filters` for controlled inputs, and `deferredFilters` for data
+   * fetching to avoid responsiveness issues.
+   */
+  readonly deferredFilters: Filters;
   readonly source: PersistedSource;
   readonly isDirty: boolean;
   setFilter<Key extends keyof Filters>(key: Key, value: Filters[Key]): void;
@@ -233,15 +243,16 @@ export function usePersistedLibraryFilters<Filters extends Record<string, unknow
 
   const [filters, setFilters] = useState(initialFilters);
   const [source, setSource] = useState(initialSource);
-  const lastSyncedSearch = useRef(searchParams.toString());
-  const pendingInitialSync = useRef(initialSource === "storage");
+  const lastSyncedSearchRef = useRef(searchParams.toString());
+  const pendingInitialSyncRef = useRef(initialSource === "storage");
+  const deferredFilters = useDeferredValue(filters, initialFilters);
 
   useEffect(() => {
-    if (pendingInitialSync.current) {
+    if (pendingInitialSyncRef.current) {
       const nextParams = encodeParams(filters, parsedDefaults, params, searchParams);
       const nextString = nextParams.toString();
-      pendingInitialSync.current = false;
-      lastSyncedSearch.current = nextString;
+      pendingInitialSyncRef.current = false;
+      lastSyncedSearchRef.current = nextString;
       setSearchParams(nextParams, { replace: true });
     }
   }, [filters, parsedDefaults, params, searchParams, setSearchParams]);
@@ -252,10 +263,10 @@ export function usePersistedLibraryFilters<Filters extends Record<string, unknow
 
   useEffect(() => {
     const currentString = searchParams.toString();
-    if (currentString === lastSyncedSearch.current) {
+    if (currentString === lastSyncedSearchRef.current) {
       return;
     }
-    lastSyncedSearch.current = currentString;
+    lastSyncedSearchRef.current = currentString;
     const parsed = parseSearchParams(schema, parsedDefaults, params, searchParams);
     if (parsed.hasAny) {
       if (areFiltersEqual(filters, parsed.filters, params)) {
@@ -307,6 +318,7 @@ export function usePersistedLibraryFilters<Filters extends Record<string, unknow
 
   return {
     filters,
+    deferredFilters,
     source,
     isDirty,
     setFilter,
