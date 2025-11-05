@@ -64,6 +64,25 @@ export const queryTimelineOutputSchema = z.object({
   timelineLength: z.number().describe("Number of turns in the timeline from root to the leaf"),
 });
 
+export const nextActorSuggestionInputSchema = z.object({
+  scenarioId: z.string(),
+  leafTurnId: z.string().optional().describe("Leaf turn to evaluate when selecting the next actor"),
+  includeNarrator: z
+    .boolean()
+    .optional()
+    .describe("Whether the narrator should be included in selection eligibility"),
+  windowSize: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Optional history window size override"),
+});
+
+export const nextActorSuggestionOutputSchema = z.object({
+  participantId: z.string().describe("Selected participant to act next"),
+});
+
 // Turn content
 export const addTurnInputSchema = z.object({
   scenarioId: z.string(),
@@ -242,3 +261,5 @@ export type TimelineGraphInput = z.infer<typeof timelineGraphInputSchema>;
 export type TimelineGraphNode = z.infer<typeof timelineGraphNodeSchema>;
 export type TimelineGraphEdge = z.infer<typeof timelineGraphEdgeSchema>;
 export type TimelineGraphOutput = z.infer<typeof timelineGraphOutputSchema>;
+export type NextActorSuggestionInput = z.infer<typeof nextActorSuggestionInputSchema>;
+export type NextActorSuggestionOutput = z.infer<typeof nextActorSuggestionOutputSchema>;

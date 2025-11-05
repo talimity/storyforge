@@ -1,29 +1,20 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback } from "react";
-
+import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
+import { useScenarioDataInvalidator } from "./use-scenario-data-invalidator";
 
 export function useScenarioIntentActions() {
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
-  const invalidate = useCallback(() => {
-    queryClient.invalidateQueries(trpc.timeline.window.pathFilter());
-    queryClient.invalidateQueries(trpc.timeline.state.pathFilter());
-    queryClient.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
-  }, [queryClient, trpc]);
+  const { invalidateCore } = useScenarioDataInvalidator();
+
   const { mutateAsync: createIntent } = useMutation(
-    trpc.intents.createIntent.mutationOptions({ onSuccess: invalidate })
+    trpc.intents.createIntent.mutationOptions({ onSuccess: invalidateCore })
   );
   const { mutateAsync: addTurn } = useMutation(
-    trpc.timeline.addTurn.mutationOptions({ onSuccess: invalidate })
+    trpc.timeline.addTurn.mutationOptions({ onSuccess: invalidateCore })
   );
   const { mutateAsync: insertTurnAfter } = useMutation(
-    trpc.timeline.insertTurnAfter.mutationOptions({ onSuccess: invalidate })
+    trpc.timeline.insertTurnAfter.mutationOptions({ onSuccess: invalidateCore })
   );
 
-  return {
-    createIntent,
-    addTurn,
-    insertTurnAfter,
-  };
+  return { createIntent, addTurn, insertTurnAfter };
 }

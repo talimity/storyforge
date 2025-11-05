@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useScenarioDataInvalidator } from "@/features/scenario-player/hooks/use-scenario-data-invalidator";
 import { showErrorToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 import { useScenarioContext } from "../providers/scenario-provider";
@@ -20,19 +20,8 @@ interface DeleteChapterArgs {
 
 export function useChapterActions() {
   const trpc = useTRPC();
-  const qc = useQueryClient();
   const { scenario } = useScenarioContext();
-
-  const invalidate = useCallback(async () => {
-    await Promise.all([
-      qc.invalidateQueries(trpc.timeline.window.pathFilter()),
-      qc.invalidateQueries(trpc.timeline.state.pathFilter()),
-      qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
-      qc.invalidateQueries(trpc.chapterSummaries.listForPath.pathFilter()),
-      qc.invalidateQueries(trpc.chapterSummaries.status.pathFilter()),
-      qc.invalidateQueries(trpc.chapterSummaries.get.pathFilter()),
-    ]);
-  }, [qc, trpc]);
+  const { invalidateWithChapters } = useScenarioDataInvalidator();
 
   const insertChapterBreakMutation = useMutation(
     trpc.timelineEvents.insertChapterBreakEvent.mutationOptions({
@@ -40,7 +29,7 @@ export function useChapterActions() {
         showErrorToast({ title: "Failed to insert chapter break", error });
       },
       onSuccess: async () => {
-        await invalidate();
+        await invalidateWithChapters();
       },
     })
   );
@@ -51,7 +40,7 @@ export function useChapterActions() {
         showErrorToast({ title: "Failed to rename chapter", error });
       },
       onSuccess: async () => {
-        await invalidate();
+        await invalidateWithChapters();
       },
     })
   );
@@ -62,39 +51,27 @@ export function useChapterActions() {
         showErrorToast({ title: "Failed to delete chapter", error });
       },
       onSuccess: async () => {
-        await invalidate();
+        await invalidateWithChapters();
       },
     })
   );
 
-  const insertChapterAtTurn = useCallback(
-    async ({ turnId, title }: InsertChapterArgs) => {
-      return insertChapterBreakMutation.mutateAsync({
-        scenarioId: scenario.id,
-        turnId,
-        nextChapterTitle: title || null,
-      });
-    },
-    [insertChapterBreakMutation, scenario.id]
-  );
+  const insertChapterAtTurn = async ({ turnId, title }: InsertChapterArgs) =>
+    insertChapterBreakMutation.mutateAsync({
+      scenarioId: scenario.id,
+      turnId,
+      nextChapterTitle: title || null,
+    });
 
-  const renameChapter = useCallback(
-    async ({ eventId, title }: RenameChapterArgs) => {
-      return renameChapterBreakMutation.mutateAsync({
-        scenarioId: scenario.id,
-        eventId,
-        nextChapterTitle: title || null,
-      });
-    },
-    [renameChapterBreakMutation, scenario.id]
-  );
+  const renameChapter = async ({ eventId, title }: RenameChapterArgs) =>
+    renameChapterBreakMutation.mutateAsync({
+      scenarioId: scenario.id,
+      eventId,
+      nextChapterTitle: title,
+    });
 
-  const deleteChapter = useCallback(
-    async ({ eventId }: DeleteChapterArgs) => {
-      return deleteChapterBreakMutation.mutateAsync({ eventId });
-    },
-    [deleteChapterBreakMutation]
-  );
+  const deleteChapter = async ({ eventId }: DeleteChapterArgs) =>
+    deleteChapterBreakMutation.mutateAsync({ eventId });
 
   return {
     insertChapterAtTurn,

@@ -11,8 +11,10 @@ function textNode(value: string): Text {
 }
 
 function quoteEl(children: ElementContent[], authorId: string | null): Element {
-  const properties: Properties = authorId ? { "data-author": authorId } : {};
-  return { type: "element", tagName: "q", properties, children };
+  const properties: Properties = authorId
+    ? { "data-author": authorId, className: ["dialogue"] }
+    : { className: ["dialogue"] };
+  return { type: "element", tagName: "span", properties, children };
 }
 
 const OPENERS = new Set<string>(['"', "“"]);
@@ -39,13 +41,13 @@ export const rehypeDialogue: Plugin<[DialogueOptions?], Root> = (options) => {
       const startQuote = (mark: string) => {
         buffer = [];
         expectedClose = CLOSER_FOR[mark] ?? '"';
-        // Keep the literal opening mark inside the <q>
+        // Keep the literal opening mark inside the element
         buffer.push(textNode(mark));
       };
 
       const endQuote = (mark: string) => {
         if (!buffer || !expectedClose) return;
-        // Keep the literal closing mark inside the <q>
+        // Keep the literal closing mark inside the element
         buffer.push(textNode(mark));
         out.push(quoteEl(buffer, authorId));
         buffer = null;

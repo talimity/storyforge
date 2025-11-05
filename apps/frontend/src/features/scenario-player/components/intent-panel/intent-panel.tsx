@@ -1,8 +1,10 @@
 import { Box, HStack, SegmentGroup, Text, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui";
 import { PromptInput } from "@/features/scenario-player/components/intent-panel/prompt-input";
 import { useBranchPreview } from "@/features/scenario-player/hooks/use-branch-preview";
+import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
+import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
 import { QuickActionsPanel } from "./quick-actions-panel";
 
 export type InputMode = "direct" | "guided" | "constraints" | "quick";
@@ -15,9 +17,22 @@ interface IntentPanelProps {
 
 export function IntentPanel(props: IntentPanelProps) {
   const { onSubmitIntent, onCancelIntent, onQuickContinue } = props;
+  const { scenario } = useScenarioContext();
   const [inputMode, setInputMode] = useState<InputMode>("direct");
   const [inputText, setInputText] = useState("");
   const { previewLeafTurnId, commitPreview, isGenerating, exitPreview } = useBranchPreview();
+  const autoAdvancePromptRun = useIntentRunsStore((state) => {
+    return Object.values(state.runsById).find(
+      (run) => run.scenarioId === scenario.id && run.needsPromptClear
+    );
+  });
+  const consumePromptClear = useIntentRunsStore((state) => state.consumePromptClear);
+
+  useEffect(() => {
+    if (!autoAdvancePromptRun) return;
+    setInputText("");
+    consumePromptClear(autoAdvancePromptRun.id);
+  }, [autoAdvancePromptRun, consumePromptClear]);
 
   const handleGenerate = async () => {
     // TODO: This should only empty input if the intent was successfully

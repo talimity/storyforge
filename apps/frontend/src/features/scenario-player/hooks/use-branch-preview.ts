@@ -1,18 +1,20 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 import { useScenarioContext } from "../providers/scenario-provider";
 import { selectIsGenerating, useIntentRunsStore } from "../stores/intent-run-store";
 import { useScenarioPlayerStore } from "../stores/scenario-player-store";
+import { useScenarioDataInvalidator } from "./use-scenario-data-invalidator";
 
 export function useBranchPreview() {
   const { scenario } = useScenarioContext();
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const { invalidateCore } = useScenarioDataInvalidator();
 
   const isGenerating = useIntentRunsStore(selectIsGenerating);
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
   const setPreviewLeaf = useScenarioPlayerStore((s) => s.setPreviewLeaf);
   const setPendingScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
+  const requestRecommendedSelection = useScenarioPlayerStore((s) => s.requestRecommendedSelection);
 
   const resolveLeaf = useMutation(trpc.timeline.resolveLeaf.mutationOptions());
   const switchTimeline = useMutation(trpc.timeline.switchTimeline.mutationOptions());
@@ -22,13 +24,10 @@ export function useBranchPreview() {
 
   const commitSwitch = async (leafTurnId: string) => {
     await switchTimeline.mutateAsync({ scenarioId, leafTurnId });
-    await Promise.all([
-      qc.invalidateQueries(trpc.timeline.window.pathFilter()),
-      qc.invalidateQueries(trpc.timeline.state.pathFilter()),
-      qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
-    ]);
+    await invalidateCore();
     // clear preview after cache invalidation to avoid flicker
     setPreviewLeaf(null);
+    requestRecommendedSelection();
   };
 
   const previewSibling = async (siblingId: string | null | undefined, currentTurnId: string) => {

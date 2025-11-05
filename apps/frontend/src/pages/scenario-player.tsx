@@ -16,7 +16,8 @@ import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenar
 import { useActiveScenario } from "@/hooks/use-active-scenario";
 
 function PlayerPage() {
-  const { scenario, participants, chapters, deriveChapterLabel } = useScenarioContext();
+  const { scenario, participants, chapters, deriveChapterLabel, recommendedNextActor } =
+    useScenarioContext();
   const { setActiveScenario } = useActiveScenario();
   const selectedCharacterId = useScenarioPlayerStore((s) => s.selectedCharacterId);
   const setSelectedCharacter = useScenarioPlayerStore((s) => s.setSelectedCharacter);
@@ -43,11 +44,11 @@ function PlayerPage() {
 
   // Auto-select first character when available
   useEffect(() => {
-    const firstChara = participants.find((p) => p.type === "character" && p.characterId);
-    if (!selectedCharacterId && firstChara?.characterId) {
-      setSelectedCharacter(firstChara.characterId);
+    if (selectedCharacterId) return;
+    if (recommendedNextActor.characterId) {
+      setSelectedCharacter(recommendedNextActor.characterId);
     }
-  }, [selectedCharacterId, participants, setSelectedCharacter]);
+  }, [selectedCharacterId, recommendedNextActor.characterId, setSelectedCharacter]);
 
   const selectedParticipant = selectedCharacterId
     ? participants.find((p) => p.characterId === selectedCharacterId)

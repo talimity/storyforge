@@ -51,10 +51,10 @@ export const Prose = chakra("div", {
     [inWhere("& em")]: {
       color: "fg.emphasized",
     },
-    [inWhere("& q")]: {
+    [inWhere("& span.dialogue")]: {
       color: "var(--chakra-colors-fg-emphasized)",
     },
-    [inWhere("& q[data-author]")]: {
+    [inWhere("& span.dialogue[data-author]")]: {
       ...tintedNormalStyle,
     },
     [inWhere("& q::before")]: {

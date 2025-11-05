@@ -1,7 +1,8 @@
 import type { IntentInput } from "@storyforge/contracts";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { startTransition, useCallback, useEffect, useRef } from "react";
+import { useScenarioDataInvalidator } from "@/features/scenario-player/hooks/use-scenario-data-invalidator";
 import { useIntentRunsStore } from "@/features/scenario-player/stores/intent-run-store";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
 import { showErrorToast } from "@/lib/error-handling";
@@ -10,13 +11,13 @@ import { useTRPC } from "@/lib/trpc";
 type BranchFrom = { kind: "turn_parent" | "intent_start"; targetId: string };
 
 export function useIntentEngine(scenarioId: string) {
-  const queryClient = useQueryClient();
   const trpc = useTRPC();
   const setPendingScrollTarget = useScenarioPlayerStore((s) => s.setPendingScrollTarget);
   const startRun = useIntentRunsStore((s) => s.startRun);
   const applyEvent = useIntentRunsStore((s) => s.applyEvent);
   const clearActiveIntent = useIntentRunsStore((s) => s.clearActiveRun);
   const currentRunId = useIntentRunsStore((s) => s.currentRunId);
+  const { invalidateCore } = useScenarioDataInvalidator();
   const { data: env } = useQuery(trpc.scenarios.playEnvironment.queryOptions({ id: scenarioId }));
   const createIntent = useMutation(
     trpc.intents.createIntent.mutationOptions({
@@ -90,11 +91,19 @@ export function useIntentEngine(scenarioId: string) {
 
         if (event.type === "effect_committed") {
           // Get the next authoritative data from server
-          await Promise.all([
-            queryClient.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter()),
-            queryClient.invalidateQueries(trpc.timeline.window.pathFilter()),
-            queryClient.invalidateQueries(trpc.timeline.state.pathFilter()),
-          ]);
+          await invalidateCore();
+
+          // Raise auto-advance flags if this is the first committed turn so
+          // that the UI can respond accordingly
+          const run = useIntentRunsStore.getState().runsById[event.intentId];
+          if (run?.committedTurnIds.length === 1) {
+            useIntentRunsStore.setState((state) => {
+              const target = state.runsById[event.intentId];
+              if (!target) return;
+              target.needsPromptClear = true;
+            });
+            useScenarioPlayerStore.getState().requestRecommendedSelection();
+          }
           setPendingScrollTarget({ kind: "bottom" });
         }
         if (event.type === "intent_finished") {

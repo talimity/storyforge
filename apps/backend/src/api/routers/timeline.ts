@@ -5,6 +5,8 @@ import {
   generationInfoOutputSchema,
   insertTurnAfterInputSchema,
   insertTurnAfterOutputSchema,
+  nextActorSuggestionInputSchema,
+  nextActorSuggestionOutputSchema,
   queryTimelineInputSchema,
   queryTimelineOutputSchema,
   resolveLeafInputSchema,
@@ -22,6 +24,7 @@ import {
 import { sqliteTimestampToDate } from "@storyforge/db";
 import { z } from "zod";
 import { ServiceError } from "../../service-error.js";
+import { chooseNextActorFair } from "../../services/intent/actor-selection.js";
 import { getGenerationInfoForTurn } from "../../services/intent/debugging/generation-info.queries.js";
 import {
   getTimelineWindow,
@@ -34,6 +37,26 @@ import { TurnContentService } from "../../services/turn/turn-content.service.js"
 import { publicProcedure, router } from "../index.js";
 
 export const timelineRouter = router({
+  nextActor: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/api/timeline/next-actor",
+        tags: ["timeline"],
+        summary: "Suggests the next participant to act for the specified timeline branch",
+      },
+    })
+    .input(nextActorSuggestionInputSchema)
+    .output(nextActorSuggestionOutputSchema)
+    .query(async ({ input, ctx }) => {
+      const participantId = await chooseNextActorFair(ctx.db, input.scenarioId, {
+        leafTurnId: input.leafTurnId,
+        includeNarrator: input.includeNarrator,
+        windowSize: input.windowSize,
+      });
+      return { participantId };
+    }),
+
   window: publicProcedure
     .meta({
       openapi: {

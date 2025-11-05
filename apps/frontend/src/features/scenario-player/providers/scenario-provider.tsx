@@ -1,7 +1,9 @@
-import { createContext, type ReactNode, useContext } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { createContext, type ReactNode, useContext, useEffect } from "react";
 import { useScenarioEnvironment } from "@/features/scenario-player/hooks/use-scenario-environment";
 import { useScenarioTimelineState } from "@/features/scenario-player/hooks/use-scenario-timeline-state";
 import { useScenarioPlayerStore } from "@/features/scenario-player/stores/scenario-player-store";
+import { useTRPC } from "@/lib/trpc";
 
 type ScenarioCtxEnvironment = ReturnType<typeof useScenarioEnvironment>;
 export type ScenarioCtxParticipant = ScenarioCtxEnvironment["participants"][number];
@@ -20,6 +22,10 @@ type ScenarioCtx = ScenarioCtxEnvironment & {
   chaptersByEventId: Record<string, ScenarioCtxChapter>;
   chapterLabelsByEventId: Record<string, string>;
   deriveChapterLabel: (chapter?: ScenarioCtxChapter) => string;
+  recommendedNextActor: {
+    participantId: string;
+    characterId: string | null;
+  };
 };
 const ScenarioContext = createContext<ScenarioCtx | null>(null);
 
@@ -74,11 +80,16 @@ function createCharacterByParticipantLookup(
 export function ScenarioProvider(props: { scenarioId: string; children: ReactNode }) {
   const { scenarioId, children } = props;
   const env = useScenarioEnvironment(scenarioId);
+  const trpc = useTRPC();
 
   const previewLeafTurnId = useScenarioPlayerStore((s) => s.previewLeafTurnId);
+  const setSelectedCharacter = useScenarioPlayerStore((s) => s.setSelectedCharacter);
+  const shouldAdoptRecommended = useScenarioPlayerStore((s) => s.pendingRecommendedSelection);
+  const consumeRecommended = useScenarioPlayerStore((s) => s.consumeRecommendedSelection);
+
   const timelineState = useScenarioTimelineState({
     scenarioId,
-    leafTurnId: previewLeafTurnId ?? env.scenario.anchorTurnId ?? undefined,
+    leafTurnId: previewLeafTurnId ?? env.scenario.anchorTurnId,
   });
   const chapters = timelineState.chapters.chapters;
   const participantsById = indexById(env.participants);
@@ -92,6 +103,37 @@ export function ScenarioProvider(props: { scenarioId: string; children: ReactNod
     charactersById
   );
 
+  const previewEnabled = Boolean(previewLeafTurnId);
+  const nextActorQuery = useQuery({
+    ...trpc.timeline.nextActor.queryOptions({
+      scenarioId,
+      leafTurnId: previewLeafTurnId ?? undefined,
+    }),
+    enabled: previewEnabled,
+  });
+
+  const activeNextParticipantId =
+    (previewEnabled ? nextActorQuery.data?.participantId : undefined) ??
+    env.nextActor.participantId;
+  const recommendedParticipant = participantsById[activeNextParticipantId];
+  const recommendedNextActor = {
+    participantId: activeNextParticipantId,
+    characterId: recommendedParticipant?.characterId ?? null,
+  };
+
+  useEffect(() => {
+    if (!shouldAdoptRecommended) return;
+    if (recommendedNextActor.characterId) {
+      setSelectedCharacter(recommendedNextActor.characterId);
+    }
+    consumeRecommended();
+  }, [
+    consumeRecommended,
+    recommendedNextActor.characterId,
+    setSelectedCharacter,
+    shouldAdoptRecommended,
+  ]);
+
   const contextValue: ScenarioCtx = {
     ...env,
     participantsById,
@@ -104,6 +146,7 @@ export function ScenarioProvider(props: { scenarioId: string; children: ReactNod
     chaptersByEventId,
     chapterLabelsByEventId,
     deriveChapterLabel: computeChapterLabel,
+    recommendedNextActor,
   };
 
   return <ScenarioContext.Provider value={contextValue}>{children}</ScenarioContext.Provider>;

@@ -191,6 +191,11 @@ export const playEnvironmentOutputSchema = z.object({
     .lazy(() => intentSchema)
     .nullable()
     .describe("Currently generating intent, if any"),
+  nextActor: z
+    .object({
+      participantId: z.string(),
+    })
+    .describe("Participant selected by the server to take the next turn"),
 });
 
 // Export inferred types

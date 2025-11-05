@@ -8,7 +8,7 @@ export function useScenarioTimelineState({
   leafTurnId,
 }: {
   scenarioId: string;
-  leafTurnId?: string;
+  leafTurnId: string | null;
 }) {
   const trpc = useTRPC();
   const query = useQuery({

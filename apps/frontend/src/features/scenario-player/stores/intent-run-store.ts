@@ -85,6 +85,8 @@ export interface IntentRun {
   lastBranchFromTurnId?: string;
   /** Captured presentation preview available for recovery after a failure. */
   pendingRecovery?: RecoverableDraft;
+  /** Whether the UI should clear the prompt after the first committed effect. */
+  needsPromptClear: boolean;
 }
 
 export interface IntentRunsState {
@@ -102,6 +104,8 @@ export interface IntentRunsState {
   clearRun: (intentId: string) => void;
   /** clears all intent runs */
   clearAllRuns: (nextScenarioId: string) => void;
+  /** mark prompt clear auto-advance as handled */
+  consumePromptClear: (intentId: string) => void;
 }
 
 export const useIntentRunsStore = create<IntentRunsState>()(
@@ -130,6 +134,7 @@ export const useIntentRunsStore = create<IntentRunsState>()(
           displayCharCount: 0,
           lastBranchFromTurnId: undefined,
           pendingRecovery: undefined,
+          needsPromptClear: false,
         };
         s.currentRunId = intentId;
         s.lastScenarioId = scenarioId;
@@ -239,6 +244,9 @@ export const useIntentRunsStore = create<IntentRunsState>()(
             run.presentationPreview = "";
             run.pendingRecovery = undefined;
             run.lastBranchFromTurnId = undefined;
+            if (run.committedTurnIds.length === 1) {
+              run.needsPromptClear = true;
+            }
             return;
 
           case "intent_finished":
@@ -330,6 +338,13 @@ export const useIntentRunsStore = create<IntentRunsState>()(
         s.runsById = {};
       });
     },
+
+    consumePromptClear: (intentId) =>
+      set((s) => {
+        const run = s.runsById[intentId];
+        if (!run) return;
+        run.needsPromptClear = false;
+      }),
   }))
 );
 

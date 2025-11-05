@@ -8,6 +8,7 @@ import { isDefined } from "@storyforge/utils";
 import { and, asc, desc, eq, inArray, isNotNull, like, or, type SQL, sql } from "drizzle-orm";
 import { ServiceError } from "../../service-error.js";
 import { getCharaAssetPaths } from "../character/utils/chara-asset-helpers.js";
+import { chooseNextActorFair } from "../intent/actor-selection.js";
 
 export type ScenarioOverview = Awaited<ReturnType<typeof listScenarios>>[0];
 
@@ -367,7 +368,7 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
   });
 
   const participantResponses = participants.map((p) => {
-    const override = p.colorOverride ? p.colorOverride.toLowerCase() : null;
+    const override = p.colorOverride?.toLowerCase();
     const baseColor = p.characterId ? (characterColors.get(p.characterId) ?? null) : null;
     return {
       id: p.id,
@@ -376,6 +377,9 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
       characterId: p.characterId,
       color: override ?? baseColor,
     };
+  });
+  const nextActorParticipantId = await chooseNextActorFair(db, scenarioId, {
+    leafTurnId: scenario.anchorTurnId ?? undefined,
   });
 
   return {
@@ -387,6 +391,9 @@ export async function getScenarioEnvironment(db: SqliteDatabase, scenarioId: str
     },
     characters: characterResponses,
     participants: participantResponses,
+    nextActor: {
+      participantId: nextActorParticipantId,
+    },
   };
 }
 

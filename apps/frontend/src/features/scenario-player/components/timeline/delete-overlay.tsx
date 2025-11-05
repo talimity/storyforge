@@ -1,6 +1,7 @@
 import { Box, HStack, Stack, Text } from "@chakra-ui/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui";
+import { useScenarioDataInvalidator } from "@/features/scenario-player/hooks/use-scenario-data-invalidator";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handling";
 import { useTRPC } from "@/lib/trpc";
 import { useTurnUiStore } from "../../stores/turn-ui-store";
@@ -11,7 +12,7 @@ interface DeleteOverlayProps {
 
 export function DeleteOverlay({ turnId }: DeleteOverlayProps) {
   const trpc = useTRPC();
-  const qc = useQueryClient();
+  const { invalidateCore } = useScenarioDataInvalidator();
   const closeOverlay = useTurnUiStore((state) => state.closeOverlay);
 
   const { mutate: deleteTurn, isPending } = useMutation(
@@ -21,9 +22,7 @@ export function DeleteOverlay({ turnId }: DeleteOverlayProps) {
       },
       onSuccess: (_data, variables) => {
         showSuccessToast({ title: "Turn deleted" });
-        qc.invalidateQueries(trpc.scenarios.playEnvironment.pathFilter());
-        qc.invalidateQueries(trpc.timeline.window.pathFilter());
-        qc.invalidateQueries(trpc.timeline.state.pathFilter());
+        void invalidateCore();
         closeOverlay(variables.turnId);
       },
     })

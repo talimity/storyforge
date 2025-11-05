@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import type { TimelineTurn } from "@storyforge/contracts";
 import { isDefined } from "@storyforge/utils";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import {
   LuCheck,
@@ -31,6 +31,7 @@ import { DiscardChangesDialog } from "@/components/dialogs/discard-changes-dialo
 import { GenerationInfoDialog } from "@/features/scenario-player/components/timeline/generation-info-dialog.js";
 import { InsertTurnDialog } from "@/features/scenario-player/components/timeline/insert-turn-dialog";
 import { useChapterActions } from "@/features/scenario-player/hooks/use-chapter-actions";
+import { useScenarioDataInvalidator } from "@/features/scenario-player/hooks/use-scenario-data-invalidator";
 import { useScenarioIntentActions } from "@/features/scenario-player/hooks/use-scenario-intent-actions";
 import { useScenarioContext } from "@/features/scenario-player/providers/scenario-provider";
 import {
@@ -68,10 +69,10 @@ type ActionDefinition = {
 
 export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsProps) {
   const trpc = useTRPC();
-  const qc = useQueryClient();
   const { scenario } = useScenarioContext();
   const { insertChapterAtTurn, isInsertingChapter } = useChapterActions();
   const { insertTurnAfter } = useScenarioIntentActions();
+  const { invalidateCore } = useScenarioDataInvalidator();
 
   const editingTurnId = useTurnUiStore((state) => state.editingTurnId);
   const startEditing = useTurnUiStore((state) => state.startEditing);
@@ -98,7 +99,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
       },
       onSuccess: () => {
         showSuccessToast({ title: "Turn updated", description: "Changes saved." });
-        qc.invalidateQueries(trpc.timeline.window.pathFilter());
+        void invalidateCore();
         stopEditing();
       },
     })
@@ -116,8 +117,7 @@ export function TurnActions({ turn, isPreviewing, isGenerating }: TurnActionsPro
             ? "Turn will be skipped in prompts and scenario state."
             : "Turn will be included in prompts and scenario state again.",
         });
-        qc.invalidateQueries(trpc.timeline.window.pathFilter());
-        qc.invalidateQueries(trpc.timeline.state.pathFilter());
+        void invalidateCore();
       },
     })
   );

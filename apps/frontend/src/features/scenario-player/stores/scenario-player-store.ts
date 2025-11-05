@@ -20,6 +20,8 @@ export interface ScenarioPlayerState {
   previewLeafTurnId: string | null;
   /** Turn currently most visible in the timeline scroller */
   lastVisibleTurnId: string | null;
+  /** Whether the client should adopt the recommended actor on the next update */
+  pendingRecommendedSelection: boolean;
 
   // Scroll management
   /** The target for the timeline's scroll controller, or null if no target is pending */
@@ -34,6 +36,8 @@ export interface ScenarioPlayerState {
   setSelectedCharacter: (characterId: string | null) => void;
   setPreviewLeaf: (leafTurnId: string | null) => void;
   setLastVisibleTurn: (turnId: string | null) => void;
+  requestRecommendedSelection: () => void;
+  consumeRecommendedSelection: () => void;
   reset: () => void;
 }
 
@@ -42,6 +46,7 @@ const initialState = {
   selectedCharacterId: null,
   previewLeafTurnId: null,
   lastVisibleTurnId: null,
+  pendingRecommendedSelection: false,
   pendingScrollTarget: null,
   shouldAutoFollow: () => false,
 };
@@ -68,6 +73,16 @@ export const useScenarioPlayerStore = create<ScenarioPlayerState>()(
     setLastVisibleTurn: (turnId) =>
       set((state) => {
         state.lastVisibleTurnId = turnId;
+      }),
+
+    requestRecommendedSelection: () =>
+      set((state) => {
+        state.pendingRecommendedSelection = true;
+      }),
+
+    consumeRecommendedSelection: () =>
+      set((state) => {
+        state.pendingRecommendedSelection = false;
       }),
 
     setPendingScrollTarget: (t) =>

@@ -12,6 +12,7 @@ export function useScenarioEnvironment(scenarioId: string) {
           participants: data.participants,
           characters: data.characters,
           generatingIntent: data.generatingIntent,
+          nextActor: data.nextActor,
         }),
       }
     )
