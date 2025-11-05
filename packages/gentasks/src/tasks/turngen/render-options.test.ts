@@ -264,11 +264,17 @@ describe("buildTurnGenRenderOptions", () => {
     );
     expect(separators).toHaveLength(2);
     const chapterFour = separators.find((injection) => injection.payload?.chapterNumber === 4);
-    expect(chapterFour?.target).toEqual({ kind: "at", key: "turn_10_before" });
+    expect(chapterFour?.target).toEqual([
+      { kind: "at", key: "turn_10_before" },
+      { kind: "at", key: "turn_9" },
+    ]);
     expect(chapterFour?.payload).toMatchObject({ chapterNumber: 4, title: "Shadows" });
 
     const chapterFive = separators.find((injection) => injection.payload?.chapterNumber === 5);
-    expect(chapterFive?.target).toEqual({ kind: "at", key: "turn_12_before" });
+    expect(chapterFive?.target).toEqual([
+      { kind: "at", key: "turn_12_before" },
+      { kind: "at", key: "turn_11" },
+    ]);
     expect(chapterFive?.payload).toMatchObject({ chapterNumber: 5, title: "Awakening" });
   });
 });

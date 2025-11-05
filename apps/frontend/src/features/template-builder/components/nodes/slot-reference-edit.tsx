@@ -16,7 +16,7 @@ import {
   slotSpecSchema,
 } from "@storyforge/prompt-rendering";
 import { useStore } from "@tanstack/react-form";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { LuCheck, LuCopyPlus, LuX } from "react-icons/lu";
 import { z } from "zod";
 import { Button } from "@/components/ui";
@@ -222,6 +222,27 @@ export function SlotReferenceEdit(props: SlotReferenceEditProps) {
 
   const canSubmit = useStore(form.store, (state) => state.canSubmit);
   const hasRecipeParams = recipe && recipe.parameters.length > 0;
+  const registerSubmitHandler = useTemplateBuilderStore(
+    (state) => state.registerEditingSubmitHandler
+  );
+
+  const commitActiveEdit = useCallback(async () => {
+    try {
+      await form.handleSubmit();
+    } catch {
+      return false;
+    }
+
+    const { editingNodeId } = useTemplateBuilderStore.getState();
+    return editingNodeId !== node.id;
+  }, [form, node.id]);
+
+  useLayoutEffect(() => {
+    registerSubmitHandler(commitActiveEdit);
+    return () => {
+      registerSubmitHandler(null);
+    };
+  }, [commitActiveEdit, registerSubmitHandler]);
 
   return (
     <NodeFrame

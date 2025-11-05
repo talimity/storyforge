@@ -65,13 +65,22 @@ describe("chapter separators", () => {
     expect(options.injections).toHaveLength(3);
     const [first, second, third] = options.injections ?? [];
     expect(first?.lane).toBe(CHAPTER_SEPARATOR_LANE_ID);
-    expect(first?.target).toEqual({ kind: "at", key: "turn_1_before" });
+    expect(first?.target).toEqual([
+      { kind: "at", key: "turn_1_before" },
+      { kind: "at", key: "turn_0" },
+    ]);
     expect(first?.payload).toMatchObject({ chapterNumber: 1, title: "Intro" });
 
-    expect(second?.target).toEqual({ kind: "at", key: "turn_3_before" });
+    expect(second?.target).toEqual([
+      { kind: "at", key: "turn_3_before" },
+      { kind: "at", key: "turn_2" },
+    ]);
     expect(second?.payload).toMatchObject({ chapterNumber: 2, title: "Middle" });
 
-    expect(third?.target).toEqual({ kind: "at", key: "turn_5_before" });
+    expect(third?.target).toEqual([
+      { kind: "at", key: "turn_5_before" },
+      { kind: "at", key: "turn_4" },
+    ]);
     expect(third?.payload).toMatchObject({ chapterNumber: 3, title: "Climax" });
   });
 

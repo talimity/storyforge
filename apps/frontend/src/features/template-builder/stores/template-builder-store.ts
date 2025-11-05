@@ -35,6 +35,7 @@ export interface TemplateBuilderState {
   slotsDraft: Record<string, SlotDraft>;
   attachmentDrafts: Record<string, AttachmentLaneDraft>;
   editingNodeId: string | null;
+  editingSubmitHandler: (() => Promise<boolean> | boolean) | null;
   isDirty: boolean;
 
   // Actions
@@ -76,23 +77,33 @@ export interface TemplateBuilderState {
     block: SlotBlockDraft,
     options?: { insertionIndex?: number; overwrite?: boolean }
   ) => { slotName: string; mode: "added" | "overwritten" };
+
+  // Edit orchestration
+  registerEditingSubmitHandler: (handler: (() => Promise<boolean> | boolean) | null) => void;
+  commitActiveEdit: () => Promise<boolean>;
 }
 
 const makeInitialState = (): Pick<
   TemplateBuilderState,
-  "layoutDraft" | "slotsDraft" | "attachmentDrafts" | "editingNodeId" | "isDirty"
+  | "layoutDraft"
+  | "slotsDraft"
+  | "attachmentDrafts"
+  | "editingNodeId"
+  | "editingSubmitHandler"
+  | "isDirty"
 > => ({
   layoutDraft: [],
   slotsDraft: {},
   attachmentDrafts: {},
   editingNodeId: null,
+  editingSubmitHandler: null,
   isDirty: false,
 });
 
 const initialState = makeInitialState();
 
 export const useTemplateBuilderStore = create<TemplateBuilderState>()(
-  immer((set, _get) => ({
+  immer((set, get) => ({
     ...initialState,
 
     initialize: (draft) =>
@@ -101,6 +112,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
         state.slotsDraft = draft.slotsDraft;
         state.attachmentDrafts = draft.attachmentDrafts;
         state.editingNodeId = null;
+        state.editingSubmitHandler = null;
         state.isDirty = false;
       }),
 
@@ -111,6 +123,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
         state.slotsDraft = fresh.slotsDraft;
         state.attachmentDrafts = fresh.attachmentDrafts;
         state.editingNodeId = fresh.editingNodeId;
+        state.editingSubmitHandler = fresh.editingSubmitHandler;
         state.isDirty = fresh.isDirty;
       }),
 
@@ -272,6 +285,7 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
     startEditingNode: (nodeId) =>
       set((state) => {
         state.editingNodeId = nodeId;
+        state.editingSubmitHandler = null;
       }),
 
     saveNodeEdit: (nodeId, nodeData, slotData) =>
@@ -325,12 +339,14 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
         }
 
         state.editingNodeId = null;
+        state.editingSubmitHandler = null;
         state.isDirty = true;
       }),
 
     cancelNodeEdit: () =>
       set((state) => {
         state.editingNodeId = null;
+        state.editingSubmitHandler = null;
       }),
 
     importSlotBlock: (block, options) => {
@@ -410,6 +426,32 @@ export const useTemplateBuilderStore = create<TemplateBuilderState>()(
       });
 
       return result;
+    },
+
+    registerEditingSubmitHandler: (handler) =>
+      set((state) => {
+        state.editingSubmitHandler = handler;
+      }),
+
+    commitActiveEdit: async () => {
+      const state = get();
+      const activeNodeId = state.editingNodeId;
+      if (!activeNodeId) {
+        return true;
+      }
+
+      const handler = state.editingSubmitHandler;
+
+      if (!handler) {
+        return false;
+      }
+
+      const result = await handler();
+      if (result === false) {
+        return false;
+      }
+
+      return get().editingNodeId !== activeNodeId;
     },
   }))
 );

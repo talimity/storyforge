@@ -1,6 +1,6 @@
 import { Badge, HStack, Icon, IconButton, Stack, VStack } from "@chakra-ui/react";
 import { useStore } from "@tanstack/react-form";
-import { useEffect } from "react";
+import { useCallback, useEffect, useLayoutEffect } from "react";
 import { LuCheck, LuX } from "react-icons/lu";
 import { NodeFrame } from "@/features/template-builder/components/nodes/node-frame";
 import {
@@ -9,6 +9,7 @@ import {
   getRoleLabel,
   MESSAGE_ROLE_SELECT_OPTIONS,
 } from "@/features/template-builder/services/builder-utils";
+import { useTemplateBuilderStore } from "@/features/template-builder/stores/template-builder-store";
 import type { MessageLayoutDraft } from "@/features/template-builder/types";
 import { useAppForm } from "@/lib/form/app-form";
 
@@ -55,7 +56,7 @@ export function MessageNodeEdit(props: MessageNodeEditProps) {
   const role = useStore(form.store, (state) => state.values.role);
   const NodeIcon = getNodeIcon({ kind: "message", role });
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const values = form.state.values;
     const updatedNode: MessageLayoutDraft = {
       ...node,
@@ -65,7 +66,20 @@ export function MessageNodeEdit(props: MessageNodeEditProps) {
       when: values.when,
     };
     onSave?.(updatedNode);
-  };
+    return true;
+  }, [form, node, onSave]);
+
+  const registerSubmitHandler = useTemplateBuilderStore(
+    (state) => state.registerEditingSubmitHandler
+  );
+
+  useLayoutEffect(() => {
+    const commit = () => Promise.resolve(handleSave());
+    registerSubmitHandler(commit);
+    return () => {
+      registerSubmitHandler(null);
+    };
+  }, [handleSave, registerSubmitHandler]);
 
   return (
     <NodeFrame
@@ -83,7 +97,9 @@ export function MessageNodeEdit(props: MessageNodeEditProps) {
             <IconButton
               size="xs"
               colorPalette="green"
-              onClick={handleSave}
+              onClick={() => {
+                handleSave();
+              }}
               aria-label="Save changes"
             >
               <LuCheck />

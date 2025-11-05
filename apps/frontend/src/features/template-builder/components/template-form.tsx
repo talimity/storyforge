@@ -45,17 +45,25 @@ export function TemplateForm({
 }: TemplateFormProps) {
   const [activeTab, setActiveTab] = useState("metadata");
 
-  const { layoutDraft, slotsDraft, attachmentDrafts, builderIsDirty, initialize, markClean } =
-    useTemplateBuilderStore(
-      useShallow((state) => ({
-        layoutDraft: state.layoutDraft,
-        slotsDraft: state.slotsDraft,
-        attachmentDrafts: state.attachmentDrafts,
-        builderIsDirty: state.isDirty,
-        initialize: state.initialize,
-        markClean: state.markClean,
-      }))
-    );
+  const {
+    layoutDraft,
+    slotsDraft,
+    attachmentDrafts,
+    builderIsDirty,
+    initialize,
+    markClean,
+    commitActiveEdit,
+  } = useTemplateBuilderStore(
+    useShallow((state) => ({
+      layoutDraft: state.layoutDraft,
+      slotsDraft: state.slotsDraft,
+      attachmentDrafts: state.attachmentDrafts,
+      builderIsDirty: state.isDirty,
+      initialize: state.initialize,
+      markClean: state.markClean,
+      commitActiveEdit: state.commitActiveEdit,
+    }))
+  );
 
   const metadataDefaults: MetadataFormValues = {
     name: initialDraft.name,
@@ -222,7 +230,14 @@ export function TemplateForm({
           id={form.formId}
           onSubmit={(event) => {
             event.preventDefault();
-            void form.handleSubmit();
+            void (async () => {
+              const editCommitted = await commitActiveEdit();
+              if (!editCommitted) {
+                setActiveTab("structure");
+                return;
+              }
+              await form.handleSubmit();
+            })();
           }}
         >
           <Tabs.Root

@@ -94,6 +94,7 @@ describe("compileDraft", () => {
             maxTurns: 20,
             turnTemplate: "[{{item.turnNo}}] {{item.authorName}}: {{item.content}}",
             chapterWindowEnabled: true,
+            chapterWindowPreset: "custom",
             chapterWindowStartOffset: -2,
             chapterWindowEndOffset: 0,
             chapterWindowRequireMinTurns: true,
@@ -154,7 +155,7 @@ describe("compileDraft", () => {
     }
 
     expect(forEachNode.source).toEqual({ source: "chapterSummaries" });
-    expect(forEachNode.limit).toBe(3);
+    expect(forEachNode.limit).toBe(20);
 
     const messageNode = forEachNode.map[0];
     expect(messageNode).toEqual({
