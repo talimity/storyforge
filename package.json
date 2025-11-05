@@ -12,6 +12,7 @@
     "dev": "concurrently -c blue,green pnpm:dev:*",
     "fmt": "pnpm -r --parallel run fmt",
     "lint": "pnpm -r --parallel lint && pnpm --parallel typecheck",
+    "start": "concurrently -c blue,green 'pnpm --filter backend start' 'pnpm --filter frontend preview'",
     "typecheck": "pnpm --parallel run typecheck",
     "typecheck:legacy": "pnpm --parallel run typecheck:legacy",
     "test": "pnpm -r --parallel run test"

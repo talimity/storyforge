@@ -5,7 +5,7 @@ import { initRunManager } from "./services/intent/run-manager.js";
 
 const ORPHANED_INTENT_TTL = 24 * 60 * 60 * 1000;
 const ORPHANED_RUN_TTL = 60 * 60 * 1000;
-const RUN_RETENTION_LIMIT = 500;
+const RUN_RETENTION_LIMIT = 1000;
 
 export async function cleanData(db: SqliteDatabase) {
   initRunManager({ db, now: () => Date.now() });
