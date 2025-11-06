@@ -13,7 +13,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@chakra-ui/react": "^3.28.0",
+    "@chakra-ui/react": "^3.29.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -27,7 +27,7 @@
     "@storyforge/prompt-rendering": "workspace:*",
     "@storyforge/utils": "workspace:*",
     "@tanstack/react-form": "^1.23.8",
-    "@tanstack/react-query": "^5.90.6",
+    "@tanstack/react-query": "^5.90.7",
     "@tanstack/react-virtual": "^3.13.1",
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
@@ -58,7 +58,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@chakra-ui/cli": "^3.28.0",
+    "@chakra-ui/cli": "^3.29.0",
     "@storyforge/backend": "workspace:*",
     "@tanstack/react-devtools": "^0.7.11",
     "@tanstack/react-form-devtools": "^0.1.8",
@@ -73,17 +73,17 @@
     "@types/node": "catalog:",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@typescript-eslint/parser": "catalog:",
+    "@typescript-eslint/parser": "^8.46.3",
     "@typescript/native-preview": "catalog:",
     "@vitejs/plugin-react": "^5.1.0",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9.39.0",
+    "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "jsdom": "^27.1.0",
     "react-intersection-observer": "^9.16.0",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "catalog:",
-    "vite": "^7.1.12",
+    "vite": "catalog:",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vitest": "catalog:"
   }

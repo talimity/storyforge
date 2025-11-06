@@ -3,25 +3,25 @@ packages:
   - packages/*
 
 catalog:
-  '@biomejs/biome': ^2.3.2
+  '@biomejs/biome': ^2.3.4
   '@libsql/client': ^0.15.10
   '@trpc/client': ^11.7.1
   '@trpc/react-query': ^11.7.1
   '@trpc/server': ^11.7.1
   '@trpc/tanstack-react-query': ^11.7.1
   '@types/json-schema': ^7.0.15
-  '@types/node': ^24.9.2
-  '@typescript-eslint/parser': ^8.46.2
+  '@types/node': ^24.10.0
   '@typescript/native-preview': 7.0.0-dev.20251101.1
   chevrotain: ^11.0.3
   drizzle-kit: beta
   drizzle-orm: 1.0.0-beta.1-27d2721
   json-schema: ^0.4.0
-  sharp: ^0.34.3
+  sharp: ^0.34.5
   superjson: ^2.2.5
   trpc-to-openapi: ^3.1.0
   tsx: ^4.20.3
   typescript: ^5.9.3
+  vite: ^7.2.1
   vitest: ^3.2.4
   zod: ^4.1.12
   zod-openapi: ^5.4.3
